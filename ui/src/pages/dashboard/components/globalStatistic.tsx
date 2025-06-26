@@ -87,110 +87,110 @@ const GlobalStatistic = () => {
         borderRadius: 2.5,
       }}
     >
-      <Grid container size={9} spacing={2}>
-        <Grid size={4}>
-          <UserCard data={statisticsData} />
-        </Grid>
-        <Grid size={8}>
-          <LineCharts
-            title='活跃用户'
-            data={userActiveChartData}
-            extra={
-              <>
-                最近 90 天共
-                <StyledHighlight>
-                  {timeStatData?.total_users || 0}
-                </StyledHighlight>
-                个活跃用户数
-              </>
-            }
-          />
-        </Grid>
-        <Grid size={4}>
-          <PieCharts
-            title='工作模式-对话任务'
-            data={categoryStatData.work_mode || []}
-            extra='最近 90 天'
-          />
-        </Grid>
-        <Grid size={4}>
-          <PieCharts
-            title='编程语言'
-            data={categoryStatData.program_language || []}
-            extra='最近 90 天'
-          />
-        </Grid>
-        <Grid size={4}>
-          <BarCharts
-            title='实时使用情况'
-            data={realTimeTokenChartData}
-            extra='近 60 分钟'
-          />
-        </Grid>
-        <Grid size={6}>
-          <LineCharts
-            title='对话任务'
-            data={chatChartData}
-            extra={
-              <>
-                最近 90 天共
-                <StyledHighlight>
-                  {timeStatData?.total_chats || 0}
-                </StyledHighlight>
-                个对话任务
-              </>
-            }
-          />
-        </Grid>
-        <Grid size={6}>
-          <LineCharts
-            title='补全任务'
-            data={codeCompletionChartData}
-            extra={
-              <>
-                最近 90 天共
-                <StyledHighlight>
-                  {timeStatData?.total_completions || 0}
-                </StyledHighlight>
-                个补全任务
-              </>
-            }
-          />
-        </Grid>
-        <Grid size={6}>
-          <LineCharts
-            title='代码量'
-            data={codeLineChartData}
-            extra={
-              <>
-                最近 90 天共修改
-                <StyledHighlight>
-                  {timeStatData?.total_lines_of_code || 0}
-                </StyledHighlight>
-                行代码
-              </>
-            }
-          />
-        </Grid>
-        <Grid size={6}>
-          <LineCharts
-            title='补全任务采纳率'
-            data={acceptedPerChartData}
-            extra={
-              <>
-                最近 90 天平均采纳率为
-                <StyledHighlight>
-                  {(timeStatData?.total_accepted_per || 0).toFixed(2)}
-                </StyledHighlight>
-                %
-              </>
-            }
-          />
-        </Grid>
+      {/* <Grid container size={9} spacing={2}> */}
+      <Grid size={3}>
+        <UserCard data={statisticsData} />
+      </Grid>
+      <Grid size={6}>
+        <LineCharts
+          title='活跃用户'
+          data={userActiveChartData}
+          extra={
+            <>
+              最近 90 天共
+              <StyledHighlight>
+                {timeStatData?.total_users || 0}
+              </StyledHighlight>
+              个活跃用户数
+            </>
+          }
+        />
       </Grid>
       <Grid size={3}>
         <ContributionCard data={userCodeRankData} />
       </Grid>
+      <Grid size={4}>
+        <PieCharts
+          title='工作模式-对话任务'
+          data={categoryStatData.work_mode || []}
+          extra='最近 90 天'
+        />
+      </Grid>
+      <Grid size={4}>
+        <PieCharts
+          title='编程语言'
+          data={categoryStatData.program_language || []}
+          extra='最近 90 天'
+        />
+      </Grid>
+      <Grid size={4}>
+        <BarCharts
+          title='实时使用情况'
+          data={realTimeTokenChartData}
+          extra='近 60 分钟'
+        />
+      </Grid>
+      <Grid size={6}>
+        <LineCharts
+          title='对话任务'
+          data={chatChartData}
+          extra={
+            <>
+              最近 90 天共
+              <StyledHighlight>
+                {timeStatData?.total_chats || 0}
+              </StyledHighlight>
+              个对话任务
+            </>
+          }
+        />
+      </Grid>
+      <Grid size={6}>
+        <LineCharts
+          title='补全任务'
+          data={codeCompletionChartData}
+          extra={
+            <>
+              最近 90 天共
+              <StyledHighlight>
+                {timeStatData?.total_completions || 0}
+              </StyledHighlight>
+              个补全任务
+            </>
+          }
+        />
+      </Grid>
+      <Grid size={6}>
+        <LineCharts
+          title='代码量'
+          data={codeLineChartData}
+          extra={
+            <>
+              最近 90 天共修改
+              <StyledHighlight>
+                {timeStatData?.total_lines_of_code || 0}
+              </StyledHighlight>
+              行代码
+            </>
+          }
+        />
+      </Grid>
+      <Grid size={6}>
+        <LineCharts
+          title='补全任务采纳率'
+          data={acceptedPerChartData}
+          extra={
+            <>
+              最近 90 天平均采纳率为
+              <StyledHighlight>
+                {(timeStatData?.total_accepted_per || 0).toFixed(2)}
+              </StyledHighlight>
+              %
+            </>
+          }
+        />
+      </Grid>
+      {/* </Grid> */}
     </Grid>
   );
 };

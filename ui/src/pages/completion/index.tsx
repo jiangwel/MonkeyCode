@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import { ColumnsType } from '@c-x/ui/dist/Table';
 import { addCommasToNumber } from '@/utils';
 import CompletionDetailModal from './completionDetailModal';
+import StyledLabel from '@/components/label';
 
 const Completion = () => {
   const [page, setPage] = useState(1);
@@ -65,12 +66,9 @@ const Completion = () => {
       title: '是否采纳',
       width: 130,
       render(value: boolean) {
+        const color = value ? 'success' : 'default';
         return (
-          <Chip
-            size='small'
-            label={value ? '已采纳' : '未采纳'}
-            color={value ? 'success' : 'default'}
-          />
+          <StyledLabel color={color}>{value ? '已采纳' : '未采纳'}</StyledLabel>
         );
       },
     },

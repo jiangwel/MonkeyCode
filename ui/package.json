@@ -1,6 +1,5 @@
 {
-  "name": "baizhiyun-app-airport",
-  "private": true,
+  "name": "monkey-code-ui",
   "version": "0.0.0",
   "type": "module",
   "scripts": {

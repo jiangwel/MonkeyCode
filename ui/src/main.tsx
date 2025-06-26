@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom/client';
 import 'dayjs/locale/zh-cn';
 import { RouterProvider } from 'react-router-dom';
+import '@/assets/fonts/font.css';
 import '@/assets/fonts/iconfont';
 import './index.css';
 import '@/assets/styles/markdown.css';

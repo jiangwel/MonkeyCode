@@ -5,7 +5,7 @@ import { Stack } from '@mui/material';
 
 const Admin = () => {
   return (
-    <Stack gap={2}>
+    <Stack gap={2} sx={{ height: '100%' }}>
       <AdminTable />
       <LoginHistory />
     </Stack>

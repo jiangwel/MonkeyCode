@@ -4,8 +4,10 @@ import { getListChatRecord } from '@/api/Billing';
 import { aggregatedTime } from '@/utils';
 import dayjs from 'dayjs';
 import { convertTokensToRMB } from '@/utils';
+
 import Card from '@/components/card';
 import { Box, Stack, styled, Chip } from '@mui/material';
+import StyledLabel from '@/components/label';
 
 import ChatDetailModal from './chatDetailModal';
 import { ColumnsType } from '@c-x/ui/dist/Table';
@@ -69,19 +71,15 @@ const Chat = () => {
       title: '工作模式',
       width: 120,
       render(value: DomainChatRecord['work_mode']) {
-        const workModeMap = {
+        const workModeMap: Record<string, string> = {
           code: 'warning',
           chat: 'success',
           ask: 'info',
         };
         return (
-          <Chip
-            size='small'
-            label={value}
-            // variant='outlined'
-            // @ts-ignore
-            color={workModeMap[value] || 'default'}
-          />
+          <StyledLabel color={value ? workModeMap[value] : 'default'}>
+            {value}
+          </StyledLabel>
         );
       },
     },

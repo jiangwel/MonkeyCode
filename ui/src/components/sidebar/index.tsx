@@ -92,15 +92,18 @@ const Sidebar = () => {
           window.open('https://baizhi.cloud', '_blank');
         }}
       >
-        <Icon type='icon-baizhiyunlogo' sx={{ fontSize: 20 }} />
+        <Box component='img' src={Logo} sx={{ width: 32, height: 32 }} />
         <Box
           sx={{
             fontSize: '16px',
             fontWeight: 'bold',
             textAlign: 'center',
+            '&:first-letter': {
+              color: 'info.main',
+            },
           }}
         >
-          MonkeyCode
+          Monkey Code
         </Box>
       </Stack>
 

@@ -198,6 +198,9 @@ const ModelModal = ({
     if (open) {
       getListModel().then((res) => {
         setModelUserList(res.providers || []);
+        if (!data) {
+          setValue('provider', res.providers?.[0].provider || 'DeepSeek');
+        }
       });
     }
   }, [open]);

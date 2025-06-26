@@ -23,7 +23,6 @@ const InviteUserModal = ({
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(inviteUrl);
       message.success('链接已复制到剪贴板');
     } catch (err) {
       console.error('复制失败:', err);

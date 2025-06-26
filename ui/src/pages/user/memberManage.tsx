@@ -336,11 +336,23 @@ const MemberManage = () => {
       >
         <Box sx={{ fontWeight: 700 }}>成员列表</Box>
         <Stack direction='row' gap={1}>
-          <TextField label='搜索' size='small' />
+          <TextField
+            label='搜索'
+            size='small'
+            sx={{
+              fontSize: 14,
+              '.MuiInputLabel-root': {
+                fontSize: 14,
+              },
+              '.MuiInputBase-root': {
+                height: 36.5,
+                boxSizing: 'border-box',
+              },
+            }}
+          />
           <Button
             variant='contained'
             color='primary'
-            size='small'
             onClick={() => setOpen(true)}
           >
             邀请新用户
