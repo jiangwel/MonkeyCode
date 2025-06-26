@@ -30,7 +30,7 @@ const StyledItem = styled('div')(({ theme }) => ({
 
 const StyledText = styled('a')(({ theme }) => ({
   fontSize: 14,
-  color: theme.palette.text.secondary,
+  color: theme.palette.text.primary,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -47,6 +47,7 @@ const StyledSerialNumber = styled('span')<{ num: number }>(({ theme, num }) => {
     color: color,
     fontSize: 14,
     fontWeight: 700,
+    width: 8,
   };
 });
 
@@ -64,8 +65,16 @@ export const ContributionCard = ({
         <Box sx={{ fontSize: 12, color: 'text.tertiary' }}>最近 90 天</Box>
       </Stack>
 
-      <Stack gap={2} sx={{ mt: 2 }}>
-        {data.map((item, index) => (
+      <Box
+        gap={0.5}
+        sx={{
+          mt: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          height: 120,
+        }}
+      >
+        {data.slice(0, 5).map((item, index) => (
           <Stack
             direction='row'
             alignItems='center'
@@ -104,7 +113,7 @@ export const ContributionCard = ({
             <Box sx={{ fontSize: 14 }}>{item.lines}</Box>
           </Stack>
         ))}
-      </Stack>
+      </Box>
     </Card>
   );
 };

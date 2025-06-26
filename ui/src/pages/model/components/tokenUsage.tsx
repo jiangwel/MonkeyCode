@@ -18,7 +18,7 @@ const StyledTokenWrapper = styled(Stack)(({ theme }) => ({
   fontSize: 14,
   backgroundColor: theme.vars.palette.grey[50],
   borderRadius: '10px',
-  padding: theme.spacing(1.5, 1),
+  padding: theme.spacing(1.5),
 }));
 
 const TokenUsage = () => {
@@ -68,7 +68,9 @@ const TokenUsage = () => {
             <StyledHighlight>
               {addCommasToNumber(llmModelData?.total_input)}
             </StyledHighlight>
-            <Box sx={{ color: 'text.tertiary' }}>对话模型 - 输入 Token</Box>
+            <Box sx={{ color: 'text.tertiary', fontSize: 12 }}>
+              对话模型 - 输入 Token
+            </Box>
           </StyledTokenWrapper>
           <LineCharts data={llmInputData} name='输入 Token' />
         </Stack>
@@ -77,7 +79,9 @@ const TokenUsage = () => {
             <StyledHighlight>
               {addCommasToNumber(llmModelData?.total_output)}
             </StyledHighlight>
-            <Box sx={{ color: 'text.tertiary' }}>对话模型 - 输出 Token</Box>
+            <Box sx={{ color: 'text.tertiary', fontSize: 12 }}>
+              对话模型 - 输出 Token
+            </Box>
           </StyledTokenWrapper>
           <LineCharts data={llmOutputData} name='输出 Token' />
         </Stack>
@@ -86,7 +90,9 @@ const TokenUsage = () => {
             <StyledHighlight>
               {addCommasToNumber(coderModelData?.total_input)}
             </StyledHighlight>
-            <Box sx={{ color: 'text.tertiary' }}>代码补全模型 - 输入 Token</Box>
+            <Box sx={{ color: 'text.tertiary', fontSize: 12 }}>
+              代码补全模型 - 输入 Token
+            </Box>
           </StyledTokenWrapper>
           <LineCharts data={coderInputData} name='输入 Token' />
         </Stack>
@@ -95,7 +101,9 @@ const TokenUsage = () => {
             <StyledHighlight>
               {addCommasToNumber(coderModelData?.total_output)}
             </StyledHighlight>
-            <Box sx={{ color: 'text.tertiary' }}>代码补全模型 - 输出 Token</Box>
+            <Box sx={{ color: 'text.tertiary', fontSize: 12 }}>
+              代码补全模型 - 输出 Token
+            </Box>
           </StyledTokenWrapper>
 
           <LineCharts data={coderOutputData} name='输出 Token' />

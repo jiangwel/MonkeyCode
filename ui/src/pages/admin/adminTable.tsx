@@ -226,6 +226,7 @@ const AdminTable = () => {
         </Button>
       </Stack>
       <Table<DomainAdminUser>
+        // height='calc(100% - 50px)'
         columns={columns}
         loading={loading}
         dataSource={data?.users || []}

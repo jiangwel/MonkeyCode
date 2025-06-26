@@ -3,7 +3,8 @@ import Card from '@/components/card';
 import { useRequest } from 'ahooks';
 import { getMyModelList, putUpdateModel } from '@/api/Model';
 import { DomainModel, ConstsModelStatus } from '@/api/types';
-import { Stack, Box, Button, Grid2 as Grid, Chip } from '@mui/material';
+import { Stack, Box, Button, Grid2 as Grid, ButtonBase } from '@mui/material';
+import StyledLabel from '@/components/label';
 import { Icon, Modal, message } from '@c-x/ui';
 import { addCommasToNumber } from '@/utils';
 import NoData from '@/assets/images/nodata.png';
@@ -78,26 +79,31 @@ const ModelItem = ({
         position: 'relative',
         transition: 'all 0.3s ease',
         boxShadow:
-          '0px 12px 24px -4px rgba(68, 80, 91, 0.1), 0px 0px 2px 0px rgba(68, 80, 91, 0.1)',
+          '0px 0px 10px 0px rgba(68, 80, 91, 0.1), 0px 0px 2px 0px rgba(68, 80, 91, 0.1)',
         '&:hover': {
           boxShadow:
             'rgba(54, 59, 76, 0.3) 0px 10px 30px 0px, rgba(54, 59, 76, 0.03) 0px 0px 1px 1px',
         },
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 3,
-          background: data.is_active
-            ? 'linear-gradient(90deg, #4CAF50, #66BB6A)'
-            : 'linear-gradient(90deg, #E0E0E0, #BDBDBD)',
-          transition: 'all 0.3s ease',
-        },
+        // '&::before': {
+        //   content: '""',
+        //   position: 'absolute',
+        //   top: 0,
+        //   left: 0,
+        //   right: 0,
+        //   height: 3,
+        //   background: data.is_active
+        //     ? 'linear-gradient(90deg, #4CAF50, #66BB6A)'
+        //     : 'linear-gradient(90deg, #E0E0E0, #BDBDBD)',
+        //   transition: 'all 0.3s ease',
+        // },
       }}
     >
-      <Stack direction='row' alignItems='center' justifyContent='space-between'>
+      <Stack
+        direction='row'
+        alignItems='center'
+        justifyContent='space-between'
+        sx={{ height: 28 }}
+      >
         <Stack direction='row' alignItems='center' gap={1}>
           <Icon
             type={
@@ -108,13 +114,7 @@ const ModelItem = ({
           <Box sx={{ fontWeight: 700 }}>{data.model_name}</Box>
         </Stack>
 
-        {data.is_active && (
-          <Chip
-            size='small'
-            label='正在使用'
-            sx={{ color: '#fff', bgcolor: 'success.dark' }}
-          />
-        )}
+        {data.is_active && <StyledLabel color='success'>正在使用</StyledLabel>}
       </Stack>
       <Stack
         gap={1}
@@ -154,20 +154,39 @@ const ModelItem = ({
           direction='row'
           justifySelf='flex-end'
           sx={{ button: { minWidth: 0 } }}
+          gap={2}
         >
-          <Button color='info' size='small' onClick={() => onEdit(data)}>
+          <ButtonBase
+            disableRipple
+            sx={{
+              color: 'info.main',
+            }}
+            onClick={() => onEdit(data)}
+          >
             编辑
-          </Button>
+          </ButtonBase>
           {!data.is_active && (
-            <Button color='success' size='small' onClick={onActiveModel}>
+            <ButtonBase
+              disableRipple
+              sx={{
+                color: 'success.main',
+              }}
+              onClick={onActiveModel}
+            >
               激活
-            </Button>
+            </ButtonBase>
           )}
 
           {data.is_active && (
-            <Button color='error' size='small' onClick={onInactiveModel}>
+            <ButtonBase
+              disableRipple
+              sx={{
+                color: 'error.main',
+              }}
+              onClick={onInactiveModel}
+            >
               停用
-            </Button>
+            </ButtonBase>
           )}
           {/* <Button color='error' size='small'>
             删除
@@ -229,7 +248,10 @@ const ModelCard: React.FC<IModelCardProps> = ({ title, modelType }) => {
 
       <ModelModal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          setOpen(false);
+          setEditData(null);
+        }}
         refresh={refresh}
         data={editData}
         modelType={modelType}

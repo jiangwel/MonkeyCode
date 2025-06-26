@@ -11,9 +11,14 @@ html {
   padding: 0;
 }
 
+:root {
+  --font-gilory: 'gilroy';
+  --font-HarmonyOS: 'HarmonyOS';
+}
+
 body {
   margin: 0;
-  font-family: 'PingFang SC', var(--font-gilory), var(--font-HarmonyOS),
+  font-family: var(--font-gilory), var(--font-HarmonyOS), 'PingFang SC',
     'Roboto', 'Helvetica', 'Arial', sans-serif;
   color: var(--mui-palette-text-primary);
   font-weight: 400;
