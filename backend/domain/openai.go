@@ -63,7 +63,7 @@ func (m *ModelData) From(e *db.Model) *ModelData {
 
 type ConfigReq struct {
 	Key  string
-	Type consts.ConfigType `json:"type"`
+	Type consts.ConfigType `json:"type" query:"type"`
 }
 
 type ConfigResp struct {

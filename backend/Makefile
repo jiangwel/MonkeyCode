@@ -1,8 +1,8 @@
 PLATFORM=linux/amd64
 TAG=main
-OUTPUT=type=docker,dest=/tmp/monkeycode_server.tar
-GOCACHE=$HOME/.cache/go-build
-GOMODCACHE=$HOME/go/pkg/mod
+OUTPUT=type=docker,dest=${HOME}/tmp/monkeycode_server.tar
+GOCACHE=${HOME}/.cache/go-build
+GOMODCACHE=${HOME}/go/pkg/mod
 REGISTRY=monkeycode.chaitin.cn/monkeycode
 
 # make build PLATFORM= TAG= OUTPUT= GOCACHE=
