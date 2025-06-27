@@ -529,6 +529,15 @@ func streamRead(ctx context.Context, r io.Reader, fn func([]byte) error) error {
 	}
 }
 
+func getPrompt(req *openai.ChatCompletionRequest) string {
+	for _, message := range req.Messages {
+		if message.Role == "user" && strings.Contains(message.Content, "<task>") {
+			return message.Content
+		}
+	}
+	return ""
+}
+
 func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.ResponseWriter, req *openai.ChatCompletionRequest) {
 	endpoint := "/chat/completions"
 	p.handle(ctx, func(c *Ctx, log *RequestResponseLog) error {
@@ -543,8 +552,8 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 			return err
 		}
 
-		prompt := req.Metadata["message"]
-		workMode := req.Metadata["work_mode"]
+		prompt := getPrompt(req)
+		mode := req.Metadata["mode"]
 		taskID := req.Metadata["task_id"]
 
 		// 构造上游API URL
@@ -588,7 +597,7 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 			"modelName", m.ModelName,
 			"modelType", consts.ModelTypeLLM,
 			"apiBase", m.APIBase,
-			"work_mode", workMode,
+			"work_mode", mode,
 			"requestHeader", req.Header,
 			"requestBody", req,
 			"taskID", taskID,
@@ -666,7 +675,7 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 			UserID:    c.UserID,
 			ModelID:   m.ID,
 			ModelType: consts.ModelTypeLLM,
-			WorkMode:  workMode,
+			WorkMode:  mode,
 			Prompt:    prompt,
 			TaskID:    taskID,
 		}
@@ -746,8 +755,8 @@ func (p *LLMProxy) handleChatCompletion(ctx context.Context, w http.ResponseWrit
 		}
 
 		startTime := time.Now()
-		prompt := req.Metadata["message"]
-		workMode := req.Metadata["work_mode"]
+		prompt := getPrompt(req)
+		mode := req.Metadata["mode"]
 		taskID := req.Metadata["task_id"]
 
 		client := request.NewClient(u.Scheme, u.Host, 30*time.Second)
@@ -775,7 +784,7 @@ func (p *LLMProxy) handleChatCompletion(ctx context.Context, w http.ResponseWrit
 				TaskID:          taskID,
 				UserID:          c.UserID,
 				Prompt:          prompt,
-				WorkMode:        workMode,
+				WorkMode:        mode,
 				ModelID:         m.ID,
 				ModelType:       m.ModelType,
 				InputTokens:     int64(resp.Usage.PromptTokens),
