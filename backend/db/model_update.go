@@ -14,7 +14,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/google/uuid"
 )
@@ -224,19 +224,19 @@ func (mu *ModelUpdate) SetUpdatedAt(t time.Time) *ModelUpdate {
 	return mu
 }
 
-// AddRecordIDs adds the "records" edge to the Record entity by IDs.
-func (mu *ModelUpdate) AddRecordIDs(ids ...uuid.UUID) *ModelUpdate {
-	mu.mutation.AddRecordIDs(ids...)
+// AddTaskIDs adds the "tasks" edge to the Task entity by IDs.
+func (mu *ModelUpdate) AddTaskIDs(ids ...uuid.UUID) *ModelUpdate {
+	mu.mutation.AddTaskIDs(ids...)
 	return mu
 }
 
-// AddRecords adds the "records" edges to the Record entity.
-func (mu *ModelUpdate) AddRecords(r ...*Record) *ModelUpdate {
-	ids := make([]uuid.UUID, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+// AddTasks adds the "tasks" edges to the Task entity.
+func (mu *ModelUpdate) AddTasks(t ...*Task) *ModelUpdate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return mu.AddRecordIDs(ids...)
+	return mu.AddTaskIDs(ids...)
 }
 
 // SetUser sets the "user" edge to the User entity.
@@ -249,25 +249,25 @@ func (mu *ModelUpdate) Mutation() *ModelMutation {
 	return mu.mutation
 }
 
-// ClearRecords clears all "records" edges to the Record entity.
-func (mu *ModelUpdate) ClearRecords() *ModelUpdate {
-	mu.mutation.ClearRecords()
+// ClearTasks clears all "tasks" edges to the Task entity.
+func (mu *ModelUpdate) ClearTasks() *ModelUpdate {
+	mu.mutation.ClearTasks()
 	return mu
 }
 
-// RemoveRecordIDs removes the "records" edge to Record entities by IDs.
-func (mu *ModelUpdate) RemoveRecordIDs(ids ...uuid.UUID) *ModelUpdate {
-	mu.mutation.RemoveRecordIDs(ids...)
+// RemoveTaskIDs removes the "tasks" edge to Task entities by IDs.
+func (mu *ModelUpdate) RemoveTaskIDs(ids ...uuid.UUID) *ModelUpdate {
+	mu.mutation.RemoveTaskIDs(ids...)
 	return mu
 }
 
-// RemoveRecords removes "records" edges to Record entities.
-func (mu *ModelUpdate) RemoveRecords(r ...*Record) *ModelUpdate {
-	ids := make([]uuid.UUID, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+// RemoveTasks removes "tasks" edges to Task entities.
+func (mu *ModelUpdate) RemoveTasks(t ...*Task) *ModelUpdate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return mu.RemoveRecordIDs(ids...)
+	return mu.RemoveTaskIDs(ids...)
 }
 
 // ClearUser clears the "user" edge to the User entity.
@@ -372,28 +372,28 @@ func (mu *ModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.UpdatedAt(); ok {
 		_spec.SetField(model.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if mu.mutation.RecordsCleared() {
+	if mu.mutation.TasksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   model.RecordsTable,
-			Columns: []string{model.RecordsColumn},
+			Table:   model.TasksTable,
+			Columns: []string{model.TasksColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(record.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := mu.mutation.RemovedRecordsIDs(); len(nodes) > 0 && !mu.mutation.RecordsCleared() {
+	if nodes := mu.mutation.RemovedTasksIDs(); len(nodes) > 0 && !mu.mutation.TasksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   model.RecordsTable,
-			Columns: []string{model.RecordsColumn},
+			Table:   model.TasksTable,
+			Columns: []string{model.TasksColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(record.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -401,15 +401,15 @@ func (mu *ModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := mu.mutation.RecordsIDs(); len(nodes) > 0 {
+	if nodes := mu.mutation.TasksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   model.RecordsTable,
-			Columns: []string{model.RecordsColumn},
+			Table:   model.TasksTable,
+			Columns: []string{model.TasksColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(record.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -659,19 +659,19 @@ func (muo *ModelUpdateOne) SetUpdatedAt(t time.Time) *ModelUpdateOne {
 	return muo
 }
 
-// AddRecordIDs adds the "records" edge to the Record entity by IDs.
-func (muo *ModelUpdateOne) AddRecordIDs(ids ...uuid.UUID) *ModelUpdateOne {
-	muo.mutation.AddRecordIDs(ids...)
+// AddTaskIDs adds the "tasks" edge to the Task entity by IDs.
+func (muo *ModelUpdateOne) AddTaskIDs(ids ...uuid.UUID) *ModelUpdateOne {
+	muo.mutation.AddTaskIDs(ids...)
 	return muo
 }
 
-// AddRecords adds the "records" edges to the Record entity.
-func (muo *ModelUpdateOne) AddRecords(r ...*Record) *ModelUpdateOne {
-	ids := make([]uuid.UUID, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+// AddTasks adds the "tasks" edges to the Task entity.
+func (muo *ModelUpdateOne) AddTasks(t ...*Task) *ModelUpdateOne {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return muo.AddRecordIDs(ids...)
+	return muo.AddTaskIDs(ids...)
 }
 
 // SetUser sets the "user" edge to the User entity.
@@ -684,25 +684,25 @@ func (muo *ModelUpdateOne) Mutation() *ModelMutation {
 	return muo.mutation
 }
 
-// ClearRecords clears all "records" edges to the Record entity.
-func (muo *ModelUpdateOne) ClearRecords() *ModelUpdateOne {
-	muo.mutation.ClearRecords()
+// ClearTasks clears all "tasks" edges to the Task entity.
+func (muo *ModelUpdateOne) ClearTasks() *ModelUpdateOne {
+	muo.mutation.ClearTasks()
 	return muo
 }
 
-// RemoveRecordIDs removes the "records" edge to Record entities by IDs.
-func (muo *ModelUpdateOne) RemoveRecordIDs(ids ...uuid.UUID) *ModelUpdateOne {
-	muo.mutation.RemoveRecordIDs(ids...)
+// RemoveTaskIDs removes the "tasks" edge to Task entities by IDs.
+func (muo *ModelUpdateOne) RemoveTaskIDs(ids ...uuid.UUID) *ModelUpdateOne {
+	muo.mutation.RemoveTaskIDs(ids...)
 	return muo
 }
 
-// RemoveRecords removes "records" edges to Record entities.
-func (muo *ModelUpdateOne) RemoveRecords(r ...*Record) *ModelUpdateOne {
-	ids := make([]uuid.UUID, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+// RemoveTasks removes "tasks" edges to Task entities.
+func (muo *ModelUpdateOne) RemoveTasks(t ...*Task) *ModelUpdateOne {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return muo.RemoveRecordIDs(ids...)
+	return muo.RemoveTaskIDs(ids...)
 }
 
 // ClearUser clears the "user" edge to the User entity.
@@ -837,28 +837,28 @@ func (muo *ModelUpdateOne) sqlSave(ctx context.Context) (_node *Model, err error
 	if value, ok := muo.mutation.UpdatedAt(); ok {
 		_spec.SetField(model.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if muo.mutation.RecordsCleared() {
+	if muo.mutation.TasksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   model.RecordsTable,
-			Columns: []string{model.RecordsColumn},
+			Table:   model.TasksTable,
+			Columns: []string{model.TasksColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(record.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := muo.mutation.RemovedRecordsIDs(); len(nodes) > 0 && !muo.mutation.RecordsCleared() {
+	if nodes := muo.mutation.RemovedTasksIDs(); len(nodes) > 0 && !muo.mutation.TasksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   model.RecordsTable,
-			Columns: []string{model.RecordsColumn},
+			Table:   model.TasksTable,
+			Columns: []string{model.TasksColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(record.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -866,15 +866,15 @@ func (muo *ModelUpdateOne) sqlSave(ctx context.Context) (_node *Model, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := muo.mutation.RecordsIDs(); len(nodes) > 0 {
+	if nodes := muo.mutation.TasksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   model.RecordsTable,
-			Columns: []string{model.RecordsColumn},
+			Table:   model.TasksTable,
+			Columns: []string{model.TasksColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(record.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

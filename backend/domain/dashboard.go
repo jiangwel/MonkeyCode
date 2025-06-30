@@ -46,7 +46,7 @@ type UserCodeRank struct {
 	Lines    int64  `json:"lines"`    // 代码行数
 }
 
-func (u *UserCodeRank) From(d *db.Record) *UserCodeRank {
+func (u *UserCodeRank) From(d *db.Task) *UserCodeRank {
 	if d == nil {
 		return u
 	}

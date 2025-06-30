@@ -10,7 +10,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
@@ -75,13 +75,13 @@ func (r *ModelRepo) MyModelList(ctx context.Context, req *domain.MyModelListReq)
 
 func (r *ModelRepo) ModelUsage(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]domain.ModelUsage, error) {
 	var usages []domain.ModelUsage
-	err := r.db.Record.Query().
-		Where(record.ModelIDIn(ids...)).
+	err := r.db.Task.Query().
+		Where(task.ModelIDIn(ids...)).
 		Modify(func(s *entsql.Selector) {
 			s.Select(
-				entsql.As(record.FieldModelID, "model_id"),
-				entsql.As(entsql.Sum(record.FieldInputTokens), "input"),
-				entsql.As(entsql.Sum(record.FieldOutputTokens), "output"),
+				entsql.As(task.FieldModelID, "model_id"),
+				entsql.As(entsql.Sum(task.FieldInputTokens), "input"),
+				entsql.As(entsql.Sum(task.FieldOutputTokens), "output"),
 			).
 				GroupBy("model_id").
 				OrderBy("model_id")
@@ -109,16 +109,16 @@ type DailyUsage struct {
 
 func (r *ModelRepo) GetTokenUsage(ctx context.Context, modelType consts.ModelType) (*domain.ModelTokenUsageResp, error) {
 	var dailyUsages []DailyUsage
-	err := r.db.Record.Query().
+	err := r.db.Task.Query().
 		Where(
-			record.ModelType(modelType),
-			record.CreatedAtGTE(time.Now().AddDate(0, 0, -90)),
+			task.ModelType(modelType),
+			task.CreatedAtGTE(time.Now().AddDate(0, 0, -90)),
 		).
 		Modify(func(s *entsql.Selector) {
 			s.Select(
 				entsql.As("date_trunc('day', created_at)", "date"),
-				entsql.As(entsql.Sum(record.FieldInputTokens), "input_tokens"),
-				entsql.As(entsql.Sum(record.FieldOutputTokens), "output_tokens"),
+				entsql.As(entsql.Sum(task.FieldInputTokens), "input_tokens"),
+				entsql.As(entsql.Sum(task.FieldOutputTokens), "output_tokens"),
 			).
 				GroupBy("date").
 				OrderBy("date")

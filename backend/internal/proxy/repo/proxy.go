@@ -3,11 +3,13 @@ package repo
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
 )
@@ -41,31 +43,74 @@ func (r *ProxyRepo) ValidateApiKey(ctx context.Context, key string) (*db.ApiKey,
 	return a, nil
 }
 
-func (r *ProxyRepo) Record(ctx context.Context, record *db.Record) error {
-	return r.db.Record.Create().
-		SetUserID(record.UserID).
-		SetModelID(record.ModelID).
-		SetTaskID(record.TaskID).
-		SetPrompt(record.Prompt).
-		SetProgramLanguage(record.ProgramLanguage).
-		SetInputTokens(record.InputTokens).
-		SetOutputTokens(record.OutputTokens).
-		SetIsAccept(record.IsAccept).
-		SetModelType(record.ModelType).
-		SetCompletion(record.Completion).
-		SetWorkMode(record.WorkMode).
-		SetCodeLines(record.CodeLines).
-		Exec(ctx)
-}
-
-func (r *ProxyRepo) UpdateByTaskID(ctx context.Context, taskID string, fn func(*db.RecordUpdateOne)) error {
-	rc, err := r.db.Record.Query().Where(record.TaskID(taskID)).Only(ctx)
+func (r *ProxyRepo) Record(ctx context.Context, record *domain.RecordParam) error {
+	userID, err := uuid.Parse(record.UserID)
+	if err != nil {
+		return err
+	}
+	modelID, err := uuid.Parse(record.ModelID)
 	if err != nil {
 		return err
 	}
 
 	return entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
-		up := tx.Record.UpdateOneID(rc.ID)
+		isNew := false
+		t, err := tx.Task.Query().ForUpdate().Where(task.TaskID(record.TaskID)).Only(ctx)
+		if db.IsNotFound(err) {
+			t, err = tx.Task.Create().
+				SetTaskID(record.TaskID).
+				SetRequestID(record.RequestID).
+				SetUserID(userID).
+				SetModelID(modelID).
+				SetPrompt(record.Prompt).
+				SetProgramLanguage(record.ProgramLanguage).
+				SetInputTokens(record.InputTokens).
+				SetOutputTokens(record.OutputTokens).
+				SetIsAccept(record.IsAccept).
+				SetModelType(record.ModelType).
+				SetWorkMode(record.WorkMode).
+				SetCodeLines(record.CodeLines).
+				Save(ctx)
+			isNew = true
+		}
+		if err != nil {
+			return err
+		}
+		if !isNew {
+			up := tx.Task.UpdateOneID(t.ID)
+			if record.OutputTokens > 0 {
+				up.AddOutputTokens(record.OutputTokens)
+			}
+			if t.InputTokens == 0 && record.InputTokens > 0 {
+				up.SetInputTokens(record.InputTokens)
+			}
+			if t.RequestID != record.RequestID {
+				up.SetRequestID(record.RequestID)
+				up.AddInputTokens(record.InputTokens)
+			}
+			if err := up.Exec(ctx); err != nil {
+				return err
+			}
+		}
+
+		_, err = tx.TaskRecord.Create().
+			SetTaskID(t.ID).
+			SetCompletion(record.Completion).
+			SetOutputTokens(record.OutputTokens).
+			Save(ctx)
+
+		return err
+	})
+}
+
+func (r *ProxyRepo) UpdateByTaskID(ctx context.Context, taskID string, fn func(*db.TaskUpdateOne)) error {
+	rc, err := r.db.Task.Query().Where(task.TaskID(taskID)).Only(ctx)
+	if err != nil {
+		return err
+	}
+
+	return entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		up := tx.Task.UpdateOneID(rc.ID)
 		fn(up)
 		return up.Exec(ctx)
 	})

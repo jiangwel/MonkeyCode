@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 	"github.com/google/uuid"
@@ -94,21 +94,6 @@ func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
 	return uc
 }
 
-// AddRecordIDs adds the "records" edge to the Record entity by IDs.
-func (uc *UserCreate) AddRecordIDs(ids ...uuid.UUID) *UserCreate {
-	uc.mutation.AddRecordIDs(ids...)
-	return uc
-}
-
-// AddRecords adds the "records" edges to the Record entity.
-func (uc *UserCreate) AddRecords(r ...*Record) *UserCreate {
-	ids := make([]uuid.UUID, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
-	}
-	return uc.AddRecordIDs(ids...)
-}
-
 // AddLoginHistoryIDs adds the "login_histories" edge to the UserLoginHistory entity by IDs.
 func (uc *UserCreate) AddLoginHistoryIDs(ids ...uuid.UUID) *UserCreate {
 	uc.mutation.AddLoginHistoryIDs(ids...)
@@ -137,6 +122,21 @@ func (uc *UserCreate) AddModels(m ...*Model) *UserCreate {
 		ids[i] = m[i].ID
 	}
 	return uc.AddModelIDs(ids...)
+}
+
+// AddTaskIDs adds the "tasks" edge to the Task entity by IDs.
+func (uc *UserCreate) AddTaskIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddTaskIDs(ids...)
+	return uc
+}
+
+// AddTasks adds the "tasks" edges to the Task entity.
+func (uc *UserCreate) AddTasks(t ...*Task) *UserCreate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uc.AddTaskIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -268,22 +268,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := uc.mutation.RecordsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.RecordsTable,
-			Columns: []string{user.RecordsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(record.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := uc.mutation.LoginHistoriesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -309,6 +293,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(model.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.TasksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TasksTable,
+			Columns: []string{user.TasksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

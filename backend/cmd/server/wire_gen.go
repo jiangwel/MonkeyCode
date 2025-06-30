@@ -7,8 +7,6 @@
 package main
 
 import (
-	"log/slog"
-
 	"github.com/GoYoko/web"
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db"
@@ -23,9 +21,9 @@ import (
 	v1_2 "github.com/chaitin/MonkeyCode/backend/internal/model/handler/http/v1"
 	repo3 "github.com/chaitin/MonkeyCode/backend/internal/model/repo"
 	usecase2 "github.com/chaitin/MonkeyCode/backend/internal/model/usecase"
-	v1 "github.com/chaitin/MonkeyCode/backend/internal/openai/handler/v1"
+	"github.com/chaitin/MonkeyCode/backend/internal/openai/handler/v1"
 	repo2 "github.com/chaitin/MonkeyCode/backend/internal/openai/repo"
-	openai "github.com/chaitin/MonkeyCode/backend/internal/openai/usecase"
+	"github.com/chaitin/MonkeyCode/backend/internal/openai/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/repo"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/usecase"
@@ -36,6 +34,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/pkg/logger"
 	"github.com/chaitin/MonkeyCode/backend/pkg/session"
 	"github.com/chaitin/MonkeyCode/backend/pkg/store"
+	"log/slog"
 )
 
 // Injectors from wire.go:

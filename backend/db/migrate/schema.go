@@ -185,44 +185,6 @@ var (
 			},
 		},
 	}
-	// RecordsColumns holds the columns for the "records" table.
-	RecordsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "task_id", Type: field.TypeString},
-		{Name: "model_type", Type: field.TypeString, Nullable: true},
-		{Name: "prompt", Type: field.TypeString, Nullable: true},
-		{Name: "completion", Type: field.TypeString, Nullable: true},
-		{Name: "is_accept", Type: field.TypeBool, Default: false},
-		{Name: "program_language", Type: field.TypeString, Nullable: true},
-		{Name: "work_mode", Type: field.TypeString, Nullable: true},
-		{Name: "code_lines", Type: field.TypeInt64, Nullable: true},
-		{Name: "input_tokens", Type: field.TypeInt64},
-		{Name: "output_tokens", Type: field.TypeInt64},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "model_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "user_id", Type: field.TypeUUID, Nullable: true},
-	}
-	// RecordsTable holds the schema information for the "records" table.
-	RecordsTable = &schema.Table{
-		Name:       "records",
-		Columns:    RecordsColumns,
-		PrimaryKey: []*schema.Column{RecordsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "records_models_records",
-				Columns:    []*schema.Column{RecordsColumns[13]},
-				RefColumns: []*schema.Column{ModelsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "records_users_records",
-				Columns:    []*schema.Column{RecordsColumns[14]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
 	// SettingsColumns holds the columns for the "settings" table.
 	SettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -237,6 +199,68 @@ var (
 		Name:       "settings",
 		Columns:    SettingsColumns,
 		PrimaryKey: []*schema.Column{SettingsColumns[0]},
+	}
+	// TasksColumns holds the columns for the "tasks" table.
+	TasksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "task_id", Type: field.TypeString, Unique: true},
+		{Name: "request_id", Type: field.TypeString, Nullable: true},
+		{Name: "model_type", Type: field.TypeString},
+		{Name: "prompt", Type: field.TypeString, Nullable: true},
+		{Name: "is_accept", Type: field.TypeBool, Default: false},
+		{Name: "program_language", Type: field.TypeString, Nullable: true},
+		{Name: "work_mode", Type: field.TypeString, Nullable: true},
+		{Name: "completion", Type: field.TypeString, Nullable: true},
+		{Name: "code_lines", Type: field.TypeInt64, Nullable: true},
+		{Name: "input_tokens", Type: field.TypeInt64, Nullable: true},
+		{Name: "output_tokens", Type: field.TypeInt64, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "model_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// TasksTable holds the schema information for the "tasks" table.
+	TasksTable = &schema.Table{
+		Name:       "tasks",
+		Columns:    TasksColumns,
+		PrimaryKey: []*schema.Column{TasksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tasks_models_tasks",
+				Columns:    []*schema.Column{TasksColumns[14]},
+				RefColumns: []*schema.Column{ModelsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "tasks_users_tasks",
+				Columns:    []*schema.Column{TasksColumns[15]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// TaskRecordsColumns holds the columns for the "task_records" table.
+	TaskRecordsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "completion", Type: field.TypeString},
+		{Name: "output_tokens", Type: field.TypeInt64},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "task_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// TaskRecordsTable holds the schema information for the "task_records" table.
+	TaskRecordsTable = &schema.Table{
+		Name:       "task_records",
+		Columns:    TaskRecordsColumns,
+		PrimaryKey: []*schema.Column{TaskRecordsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "task_records_tasks_task_records",
+				Columns:    []*schema.Column{TaskRecordsColumns[5]},
+				RefColumns: []*schema.Column{TasksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -294,8 +318,9 @@ var (
 		BillingUsagesTable,
 		InviteCodesTable,
 		ModelsTable,
-		RecordsTable,
 		SettingsTable,
+		TasksTable,
+		TaskRecordsTable,
 		UsersTable,
 		UserLoginHistoriesTable,
 	}
@@ -331,13 +356,17 @@ func init() {
 	ModelsTable.Annotation = &entsql.Annotation{
 		Table: "models",
 	}
-	RecordsTable.ForeignKeys[0].RefTable = ModelsTable
-	RecordsTable.ForeignKeys[1].RefTable = UsersTable
-	RecordsTable.Annotation = &entsql.Annotation{
-		Table: "records",
-	}
 	SettingsTable.Annotation = &entsql.Annotation{
 		Table: "settings",
+	}
+	TasksTable.ForeignKeys[0].RefTable = ModelsTable
+	TasksTable.ForeignKeys[1].RefTable = UsersTable
+	TasksTable.Annotation = &entsql.Annotation{
+		Table: "tasks",
+	}
+	TaskRecordsTable.ForeignKeys[0].RefTable = TasksTable
+	TaskRecordsTable.Annotation = &entsql.Annotation{
+		Table: "task_records",
 	}
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",

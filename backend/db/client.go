@@ -25,8 +25,9 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
+	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 
@@ -56,10 +57,12 @@ type Client struct {
 	InviteCode *InviteCodeClient
 	// Model is the client for interacting with the Model builders.
 	Model *ModelClient
-	// Record is the client for interacting with the Record builders.
-	Record *RecordClient
 	// Setting is the client for interacting with the Setting builders.
 	Setting *SettingClient
+	// Task is the client for interacting with the Task builders.
+	Task *TaskClient
+	// TaskRecord is the client for interacting with the TaskRecord builders.
+	TaskRecord *TaskRecordClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserLoginHistory is the client for interacting with the UserLoginHistory builders.
@@ -84,8 +87,9 @@ func (c *Client) init() {
 	c.BillingUsage = NewBillingUsageClient(c.config)
 	c.InviteCode = NewInviteCodeClient(c.config)
 	c.Model = NewModelClient(c.config)
-	c.Record = NewRecordClient(c.config)
 	c.Setting = NewSettingClient(c.config)
+	c.Task = NewTaskClient(c.config)
+	c.TaskRecord = NewTaskRecordClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserLoginHistory = NewUserLoginHistoryClient(c.config)
 }
@@ -189,8 +193,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		BillingUsage:      NewBillingUsageClient(cfg),
 		InviteCode:        NewInviteCodeClient(cfg),
 		Model:             NewModelClient(cfg),
-		Record:            NewRecordClient(cfg),
 		Setting:           NewSettingClient(cfg),
+		Task:              NewTaskClient(cfg),
+		TaskRecord:        NewTaskRecordClient(cfg),
 		User:              NewUserClient(cfg),
 		UserLoginHistory:  NewUserLoginHistoryClient(cfg),
 	}, nil
@@ -221,8 +226,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		BillingUsage:      NewBillingUsageClient(cfg),
 		InviteCode:        NewInviteCodeClient(cfg),
 		Model:             NewModelClient(cfg),
-		Record:            NewRecordClient(cfg),
 		Setting:           NewSettingClient(cfg),
+		Task:              NewTaskClient(cfg),
+		TaskRecord:        NewTaskRecordClient(cfg),
 		User:              NewUserClient(cfg),
 		UserLoginHistory:  NewUserLoginHistoryClient(cfg),
 	}, nil
@@ -255,8 +261,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Admin, c.AdminLoginHistory, c.ApiKey, c.BillingPlan, c.BillingQuota,
-		c.BillingRecord, c.BillingUsage, c.InviteCode, c.Model, c.Record, c.Setting,
-		c.User, c.UserLoginHistory,
+		c.BillingRecord, c.BillingUsage, c.InviteCode, c.Model, c.Setting, c.Task,
+		c.TaskRecord, c.User, c.UserLoginHistory,
 	} {
 		n.Use(hooks...)
 	}
@@ -267,8 +273,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Admin, c.AdminLoginHistory, c.ApiKey, c.BillingPlan, c.BillingQuota,
-		c.BillingRecord, c.BillingUsage, c.InviteCode, c.Model, c.Record, c.Setting,
-		c.User, c.UserLoginHistory,
+		c.BillingRecord, c.BillingUsage, c.InviteCode, c.Model, c.Setting, c.Task,
+		c.TaskRecord, c.User, c.UserLoginHistory,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -295,10 +301,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.InviteCode.mutate(ctx, m)
 	case *ModelMutation:
 		return c.Model.mutate(ctx, m)
-	case *RecordMutation:
-		return c.Record.mutate(ctx, m)
 	case *SettingMutation:
 		return c.Setting.mutate(ctx, m)
+	case *TaskMutation:
+		return c.Task.mutate(ctx, m)
+	case *TaskRecordMutation:
+		return c.TaskRecord.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	case *UserLoginHistoryMutation:
@@ -1516,15 +1524,15 @@ func (c *ModelClient) GetX(ctx context.Context, id uuid.UUID) *Model {
 	return obj
 }
 
-// QueryRecords queries the records edge of a Model.
-func (c *ModelClient) QueryRecords(m *Model) *RecordQuery {
-	query := (&RecordClient{config: c.config}).Query()
+// QueryTasks queries the tasks edge of a Model.
+func (c *ModelClient) QueryTasks(m *Model) *TaskQuery {
+	query := (&TaskClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(model.Table, model.FieldID, id),
-			sqlgraph.To(record.Table, record.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, model.RecordsTable, model.RecordsColumn),
+			sqlgraph.To(task.Table, task.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, model.TasksTable, model.TasksColumn),
 		)
 		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
 		return fromV, nil
@@ -1570,171 +1578,6 @@ func (c *ModelClient) mutate(ctx context.Context, m *ModelMutation) (Value, erro
 		return (&ModelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown Model mutation op: %q", m.Op())
-	}
-}
-
-// RecordClient is a client for the Record schema.
-type RecordClient struct {
-	config
-}
-
-// NewRecordClient returns a client for the Record from the given config.
-func NewRecordClient(c config) *RecordClient {
-	return &RecordClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `record.Hooks(f(g(h())))`.
-func (c *RecordClient) Use(hooks ...Hook) {
-	c.hooks.Record = append(c.hooks.Record, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `record.Intercept(f(g(h())))`.
-func (c *RecordClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Record = append(c.inters.Record, interceptors...)
-}
-
-// Create returns a builder for creating a Record entity.
-func (c *RecordClient) Create() *RecordCreate {
-	mutation := newRecordMutation(c.config, OpCreate)
-	return &RecordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Record entities.
-func (c *RecordClient) CreateBulk(builders ...*RecordCreate) *RecordCreateBulk {
-	return &RecordCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *RecordClient) MapCreateBulk(slice any, setFunc func(*RecordCreate, int)) *RecordCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &RecordCreateBulk{err: fmt.Errorf("calling to RecordClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*RecordCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &RecordCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Record.
-func (c *RecordClient) Update() *RecordUpdate {
-	mutation := newRecordMutation(c.config, OpUpdate)
-	return &RecordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *RecordClient) UpdateOne(r *Record) *RecordUpdateOne {
-	mutation := newRecordMutation(c.config, OpUpdateOne, withRecord(r))
-	return &RecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *RecordClient) UpdateOneID(id uuid.UUID) *RecordUpdateOne {
-	mutation := newRecordMutation(c.config, OpUpdateOne, withRecordID(id))
-	return &RecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Record.
-func (c *RecordClient) Delete() *RecordDelete {
-	mutation := newRecordMutation(c.config, OpDelete)
-	return &RecordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *RecordClient) DeleteOne(r *Record) *RecordDeleteOne {
-	return c.DeleteOneID(r.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *RecordClient) DeleteOneID(id uuid.UUID) *RecordDeleteOne {
-	builder := c.Delete().Where(record.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &RecordDeleteOne{builder}
-}
-
-// Query returns a query builder for Record.
-func (c *RecordClient) Query() *RecordQuery {
-	return &RecordQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeRecord},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Record entity by its id.
-func (c *RecordClient) Get(ctx context.Context, id uuid.UUID) (*Record, error) {
-	return c.Query().Where(record.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *RecordClient) GetX(ctx context.Context, id uuid.UUID) *Record {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryUser queries the user edge of a Record.
-func (c *RecordClient) QueryUser(r *Record) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := r.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(record.Table, record.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, record.UserTable, record.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryModel queries the model edge of a Record.
-func (c *RecordClient) QueryModel(r *Record) *ModelQuery {
-	query := (&ModelClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := r.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(record.Table, record.FieldID, id),
-			sqlgraph.To(model.Table, model.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, record.ModelTable, record.ModelColumn),
-		)
-		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *RecordClient) Hooks() []Hook {
-	return c.hooks.Record
-}
-
-// Interceptors returns the client interceptors.
-func (c *RecordClient) Interceptors() []Interceptor {
-	return c.inters.Record
-}
-
-func (c *RecordClient) mutate(ctx context.Context, m *RecordMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&RecordCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&RecordUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&RecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&RecordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("db: unknown Record mutation op: %q", m.Op())
 	}
 }
 
@@ -1871,6 +1714,336 @@ func (c *SettingClient) mutate(ctx context.Context, m *SettingMutation) (Value, 
 	}
 }
 
+// TaskClient is a client for the Task schema.
+type TaskClient struct {
+	config
+}
+
+// NewTaskClient returns a client for the Task from the given config.
+func NewTaskClient(c config) *TaskClient {
+	return &TaskClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `task.Hooks(f(g(h())))`.
+func (c *TaskClient) Use(hooks ...Hook) {
+	c.hooks.Task = append(c.hooks.Task, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `task.Intercept(f(g(h())))`.
+func (c *TaskClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Task = append(c.inters.Task, interceptors...)
+}
+
+// Create returns a builder for creating a Task entity.
+func (c *TaskClient) Create() *TaskCreate {
+	mutation := newTaskMutation(c.config, OpCreate)
+	return &TaskCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Task entities.
+func (c *TaskClient) CreateBulk(builders ...*TaskCreate) *TaskCreateBulk {
+	return &TaskCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TaskClient) MapCreateBulk(slice any, setFunc func(*TaskCreate, int)) *TaskCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TaskCreateBulk{err: fmt.Errorf("calling to TaskClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TaskCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TaskCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Task.
+func (c *TaskClient) Update() *TaskUpdate {
+	mutation := newTaskMutation(c.config, OpUpdate)
+	return &TaskUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TaskClient) UpdateOne(t *Task) *TaskUpdateOne {
+	mutation := newTaskMutation(c.config, OpUpdateOne, withTask(t))
+	return &TaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TaskClient) UpdateOneID(id uuid.UUID) *TaskUpdateOne {
+	mutation := newTaskMutation(c.config, OpUpdateOne, withTaskID(id))
+	return &TaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Task.
+func (c *TaskClient) Delete() *TaskDelete {
+	mutation := newTaskMutation(c.config, OpDelete)
+	return &TaskDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TaskClient) DeleteOne(t *Task) *TaskDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TaskClient) DeleteOneID(id uuid.UUID) *TaskDeleteOne {
+	builder := c.Delete().Where(task.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TaskDeleteOne{builder}
+}
+
+// Query returns a query builder for Task.
+func (c *TaskClient) Query() *TaskQuery {
+	return &TaskQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTask},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Task entity by its id.
+func (c *TaskClient) Get(ctx context.Context, id uuid.UUID) (*Task, error) {
+	return c.Query().Where(task.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TaskClient) GetX(ctx context.Context, id uuid.UUID) *Task {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTaskRecords queries the task_records edge of a Task.
+func (c *TaskClient) QueryTaskRecords(t *Task) *TaskRecordQuery {
+	query := (&TaskRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(task.Table, task.FieldID, id),
+			sqlgraph.To(taskrecord.Table, taskrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, task.TaskRecordsTable, task.TaskRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a Task.
+func (c *TaskClient) QueryUser(t *Task) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(task.Table, task.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, task.UserTable, task.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryModel queries the model edge of a Task.
+func (c *TaskClient) QueryModel(t *Task) *ModelQuery {
+	query := (&ModelClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(task.Table, task.FieldID, id),
+			sqlgraph.To(model.Table, model.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, task.ModelTable, task.ModelColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TaskClient) Hooks() []Hook {
+	return c.hooks.Task
+}
+
+// Interceptors returns the client interceptors.
+func (c *TaskClient) Interceptors() []Interceptor {
+	return c.inters.Task
+}
+
+func (c *TaskClient) mutate(ctx context.Context, m *TaskMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TaskCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TaskUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TaskDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Task mutation op: %q", m.Op())
+	}
+}
+
+// TaskRecordClient is a client for the TaskRecord schema.
+type TaskRecordClient struct {
+	config
+}
+
+// NewTaskRecordClient returns a client for the TaskRecord from the given config.
+func NewTaskRecordClient(c config) *TaskRecordClient {
+	return &TaskRecordClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `taskrecord.Hooks(f(g(h())))`.
+func (c *TaskRecordClient) Use(hooks ...Hook) {
+	c.hooks.TaskRecord = append(c.hooks.TaskRecord, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `taskrecord.Intercept(f(g(h())))`.
+func (c *TaskRecordClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TaskRecord = append(c.inters.TaskRecord, interceptors...)
+}
+
+// Create returns a builder for creating a TaskRecord entity.
+func (c *TaskRecordClient) Create() *TaskRecordCreate {
+	mutation := newTaskRecordMutation(c.config, OpCreate)
+	return &TaskRecordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TaskRecord entities.
+func (c *TaskRecordClient) CreateBulk(builders ...*TaskRecordCreate) *TaskRecordCreateBulk {
+	return &TaskRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TaskRecordClient) MapCreateBulk(slice any, setFunc func(*TaskRecordCreate, int)) *TaskRecordCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TaskRecordCreateBulk{err: fmt.Errorf("calling to TaskRecordClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TaskRecordCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TaskRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TaskRecord.
+func (c *TaskRecordClient) Update() *TaskRecordUpdate {
+	mutation := newTaskRecordMutation(c.config, OpUpdate)
+	return &TaskRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TaskRecordClient) UpdateOne(tr *TaskRecord) *TaskRecordUpdateOne {
+	mutation := newTaskRecordMutation(c.config, OpUpdateOne, withTaskRecord(tr))
+	return &TaskRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TaskRecordClient) UpdateOneID(id uuid.UUID) *TaskRecordUpdateOne {
+	mutation := newTaskRecordMutation(c.config, OpUpdateOne, withTaskRecordID(id))
+	return &TaskRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TaskRecord.
+func (c *TaskRecordClient) Delete() *TaskRecordDelete {
+	mutation := newTaskRecordMutation(c.config, OpDelete)
+	return &TaskRecordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TaskRecordClient) DeleteOne(tr *TaskRecord) *TaskRecordDeleteOne {
+	return c.DeleteOneID(tr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TaskRecordClient) DeleteOneID(id uuid.UUID) *TaskRecordDeleteOne {
+	builder := c.Delete().Where(taskrecord.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TaskRecordDeleteOne{builder}
+}
+
+// Query returns a query builder for TaskRecord.
+func (c *TaskRecordClient) Query() *TaskRecordQuery {
+	return &TaskRecordQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTaskRecord},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TaskRecord entity by its id.
+func (c *TaskRecordClient) Get(ctx context.Context, id uuid.UUID) (*TaskRecord, error) {
+	return c.Query().Where(taskrecord.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TaskRecordClient) GetX(ctx context.Context, id uuid.UUID) *TaskRecord {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTask queries the task edge of a TaskRecord.
+func (c *TaskRecordClient) QueryTask(tr *TaskRecord) *TaskQuery {
+	query := (&TaskClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := tr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(taskrecord.Table, taskrecord.FieldID, id),
+			sqlgraph.To(task.Table, task.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, taskrecord.TaskTable, taskrecord.TaskColumn),
+		)
+		fromV = sqlgraph.Neighbors(tr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TaskRecordClient) Hooks() []Hook {
+	return c.hooks.TaskRecord
+}
+
+// Interceptors returns the client interceptors.
+func (c *TaskRecordClient) Interceptors() []Interceptor {
+	return c.inters.TaskRecord
+}
+
+func (c *TaskRecordClient) mutate(ctx context.Context, m *TaskRecordMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TaskRecordCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TaskRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TaskRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TaskRecordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown TaskRecord mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1979,22 +2152,6 @@ func (c *UserClient) GetX(ctx context.Context, id uuid.UUID) *User {
 	return obj
 }
 
-// QueryRecords queries the records edge of a User.
-func (c *UserClient) QueryRecords(u *User) *RecordQuery {
-	query := (&RecordClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := u.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(record.Table, record.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.RecordsTable, user.RecordsColumn),
-		)
-		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryLoginHistories queries the login_histories edge of a User.
 func (c *UserClient) QueryLoginHistories(u *User) *UserLoginHistoryQuery {
 	query := (&UserLoginHistoryClient{config: c.config}).Query()
@@ -2020,6 +2177,22 @@ func (c *UserClient) QueryModels(u *User) *ModelQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(model.Table, model.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.ModelsTable, user.ModelsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTasks queries the tasks edge of a User.
+func (c *UserClient) QueryTasks(u *User) *TaskQuery {
+	query := (&TaskClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(task.Table, task.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TasksTable, user.TasksColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -2205,12 +2378,12 @@ func (c *UserLoginHistoryClient) mutate(ctx context.Context, m *UserLoginHistory
 type (
 	hooks struct {
 		Admin, AdminLoginHistory, ApiKey, BillingPlan, BillingQuota, BillingRecord,
-		BillingUsage, InviteCode, Model, Record, Setting, User,
+		BillingUsage, InviteCode, Model, Setting, Task, TaskRecord, User,
 		UserLoginHistory []ent.Hook
 	}
 	inters struct {
 		Admin, AdminLoginHistory, ApiKey, BillingPlan, BillingQuota, BillingRecord,
-		BillingUsage, InviteCode, Model, Record, Setting, User,
+		BillingUsage, InviteCode, Model, Setting, Task, TaskRecord, User,
 		UserLoginHistory []ent.Interceptor
 	}
 )

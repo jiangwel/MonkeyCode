@@ -3,8 +3,6 @@ package usecase
 import (
 	"context"
 
-	"github.com/google/uuid"
-
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
@@ -21,29 +19,7 @@ func NewProxyUsecase(repo domain.ProxyRepo) domain.ProxyUsecase {
 }
 
 func (p *ProxyUsecase) Record(ctx context.Context, record *domain.RecordParam) error {
-	userID, err := uuid.Parse(record.UserID)
-	if err != nil {
-		return err
-	}
-	modelID, err := uuid.Parse(record.ModelID)
-	if err != nil {
-		return err
-	}
-
-	return p.repo.Record(ctx, &db.Record{
-		UserID:          userID,
-		ModelID:         modelID,
-		Prompt:          record.Prompt,
-		TaskID:          record.TaskID,
-		ProgramLanguage: record.ProgramLanguage,
-		InputTokens:     record.InputTokens,
-		OutputTokens:    record.OutputTokens,
-		IsAccept:        record.IsAccept,
-		ModelType:       record.ModelType,
-		Completion:      record.Completion,
-		WorkMode:        record.WorkMode,
-		CodeLines:       record.CodeLines,
-	})
+	return p.repo.Record(ctx, record)
 }
 
 // SelectModelWithLoadBalancing implements domain.ProxyUsecase.
@@ -64,7 +40,7 @@ func (p *ProxyUsecase) ValidateApiKey(ctx context.Context, key string) (*domain.
 }
 
 func (p *ProxyUsecase) AcceptCompletion(ctx context.Context, req *domain.AcceptCompletionReq) error {
-	return p.repo.UpdateByTaskID(ctx, req.ID, func(ruo *db.RecordUpdateOne) {
+	return p.repo.UpdateByTaskID(ctx, req.ID, func(ruo *db.TaskUpdateOne) {
 		ruo.SetIsAccept(true)
 		ruo.SetCompletion(req.Completion)
 	})

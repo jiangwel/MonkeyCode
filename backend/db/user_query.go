@@ -15,7 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 	"github.com/google/uuid"
@@ -28,9 +28,9 @@ type UserQuery struct {
 	order              []user.OrderOption
 	inters             []Interceptor
 	predicates         []predicate.User
-	withRecords        *RecordQuery
 	withLoginHistories *UserLoginHistoryQuery
 	withModels         *ModelQuery
+	withTasks          *TaskQuery
 	modifiers          []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -66,28 +66,6 @@ func (uq *UserQuery) Unique(unique bool) *UserQuery {
 func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
-}
-
-// QueryRecords chains the current query on the "records" edge.
-func (uq *UserQuery) QueryRecords() *RecordQuery {
-	query := (&RecordClient{config: uq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := uq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := uq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(record.Table, record.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.RecordsTable, user.RecordsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryLoginHistories chains the current query on the "login_histories" edge.
@@ -127,6 +105,28 @@ func (uq *UserQuery) QueryModels() *ModelQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(model.Table, model.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.ModelsTable, user.ModelsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTasks chains the current query on the "tasks" edge.
+func (uq *UserQuery) QueryTasks() *TaskQuery {
+	query := (&TaskClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(task.Table, task.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TasksTable, user.TasksColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -326,25 +326,14 @@ func (uq *UserQuery) Clone() *UserQuery {
 		order:              append([]user.OrderOption{}, uq.order...),
 		inters:             append([]Interceptor{}, uq.inters...),
 		predicates:         append([]predicate.User{}, uq.predicates...),
-		withRecords:        uq.withRecords.Clone(),
 		withLoginHistories: uq.withLoginHistories.Clone(),
 		withModels:         uq.withModels.Clone(),
+		withTasks:          uq.withTasks.Clone(),
 		// clone intermediate query.
 		sql:       uq.sql.Clone(),
 		path:      uq.path,
 		modifiers: append([]func(*sql.Selector){}, uq.modifiers...),
 	}
-}
-
-// WithRecords tells the query-builder to eager-load the nodes that are connected to
-// the "records" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithRecords(opts ...func(*RecordQuery)) *UserQuery {
-	query := (&RecordClient{config: uq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	uq.withRecords = query
-	return uq
 }
 
 // WithLoginHistories tells the query-builder to eager-load the nodes that are connected to
@@ -366,6 +355,17 @@ func (uq *UserQuery) WithModels(opts ...func(*ModelQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withModels = query
+	return uq
+}
+
+// WithTasks tells the query-builder to eager-load the nodes that are connected to
+// the "tasks" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithTasks(opts ...func(*TaskQuery)) *UserQuery {
+	query := (&TaskClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withTasks = query
 	return uq
 }
 
@@ -448,9 +448,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
 		loadedTypes = [3]bool{
-			uq.withRecords != nil,
 			uq.withLoginHistories != nil,
 			uq.withModels != nil,
+			uq.withTasks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -474,13 +474,6 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := uq.withRecords; query != nil {
-		if err := uq.loadRecords(ctx, query, nodes,
-			func(n *User) { n.Edges.Records = []*Record{} },
-			func(n *User, e *Record) { n.Edges.Records = append(n.Edges.Records, e) }); err != nil {
-			return nil, err
-		}
-	}
 	if query := uq.withLoginHistories; query != nil {
 		if err := uq.loadLoginHistories(ctx, query, nodes,
 			func(n *User) { n.Edges.LoginHistories = []*UserLoginHistory{} },
@@ -495,39 +488,16 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := uq.withTasks; query != nil {
+		if err := uq.loadTasks(ctx, query, nodes,
+			func(n *User) { n.Edges.Tasks = []*Task{} },
+			func(n *User, e *Task) { n.Edges.Tasks = append(n.Edges.Tasks, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
-func (uq *UserQuery) loadRecords(ctx context.Context, query *RecordQuery, nodes []*User, init func(*User), assign func(*User, *Record)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*User)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(record.FieldUserID)
-	}
-	query.Where(predicate.Record(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.RecordsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.UserID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 func (uq *UserQuery) loadLoginHistories(ctx context.Context, query *UserLoginHistoryQuery, nodes []*User, init func(*User), assign func(*User, *UserLoginHistory)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
@@ -574,6 +544,36 @@ func (uq *UserQuery) loadModels(ctx context.Context, query *ModelQuery, nodes []
 	}
 	query.Where(predicate.Model(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.ModelsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadTasks(ctx context.Context, query *TaskQuery, nodes []*User, init func(*User), assign func(*User, *Task)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(task.FieldUserID)
+	}
+	query.Where(predicate.Task(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.TasksColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

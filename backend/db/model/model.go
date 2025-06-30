@@ -39,19 +39,19 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeRecords holds the string denoting the records edge name in mutations.
-	EdgeRecords = "records"
+	// EdgeTasks holds the string denoting the tasks edge name in mutations.
+	EdgeTasks = "tasks"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the model in the database.
 	Table = "models"
-	// RecordsTable is the table that holds the records relation/edge.
-	RecordsTable = "records"
-	// RecordsInverseTable is the table name for the Record entity.
-	// It exists in this package in order to avoid circular dependency with the "record" package.
-	RecordsInverseTable = "records"
-	// RecordsColumn is the table column denoting the records relation/edge.
-	RecordsColumn = "model_id"
+	// TasksTable is the table that holds the tasks relation/edge.
+	TasksTable = "tasks"
+	// TasksInverseTable is the table name for the Task entity.
+	// It exists in this package in order to avoid circular dependency with the "task" package.
+	TasksInverseTable = "tasks"
+	// TasksColumn is the table column denoting the tasks relation/edge.
+	TasksColumn = "model_id"
 	// UserTable is the table that holds the user relation/edge.
 	UserTable = "models"
 	// UserInverseTable is the table name for the User entity.
@@ -167,17 +167,17 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByRecordsCount orders the results by records count.
-func ByRecordsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByTasksCount orders the results by tasks count.
+func ByTasksCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newRecordsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newTasksStep(), opts...)
 	}
 }
 
-// ByRecords orders the results by records terms.
-func ByRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByTasks orders the results by tasks terms.
+func ByTasks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRecordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newTasksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -187,11 +187,11 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
 	}
 }
-func newRecordsStep() *sqlgraph.Step {
+func newTasksStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(RecordsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, RecordsTable, RecordsColumn),
+		sqlgraph.To(TasksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TasksTable, TasksColumn),
 	)
 }
 func newUserStep() *sqlgraph.Step {

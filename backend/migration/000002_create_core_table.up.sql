@@ -99,11 +99,12 @@ CREATE TABLE IF NOT EXISTS api_keys (
 CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_api_keys_user_id ON api_keys(user_id);
 CREATE INDEX IF NOT EXISTS idx_api_keys_key ON api_keys(key);
 
-CREATE TABLE IF NOT EXISTS records (
+CREATE TABLE IF NOT EXISTS tasks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v1(),
+    task_id VARCHAR(255) NOT NULL,
     user_id UUID NOT NULL,
     model_id UUID NOT NULL,
-    task_id VARCHAR(255),
+    request_id VARCHAR(255),
     model_type VARCHAR(255) NOT NULL,
     prompt TEXT,
     completion TEXT,
@@ -117,11 +118,25 @@ CREATE TABLE IF NOT EXISTS records (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_records_user_id ON records (user_id);
-CREATE INDEX IF NOT EXISTS idx_records_model_id ON records (model_id);
-CREATE INDEX IF NOT EXISTS idx_records_task_id ON records (task_id);
-CREATE INDEX IF NOT EXISTS idx_records_created_at ON records (created_at);
-CREATE INDEX IF NOT EXISTS idx_records_updated_at ON records (updated_at);
+CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_tasks_task_id ON tasks(task_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks (user_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_model_id ON tasks (model_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_model_type ON tasks (model_type);
+CREATE INDEX IF NOT EXISTS idx_tasks_work_mode ON tasks (work_mode);
+CREATE INDEX IF NOT EXISTS idx_tasks_program_language ON tasks (program_language);
+CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks (created_at);
+CREATE INDEX IF NOT EXISTS idx_tasks_updated_at ON tasks (updated_at);
+
+CREATE TABLE IF NOT EXISTS task_records (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v1(),
+    task_id UUID NOT NULL,
+    completion TEXT,
+    output_tokens BIGINT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_records_task_id ON task_records (task_id);
 
 CREATE TABLE IF NOT EXISTS settings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

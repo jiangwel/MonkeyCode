@@ -33,11 +33,14 @@ type InviteCode func(*sql.Selector)
 // Model is the predicate function for model builders.
 type Model func(*sql.Selector)
 
-// Record is the predicate function for record builders.
-type Record func(*sql.Selector)
-
 // Setting is the predicate function for setting builders.
 type Setting func(*sql.Selector)
+
+// Task is the predicate function for task builders.
+type Task func(*sql.Selector)
+
+// TaskRecord is the predicate function for taskrecord builders.
+type TaskRecord func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

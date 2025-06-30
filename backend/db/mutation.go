@@ -22,8 +22,9 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
+	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 	"github.com/google/uuid"
@@ -47,8 +48,9 @@ const (
 	TypeBillingUsage      = "BillingUsage"
 	TypeInviteCode        = "InviteCode"
 	TypeModel             = "Model"
-	TypeRecord            = "Record"
 	TypeSetting           = "Setting"
+	TypeTask              = "Task"
+	TypeTaskRecord        = "TaskRecord"
 	TypeUser              = "User"
 	TypeUserLoginHistory  = "UserLoginHistory"
 )
@@ -5840,9 +5842,9 @@ type ModelMutation struct {
 	created_at        *time.Time
 	updated_at        *time.Time
 	clearedFields     map[string]struct{}
-	records           map[uuid.UUID]struct{}
-	removedrecords    map[uuid.UUID]struct{}
-	clearedrecords    bool
+	tasks             map[uuid.UUID]struct{}
+	removedtasks      map[uuid.UUID]struct{}
+	clearedtasks      bool
 	user              *uuid.UUID
 	cleareduser       bool
 	done              bool
@@ -6459,58 +6461,58 @@ func (m *ModelMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// AddRecordIDs adds the "records" edge to the Record entity by ids.
-func (m *ModelMutation) AddRecordIDs(ids ...uuid.UUID) {
-	if m.records == nil {
-		m.records = make(map[uuid.UUID]struct{})
+// AddTaskIDs adds the "tasks" edge to the Task entity by ids.
+func (m *ModelMutation) AddTaskIDs(ids ...uuid.UUID) {
+	if m.tasks == nil {
+		m.tasks = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.records[ids[i]] = struct{}{}
+		m.tasks[ids[i]] = struct{}{}
 	}
 }
 
-// ClearRecords clears the "records" edge to the Record entity.
-func (m *ModelMutation) ClearRecords() {
-	m.clearedrecords = true
+// ClearTasks clears the "tasks" edge to the Task entity.
+func (m *ModelMutation) ClearTasks() {
+	m.clearedtasks = true
 }
 
-// RecordsCleared reports if the "records" edge to the Record entity was cleared.
-func (m *ModelMutation) RecordsCleared() bool {
-	return m.clearedrecords
+// TasksCleared reports if the "tasks" edge to the Task entity was cleared.
+func (m *ModelMutation) TasksCleared() bool {
+	return m.clearedtasks
 }
 
-// RemoveRecordIDs removes the "records" edge to the Record entity by IDs.
-func (m *ModelMutation) RemoveRecordIDs(ids ...uuid.UUID) {
-	if m.removedrecords == nil {
-		m.removedrecords = make(map[uuid.UUID]struct{})
+// RemoveTaskIDs removes the "tasks" edge to the Task entity by IDs.
+func (m *ModelMutation) RemoveTaskIDs(ids ...uuid.UUID) {
+	if m.removedtasks == nil {
+		m.removedtasks = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.records, ids[i])
-		m.removedrecords[ids[i]] = struct{}{}
+		delete(m.tasks, ids[i])
+		m.removedtasks[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedRecords returns the removed IDs of the "records" edge to the Record entity.
-func (m *ModelMutation) RemovedRecordsIDs() (ids []uuid.UUID) {
-	for id := range m.removedrecords {
+// RemovedTasks returns the removed IDs of the "tasks" edge to the Task entity.
+func (m *ModelMutation) RemovedTasksIDs() (ids []uuid.UUID) {
+	for id := range m.removedtasks {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// RecordsIDs returns the "records" edge IDs in the mutation.
-func (m *ModelMutation) RecordsIDs() (ids []uuid.UUID) {
-	for id := range m.records {
+// TasksIDs returns the "tasks" edge IDs in the mutation.
+func (m *ModelMutation) TasksIDs() (ids []uuid.UUID) {
+	for id := range m.tasks {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetRecords resets all changes to the "records" edge.
-func (m *ModelMutation) ResetRecords() {
-	m.records = nil
-	m.clearedrecords = false
-	m.removedrecords = nil
+// ResetTasks resets all changes to the "tasks" edge.
+func (m *ModelMutation) ResetTasks() {
+	m.tasks = nil
+	m.clearedtasks = false
+	m.removedtasks = nil
 }
 
 // ClearUser clears the "user" edge to the User entity.
@@ -6903,8 +6905,8 @@ func (m *ModelMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ModelMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.records != nil {
-		edges = append(edges, model.EdgeRecords)
+	if m.tasks != nil {
+		edges = append(edges, model.EdgeTasks)
 	}
 	if m.user != nil {
 		edges = append(edges, model.EdgeUser)
@@ -6916,9 +6918,9 @@ func (m *ModelMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ModelMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case model.EdgeRecords:
-		ids := make([]ent.Value, 0, len(m.records))
-		for id := range m.records {
+	case model.EdgeTasks:
+		ids := make([]ent.Value, 0, len(m.tasks))
+		for id := range m.tasks {
 			ids = append(ids, id)
 		}
 		return ids
@@ -6933,8 +6935,8 @@ func (m *ModelMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ModelMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.removedrecords != nil {
-		edges = append(edges, model.EdgeRecords)
+	if m.removedtasks != nil {
+		edges = append(edges, model.EdgeTasks)
 	}
 	return edges
 }
@@ -6943,9 +6945,9 @@ func (m *ModelMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *ModelMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case model.EdgeRecords:
-		ids := make([]ent.Value, 0, len(m.removedrecords))
-		for id := range m.removedrecords {
+	case model.EdgeTasks:
+		ids := make([]ent.Value, 0, len(m.removedtasks))
+		for id := range m.removedtasks {
 			ids = append(ids, id)
 		}
 		return ids
@@ -6956,8 +6958,8 @@ func (m *ModelMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ModelMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.clearedrecords {
-		edges = append(edges, model.EdgeRecords)
+	if m.clearedtasks {
+		edges = append(edges, model.EdgeTasks)
 	}
 	if m.cleareduser {
 		edges = append(edges, model.EdgeUser)
@@ -6969,8 +6971,8 @@ func (m *ModelMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ModelMutation) EdgeCleared(name string) bool {
 	switch name {
-	case model.EdgeRecords:
-		return m.clearedrecords
+	case model.EdgeTasks:
+		return m.clearedtasks
 	case model.EdgeUser:
 		return m.cleareduser
 	}
@@ -6992,1406 +6994,14 @@ func (m *ModelMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ModelMutation) ResetEdge(name string) error {
 	switch name {
-	case model.EdgeRecords:
-		m.ResetRecords()
+	case model.EdgeTasks:
+		m.ResetTasks()
 		return nil
 	case model.EdgeUser:
 		m.ResetUser()
 		return nil
 	}
 	return fmt.Errorf("unknown Model edge %s", name)
-}
-
-// RecordMutation represents an operation that mutates the Record nodes in the graph.
-type RecordMutation struct {
-	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	task_id          *string
-	model_type       *consts.ModelType
-	prompt           *string
-	completion       *string
-	is_accept        *bool
-	program_language *string
-	work_mode        *string
-	code_lines       *int64
-	addcode_lines    *int64
-	input_tokens     *int64
-	addinput_tokens  *int64
-	output_tokens    *int64
-	addoutput_tokens *int64
-	created_at       *time.Time
-	updated_at       *time.Time
-	clearedFields    map[string]struct{}
-	user             *uuid.UUID
-	cleareduser      bool
-	model            *uuid.UUID
-	clearedmodel     bool
-	done             bool
-	oldValue         func(context.Context) (*Record, error)
-	predicates       []predicate.Record
-}
-
-var _ ent.Mutation = (*RecordMutation)(nil)
-
-// recordOption allows management of the mutation configuration using functional options.
-type recordOption func(*RecordMutation)
-
-// newRecordMutation creates new mutation for the Record entity.
-func newRecordMutation(c config, op Op, opts ...recordOption) *RecordMutation {
-	m := &RecordMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeRecord,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withRecordID sets the ID field of the mutation.
-func withRecordID(id uuid.UUID) recordOption {
-	return func(m *RecordMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *Record
-		)
-		m.oldValue = func(ctx context.Context) (*Record, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().Record.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withRecord sets the old Record of the mutation.
-func withRecord(node *Record) recordOption {
-	return func(m *RecordMutation) {
-		m.oldValue = func(context.Context) (*Record, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m RecordMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m RecordMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("db: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Record entities.
-func (m *RecordMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *RecordMutation) ID() (id uuid.UUID, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *RecordMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []uuid.UUID{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Record.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetUserID sets the "user_id" field.
-func (m *RecordMutation) SetUserID(u uuid.UUID) {
-	m.user = &u
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *RecordMutation) UserID() (r uuid.UUID, exists bool) {
-	v := m.user
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// ClearUserID clears the value of the "user_id" field.
-func (m *RecordMutation) ClearUserID() {
-	m.user = nil
-	m.clearedFields[record.FieldUserID] = struct{}{}
-}
-
-// UserIDCleared returns if the "user_id" field was cleared in this mutation.
-func (m *RecordMutation) UserIDCleared() bool {
-	_, ok := m.clearedFields[record.FieldUserID]
-	return ok
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *RecordMutation) ResetUserID() {
-	m.user = nil
-	delete(m.clearedFields, record.FieldUserID)
-}
-
-// SetModelID sets the "model_id" field.
-func (m *RecordMutation) SetModelID(u uuid.UUID) {
-	m.model = &u
-}
-
-// ModelID returns the value of the "model_id" field in the mutation.
-func (m *RecordMutation) ModelID() (r uuid.UUID, exists bool) {
-	v := m.model
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldModelID returns the old "model_id" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldModelID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldModelID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldModelID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldModelID: %w", err)
-	}
-	return oldValue.ModelID, nil
-}
-
-// ClearModelID clears the value of the "model_id" field.
-func (m *RecordMutation) ClearModelID() {
-	m.model = nil
-	m.clearedFields[record.FieldModelID] = struct{}{}
-}
-
-// ModelIDCleared returns if the "model_id" field was cleared in this mutation.
-func (m *RecordMutation) ModelIDCleared() bool {
-	_, ok := m.clearedFields[record.FieldModelID]
-	return ok
-}
-
-// ResetModelID resets all changes to the "model_id" field.
-func (m *RecordMutation) ResetModelID() {
-	m.model = nil
-	delete(m.clearedFields, record.FieldModelID)
-}
-
-// SetTaskID sets the "task_id" field.
-func (m *RecordMutation) SetTaskID(s string) {
-	m.task_id = &s
-}
-
-// TaskID returns the value of the "task_id" field in the mutation.
-func (m *RecordMutation) TaskID() (r string, exists bool) {
-	v := m.task_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTaskID returns the old "task_id" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldTaskID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTaskID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTaskID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTaskID: %w", err)
-	}
-	return oldValue.TaskID, nil
-}
-
-// ResetTaskID resets all changes to the "task_id" field.
-func (m *RecordMutation) ResetTaskID() {
-	m.task_id = nil
-}
-
-// SetModelType sets the "model_type" field.
-func (m *RecordMutation) SetModelType(ct consts.ModelType) {
-	m.model_type = &ct
-}
-
-// ModelType returns the value of the "model_type" field in the mutation.
-func (m *RecordMutation) ModelType() (r consts.ModelType, exists bool) {
-	v := m.model_type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldModelType returns the old "model_type" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldModelType(ctx context.Context) (v consts.ModelType, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldModelType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldModelType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldModelType: %w", err)
-	}
-	return oldValue.ModelType, nil
-}
-
-// ClearModelType clears the value of the "model_type" field.
-func (m *RecordMutation) ClearModelType() {
-	m.model_type = nil
-	m.clearedFields[record.FieldModelType] = struct{}{}
-}
-
-// ModelTypeCleared returns if the "model_type" field was cleared in this mutation.
-func (m *RecordMutation) ModelTypeCleared() bool {
-	_, ok := m.clearedFields[record.FieldModelType]
-	return ok
-}
-
-// ResetModelType resets all changes to the "model_type" field.
-func (m *RecordMutation) ResetModelType() {
-	m.model_type = nil
-	delete(m.clearedFields, record.FieldModelType)
-}
-
-// SetPrompt sets the "prompt" field.
-func (m *RecordMutation) SetPrompt(s string) {
-	m.prompt = &s
-}
-
-// Prompt returns the value of the "prompt" field in the mutation.
-func (m *RecordMutation) Prompt() (r string, exists bool) {
-	v := m.prompt
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPrompt returns the old "prompt" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldPrompt(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPrompt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPrompt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPrompt: %w", err)
-	}
-	return oldValue.Prompt, nil
-}
-
-// ClearPrompt clears the value of the "prompt" field.
-func (m *RecordMutation) ClearPrompt() {
-	m.prompt = nil
-	m.clearedFields[record.FieldPrompt] = struct{}{}
-}
-
-// PromptCleared returns if the "prompt" field was cleared in this mutation.
-func (m *RecordMutation) PromptCleared() bool {
-	_, ok := m.clearedFields[record.FieldPrompt]
-	return ok
-}
-
-// ResetPrompt resets all changes to the "prompt" field.
-func (m *RecordMutation) ResetPrompt() {
-	m.prompt = nil
-	delete(m.clearedFields, record.FieldPrompt)
-}
-
-// SetCompletion sets the "completion" field.
-func (m *RecordMutation) SetCompletion(s string) {
-	m.completion = &s
-}
-
-// Completion returns the value of the "completion" field in the mutation.
-func (m *RecordMutation) Completion() (r string, exists bool) {
-	v := m.completion
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCompletion returns the old "completion" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldCompletion(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCompletion is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCompletion requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCompletion: %w", err)
-	}
-	return oldValue.Completion, nil
-}
-
-// ClearCompletion clears the value of the "completion" field.
-func (m *RecordMutation) ClearCompletion() {
-	m.completion = nil
-	m.clearedFields[record.FieldCompletion] = struct{}{}
-}
-
-// CompletionCleared returns if the "completion" field was cleared in this mutation.
-func (m *RecordMutation) CompletionCleared() bool {
-	_, ok := m.clearedFields[record.FieldCompletion]
-	return ok
-}
-
-// ResetCompletion resets all changes to the "completion" field.
-func (m *RecordMutation) ResetCompletion() {
-	m.completion = nil
-	delete(m.clearedFields, record.FieldCompletion)
-}
-
-// SetIsAccept sets the "is_accept" field.
-func (m *RecordMutation) SetIsAccept(b bool) {
-	m.is_accept = &b
-}
-
-// IsAccept returns the value of the "is_accept" field in the mutation.
-func (m *RecordMutation) IsAccept() (r bool, exists bool) {
-	v := m.is_accept
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsAccept returns the old "is_accept" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldIsAccept(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsAccept is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsAccept requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsAccept: %w", err)
-	}
-	return oldValue.IsAccept, nil
-}
-
-// ResetIsAccept resets all changes to the "is_accept" field.
-func (m *RecordMutation) ResetIsAccept() {
-	m.is_accept = nil
-}
-
-// SetProgramLanguage sets the "program_language" field.
-func (m *RecordMutation) SetProgramLanguage(s string) {
-	m.program_language = &s
-}
-
-// ProgramLanguage returns the value of the "program_language" field in the mutation.
-func (m *RecordMutation) ProgramLanguage() (r string, exists bool) {
-	v := m.program_language
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldProgramLanguage returns the old "program_language" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldProgramLanguage(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProgramLanguage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProgramLanguage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProgramLanguage: %w", err)
-	}
-	return oldValue.ProgramLanguage, nil
-}
-
-// ClearProgramLanguage clears the value of the "program_language" field.
-func (m *RecordMutation) ClearProgramLanguage() {
-	m.program_language = nil
-	m.clearedFields[record.FieldProgramLanguage] = struct{}{}
-}
-
-// ProgramLanguageCleared returns if the "program_language" field was cleared in this mutation.
-func (m *RecordMutation) ProgramLanguageCleared() bool {
-	_, ok := m.clearedFields[record.FieldProgramLanguage]
-	return ok
-}
-
-// ResetProgramLanguage resets all changes to the "program_language" field.
-func (m *RecordMutation) ResetProgramLanguage() {
-	m.program_language = nil
-	delete(m.clearedFields, record.FieldProgramLanguage)
-}
-
-// SetWorkMode sets the "work_mode" field.
-func (m *RecordMutation) SetWorkMode(s string) {
-	m.work_mode = &s
-}
-
-// WorkMode returns the value of the "work_mode" field in the mutation.
-func (m *RecordMutation) WorkMode() (r string, exists bool) {
-	v := m.work_mode
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldWorkMode returns the old "work_mode" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldWorkMode(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldWorkMode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldWorkMode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldWorkMode: %w", err)
-	}
-	return oldValue.WorkMode, nil
-}
-
-// ClearWorkMode clears the value of the "work_mode" field.
-func (m *RecordMutation) ClearWorkMode() {
-	m.work_mode = nil
-	m.clearedFields[record.FieldWorkMode] = struct{}{}
-}
-
-// WorkModeCleared returns if the "work_mode" field was cleared in this mutation.
-func (m *RecordMutation) WorkModeCleared() bool {
-	_, ok := m.clearedFields[record.FieldWorkMode]
-	return ok
-}
-
-// ResetWorkMode resets all changes to the "work_mode" field.
-func (m *RecordMutation) ResetWorkMode() {
-	m.work_mode = nil
-	delete(m.clearedFields, record.FieldWorkMode)
-}
-
-// SetCodeLines sets the "code_lines" field.
-func (m *RecordMutation) SetCodeLines(i int64) {
-	m.code_lines = &i
-	m.addcode_lines = nil
-}
-
-// CodeLines returns the value of the "code_lines" field in the mutation.
-func (m *RecordMutation) CodeLines() (r int64, exists bool) {
-	v := m.code_lines
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCodeLines returns the old "code_lines" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldCodeLines(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCodeLines is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCodeLines requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCodeLines: %w", err)
-	}
-	return oldValue.CodeLines, nil
-}
-
-// AddCodeLines adds i to the "code_lines" field.
-func (m *RecordMutation) AddCodeLines(i int64) {
-	if m.addcode_lines != nil {
-		*m.addcode_lines += i
-	} else {
-		m.addcode_lines = &i
-	}
-}
-
-// AddedCodeLines returns the value that was added to the "code_lines" field in this mutation.
-func (m *RecordMutation) AddedCodeLines() (r int64, exists bool) {
-	v := m.addcode_lines
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearCodeLines clears the value of the "code_lines" field.
-func (m *RecordMutation) ClearCodeLines() {
-	m.code_lines = nil
-	m.addcode_lines = nil
-	m.clearedFields[record.FieldCodeLines] = struct{}{}
-}
-
-// CodeLinesCleared returns if the "code_lines" field was cleared in this mutation.
-func (m *RecordMutation) CodeLinesCleared() bool {
-	_, ok := m.clearedFields[record.FieldCodeLines]
-	return ok
-}
-
-// ResetCodeLines resets all changes to the "code_lines" field.
-func (m *RecordMutation) ResetCodeLines() {
-	m.code_lines = nil
-	m.addcode_lines = nil
-	delete(m.clearedFields, record.FieldCodeLines)
-}
-
-// SetInputTokens sets the "input_tokens" field.
-func (m *RecordMutation) SetInputTokens(i int64) {
-	m.input_tokens = &i
-	m.addinput_tokens = nil
-}
-
-// InputTokens returns the value of the "input_tokens" field in the mutation.
-func (m *RecordMutation) InputTokens() (r int64, exists bool) {
-	v := m.input_tokens
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldInputTokens returns the old "input_tokens" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldInputTokens(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldInputTokens is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldInputTokens requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldInputTokens: %w", err)
-	}
-	return oldValue.InputTokens, nil
-}
-
-// AddInputTokens adds i to the "input_tokens" field.
-func (m *RecordMutation) AddInputTokens(i int64) {
-	if m.addinput_tokens != nil {
-		*m.addinput_tokens += i
-	} else {
-		m.addinput_tokens = &i
-	}
-}
-
-// AddedInputTokens returns the value that was added to the "input_tokens" field in this mutation.
-func (m *RecordMutation) AddedInputTokens() (r int64, exists bool) {
-	v := m.addinput_tokens
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetInputTokens resets all changes to the "input_tokens" field.
-func (m *RecordMutation) ResetInputTokens() {
-	m.input_tokens = nil
-	m.addinput_tokens = nil
-}
-
-// SetOutputTokens sets the "output_tokens" field.
-func (m *RecordMutation) SetOutputTokens(i int64) {
-	m.output_tokens = &i
-	m.addoutput_tokens = nil
-}
-
-// OutputTokens returns the value of the "output_tokens" field in the mutation.
-func (m *RecordMutation) OutputTokens() (r int64, exists bool) {
-	v := m.output_tokens
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldOutputTokens returns the old "output_tokens" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldOutputTokens(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldOutputTokens is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldOutputTokens requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldOutputTokens: %w", err)
-	}
-	return oldValue.OutputTokens, nil
-}
-
-// AddOutputTokens adds i to the "output_tokens" field.
-func (m *RecordMutation) AddOutputTokens(i int64) {
-	if m.addoutput_tokens != nil {
-		*m.addoutput_tokens += i
-	} else {
-		m.addoutput_tokens = &i
-	}
-}
-
-// AddedOutputTokens returns the value that was added to the "output_tokens" field in this mutation.
-func (m *RecordMutation) AddedOutputTokens() (r int64, exists bool) {
-	v := m.addoutput_tokens
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetOutputTokens resets all changes to the "output_tokens" field.
-func (m *RecordMutation) ResetOutputTokens() {
-	m.output_tokens = nil
-	m.addoutput_tokens = nil
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *RecordMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *RecordMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *RecordMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *RecordMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *RecordMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the Record entity.
-// If the Record object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RecordMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *RecordMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (m *RecordMutation) ClearUser() {
-	m.cleareduser = true
-	m.clearedFields[record.FieldUserID] = struct{}{}
-}
-
-// UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *RecordMutation) UserCleared() bool {
-	return m.UserIDCleared() || m.cleareduser
-}
-
-// UserIDs returns the "user" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserID instead. It exists only for internal usage by the builders.
-func (m *RecordMutation) UserIDs() (ids []uuid.UUID) {
-	if id := m.user; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetUser resets all changes to the "user" edge.
-func (m *RecordMutation) ResetUser() {
-	m.user = nil
-	m.cleareduser = false
-}
-
-// ClearModel clears the "model" edge to the Model entity.
-func (m *RecordMutation) ClearModel() {
-	m.clearedmodel = true
-	m.clearedFields[record.FieldModelID] = struct{}{}
-}
-
-// ModelCleared reports if the "model" edge to the Model entity was cleared.
-func (m *RecordMutation) ModelCleared() bool {
-	return m.ModelIDCleared() || m.clearedmodel
-}
-
-// ModelIDs returns the "model" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ModelID instead. It exists only for internal usage by the builders.
-func (m *RecordMutation) ModelIDs() (ids []uuid.UUID) {
-	if id := m.model; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetModel resets all changes to the "model" edge.
-func (m *RecordMutation) ResetModel() {
-	m.model = nil
-	m.clearedmodel = false
-}
-
-// Where appends a list predicates to the RecordMutation builder.
-func (m *RecordMutation) Where(ps ...predicate.Record) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the RecordMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *RecordMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Record, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *RecordMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *RecordMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Record).
-func (m *RecordMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *RecordMutation) Fields() []string {
-	fields := make([]string, 0, 14)
-	if m.user != nil {
-		fields = append(fields, record.FieldUserID)
-	}
-	if m.model != nil {
-		fields = append(fields, record.FieldModelID)
-	}
-	if m.task_id != nil {
-		fields = append(fields, record.FieldTaskID)
-	}
-	if m.model_type != nil {
-		fields = append(fields, record.FieldModelType)
-	}
-	if m.prompt != nil {
-		fields = append(fields, record.FieldPrompt)
-	}
-	if m.completion != nil {
-		fields = append(fields, record.FieldCompletion)
-	}
-	if m.is_accept != nil {
-		fields = append(fields, record.FieldIsAccept)
-	}
-	if m.program_language != nil {
-		fields = append(fields, record.FieldProgramLanguage)
-	}
-	if m.work_mode != nil {
-		fields = append(fields, record.FieldWorkMode)
-	}
-	if m.code_lines != nil {
-		fields = append(fields, record.FieldCodeLines)
-	}
-	if m.input_tokens != nil {
-		fields = append(fields, record.FieldInputTokens)
-	}
-	if m.output_tokens != nil {
-		fields = append(fields, record.FieldOutputTokens)
-	}
-	if m.created_at != nil {
-		fields = append(fields, record.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, record.FieldUpdatedAt)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *RecordMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case record.FieldUserID:
-		return m.UserID()
-	case record.FieldModelID:
-		return m.ModelID()
-	case record.FieldTaskID:
-		return m.TaskID()
-	case record.FieldModelType:
-		return m.ModelType()
-	case record.FieldPrompt:
-		return m.Prompt()
-	case record.FieldCompletion:
-		return m.Completion()
-	case record.FieldIsAccept:
-		return m.IsAccept()
-	case record.FieldProgramLanguage:
-		return m.ProgramLanguage()
-	case record.FieldWorkMode:
-		return m.WorkMode()
-	case record.FieldCodeLines:
-		return m.CodeLines()
-	case record.FieldInputTokens:
-		return m.InputTokens()
-	case record.FieldOutputTokens:
-		return m.OutputTokens()
-	case record.FieldCreatedAt:
-		return m.CreatedAt()
-	case record.FieldUpdatedAt:
-		return m.UpdatedAt()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *RecordMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case record.FieldUserID:
-		return m.OldUserID(ctx)
-	case record.FieldModelID:
-		return m.OldModelID(ctx)
-	case record.FieldTaskID:
-		return m.OldTaskID(ctx)
-	case record.FieldModelType:
-		return m.OldModelType(ctx)
-	case record.FieldPrompt:
-		return m.OldPrompt(ctx)
-	case record.FieldCompletion:
-		return m.OldCompletion(ctx)
-	case record.FieldIsAccept:
-		return m.OldIsAccept(ctx)
-	case record.FieldProgramLanguage:
-		return m.OldProgramLanguage(ctx)
-	case record.FieldWorkMode:
-		return m.OldWorkMode(ctx)
-	case record.FieldCodeLines:
-		return m.OldCodeLines(ctx)
-	case record.FieldInputTokens:
-		return m.OldInputTokens(ctx)
-	case record.FieldOutputTokens:
-		return m.OldOutputTokens(ctx)
-	case record.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case record.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	}
-	return nil, fmt.Errorf("unknown Record field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *RecordMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case record.FieldUserID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
-		return nil
-	case record.FieldModelID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetModelID(v)
-		return nil
-	case record.FieldTaskID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTaskID(v)
-		return nil
-	case record.FieldModelType:
-		v, ok := value.(consts.ModelType)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetModelType(v)
-		return nil
-	case record.FieldPrompt:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPrompt(v)
-		return nil
-	case record.FieldCompletion:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCompletion(v)
-		return nil
-	case record.FieldIsAccept:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsAccept(v)
-		return nil
-	case record.FieldProgramLanguage:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProgramLanguage(v)
-		return nil
-	case record.FieldWorkMode:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetWorkMode(v)
-		return nil
-	case record.FieldCodeLines:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCodeLines(v)
-		return nil
-	case record.FieldInputTokens:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetInputTokens(v)
-		return nil
-	case record.FieldOutputTokens:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetOutputTokens(v)
-		return nil
-	case record.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case record.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Record field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *RecordMutation) AddedFields() []string {
-	var fields []string
-	if m.addcode_lines != nil {
-		fields = append(fields, record.FieldCodeLines)
-	}
-	if m.addinput_tokens != nil {
-		fields = append(fields, record.FieldInputTokens)
-	}
-	if m.addoutput_tokens != nil {
-		fields = append(fields, record.FieldOutputTokens)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *RecordMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case record.FieldCodeLines:
-		return m.AddedCodeLines()
-	case record.FieldInputTokens:
-		return m.AddedInputTokens()
-	case record.FieldOutputTokens:
-		return m.AddedOutputTokens()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *RecordMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case record.FieldCodeLines:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddCodeLines(v)
-		return nil
-	case record.FieldInputTokens:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddInputTokens(v)
-		return nil
-	case record.FieldOutputTokens:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddOutputTokens(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Record numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *RecordMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(record.FieldUserID) {
-		fields = append(fields, record.FieldUserID)
-	}
-	if m.FieldCleared(record.FieldModelID) {
-		fields = append(fields, record.FieldModelID)
-	}
-	if m.FieldCleared(record.FieldModelType) {
-		fields = append(fields, record.FieldModelType)
-	}
-	if m.FieldCleared(record.FieldPrompt) {
-		fields = append(fields, record.FieldPrompt)
-	}
-	if m.FieldCleared(record.FieldCompletion) {
-		fields = append(fields, record.FieldCompletion)
-	}
-	if m.FieldCleared(record.FieldProgramLanguage) {
-		fields = append(fields, record.FieldProgramLanguage)
-	}
-	if m.FieldCleared(record.FieldWorkMode) {
-		fields = append(fields, record.FieldWorkMode)
-	}
-	if m.FieldCleared(record.FieldCodeLines) {
-		fields = append(fields, record.FieldCodeLines)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *RecordMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *RecordMutation) ClearField(name string) error {
-	switch name {
-	case record.FieldUserID:
-		m.ClearUserID()
-		return nil
-	case record.FieldModelID:
-		m.ClearModelID()
-		return nil
-	case record.FieldModelType:
-		m.ClearModelType()
-		return nil
-	case record.FieldPrompt:
-		m.ClearPrompt()
-		return nil
-	case record.FieldCompletion:
-		m.ClearCompletion()
-		return nil
-	case record.FieldProgramLanguage:
-		m.ClearProgramLanguage()
-		return nil
-	case record.FieldWorkMode:
-		m.ClearWorkMode()
-		return nil
-	case record.FieldCodeLines:
-		m.ClearCodeLines()
-		return nil
-	}
-	return fmt.Errorf("unknown Record nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *RecordMutation) ResetField(name string) error {
-	switch name {
-	case record.FieldUserID:
-		m.ResetUserID()
-		return nil
-	case record.FieldModelID:
-		m.ResetModelID()
-		return nil
-	case record.FieldTaskID:
-		m.ResetTaskID()
-		return nil
-	case record.FieldModelType:
-		m.ResetModelType()
-		return nil
-	case record.FieldPrompt:
-		m.ResetPrompt()
-		return nil
-	case record.FieldCompletion:
-		m.ResetCompletion()
-		return nil
-	case record.FieldIsAccept:
-		m.ResetIsAccept()
-		return nil
-	case record.FieldProgramLanguage:
-		m.ResetProgramLanguage()
-		return nil
-	case record.FieldWorkMode:
-		m.ResetWorkMode()
-		return nil
-	case record.FieldCodeLines:
-		m.ResetCodeLines()
-		return nil
-	case record.FieldInputTokens:
-		m.ResetInputTokens()
-		return nil
-	case record.FieldOutputTokens:
-		m.ResetOutputTokens()
-		return nil
-	case record.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case record.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown Record field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *RecordMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.user != nil {
-		edges = append(edges, record.EdgeUser)
-	}
-	if m.model != nil {
-		edges = append(edges, record.EdgeModel)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *RecordMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case record.EdgeUser:
-		if id := m.user; id != nil {
-			return []ent.Value{*id}
-		}
-	case record.EdgeModel:
-		if id := m.model; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *RecordMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *RecordMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *RecordMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.cleareduser {
-		edges = append(edges, record.EdgeUser)
-	}
-	if m.clearedmodel {
-		edges = append(edges, record.EdgeModel)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *RecordMutation) EdgeCleared(name string) bool {
-	switch name {
-	case record.EdgeUser:
-		return m.cleareduser
-	case record.EdgeModel:
-		return m.clearedmodel
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *RecordMutation) ClearEdge(name string) error {
-	switch name {
-	case record.EdgeUser:
-		m.ClearUser()
-		return nil
-	case record.EdgeModel:
-		m.ClearModel()
-		return nil
-	}
-	return fmt.Errorf("unknown Record unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *RecordMutation) ResetEdge(name string) error {
-	switch name {
-	case record.EdgeUser:
-		m.ResetUser()
-		return nil
-	case record.EdgeModel:
-		m.ResetModel()
-		return nil
-	}
-	return fmt.Errorf("unknown Record edge %s", name)
 }
 
 // SettingMutation represents an operation that mutates the Setting nodes in the graph.
@@ -8942,6 +7552,2237 @@ func (m *SettingMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Setting edge %s", name)
 }
 
+// TaskMutation represents an operation that mutates the Task nodes in the graph.
+type TaskMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	task_id             *string
+	request_id          *string
+	model_type          *consts.ModelType
+	prompt              *string
+	is_accept           *bool
+	program_language    *string
+	work_mode           *string
+	completion          *string
+	code_lines          *int64
+	addcode_lines       *int64
+	input_tokens        *int64
+	addinput_tokens     *int64
+	output_tokens       *int64
+	addoutput_tokens    *int64
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	task_records        map[uuid.UUID]struct{}
+	removedtask_records map[uuid.UUID]struct{}
+	clearedtask_records bool
+	user                *uuid.UUID
+	cleareduser         bool
+	model               *uuid.UUID
+	clearedmodel        bool
+	done                bool
+	oldValue            func(context.Context) (*Task, error)
+	predicates          []predicate.Task
+}
+
+var _ ent.Mutation = (*TaskMutation)(nil)
+
+// taskOption allows management of the mutation configuration using functional options.
+type taskOption func(*TaskMutation)
+
+// newTaskMutation creates new mutation for the Task entity.
+func newTaskMutation(c config, op Op, opts ...taskOption) *TaskMutation {
+	m := &TaskMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTask,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTaskID sets the ID field of the mutation.
+func withTaskID(id uuid.UUID) taskOption {
+	return func(m *TaskMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Task
+		)
+		m.oldValue = func(ctx context.Context) (*Task, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Task.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTask sets the old Task of the mutation.
+func withTask(node *Task) taskOption {
+	return func(m *TaskMutation) {
+		m.oldValue = func(context.Context) (*Task, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TaskMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TaskMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Task entities.
+func (m *TaskMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TaskMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TaskMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Task.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTaskID sets the "task_id" field.
+func (m *TaskMutation) SetTaskID(s string) {
+	m.task_id = &s
+}
+
+// TaskID returns the value of the "task_id" field in the mutation.
+func (m *TaskMutation) TaskID() (r string, exists bool) {
+	v := m.task_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaskID returns the old "task_id" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldTaskID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaskID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaskID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaskID: %w", err)
+	}
+	return oldValue.TaskID, nil
+}
+
+// ResetTaskID resets all changes to the "task_id" field.
+func (m *TaskMutation) ResetTaskID() {
+	m.task_id = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *TaskMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *TaskMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (m *TaskMutation) ClearUserID() {
+	m.user = nil
+	m.clearedFields[task.FieldUserID] = struct{}{}
+}
+
+// UserIDCleared returns if the "user_id" field was cleared in this mutation.
+func (m *TaskMutation) UserIDCleared() bool {
+	_, ok := m.clearedFields[task.FieldUserID]
+	return ok
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *TaskMutation) ResetUserID() {
+	m.user = nil
+	delete(m.clearedFields, task.FieldUserID)
+}
+
+// SetModelID sets the "model_id" field.
+func (m *TaskMutation) SetModelID(u uuid.UUID) {
+	m.model = &u
+}
+
+// ModelID returns the value of the "model_id" field in the mutation.
+func (m *TaskMutation) ModelID() (r uuid.UUID, exists bool) {
+	v := m.model
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModelID returns the old "model_id" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldModelID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModelID: %w", err)
+	}
+	return oldValue.ModelID, nil
+}
+
+// ClearModelID clears the value of the "model_id" field.
+func (m *TaskMutation) ClearModelID() {
+	m.model = nil
+	m.clearedFields[task.FieldModelID] = struct{}{}
+}
+
+// ModelIDCleared returns if the "model_id" field was cleared in this mutation.
+func (m *TaskMutation) ModelIDCleared() bool {
+	_, ok := m.clearedFields[task.FieldModelID]
+	return ok
+}
+
+// ResetModelID resets all changes to the "model_id" field.
+func (m *TaskMutation) ResetModelID() {
+	m.model = nil
+	delete(m.clearedFields, task.FieldModelID)
+}
+
+// SetRequestID sets the "request_id" field.
+func (m *TaskMutation) SetRequestID(s string) {
+	m.request_id = &s
+}
+
+// RequestID returns the value of the "request_id" field in the mutation.
+func (m *TaskMutation) RequestID() (r string, exists bool) {
+	v := m.request_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestID returns the old "request_id" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldRequestID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestID: %w", err)
+	}
+	return oldValue.RequestID, nil
+}
+
+// ClearRequestID clears the value of the "request_id" field.
+func (m *TaskMutation) ClearRequestID() {
+	m.request_id = nil
+	m.clearedFields[task.FieldRequestID] = struct{}{}
+}
+
+// RequestIDCleared returns if the "request_id" field was cleared in this mutation.
+func (m *TaskMutation) RequestIDCleared() bool {
+	_, ok := m.clearedFields[task.FieldRequestID]
+	return ok
+}
+
+// ResetRequestID resets all changes to the "request_id" field.
+func (m *TaskMutation) ResetRequestID() {
+	m.request_id = nil
+	delete(m.clearedFields, task.FieldRequestID)
+}
+
+// SetModelType sets the "model_type" field.
+func (m *TaskMutation) SetModelType(ct consts.ModelType) {
+	m.model_type = &ct
+}
+
+// ModelType returns the value of the "model_type" field in the mutation.
+func (m *TaskMutation) ModelType() (r consts.ModelType, exists bool) {
+	v := m.model_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModelType returns the old "model_type" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldModelType(ctx context.Context) (v consts.ModelType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModelType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModelType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModelType: %w", err)
+	}
+	return oldValue.ModelType, nil
+}
+
+// ResetModelType resets all changes to the "model_type" field.
+func (m *TaskMutation) ResetModelType() {
+	m.model_type = nil
+}
+
+// SetPrompt sets the "prompt" field.
+func (m *TaskMutation) SetPrompt(s string) {
+	m.prompt = &s
+}
+
+// Prompt returns the value of the "prompt" field in the mutation.
+func (m *TaskMutation) Prompt() (r string, exists bool) {
+	v := m.prompt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrompt returns the old "prompt" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldPrompt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrompt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrompt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrompt: %w", err)
+	}
+	return oldValue.Prompt, nil
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (m *TaskMutation) ClearPrompt() {
+	m.prompt = nil
+	m.clearedFields[task.FieldPrompt] = struct{}{}
+}
+
+// PromptCleared returns if the "prompt" field was cleared in this mutation.
+func (m *TaskMutation) PromptCleared() bool {
+	_, ok := m.clearedFields[task.FieldPrompt]
+	return ok
+}
+
+// ResetPrompt resets all changes to the "prompt" field.
+func (m *TaskMutation) ResetPrompt() {
+	m.prompt = nil
+	delete(m.clearedFields, task.FieldPrompt)
+}
+
+// SetIsAccept sets the "is_accept" field.
+func (m *TaskMutation) SetIsAccept(b bool) {
+	m.is_accept = &b
+}
+
+// IsAccept returns the value of the "is_accept" field in the mutation.
+func (m *TaskMutation) IsAccept() (r bool, exists bool) {
+	v := m.is_accept
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsAccept returns the old "is_accept" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldIsAccept(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsAccept is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsAccept requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsAccept: %w", err)
+	}
+	return oldValue.IsAccept, nil
+}
+
+// ResetIsAccept resets all changes to the "is_accept" field.
+func (m *TaskMutation) ResetIsAccept() {
+	m.is_accept = nil
+}
+
+// SetProgramLanguage sets the "program_language" field.
+func (m *TaskMutation) SetProgramLanguage(s string) {
+	m.program_language = &s
+}
+
+// ProgramLanguage returns the value of the "program_language" field in the mutation.
+func (m *TaskMutation) ProgramLanguage() (r string, exists bool) {
+	v := m.program_language
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProgramLanguage returns the old "program_language" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldProgramLanguage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProgramLanguage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProgramLanguage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProgramLanguage: %w", err)
+	}
+	return oldValue.ProgramLanguage, nil
+}
+
+// ClearProgramLanguage clears the value of the "program_language" field.
+func (m *TaskMutation) ClearProgramLanguage() {
+	m.program_language = nil
+	m.clearedFields[task.FieldProgramLanguage] = struct{}{}
+}
+
+// ProgramLanguageCleared returns if the "program_language" field was cleared in this mutation.
+func (m *TaskMutation) ProgramLanguageCleared() bool {
+	_, ok := m.clearedFields[task.FieldProgramLanguage]
+	return ok
+}
+
+// ResetProgramLanguage resets all changes to the "program_language" field.
+func (m *TaskMutation) ResetProgramLanguage() {
+	m.program_language = nil
+	delete(m.clearedFields, task.FieldProgramLanguage)
+}
+
+// SetWorkMode sets the "work_mode" field.
+func (m *TaskMutation) SetWorkMode(s string) {
+	m.work_mode = &s
+}
+
+// WorkMode returns the value of the "work_mode" field in the mutation.
+func (m *TaskMutation) WorkMode() (r string, exists bool) {
+	v := m.work_mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkMode returns the old "work_mode" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldWorkMode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkMode: %w", err)
+	}
+	return oldValue.WorkMode, nil
+}
+
+// ClearWorkMode clears the value of the "work_mode" field.
+func (m *TaskMutation) ClearWorkMode() {
+	m.work_mode = nil
+	m.clearedFields[task.FieldWorkMode] = struct{}{}
+}
+
+// WorkModeCleared returns if the "work_mode" field was cleared in this mutation.
+func (m *TaskMutation) WorkModeCleared() bool {
+	_, ok := m.clearedFields[task.FieldWorkMode]
+	return ok
+}
+
+// ResetWorkMode resets all changes to the "work_mode" field.
+func (m *TaskMutation) ResetWorkMode() {
+	m.work_mode = nil
+	delete(m.clearedFields, task.FieldWorkMode)
+}
+
+// SetCompletion sets the "completion" field.
+func (m *TaskMutation) SetCompletion(s string) {
+	m.completion = &s
+}
+
+// Completion returns the value of the "completion" field in the mutation.
+func (m *TaskMutation) Completion() (r string, exists bool) {
+	v := m.completion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompletion returns the old "completion" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldCompletion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompletion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompletion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompletion: %w", err)
+	}
+	return oldValue.Completion, nil
+}
+
+// ClearCompletion clears the value of the "completion" field.
+func (m *TaskMutation) ClearCompletion() {
+	m.completion = nil
+	m.clearedFields[task.FieldCompletion] = struct{}{}
+}
+
+// CompletionCleared returns if the "completion" field was cleared in this mutation.
+func (m *TaskMutation) CompletionCleared() bool {
+	_, ok := m.clearedFields[task.FieldCompletion]
+	return ok
+}
+
+// ResetCompletion resets all changes to the "completion" field.
+func (m *TaskMutation) ResetCompletion() {
+	m.completion = nil
+	delete(m.clearedFields, task.FieldCompletion)
+}
+
+// SetCodeLines sets the "code_lines" field.
+func (m *TaskMutation) SetCodeLines(i int64) {
+	m.code_lines = &i
+	m.addcode_lines = nil
+}
+
+// CodeLines returns the value of the "code_lines" field in the mutation.
+func (m *TaskMutation) CodeLines() (r int64, exists bool) {
+	v := m.code_lines
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCodeLines returns the old "code_lines" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldCodeLines(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCodeLines is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCodeLines requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCodeLines: %w", err)
+	}
+	return oldValue.CodeLines, nil
+}
+
+// AddCodeLines adds i to the "code_lines" field.
+func (m *TaskMutation) AddCodeLines(i int64) {
+	if m.addcode_lines != nil {
+		*m.addcode_lines += i
+	} else {
+		m.addcode_lines = &i
+	}
+}
+
+// AddedCodeLines returns the value that was added to the "code_lines" field in this mutation.
+func (m *TaskMutation) AddedCodeLines() (r int64, exists bool) {
+	v := m.addcode_lines
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCodeLines clears the value of the "code_lines" field.
+func (m *TaskMutation) ClearCodeLines() {
+	m.code_lines = nil
+	m.addcode_lines = nil
+	m.clearedFields[task.FieldCodeLines] = struct{}{}
+}
+
+// CodeLinesCleared returns if the "code_lines" field was cleared in this mutation.
+func (m *TaskMutation) CodeLinesCleared() bool {
+	_, ok := m.clearedFields[task.FieldCodeLines]
+	return ok
+}
+
+// ResetCodeLines resets all changes to the "code_lines" field.
+func (m *TaskMutation) ResetCodeLines() {
+	m.code_lines = nil
+	m.addcode_lines = nil
+	delete(m.clearedFields, task.FieldCodeLines)
+}
+
+// SetInputTokens sets the "input_tokens" field.
+func (m *TaskMutation) SetInputTokens(i int64) {
+	m.input_tokens = &i
+	m.addinput_tokens = nil
+}
+
+// InputTokens returns the value of the "input_tokens" field in the mutation.
+func (m *TaskMutation) InputTokens() (r int64, exists bool) {
+	v := m.input_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInputTokens returns the old "input_tokens" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldInputTokens(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInputTokens is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInputTokens requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInputTokens: %w", err)
+	}
+	return oldValue.InputTokens, nil
+}
+
+// AddInputTokens adds i to the "input_tokens" field.
+func (m *TaskMutation) AddInputTokens(i int64) {
+	if m.addinput_tokens != nil {
+		*m.addinput_tokens += i
+	} else {
+		m.addinput_tokens = &i
+	}
+}
+
+// AddedInputTokens returns the value that was added to the "input_tokens" field in this mutation.
+func (m *TaskMutation) AddedInputTokens() (r int64, exists bool) {
+	v := m.addinput_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearInputTokens clears the value of the "input_tokens" field.
+func (m *TaskMutation) ClearInputTokens() {
+	m.input_tokens = nil
+	m.addinput_tokens = nil
+	m.clearedFields[task.FieldInputTokens] = struct{}{}
+}
+
+// InputTokensCleared returns if the "input_tokens" field was cleared in this mutation.
+func (m *TaskMutation) InputTokensCleared() bool {
+	_, ok := m.clearedFields[task.FieldInputTokens]
+	return ok
+}
+
+// ResetInputTokens resets all changes to the "input_tokens" field.
+func (m *TaskMutation) ResetInputTokens() {
+	m.input_tokens = nil
+	m.addinput_tokens = nil
+	delete(m.clearedFields, task.FieldInputTokens)
+}
+
+// SetOutputTokens sets the "output_tokens" field.
+func (m *TaskMutation) SetOutputTokens(i int64) {
+	m.output_tokens = &i
+	m.addoutput_tokens = nil
+}
+
+// OutputTokens returns the value of the "output_tokens" field in the mutation.
+func (m *TaskMutation) OutputTokens() (r int64, exists bool) {
+	v := m.output_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutputTokens returns the old "output_tokens" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldOutputTokens(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutputTokens is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutputTokens requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutputTokens: %w", err)
+	}
+	return oldValue.OutputTokens, nil
+}
+
+// AddOutputTokens adds i to the "output_tokens" field.
+func (m *TaskMutation) AddOutputTokens(i int64) {
+	if m.addoutput_tokens != nil {
+		*m.addoutput_tokens += i
+	} else {
+		m.addoutput_tokens = &i
+	}
+}
+
+// AddedOutputTokens returns the value that was added to the "output_tokens" field in this mutation.
+func (m *TaskMutation) AddedOutputTokens() (r int64, exists bool) {
+	v := m.addoutput_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOutputTokens clears the value of the "output_tokens" field.
+func (m *TaskMutation) ClearOutputTokens() {
+	m.output_tokens = nil
+	m.addoutput_tokens = nil
+	m.clearedFields[task.FieldOutputTokens] = struct{}{}
+}
+
+// OutputTokensCleared returns if the "output_tokens" field was cleared in this mutation.
+func (m *TaskMutation) OutputTokensCleared() bool {
+	_, ok := m.clearedFields[task.FieldOutputTokens]
+	return ok
+}
+
+// ResetOutputTokens resets all changes to the "output_tokens" field.
+func (m *TaskMutation) ResetOutputTokens() {
+	m.output_tokens = nil
+	m.addoutput_tokens = nil
+	delete(m.clearedFields, task.FieldOutputTokens)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *TaskMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *TaskMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *TaskMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *TaskMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *TaskMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *TaskMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// AddTaskRecordIDs adds the "task_records" edge to the TaskRecord entity by ids.
+func (m *TaskMutation) AddTaskRecordIDs(ids ...uuid.UUID) {
+	if m.task_records == nil {
+		m.task_records = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.task_records[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTaskRecords clears the "task_records" edge to the TaskRecord entity.
+func (m *TaskMutation) ClearTaskRecords() {
+	m.clearedtask_records = true
+}
+
+// TaskRecordsCleared reports if the "task_records" edge to the TaskRecord entity was cleared.
+func (m *TaskMutation) TaskRecordsCleared() bool {
+	return m.clearedtask_records
+}
+
+// RemoveTaskRecordIDs removes the "task_records" edge to the TaskRecord entity by IDs.
+func (m *TaskMutation) RemoveTaskRecordIDs(ids ...uuid.UUID) {
+	if m.removedtask_records == nil {
+		m.removedtask_records = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.task_records, ids[i])
+		m.removedtask_records[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTaskRecords returns the removed IDs of the "task_records" edge to the TaskRecord entity.
+func (m *TaskMutation) RemovedTaskRecordsIDs() (ids []uuid.UUID) {
+	for id := range m.removedtask_records {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TaskRecordsIDs returns the "task_records" edge IDs in the mutation.
+func (m *TaskMutation) TaskRecordsIDs() (ids []uuid.UUID) {
+	for id := range m.task_records {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTaskRecords resets all changes to the "task_records" edge.
+func (m *TaskMutation) ResetTaskRecords() {
+	m.task_records = nil
+	m.clearedtask_records = false
+	m.removedtask_records = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *TaskMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[task.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *TaskMutation) UserCleared() bool {
+	return m.UserIDCleared() || m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *TaskMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *TaskMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// ClearModel clears the "model" edge to the Model entity.
+func (m *TaskMutation) ClearModel() {
+	m.clearedmodel = true
+	m.clearedFields[task.FieldModelID] = struct{}{}
+}
+
+// ModelCleared reports if the "model" edge to the Model entity was cleared.
+func (m *TaskMutation) ModelCleared() bool {
+	return m.ModelIDCleared() || m.clearedmodel
+}
+
+// ModelIDs returns the "model" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ModelID instead. It exists only for internal usage by the builders.
+func (m *TaskMutation) ModelIDs() (ids []uuid.UUID) {
+	if id := m.model; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetModel resets all changes to the "model" edge.
+func (m *TaskMutation) ResetModel() {
+	m.model = nil
+	m.clearedmodel = false
+}
+
+// Where appends a list predicates to the TaskMutation builder.
+func (m *TaskMutation) Where(ps ...predicate.Task) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TaskMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TaskMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Task, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TaskMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TaskMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Task).
+func (m *TaskMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TaskMutation) Fields() []string {
+	fields := make([]string, 0, 15)
+	if m.task_id != nil {
+		fields = append(fields, task.FieldTaskID)
+	}
+	if m.user != nil {
+		fields = append(fields, task.FieldUserID)
+	}
+	if m.model != nil {
+		fields = append(fields, task.FieldModelID)
+	}
+	if m.request_id != nil {
+		fields = append(fields, task.FieldRequestID)
+	}
+	if m.model_type != nil {
+		fields = append(fields, task.FieldModelType)
+	}
+	if m.prompt != nil {
+		fields = append(fields, task.FieldPrompt)
+	}
+	if m.is_accept != nil {
+		fields = append(fields, task.FieldIsAccept)
+	}
+	if m.program_language != nil {
+		fields = append(fields, task.FieldProgramLanguage)
+	}
+	if m.work_mode != nil {
+		fields = append(fields, task.FieldWorkMode)
+	}
+	if m.completion != nil {
+		fields = append(fields, task.FieldCompletion)
+	}
+	if m.code_lines != nil {
+		fields = append(fields, task.FieldCodeLines)
+	}
+	if m.input_tokens != nil {
+		fields = append(fields, task.FieldInputTokens)
+	}
+	if m.output_tokens != nil {
+		fields = append(fields, task.FieldOutputTokens)
+	}
+	if m.created_at != nil {
+		fields = append(fields, task.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, task.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TaskMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case task.FieldTaskID:
+		return m.TaskID()
+	case task.FieldUserID:
+		return m.UserID()
+	case task.FieldModelID:
+		return m.ModelID()
+	case task.FieldRequestID:
+		return m.RequestID()
+	case task.FieldModelType:
+		return m.ModelType()
+	case task.FieldPrompt:
+		return m.Prompt()
+	case task.FieldIsAccept:
+		return m.IsAccept()
+	case task.FieldProgramLanguage:
+		return m.ProgramLanguage()
+	case task.FieldWorkMode:
+		return m.WorkMode()
+	case task.FieldCompletion:
+		return m.Completion()
+	case task.FieldCodeLines:
+		return m.CodeLines()
+	case task.FieldInputTokens:
+		return m.InputTokens()
+	case task.FieldOutputTokens:
+		return m.OutputTokens()
+	case task.FieldCreatedAt:
+		return m.CreatedAt()
+	case task.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TaskMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case task.FieldTaskID:
+		return m.OldTaskID(ctx)
+	case task.FieldUserID:
+		return m.OldUserID(ctx)
+	case task.FieldModelID:
+		return m.OldModelID(ctx)
+	case task.FieldRequestID:
+		return m.OldRequestID(ctx)
+	case task.FieldModelType:
+		return m.OldModelType(ctx)
+	case task.FieldPrompt:
+		return m.OldPrompt(ctx)
+	case task.FieldIsAccept:
+		return m.OldIsAccept(ctx)
+	case task.FieldProgramLanguage:
+		return m.OldProgramLanguage(ctx)
+	case task.FieldWorkMode:
+		return m.OldWorkMode(ctx)
+	case task.FieldCompletion:
+		return m.OldCompletion(ctx)
+	case task.FieldCodeLines:
+		return m.OldCodeLines(ctx)
+	case task.FieldInputTokens:
+		return m.OldInputTokens(ctx)
+	case task.FieldOutputTokens:
+		return m.OldOutputTokens(ctx)
+	case task.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case task.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Task field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TaskMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case task.FieldTaskID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaskID(v)
+		return nil
+	case task.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case task.FieldModelID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModelID(v)
+		return nil
+	case task.FieldRequestID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestID(v)
+		return nil
+	case task.FieldModelType:
+		v, ok := value.(consts.ModelType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModelType(v)
+		return nil
+	case task.FieldPrompt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrompt(v)
+		return nil
+	case task.FieldIsAccept:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsAccept(v)
+		return nil
+	case task.FieldProgramLanguage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProgramLanguage(v)
+		return nil
+	case task.FieldWorkMode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkMode(v)
+		return nil
+	case task.FieldCompletion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompletion(v)
+		return nil
+	case task.FieldCodeLines:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCodeLines(v)
+		return nil
+	case task.FieldInputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInputTokens(v)
+		return nil
+	case task.FieldOutputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutputTokens(v)
+		return nil
+	case task.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case task.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Task field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TaskMutation) AddedFields() []string {
+	var fields []string
+	if m.addcode_lines != nil {
+		fields = append(fields, task.FieldCodeLines)
+	}
+	if m.addinput_tokens != nil {
+		fields = append(fields, task.FieldInputTokens)
+	}
+	if m.addoutput_tokens != nil {
+		fields = append(fields, task.FieldOutputTokens)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TaskMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case task.FieldCodeLines:
+		return m.AddedCodeLines()
+	case task.FieldInputTokens:
+		return m.AddedInputTokens()
+	case task.FieldOutputTokens:
+		return m.AddedOutputTokens()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TaskMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case task.FieldCodeLines:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCodeLines(v)
+		return nil
+	case task.FieldInputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddInputTokens(v)
+		return nil
+	case task.FieldOutputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOutputTokens(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Task numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TaskMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(task.FieldUserID) {
+		fields = append(fields, task.FieldUserID)
+	}
+	if m.FieldCleared(task.FieldModelID) {
+		fields = append(fields, task.FieldModelID)
+	}
+	if m.FieldCleared(task.FieldRequestID) {
+		fields = append(fields, task.FieldRequestID)
+	}
+	if m.FieldCleared(task.FieldPrompt) {
+		fields = append(fields, task.FieldPrompt)
+	}
+	if m.FieldCleared(task.FieldProgramLanguage) {
+		fields = append(fields, task.FieldProgramLanguage)
+	}
+	if m.FieldCleared(task.FieldWorkMode) {
+		fields = append(fields, task.FieldWorkMode)
+	}
+	if m.FieldCleared(task.FieldCompletion) {
+		fields = append(fields, task.FieldCompletion)
+	}
+	if m.FieldCleared(task.FieldCodeLines) {
+		fields = append(fields, task.FieldCodeLines)
+	}
+	if m.FieldCleared(task.FieldInputTokens) {
+		fields = append(fields, task.FieldInputTokens)
+	}
+	if m.FieldCleared(task.FieldOutputTokens) {
+		fields = append(fields, task.FieldOutputTokens)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TaskMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TaskMutation) ClearField(name string) error {
+	switch name {
+	case task.FieldUserID:
+		m.ClearUserID()
+		return nil
+	case task.FieldModelID:
+		m.ClearModelID()
+		return nil
+	case task.FieldRequestID:
+		m.ClearRequestID()
+		return nil
+	case task.FieldPrompt:
+		m.ClearPrompt()
+		return nil
+	case task.FieldProgramLanguage:
+		m.ClearProgramLanguage()
+		return nil
+	case task.FieldWorkMode:
+		m.ClearWorkMode()
+		return nil
+	case task.FieldCompletion:
+		m.ClearCompletion()
+		return nil
+	case task.FieldCodeLines:
+		m.ClearCodeLines()
+		return nil
+	case task.FieldInputTokens:
+		m.ClearInputTokens()
+		return nil
+	case task.FieldOutputTokens:
+		m.ClearOutputTokens()
+		return nil
+	}
+	return fmt.Errorf("unknown Task nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TaskMutation) ResetField(name string) error {
+	switch name {
+	case task.FieldTaskID:
+		m.ResetTaskID()
+		return nil
+	case task.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case task.FieldModelID:
+		m.ResetModelID()
+		return nil
+	case task.FieldRequestID:
+		m.ResetRequestID()
+		return nil
+	case task.FieldModelType:
+		m.ResetModelType()
+		return nil
+	case task.FieldPrompt:
+		m.ResetPrompt()
+		return nil
+	case task.FieldIsAccept:
+		m.ResetIsAccept()
+		return nil
+	case task.FieldProgramLanguage:
+		m.ResetProgramLanguage()
+		return nil
+	case task.FieldWorkMode:
+		m.ResetWorkMode()
+		return nil
+	case task.FieldCompletion:
+		m.ResetCompletion()
+		return nil
+	case task.FieldCodeLines:
+		m.ResetCodeLines()
+		return nil
+	case task.FieldInputTokens:
+		m.ResetInputTokens()
+		return nil
+	case task.FieldOutputTokens:
+		m.ResetOutputTokens()
+		return nil
+	case task.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case task.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Task field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TaskMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.task_records != nil {
+		edges = append(edges, task.EdgeTaskRecords)
+	}
+	if m.user != nil {
+		edges = append(edges, task.EdgeUser)
+	}
+	if m.model != nil {
+		edges = append(edges, task.EdgeModel)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TaskMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case task.EdgeTaskRecords:
+		ids := make([]ent.Value, 0, len(m.task_records))
+		for id := range m.task_records {
+			ids = append(ids, id)
+		}
+		return ids
+	case task.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case task.EdgeModel:
+		if id := m.model; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TaskMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedtask_records != nil {
+		edges = append(edges, task.EdgeTaskRecords)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TaskMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case task.EdgeTaskRecords:
+		ids := make([]ent.Value, 0, len(m.removedtask_records))
+		for id := range m.removedtask_records {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TaskMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedtask_records {
+		edges = append(edges, task.EdgeTaskRecords)
+	}
+	if m.cleareduser {
+		edges = append(edges, task.EdgeUser)
+	}
+	if m.clearedmodel {
+		edges = append(edges, task.EdgeModel)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TaskMutation) EdgeCleared(name string) bool {
+	switch name {
+	case task.EdgeTaskRecords:
+		return m.clearedtask_records
+	case task.EdgeUser:
+		return m.cleareduser
+	case task.EdgeModel:
+		return m.clearedmodel
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TaskMutation) ClearEdge(name string) error {
+	switch name {
+	case task.EdgeUser:
+		m.ClearUser()
+		return nil
+	case task.EdgeModel:
+		m.ClearModel()
+		return nil
+	}
+	return fmt.Errorf("unknown Task unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TaskMutation) ResetEdge(name string) error {
+	switch name {
+	case task.EdgeTaskRecords:
+		m.ResetTaskRecords()
+		return nil
+	case task.EdgeUser:
+		m.ResetUser()
+		return nil
+	case task.EdgeModel:
+		m.ResetModel()
+		return nil
+	}
+	return fmt.Errorf("unknown Task edge %s", name)
+}
+
+// TaskRecordMutation represents an operation that mutates the TaskRecord nodes in the graph.
+type TaskRecordMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	completion       *string
+	output_tokens    *int64
+	addoutput_tokens *int64
+	created_at       *time.Time
+	updated_at       *time.Time
+	clearedFields    map[string]struct{}
+	task             *uuid.UUID
+	clearedtask      bool
+	done             bool
+	oldValue         func(context.Context) (*TaskRecord, error)
+	predicates       []predicate.TaskRecord
+}
+
+var _ ent.Mutation = (*TaskRecordMutation)(nil)
+
+// taskrecordOption allows management of the mutation configuration using functional options.
+type taskrecordOption func(*TaskRecordMutation)
+
+// newTaskRecordMutation creates new mutation for the TaskRecord entity.
+func newTaskRecordMutation(c config, op Op, opts ...taskrecordOption) *TaskRecordMutation {
+	m := &TaskRecordMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTaskRecord,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTaskRecordID sets the ID field of the mutation.
+func withTaskRecordID(id uuid.UUID) taskrecordOption {
+	return func(m *TaskRecordMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *TaskRecord
+		)
+		m.oldValue = func(ctx context.Context) (*TaskRecord, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().TaskRecord.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTaskRecord sets the old TaskRecord of the mutation.
+func withTaskRecord(node *TaskRecord) taskrecordOption {
+	return func(m *TaskRecordMutation) {
+		m.oldValue = func(context.Context) (*TaskRecord, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TaskRecordMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TaskRecordMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of TaskRecord entities.
+func (m *TaskRecordMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TaskRecordMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TaskRecordMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().TaskRecord.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTaskID sets the "task_id" field.
+func (m *TaskRecordMutation) SetTaskID(u uuid.UUID) {
+	m.task = &u
+}
+
+// TaskID returns the value of the "task_id" field in the mutation.
+func (m *TaskRecordMutation) TaskID() (r uuid.UUID, exists bool) {
+	v := m.task
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaskID returns the old "task_id" field's value of the TaskRecord entity.
+// If the TaskRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskRecordMutation) OldTaskID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaskID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaskID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaskID: %w", err)
+	}
+	return oldValue.TaskID, nil
+}
+
+// ClearTaskID clears the value of the "task_id" field.
+func (m *TaskRecordMutation) ClearTaskID() {
+	m.task = nil
+	m.clearedFields[taskrecord.FieldTaskID] = struct{}{}
+}
+
+// TaskIDCleared returns if the "task_id" field was cleared in this mutation.
+func (m *TaskRecordMutation) TaskIDCleared() bool {
+	_, ok := m.clearedFields[taskrecord.FieldTaskID]
+	return ok
+}
+
+// ResetTaskID resets all changes to the "task_id" field.
+func (m *TaskRecordMutation) ResetTaskID() {
+	m.task = nil
+	delete(m.clearedFields, taskrecord.FieldTaskID)
+}
+
+// SetCompletion sets the "completion" field.
+func (m *TaskRecordMutation) SetCompletion(s string) {
+	m.completion = &s
+}
+
+// Completion returns the value of the "completion" field in the mutation.
+func (m *TaskRecordMutation) Completion() (r string, exists bool) {
+	v := m.completion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompletion returns the old "completion" field's value of the TaskRecord entity.
+// If the TaskRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskRecordMutation) OldCompletion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompletion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompletion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompletion: %w", err)
+	}
+	return oldValue.Completion, nil
+}
+
+// ResetCompletion resets all changes to the "completion" field.
+func (m *TaskRecordMutation) ResetCompletion() {
+	m.completion = nil
+}
+
+// SetOutputTokens sets the "output_tokens" field.
+func (m *TaskRecordMutation) SetOutputTokens(i int64) {
+	m.output_tokens = &i
+	m.addoutput_tokens = nil
+}
+
+// OutputTokens returns the value of the "output_tokens" field in the mutation.
+func (m *TaskRecordMutation) OutputTokens() (r int64, exists bool) {
+	v := m.output_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutputTokens returns the old "output_tokens" field's value of the TaskRecord entity.
+// If the TaskRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskRecordMutation) OldOutputTokens(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutputTokens is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutputTokens requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutputTokens: %w", err)
+	}
+	return oldValue.OutputTokens, nil
+}
+
+// AddOutputTokens adds i to the "output_tokens" field.
+func (m *TaskRecordMutation) AddOutputTokens(i int64) {
+	if m.addoutput_tokens != nil {
+		*m.addoutput_tokens += i
+	} else {
+		m.addoutput_tokens = &i
+	}
+}
+
+// AddedOutputTokens returns the value that was added to the "output_tokens" field in this mutation.
+func (m *TaskRecordMutation) AddedOutputTokens() (r int64, exists bool) {
+	v := m.addoutput_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOutputTokens resets all changes to the "output_tokens" field.
+func (m *TaskRecordMutation) ResetOutputTokens() {
+	m.output_tokens = nil
+	m.addoutput_tokens = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *TaskRecordMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *TaskRecordMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the TaskRecord entity.
+// If the TaskRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskRecordMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *TaskRecordMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *TaskRecordMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *TaskRecordMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the TaskRecord entity.
+// If the TaskRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskRecordMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *TaskRecordMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearTask clears the "task" edge to the Task entity.
+func (m *TaskRecordMutation) ClearTask() {
+	m.clearedtask = true
+	m.clearedFields[taskrecord.FieldTaskID] = struct{}{}
+}
+
+// TaskCleared reports if the "task" edge to the Task entity was cleared.
+func (m *TaskRecordMutation) TaskCleared() bool {
+	return m.TaskIDCleared() || m.clearedtask
+}
+
+// TaskIDs returns the "task" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TaskID instead. It exists only for internal usage by the builders.
+func (m *TaskRecordMutation) TaskIDs() (ids []uuid.UUID) {
+	if id := m.task; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTask resets all changes to the "task" edge.
+func (m *TaskRecordMutation) ResetTask() {
+	m.task = nil
+	m.clearedtask = false
+}
+
+// Where appends a list predicates to the TaskRecordMutation builder.
+func (m *TaskRecordMutation) Where(ps ...predicate.TaskRecord) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TaskRecordMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TaskRecordMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.TaskRecord, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TaskRecordMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TaskRecordMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (TaskRecord).
+func (m *TaskRecordMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TaskRecordMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.task != nil {
+		fields = append(fields, taskrecord.FieldTaskID)
+	}
+	if m.completion != nil {
+		fields = append(fields, taskrecord.FieldCompletion)
+	}
+	if m.output_tokens != nil {
+		fields = append(fields, taskrecord.FieldOutputTokens)
+	}
+	if m.created_at != nil {
+		fields = append(fields, taskrecord.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, taskrecord.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TaskRecordMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case taskrecord.FieldTaskID:
+		return m.TaskID()
+	case taskrecord.FieldCompletion:
+		return m.Completion()
+	case taskrecord.FieldOutputTokens:
+		return m.OutputTokens()
+	case taskrecord.FieldCreatedAt:
+		return m.CreatedAt()
+	case taskrecord.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TaskRecordMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case taskrecord.FieldTaskID:
+		return m.OldTaskID(ctx)
+	case taskrecord.FieldCompletion:
+		return m.OldCompletion(ctx)
+	case taskrecord.FieldOutputTokens:
+		return m.OldOutputTokens(ctx)
+	case taskrecord.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case taskrecord.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown TaskRecord field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TaskRecordMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case taskrecord.FieldTaskID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaskID(v)
+		return nil
+	case taskrecord.FieldCompletion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompletion(v)
+		return nil
+	case taskrecord.FieldOutputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutputTokens(v)
+		return nil
+	case taskrecord.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case taskrecord.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TaskRecord field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TaskRecordMutation) AddedFields() []string {
+	var fields []string
+	if m.addoutput_tokens != nil {
+		fields = append(fields, taskrecord.FieldOutputTokens)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TaskRecordMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case taskrecord.FieldOutputTokens:
+		return m.AddedOutputTokens()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TaskRecordMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case taskrecord.FieldOutputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOutputTokens(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TaskRecord numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TaskRecordMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(taskrecord.FieldTaskID) {
+		fields = append(fields, taskrecord.FieldTaskID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TaskRecordMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TaskRecordMutation) ClearField(name string) error {
+	switch name {
+	case taskrecord.FieldTaskID:
+		m.ClearTaskID()
+		return nil
+	}
+	return fmt.Errorf("unknown TaskRecord nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TaskRecordMutation) ResetField(name string) error {
+	switch name {
+	case taskrecord.FieldTaskID:
+		m.ResetTaskID()
+		return nil
+	case taskrecord.FieldCompletion:
+		m.ResetCompletion()
+		return nil
+	case taskrecord.FieldOutputTokens:
+		m.ResetOutputTokens()
+		return nil
+	case taskrecord.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case taskrecord.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown TaskRecord field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TaskRecordMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.task != nil {
+		edges = append(edges, taskrecord.EdgeTask)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TaskRecordMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case taskrecord.EdgeTask:
+		if id := m.task; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TaskRecordMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TaskRecordMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TaskRecordMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedtask {
+		edges = append(edges, taskrecord.EdgeTask)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TaskRecordMutation) EdgeCleared(name string) bool {
+	switch name {
+	case taskrecord.EdgeTask:
+		return m.clearedtask
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TaskRecordMutation) ClearEdge(name string) error {
+	switch name {
+	case taskrecord.EdgeTask:
+		m.ClearTask()
+		return nil
+	}
+	return fmt.Errorf("unknown TaskRecord unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TaskRecordMutation) ResetEdge(name string) error {
+	switch name {
+	case taskrecord.EdgeTask:
+		m.ResetTask()
+		return nil
+	}
+	return fmt.Errorf("unknown TaskRecord edge %s", name)
+}
+
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
@@ -8955,15 +9796,15 @@ type UserMutation struct {
 	created_at             *time.Time
 	updated_at             *time.Time
 	clearedFields          map[string]struct{}
-	records                map[uuid.UUID]struct{}
-	removedrecords         map[uuid.UUID]struct{}
-	clearedrecords         bool
 	login_histories        map[uuid.UUID]struct{}
 	removedlogin_histories map[uuid.UUID]struct{}
 	clearedlogin_histories bool
 	models                 map[uuid.UUID]struct{}
 	removedmodels          map[uuid.UUID]struct{}
 	clearedmodels          bool
+	tasks                  map[uuid.UUID]struct{}
+	removedtasks           map[uuid.UUID]struct{}
+	clearedtasks           bool
 	done                   bool
 	oldValue               func(context.Context) (*User, error)
 	predicates             []predicate.User
@@ -9289,60 +10130,6 @@ func (m *UserMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// AddRecordIDs adds the "records" edge to the Record entity by ids.
-func (m *UserMutation) AddRecordIDs(ids ...uuid.UUID) {
-	if m.records == nil {
-		m.records = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.records[ids[i]] = struct{}{}
-	}
-}
-
-// ClearRecords clears the "records" edge to the Record entity.
-func (m *UserMutation) ClearRecords() {
-	m.clearedrecords = true
-}
-
-// RecordsCleared reports if the "records" edge to the Record entity was cleared.
-func (m *UserMutation) RecordsCleared() bool {
-	return m.clearedrecords
-}
-
-// RemoveRecordIDs removes the "records" edge to the Record entity by IDs.
-func (m *UserMutation) RemoveRecordIDs(ids ...uuid.UUID) {
-	if m.removedrecords == nil {
-		m.removedrecords = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.records, ids[i])
-		m.removedrecords[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedRecords returns the removed IDs of the "records" edge to the Record entity.
-func (m *UserMutation) RemovedRecordsIDs() (ids []uuid.UUID) {
-	for id := range m.removedrecords {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// RecordsIDs returns the "records" edge IDs in the mutation.
-func (m *UserMutation) RecordsIDs() (ids []uuid.UUID) {
-	for id := range m.records {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetRecords resets all changes to the "records" edge.
-func (m *UserMutation) ResetRecords() {
-	m.records = nil
-	m.clearedrecords = false
-	m.removedrecords = nil
-}
-
 // AddLoginHistoryIDs adds the "login_histories" edge to the UserLoginHistory entity by ids.
 func (m *UserMutation) AddLoginHistoryIDs(ids ...uuid.UUID) {
 	if m.login_histories == nil {
@@ -9449,6 +10236,60 @@ func (m *UserMutation) ResetModels() {
 	m.models = nil
 	m.clearedmodels = false
 	m.removedmodels = nil
+}
+
+// AddTaskIDs adds the "tasks" edge to the Task entity by ids.
+func (m *UserMutation) AddTaskIDs(ids ...uuid.UUID) {
+	if m.tasks == nil {
+		m.tasks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.tasks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTasks clears the "tasks" edge to the Task entity.
+func (m *UserMutation) ClearTasks() {
+	m.clearedtasks = true
+}
+
+// TasksCleared reports if the "tasks" edge to the Task entity was cleared.
+func (m *UserMutation) TasksCleared() bool {
+	return m.clearedtasks
+}
+
+// RemoveTaskIDs removes the "tasks" edge to the Task entity by IDs.
+func (m *UserMutation) RemoveTaskIDs(ids ...uuid.UUID) {
+	if m.removedtasks == nil {
+		m.removedtasks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.tasks, ids[i])
+		m.removedtasks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTasks returns the removed IDs of the "tasks" edge to the Task entity.
+func (m *UserMutation) RemovedTasksIDs() (ids []uuid.UUID) {
+	for id := range m.removedtasks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TasksIDs returns the "tasks" edge IDs in the mutation.
+func (m *UserMutation) TasksIDs() (ids []uuid.UUID) {
+	for id := range m.tasks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTasks resets all changes to the "tasks" edge.
+func (m *UserMutation) ResetTasks() {
+	m.tasks = nil
+	m.clearedtasks = false
+	m.removedtasks = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -9670,14 +10511,14 @@ func (m *UserMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.records != nil {
-		edges = append(edges, user.EdgeRecords)
-	}
 	if m.login_histories != nil {
 		edges = append(edges, user.EdgeLoginHistories)
 	}
 	if m.models != nil {
 		edges = append(edges, user.EdgeModels)
+	}
+	if m.tasks != nil {
+		edges = append(edges, user.EdgeTasks)
 	}
 	return edges
 }
@@ -9686,12 +10527,6 @@ func (m *UserMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeRecords:
-		ids := make([]ent.Value, 0, len(m.records))
-		for id := range m.records {
-			ids = append(ids, id)
-		}
-		return ids
 	case user.EdgeLoginHistories:
 		ids := make([]ent.Value, 0, len(m.login_histories))
 		for id := range m.login_histories {
@@ -9704,6 +10539,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeTasks:
+		ids := make([]ent.Value, 0, len(m.tasks))
+		for id := range m.tasks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -9711,14 +10552,14 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.removedrecords != nil {
-		edges = append(edges, user.EdgeRecords)
-	}
 	if m.removedlogin_histories != nil {
 		edges = append(edges, user.EdgeLoginHistories)
 	}
 	if m.removedmodels != nil {
 		edges = append(edges, user.EdgeModels)
+	}
+	if m.removedtasks != nil {
+		edges = append(edges, user.EdgeTasks)
 	}
 	return edges
 }
@@ -9727,12 +10568,6 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeRecords:
-		ids := make([]ent.Value, 0, len(m.removedrecords))
-		for id := range m.removedrecords {
-			ids = append(ids, id)
-		}
-		return ids
 	case user.EdgeLoginHistories:
 		ids := make([]ent.Value, 0, len(m.removedlogin_histories))
 		for id := range m.removedlogin_histories {
@@ -9745,6 +10580,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeTasks:
+		ids := make([]ent.Value, 0, len(m.removedtasks))
+		for id := range m.removedtasks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -9752,14 +10593,14 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.clearedrecords {
-		edges = append(edges, user.EdgeRecords)
-	}
 	if m.clearedlogin_histories {
 		edges = append(edges, user.EdgeLoginHistories)
 	}
 	if m.clearedmodels {
 		edges = append(edges, user.EdgeModels)
+	}
+	if m.clearedtasks {
+		edges = append(edges, user.EdgeTasks)
 	}
 	return edges
 }
@@ -9768,12 +10609,12 @@ func (m *UserMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
-	case user.EdgeRecords:
-		return m.clearedrecords
 	case user.EdgeLoginHistories:
 		return m.clearedlogin_histories
 	case user.EdgeModels:
 		return m.clearedmodels
+	case user.EdgeTasks:
+		return m.clearedtasks
 	}
 	return false
 }
@@ -9790,14 +10631,14 @@ func (m *UserMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
-	case user.EdgeRecords:
-		m.ResetRecords()
-		return nil
 	case user.EdgeLoginHistories:
 		m.ResetLoginHistories()
 		return nil
 	case user.EdgeModels:
 		m.ResetModels()
+		return nil
+	case user.EdgeTasks:
+		m.ResetTasks()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

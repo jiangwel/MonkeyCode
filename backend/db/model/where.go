@@ -857,21 +857,21 @@ func UpdatedAtLTE(v time.Time) predicate.Model {
 	return predicate.Model(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// HasRecords applies the HasEdge predicate on the "records" edge.
-func HasRecords() predicate.Model {
+// HasTasks applies the HasEdge predicate on the "tasks" edge.
+func HasTasks() predicate.Model {
 	return predicate.Model(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, RecordsTable, RecordsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, TasksTable, TasksColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasRecordsWith applies the HasEdge predicate on the "records" edge with a given conditions (other predicates).
-func HasRecordsWith(preds ...predicate.Record) predicate.Model {
+// HasTasksWith applies the HasEdge predicate on the "tasks" edge with a given conditions (other predicates).
+func HasTasksWith(preds ...predicate.Task) predicate.Model {
 	return predicate.Model(func(s *sql.Selector) {
-		step := newRecordsStep()
+		step := newTasksStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

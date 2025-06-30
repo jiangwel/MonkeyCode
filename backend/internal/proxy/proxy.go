@@ -531,8 +531,18 @@ func streamRead(ctx context.Context, r io.Reader, fn func([]byte) error) error {
 
 func getPrompt(req *openai.ChatCompletionRequest) string {
 	for _, message := range req.Messages {
-		if message.Role == "user" && strings.Contains(message.Content, "<task>") {
+		if message.Role == "system" {
+			continue
+		}
+
+		if strings.Contains(message.Content, "<task>") {
 			return message.Content
+		}
+
+		for _, m := range message.MultiContent {
+			if strings.Contains(m.Text, "<task>") {
+				return m.Text
+			}
 		}
 	}
 	return ""
@@ -672,12 +682,13 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 		w.Header().Set("Transfer-Encoding", "chunked")
 
 		rc := &domain.RecordParam{
+			RequestID: c.RequestID,
+			TaskID:    taskID,
 			UserID:    c.UserID,
 			ModelID:   m.ID,
 			ModelType: consts.ModelTypeLLM,
 			WorkMode:  mode,
 			Prompt:    prompt,
-			TaskID:    taskID,
 		}
 		buf := bufio.NewWriterSize(w, 32*1024)
 		defer buf.Flush()
@@ -709,8 +720,8 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 						rc.Completion += t.Choices[0].Delta.Content
 					}
 					if t.Usage != nil {
-						rc.InputTokens += int64(t.Usage.PromptTokens)
-						rc.OutputTokens += int64(t.Usage.CompletionTokens)
+						rc.InputTokens = int64(t.Usage.PromptTokens)
+						rc.OutputTokens = int64(t.Usage.CompletionTokens)
 					}
 				}
 			}

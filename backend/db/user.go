@@ -39,30 +39,21 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Records holds the value of the records edge.
-	Records []*Record `json:"records,omitempty"`
 	// LoginHistories holds the value of the login_histories edge.
 	LoginHistories []*UserLoginHistory `json:"login_histories,omitempty"`
 	// Models holds the value of the models edge.
 	Models []*Model `json:"models,omitempty"`
+	// Tasks holds the value of the tasks edge.
+	Tasks []*Task `json:"tasks,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
 }
 
-// RecordsOrErr returns the Records value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) RecordsOrErr() ([]*Record, error) {
-	if e.loadedTypes[0] {
-		return e.Records, nil
-	}
-	return nil, &NotLoadedError{edge: "records"}
-}
-
 // LoginHistoriesOrErr returns the LoginHistories value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) LoginHistoriesOrErr() ([]*UserLoginHistory, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		return e.LoginHistories, nil
 	}
 	return nil, &NotLoadedError{edge: "login_histories"}
@@ -71,10 +62,19 @@ func (e UserEdges) LoginHistoriesOrErr() ([]*UserLoginHistory, error) {
 // ModelsOrErr returns the Models value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ModelsOrErr() ([]*Model, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.Models, nil
 	}
 	return nil, &NotLoadedError{edge: "models"}
+}
+
+// TasksOrErr returns the Tasks value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TasksOrErr() ([]*Task, error) {
+	if e.loadedTypes[2] {
+		return e.Tasks, nil
+	}
+	return nil, &NotLoadedError{edge: "tasks"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -158,11 +158,6 @@ func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
 }
 
-// QueryRecords queries the "records" edge of the User entity.
-func (u *User) QueryRecords() *RecordQuery {
-	return NewUserClient(u.config).QueryRecords(u)
-}
-
 // QueryLoginHistories queries the "login_histories" edge of the User entity.
 func (u *User) QueryLoginHistories() *UserLoginHistoryQuery {
 	return NewUserClient(u.config).QueryLoginHistories(u)
@@ -171,6 +166,11 @@ func (u *User) QueryLoginHistories() *UserLoginHistoryQuery {
 // QueryModels queries the "models" edge of the User entity.
 func (u *User) QueryModels() *ModelQuery {
 	return NewUserClient(u.config).QueryModels(u)
+}
+
+// QueryTasks queries the "tasks" edge of the User entity.
+func (u *User) QueryTasks() *TaskQuery {
+	return NewUserClient(u.config).QueryTasks(u)
 }
 
 // Update returns a builder for updating this User.

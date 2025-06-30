@@ -46,11 +46,11 @@ type ChatRecord struct {
 	CreatedAt    int64  `json:"created_at"`    // 创建时间
 }
 
-func (c *ChatRecord) From(e *db.Record) *ChatRecord {
+func (c *ChatRecord) From(e *db.Task) *ChatRecord {
 	if e == nil {
 		return c
 	}
-	c.ID = e.ID.String()
+	c.ID = e.TaskID
 	c.Question = e.Prompt
 	c.User = cvt.From(e.Edges.User, &User{})
 	c.Model = cvt.From(e.Edges.Model, &Model{})
@@ -71,11 +71,11 @@ type CompletionRecord struct {
 	CreatedAt       int64  `json:"created_at"`       // 创建时间
 }
 
-func (c *CompletionRecord) From(e *db.Record) *CompletionRecord {
+func (c *CompletionRecord) From(e *db.Task) *CompletionRecord {
 	if e == nil {
 		return c
 	}
-	c.ID = e.ID.String()
+	c.ID = e.TaskID
 	c.IsAccept = e.IsAccept
 	c.User = cvt.From(e.Edges.User, &User{})
 	c.ProgramLanguage = e.ProgramLanguage
@@ -91,11 +91,11 @@ type CompletionInfo struct {
 	CreatedAt int64  `json:"created_at"`
 }
 
-func (c *CompletionInfo) From(e *db.Record) *CompletionInfo {
+func (c *CompletionInfo) From(e *db.Task) *CompletionInfo {
 	if e == nil {
 		return c
 	}
-	c.ID = e.ID.String()
+	c.ID = e.TaskID
 	c.Content = e.Completion
 	c.CreatedAt = e.CreatedAt.Unix()
 	return c
@@ -107,12 +107,14 @@ type ChatInfo struct {
 	CreatedAt int64  `json:"created_at"`
 }
 
-func (c *ChatInfo) From(e *db.Record) *ChatInfo {
+func (c *ChatInfo) From(e *db.Task) *ChatInfo {
 	if e == nil {
 		return c
 	}
-	c.ID = e.ID.String()
-	c.Content = e.Completion
+	c.ID = e.TaskID
+	for _, tr := range e.Edges.TaskRecords {
+		c.Content += tr.Completion + "\n"
+	}
 	c.CreatedAt = e.CreatedAt.Unix()
 	return c
 }
