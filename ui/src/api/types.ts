@@ -34,6 +34,13 @@ export enum ConstsAdminStatus {
   AdminStatusInactive = "inactive",
 }
 
+export interface DomainAcceptCompletionReq {
+  /** 补全内容 */
+  completion?: string;
+  /** 记录ID */
+  id?: string;
+}
+
 export interface DomainAdminLoginHistory {
   /** 客户端版本 */
   client_version?: string;

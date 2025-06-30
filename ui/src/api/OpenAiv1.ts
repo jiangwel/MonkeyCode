@@ -11,7 +11,11 @@
  */
 
 import request, { ContentType, RequestParams } from "./httpClient";
-import { DomainModelListResp, WebResp } from "./types";
+import {
+  DomainAcceptCompletionReq,
+  DomainModelListResp,
+  WebResp,
+} from "./types";
 
 /**
  * @description 处理聊天补全请求
@@ -42,10 +46,14 @@ export const postChatCompletion = (params: RequestParams = {}) =>
  * @response `200` `WebResp` OK
  */
 
-export const postAcceptCompletion = (params: RequestParams = {}) =>
+export const postAcceptCompletion = (
+  param: DomainAcceptCompletionReq,
+  params: RequestParams = {},
+) =>
   request<WebResp>({
     path: `/v1/completion/accept`,
     method: "POST",
+    body: param,
     type: ContentType.Json,
     format: "json",
     ...params,

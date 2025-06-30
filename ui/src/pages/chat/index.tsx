@@ -56,12 +56,13 @@ const Chat = () => {
       dataIndex: 'question',
       title: '任务',
       render(value: string, record) {
+        const cleanValue = value?.replace(/^<task>|<\/task>$/g, '') || value;
         return (
           <Box
             onClick={() => setChatDetailModal(record)}
             sx={{ cursor: 'pointer', color: 'info.main' }}
           >
-            <Ellipsis>{value}</Ellipsis>
+            <Ellipsis>{cleanValue}</Ellipsis>
           </Box>
         );
       },
@@ -73,8 +74,10 @@ const Chat = () => {
       render(value: DomainChatRecord['work_mode']) {
         const workModeMap: Record<string, string> = {
           code: 'warning',
-          chat: 'success',
           ask: 'info',
+          architect: 'success',
+          debugger: 'error',
+          orchestrator: 'info',
         };
         return (
           <StyledLabel color={value ? workModeMap[value] : 'default'}>

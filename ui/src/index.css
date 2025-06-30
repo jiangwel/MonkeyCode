@@ -24,6 +24,7 @@ body {
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.00938em;
+  --mui-opacity-inputPlaceholder: 0.2;
 }
 
 a {
@@ -67,6 +68,12 @@ a {
   border-radius: 10px;
 }
 
-/* .MuiTable-root {
-  height: 100%;
-} */
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  -webkit-text-fill-color: var(--mui-palette-text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}

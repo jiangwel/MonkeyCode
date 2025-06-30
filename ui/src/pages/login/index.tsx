@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -9,14 +9,19 @@ import {
   Alert,
   CircularProgress,
   Grid2 as Grid,
-  Divider,
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
 import { postAdminLogin } from '@/api/User';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
-import { Lock, Person } from '@mui/icons-material';
+import { Icon } from '@c-x/ui';
+import Logo from '@/assets/images/logo.png';
 import { getRedirectUrl } from '@/utils';
+
+// @ts-ignore
+import { AestheticFluidBg } from '@/assets/jsm/AestheticFluidBg.module.js';
 
 // 样式化组件
 const StyledContainer = styled(Container)(({ theme }) => ({
@@ -25,21 +30,24 @@ const StyledContainer = styled(Container)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   maxWidth: '100% !important',
-  backgroundColor: theme.palette.background.paper,
+  background: theme.palette.background.paper,
 }));
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
+  position: 'relative',
+  zIndex: 9,
   padding: theme.spacing(4),
-  maxWidth: 400,
-  width: '100%',
-  borderRadius: 12,
-  boxShadow: '0px 10px 20px 0px rgba(54,59,76,0.2)',
-  backgroundColor: theme.palette.background.default,
+  background: 'rgba(255, 255, 255, 0.85)',
+  backdropFilter: 'blur(10px)',
+  width: 458,
+  borderRadius: theme.spacing(2),
+  boxShadow:
+    '0px 0px 4px 0px rgba(54,59,76,0.1), 0px 20px 40px 0px rgba(54,59,76,0.1)',
 }));
 
 const LogoContainer = styled(Box)(({ theme }) => ({
   textAlign: 'center',
-  marginBottom: theme.spacing(3),
+  marginBottom: theme.spacing(4),
 }));
 
 // 表单数据类型
@@ -51,6 +59,7 @@ interface LoginFormData {
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     control,
@@ -81,45 +90,45 @@ const LoginPage = () => {
     }
   };
 
+  useEffect(() => {
+    new AestheticFluidBg({
+      dom: 'box',
+      colors: [
+        '#FDFDFD',
+        '#DDDDDD',
+        '#BBBBBB',
+        '#555555',
+        '#343434',
+        '#010101',
+      ],
+      loop: true,
+    });
+  }, []);
+
   return (
-    <StyledContainer>
-      <StyledPaper elevation={0}>
+    <StyledContainer id='box'>
+      <StyledPaper elevation={3}>
         <LogoContainer>
-          <Box
-            sx={{
-              width: 60,
-              height: 60,
-              borderRadius: '50%',
-              backgroundColor: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-            }}
-          >
-            <Lock sx={{ color: 'white', fontSize: 28 }} />
-          </Box>
+          <Box component='img' src={Logo} sx={{ width: 48, height: 48 }} />
           <Typography
             variant='h4'
             component='h1'
             gutterBottom
             fontWeight='bold'
+            color='primary'
             sx={{
-              color: 'primary.main',
-              mb: 1,
+              fontSize: 28,
             }}
           >
-            欢迎登录
+            Monkey Code
           </Typography>
           <Typography variant='body1' color='text.secondary' paragraph>
             请输入您的账号和密码
           </Typography>
         </LogoContainer>
 
-        <Divider sx={{ mb: 3 }} />
-
         <Box component='form' onSubmit={handleSubmit(onSubmit)}>
-          <Grid container spacing={3}>
+          <Grid container spacing={5}>
             <Grid size={12}>
               <Controller
                 name='username'
@@ -136,7 +145,7 @@ const LoginPage = () => {
                   <TextField
                     {...field}
                     fullWidth
-                    label='用户名'
+                    placeholder='请输入用户名'
                     variant='outlined'
                     error={!!errors.username}
                     helperText={errors.username?.message}
@@ -144,7 +153,14 @@ const LoginPage = () => {
                     slotProps={{
                       input: {
                         startAdornment: (
-                          <Person sx={{ color: 'text.secondary', mr: 1 }} />
+                          <Icon
+                            type='icon-zhanghao'
+                            sx={{
+                              color: 'text.primary',
+                              mr: 1,
+                              fontSize: 18,
+                            }}
+                          />
                         ),
                       },
                     }}
@@ -169,8 +185,8 @@ const LoginPage = () => {
                   <TextField
                     {...field}
                     fullWidth
-                    label='密码'
-                    type='password'
+                    placeholder='请输入密码'
+                    type={showPassword ? 'text' : 'password'}
                     variant='outlined'
                     error={!!errors.password}
                     helperText={errors.password?.message}
@@ -178,7 +194,37 @@ const LoginPage = () => {
                     slotProps={{
                       input: {
                         startAdornment: (
-                          <Lock sx={{ color: 'text.secondary', mr: 1 }} />
+                          <Icon
+                            type='icon-mima'
+                            sx={{
+                              color: 'text.primary',
+                              mr: 1,
+                              fontSize: 24,
+                            }}
+                          />
+                        ),
+                        endAdornment: (
+                          <InputAdornment position='end'>
+                            <IconButton
+                              aria-label='切换密码显示'
+                              onClick={() => setShowPassword(!showPassword)}
+                              edge='end'
+                              disabled={loading}
+                              size='small'
+                            >
+                              {showPassword ? (
+                                <Icon
+                                  type='icon-kejian'
+                                  sx={{ fontSize: 20 }}
+                                />
+                              ) : (
+                                <Icon
+                                  type='icon-bukejian'
+                                  sx={{ fontSize: 20 }}
+                                />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
                         ),
                       },
                     }}
@@ -187,14 +233,6 @@ const LoginPage = () => {
               />
             </Grid>
 
-            {error && (
-              <Grid size={12}>
-                <Alert severity='error' sx={{ borderRadius: 2 }}>
-                  {error}
-                </Alert>
-              </Grid>
-            )}
-
             <Grid size={12}>
               <Button
                 type='submit'
@@ -202,19 +240,9 @@ const LoginPage = () => {
                 variant='contained'
                 size='large'
                 disabled={loading}
-                sx={{ mt: 1, mb: 2 }}
+                sx={{ height: 48, textTransform: 'none' }}
               >
-                {loading ? (
-                  <>
-                    <CircularProgress
-                      size={20}
-                      sx={{ mr: 1, color: 'inherit' }}
-                    />
-                    登录中...
-                  </>
-                ) : (
-                  '登录'
-                )}
+                {loading ? <CircularProgress size={18} /> : '登录'}
               </Button>
             </Grid>
           </Grid>

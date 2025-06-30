@@ -58,7 +58,7 @@ const MemberInfo = ({
   onMemberChange: (data: DomainUser) => void;
 }) => {
   const theme = useTheme();
-  const [blockSize, setBlockSize] = useState(9);
+  const [blockSize, setBlockSize] = useState(8);
   const ref = useRef<HTMLDivElement>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -70,8 +70,9 @@ const MemberInfo = ({
   };
   useEffect(() => {
     const innerWidth = ref.current?.offsetWidth;
-    const dis = Math.max(0, Math.ceil((innerWidth! - 1000) / 54));
-    setBlockSize(dis + 9);
+    const dis = Math.max(0, Math.ceil((innerWidth! - 980) / 54));
+    console.log(dis);
+    setBlockSize(dis + 8);
   }, []);
 
   return (
@@ -142,7 +143,14 @@ const MemberInfo = ({
           {dayjs.unix(memberData?.created_at || 0).fromNow()}加入
         </Box>
       </Stack>
-      <Box sx={{ position: 'relative', minWidth: 0 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          position: 'relative',
+          minWidth: 0,
+        }}
+      >
         <ActivityCalendar
           data={getRecent1YearData(data.points || [], data?.max_count || 1)}
           colorScheme='light'

@@ -75,7 +75,8 @@ const lightTheme = createTheme(
         styleOverrides: {
           root: {
             backgroundColor: '#F8F9FA',
-            fontFamily: 'var(--font-gilory), var(--font-HarmonyOS)',
+            fontFamily: `var(--font-gilory), var(--font-HarmonyOS), 'PingFang SC',
+    'Roboto', 'Helvetica', 'Arial', sans-serif`,
             '.MuiOutlinedInput-notchedOutline': {
               borderColor: 'transparent',
             },
@@ -91,7 +92,8 @@ const lightTheme = createTheme(
       MuiTypography: {
         styleOverrides: {
           root: {
-            fontFamily: 'var(--font-gilory), var(--font-HarmonyOS)',
+            fontFamily: `var(--font-gilory), var(--font-HarmonyOS), 'PingFang SC',
+    'Roboto', 'Helvetica', 'Arial', sans-serif`,
           },
         },
       },
@@ -99,7 +101,8 @@ const lightTheme = createTheme(
         styleOverrides: {
           root: {
             // lineHeight: '1.5',
-            fontFamily: 'var(--font-gilory), var(--font-HarmonyOS)',
+            fontFamily: `var(--font-gilory), var(--font-HarmonyOS), 'PingFang SC',
+    'Roboto', 'Helvetica', 'Arial', sans-serif`,
           },
         },
       },
@@ -109,6 +112,8 @@ const lightTheme = createTheme(
             // lineHeight: '1.5',
             borderRadius: '10px',
             boxShadow: 'none',
+            fontFamily: `var(--font-gilory), var(--font-HarmonyOS), 'PingFang SC',
+            'Roboto', 'Helvetica', 'Arial', sans-serif`,
           },
         },
       },

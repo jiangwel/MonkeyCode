@@ -1,5 +1,5 @@
 import Logo from '@/assets/images/logo.png';
-import { alpha, Box, Button, Stack, useTheme } from '@mui/material';
+import { alpha, Box, Button, Stack, useTheme, styled } from '@mui/material';
 import { Icon } from '@c-x/ui';
 import { NavLink, useLocation } from 'react-router-dom';
 import Avatar from '../avatar';
@@ -59,6 +59,23 @@ const menus = [
     show: true,
   },
 ];
+
+const SidebarButton = styled(Button)(({ theme }) => ({
+  fontSize: 14,
+  flexShrink: 0,
+  fontWeight: 400,
+  pr: 1.5,
+  pl: 2,
+  justifyContent: 'flex-start',
+  border: `1px solid ${theme.palette.divider}`,
+  color: theme.palette.text.primary,
+  '.MuiButton-startIcon': {
+    mr: '3px',
+  },
+  '&:hover': {
+    color: theme.palette.info.main,
+  },
+}));
 
 const Sidebar = () => {
   const { pathname } = useLocation();
@@ -161,56 +178,11 @@ const Sidebar = () => {
         })}
       </Stack>
       <Stack gap={1} sx={{ flexShrink: 0 }}>
-        <Button
+        <SidebarButton
           variant='outlined'
           color='dark'
-          sx={{
-            fontWeight: 400,
-            fontSize: 14,
-            flexShrink: 0,
-            pr: 1.5,
-            pl: 2,
-            justifyContent: 'flex-start',
-            border: `1px solid ${theme.palette.divider}`,
-            '.MuiButton-startIcon': {
-              mr: '3px',
-            },
-            '&:hover': {
-              color: 'info.main',
-            },
-          }}
           onClick={() =>
-            window.open('https://baizhi.cloud/landing/pandawiki', '_blank')
-          }
-        >
-          <Icon
-            type='icon-guanfangwangzhan'
-            sx={{
-              mr: 1,
-            }}
-          />
-          官方网站
-        </Button>
-        <Button
-          variant='outlined'
-          color='dark'
-          sx={{
-            fontSize: 14,
-            flexShrink: 0,
-            fontWeight: 400,
-            pr: 1.5,
-            pl: 2,
-            justifyContent: 'flex-start',
-            border: `1px solid ${theme.palette.divider}`,
-            '.MuiButton-startIcon': {
-              mr: '3px',
-            },
-            '&:hover': {
-              color: 'info.main',
-            },
-          }}
-          onClick={() =>
-            window.open('https://pandawiki.docs.baizhi.cloud/', '_blank')
+            window.open('https://monkeycode.docs.baizhi.cloud/', '_blank')
           }
         >
           <Icon
@@ -220,24 +192,25 @@ const Sidebar = () => {
             }}
           />
           帮助文档
-        </Button>
-        <Button
+        </SidebarButton>
+        <SidebarButton
           variant='outlined'
           color='dark'
-          sx={{
-            fontSize: 14,
-            flexShrink: 0,
-            pr: 1.5,
-            pl: 2,
-            justifyContent: 'flex-start',
-            border: `1px solid ${theme.palette.divider}`,
-            '.MuiButton-startIcon': {
-              mr: '3px',
-            },
-            '&:hover': {
-              color: 'info.main',
-            },
-          }}
+          onClick={() =>
+            window.open('https://github.com/chaitin/MonkeyCode', '_blank')
+          }
+        >
+          <Icon
+            type='icon-github'
+            sx={{
+              mr: 1,
+            }}
+          />
+          GitHub
+        </SidebarButton>
+        <SidebarButton
+          variant='outlined'
+          color='dark'
           onClick={() => setShowQrcode(true)}
         >
           <Icon
@@ -247,7 +220,7 @@ const Sidebar = () => {
             }}
           />
           交流群
-        </Button>
+        </SidebarButton>
         <Version />
       </Stack>
       <Modal

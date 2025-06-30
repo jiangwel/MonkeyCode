@@ -4,7 +4,10 @@ import { Box, Button, IconButton, Stack, useTheme, alpha } from '@mui/material';
 import React, { useState } from 'react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import SyntaxHighlighter from 'react-syntax-highlighter';
-import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import {
+  github,
+  anOldHope,
+} from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import remarkBreaks from 'remark-breaks';
@@ -58,9 +61,17 @@ const MarkDown = ({
   const theme = useTheme();
   const [showThink, setShowThink] = useState(false);
 
+  // 删除 content 中 <thinking> 和 <execute_command> 标签，并保留标签中的内容
+  const deleteTags = (content: string) => {
+    return content
+      .replace(/<\/?thinking>/g, '')
+      .replace(/<\/?execute_command>/g, '')
+      .replace(/<\/?result>/g, '');
+  };
+
   // 将content中的下划线标签替换为无下划线版本
   const processContent = (content: string) => {
-    let processedContent = content;
+    let processedContent = deleteTags(content);
 
     toolNames.forEach((toolName) => {
       const withUnderscore = toolName;
@@ -84,9 +95,7 @@ const MarkDown = ({
     return processedContent;
   };
 
-  // const answer = processContent(content);
-
-  const answer = content;
+  const answer = processContent(content);
 
   if (content.length === 0) return null;
 
@@ -97,24 +106,6 @@ const MarkDown = ({
       sx={{
         fontSize: '14px',
         background: 'transparent',
-        '#chat-thinking': {
-          display: 'flex',
-          alignItems: 'flex-end',
-          gap: '16px',
-          fontSize: '12px',
-          color: 'text.secondary',
-          marginBottom: '40px',
-          lineHeight: '20px',
-          backgroundColor: 'background.paper',
-          padding: '16px',
-          cursor: 'pointer',
-          borderRadius: '10px',
-          div: {
-            transition: 'height 0.3s',
-            overflow: 'hidden',
-            height: showThink ? 'auto' : '60px',
-          },
-        },
       }}
     >
       <ReactMarkdown
@@ -126,14 +117,14 @@ const MarkDown = ({
             {
               tagNames: [
                 ...(defaultSchema.tagNames! as string[]),
-                // 'thinking',
+                'command',
                 // 'tools',
                 // 'tool',
                 // 'toolname',
                 // 'toolargs',
                 // 'toolresult',
                 // 'error',
-                // 'attemptcompletion',
+                'attemptcompletion',
                 ...toolTagNames,
               ],
             },
@@ -344,7 +335,7 @@ const MarkDown = ({
                 </div>
               );
             },
-            // thinking: (props: React.HTMLAttributes<HTMLElement>) => {
+
             //   return (
             //     <div id='chat-thinking'>
             //       <div
@@ -415,6 +406,24 @@ const MarkDown = ({
                 />
               );
             },
+            command: ({ children }: React.HTMLAttributes<HTMLElement>) => {
+              return (
+                <SyntaxHighlighter
+                  language={'shell'}
+                  style={github}
+                  onClick={() => {
+                    if (navigator.clipboard) {
+                      navigator.clipboard.writeText(
+                        String(children).replace(/\n$/, '')
+                      );
+                      message.success('复制成功');
+                    }
+                  }}
+                >
+                  {String(children)}
+                </SyntaxHighlighter>
+              );
+            },
             attemptcompletion: (props: React.HTMLAttributes<HTMLElement>) => {
               return (
                 <div
@@ -425,7 +434,6 @@ const MarkDown = ({
                     padding: '12px',
                     margin: '8px 0',
                     color: '#0c4a6e',
-                    whiteSpace: 'pre-line',
                   }}
                 >
                   {props.children}
