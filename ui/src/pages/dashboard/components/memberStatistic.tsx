@@ -100,7 +100,7 @@ const MemberStatistic = ({
         borderRadius: '10px',
       }}
     >
-      <Grid container size={8}>
+      <Grid container size={9}>
         <Grid size={12}>
           <MemberInfo
             data={userHeatmap || {}}
@@ -124,7 +124,7 @@ const MemberStatistic = ({
           />
         </Grid>
       </Grid>
-      <Grid size={4}>
+      <Grid size={3}>
         <RecentActivityCard data={userEvents || []} />
       </Grid>
       <Grid size={6}>

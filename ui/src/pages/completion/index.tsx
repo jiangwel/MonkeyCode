@@ -103,10 +103,10 @@ const Completion = () => {
     },
   ];
   return (
-    <Card sx={{ flex: 1 }}>
+    <Card sx={{ flex: 1, height: '100%' }}>
       <Table
         size='large'
-        height='calc(100vh - 105px)'
+        height='100%'
         loading={loading}
         columns={columns}
         dataSource={dataSource || []}

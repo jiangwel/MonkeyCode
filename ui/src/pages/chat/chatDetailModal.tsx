@@ -78,7 +78,7 @@ const ChatDetailModal = ({
             width: 700,
           }}
         >
-          {data?.question || '-'}
+          {data?.question?.replace(/^<task>|<\/task>$/g, '') || '-'}
         </Ellipsis>
       }
       width={800}

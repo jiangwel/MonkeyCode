@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import packageJson from '../../../package.json';
 
 const Version = () => {
-  const curVersion = packageJson.version;
+  const curVersion = import.meta.env.VITE_APP_VERSION || packageJson.version;
   const [latestVersion, setLatestVersion] = useState<string | undefined>(
     undefined
   );

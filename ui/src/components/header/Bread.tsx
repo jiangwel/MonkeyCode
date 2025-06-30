@@ -61,10 +61,9 @@ const Bread = () => {
       gap={1}
       sx={{
         flexGrow: 1,
-        color: 'text.auxiliary',
+        // color: 'text.auxiliary',
         fontSize: '14px',
-        a: { color: 'text.auxiliary' },
-        lineHeight: '22px',
+        // a: { color: 'text.auxiliary' },
       }}
     >
       {/* <KBSelect /> */}

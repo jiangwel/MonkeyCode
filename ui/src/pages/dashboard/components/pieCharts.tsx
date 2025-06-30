@@ -29,9 +29,12 @@ const PieCharts: React.FC<IPieChartsProps> = ({ title, data, extra }) => {
         orient: 'vertical',
         right: '5%',
         top: 'center',
+        formatter: function (name: string) {
+          return name.length > 10 ? name.substring(0, 10) + '...' : name;
+        },
       },
       dataset: {
-        source: data,
+        source: data.slice(0, 6),
       },
       series: [
         {
