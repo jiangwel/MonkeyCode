@@ -48,7 +48,7 @@ func (Model) Fields() []ent.Field {
 // Edges of the Model.
 func (Model) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("records", Record.Type),
+		edge.To("tasks", Task.Type),
 		edge.From("user", User.Type).Ref("models").Field("user_id").Unique(),
 	}
 }

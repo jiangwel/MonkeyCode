@@ -15,7 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/google/uuid"
 )
@@ -23,13 +23,13 @@ import (
 // ModelQuery is the builder for querying Model entities.
 type ModelQuery struct {
 	config
-	ctx         *QueryContext
-	order       []model.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.Model
-	withRecords *RecordQuery
-	withUser    *UserQuery
-	modifiers   []func(*sql.Selector)
+	ctx        *QueryContext
+	order      []model.OrderOption
+	inters     []Interceptor
+	predicates []predicate.Model
+	withTasks  *TaskQuery
+	withUser   *UserQuery
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,9 +66,9 @@ func (mq *ModelQuery) Order(o ...model.OrderOption) *ModelQuery {
 	return mq
 }
 
-// QueryRecords chains the current query on the "records" edge.
-func (mq *ModelQuery) QueryRecords() *RecordQuery {
-	query := (&RecordClient{config: mq.config}).Query()
+// QueryTasks chains the current query on the "tasks" edge.
+func (mq *ModelQuery) QueryTasks() *TaskQuery {
+	query := (&TaskClient{config: mq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := mq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -79,8 +79,8 @@ func (mq *ModelQuery) QueryRecords() *RecordQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(model.Table, model.FieldID, selector),
-			sqlgraph.To(record.Table, record.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, model.RecordsTable, model.RecordsColumn),
+			sqlgraph.To(task.Table, task.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, model.TasksTable, model.TasksColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
@@ -297,13 +297,13 @@ func (mq *ModelQuery) Clone() *ModelQuery {
 		return nil
 	}
 	return &ModelQuery{
-		config:      mq.config,
-		ctx:         mq.ctx.Clone(),
-		order:       append([]model.OrderOption{}, mq.order...),
-		inters:      append([]Interceptor{}, mq.inters...),
-		predicates:  append([]predicate.Model{}, mq.predicates...),
-		withRecords: mq.withRecords.Clone(),
-		withUser:    mq.withUser.Clone(),
+		config:     mq.config,
+		ctx:        mq.ctx.Clone(),
+		order:      append([]model.OrderOption{}, mq.order...),
+		inters:     append([]Interceptor{}, mq.inters...),
+		predicates: append([]predicate.Model{}, mq.predicates...),
+		withTasks:  mq.withTasks.Clone(),
+		withUser:   mq.withUser.Clone(),
 		// clone intermediate query.
 		sql:       mq.sql.Clone(),
 		path:      mq.path,
@@ -311,14 +311,14 @@ func (mq *ModelQuery) Clone() *ModelQuery {
 	}
 }
 
-// WithRecords tells the query-builder to eager-load the nodes that are connected to
-// the "records" edge. The optional arguments are used to configure the query builder of the edge.
-func (mq *ModelQuery) WithRecords(opts ...func(*RecordQuery)) *ModelQuery {
-	query := (&RecordClient{config: mq.config}).Query()
+// WithTasks tells the query-builder to eager-load the nodes that are connected to
+// the "tasks" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *ModelQuery) WithTasks(opts ...func(*TaskQuery)) *ModelQuery {
+	query := (&TaskClient{config: mq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	mq.withRecords = query
+	mq.withTasks = query
 	return mq
 }
 
@@ -412,7 +412,7 @@ func (mq *ModelQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Model,
 		nodes       = []*Model{}
 		_spec       = mq.querySpec()
 		loadedTypes = [2]bool{
-			mq.withRecords != nil,
+			mq.withTasks != nil,
 			mq.withUser != nil,
 		}
 	)
@@ -437,10 +437,10 @@ func (mq *ModelQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Model,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := mq.withRecords; query != nil {
-		if err := mq.loadRecords(ctx, query, nodes,
-			func(n *Model) { n.Edges.Records = []*Record{} },
-			func(n *Model, e *Record) { n.Edges.Records = append(n.Edges.Records, e) }); err != nil {
+	if query := mq.withTasks; query != nil {
+		if err := mq.loadTasks(ctx, query, nodes,
+			func(n *Model) { n.Edges.Tasks = []*Task{} },
+			func(n *Model, e *Task) { n.Edges.Tasks = append(n.Edges.Tasks, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -453,7 +453,7 @@ func (mq *ModelQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Model,
 	return nodes, nil
 }
 
-func (mq *ModelQuery) loadRecords(ctx context.Context, query *RecordQuery, nodes []*Model, init func(*Model), assign func(*Model, *Record)) error {
+func (mq *ModelQuery) loadTasks(ctx context.Context, query *TaskQuery, nodes []*Model, init func(*Model), assign func(*Model, *Task)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Model)
 	for i := range nodes {
@@ -464,10 +464,10 @@ func (mq *ModelQuery) loadRecords(ctx context.Context, query *RecordQuery, nodes
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(record.FieldModelID)
+		query.ctx.AppendFieldOnce(task.FieldModelID)
 	}
-	query.Where(predicate.Record(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(model.RecordsColumn), fks...))
+	query.Where(predicate.Task(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(model.TasksColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -137,20 +137,6 @@ func (m *ModelQuery) Page(ctx context.Context, page, size int) ([]*Model, *PageI
 	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
 }
 
-func (r *RecordQuery) Page(ctx context.Context, page, size int) ([]*Record, *PageInfo, error) {
-	cnt, err := r.Count(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-	offset := size * (page - 1)
-	rs, err := r.Offset(offset).Limit(size).All(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-	has := (page * size) < cnt
-	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
-}
-
 func (s *SettingQuery) Page(ctx context.Context, page, size int) ([]*Setting, *PageInfo, error) {
 	cnt, err := s.Count(ctx)
 	if err != nil {
@@ -158,6 +144,34 @@ func (s *SettingQuery) Page(ctx context.Context, page, size int) ([]*Setting, *P
 	}
 	offset := size * (page - 1)
 	rs, err := s.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
+func (t *TaskQuery) Page(ctx context.Context, page, size int) ([]*Task, *PageInfo, error) {
+	cnt, err := t.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := t.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
+func (tr *TaskRecordQuery) Page(ctx context.Context, page, size int) ([]*TaskRecord, *PageInfo, error) {
+	cnt, err := tr.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := tr.Offset(offset).Limit(size).All(ctx)
 	if err != nil {
 		return nil, nil, err
 	}

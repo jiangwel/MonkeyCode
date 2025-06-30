@@ -42,8 +42,8 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("records", Record.Type),
 		edge.To("login_histories", UserLoginHistory.Type),
 		edge.To("models", Model.Type),
+		edge.To("tasks", Task.Type),
 	}
 }

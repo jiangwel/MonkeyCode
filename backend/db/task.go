@@ -11,34 +11,36 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/google/uuid"
 )
 
-// Record is the model entity for the Record schema.
-type Record struct {
+// Task is the model entity for the Task schema.
+type Task struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
+	// TaskID holds the value of the "task_id" field.
+	TaskID string `json:"task_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// ModelID holds the value of the "model_id" field.
 	ModelID uuid.UUID `json:"model_id,omitempty"`
-	// TaskID holds the value of the "task_id" field.
-	TaskID string `json:"task_id,omitempty"`
+	// RequestID holds the value of the "request_id" field.
+	RequestID string `json:"request_id,omitempty"`
 	// ModelType holds the value of the "model_type" field.
 	ModelType consts.ModelType `json:"model_type,omitempty"`
 	// Prompt holds the value of the "prompt" field.
 	Prompt string `json:"prompt,omitempty"`
-	// Completion holds the value of the "completion" field.
-	Completion string `json:"completion,omitempty"`
 	// IsAccept holds the value of the "is_accept" field.
 	IsAccept bool `json:"is_accept,omitempty"`
 	// ProgramLanguage holds the value of the "program_language" field.
 	ProgramLanguage string `json:"program_language,omitempty"`
 	// WorkMode holds the value of the "work_mode" field.
 	WorkMode string `json:"work_mode,omitempty"`
+	// Completion holds the value of the "completion" field.
+	Completion string `json:"completion,omitempty"`
 	// CodeLines holds the value of the "code_lines" field.
 	CodeLines int64 `json:"code_lines,omitempty"`
 	// InputTokens holds the value of the "input_tokens" field.
@@ -50,28 +52,39 @@ type Record struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the RecordQuery when eager-loading is set.
-	Edges        RecordEdges `json:"edges"`
+	// The values are being populated by the TaskQuery when eager-loading is set.
+	Edges        TaskEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
-// RecordEdges holds the relations/edges for other nodes in the graph.
-type RecordEdges struct {
+// TaskEdges holds the relations/edges for other nodes in the graph.
+type TaskEdges struct {
+	// TaskRecords holds the value of the task_records edge.
+	TaskRecords []*TaskRecord `json:"task_records,omitempty"`
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
 	// Model holds the value of the model edge.
 	Model *Model `json:"model,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
+}
+
+// TaskRecordsOrErr returns the TaskRecords value or an error if the edge
+// was not loaded in eager-loading.
+func (e TaskEdges) TaskRecordsOrErr() ([]*TaskRecord, error) {
+	if e.loadedTypes[0] {
+		return e.TaskRecords, nil
+	}
+	return nil, &NotLoadedError{edge: "task_records"}
 }
 
 // UserOrErr returns the User value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e RecordEdges) UserOrErr() (*User, error) {
+func (e TaskEdges) UserOrErr() (*User, error) {
 	if e.User != nil {
 		return e.User, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "user"}
@@ -79,29 +92,29 @@ func (e RecordEdges) UserOrErr() (*User, error) {
 
 // ModelOrErr returns the Model value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e RecordEdges) ModelOrErr() (*Model, error) {
+func (e TaskEdges) ModelOrErr() (*Model, error) {
 	if e.Model != nil {
 		return e.Model, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: model.Label}
 	}
 	return nil, &NotLoadedError{edge: "model"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Record) scanValues(columns []string) ([]any, error) {
+func (*Task) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case record.FieldIsAccept:
+		case task.FieldIsAccept:
 			values[i] = new(sql.NullBool)
-		case record.FieldCodeLines, record.FieldInputTokens, record.FieldOutputTokens:
+		case task.FieldCodeLines, task.FieldInputTokens, task.FieldOutputTokens:
 			values[i] = new(sql.NullInt64)
-		case record.FieldTaskID, record.FieldModelType, record.FieldPrompt, record.FieldCompletion, record.FieldProgramLanguage, record.FieldWorkMode:
+		case task.FieldTaskID, task.FieldRequestID, task.FieldModelType, task.FieldPrompt, task.FieldProgramLanguage, task.FieldWorkMode, task.FieldCompletion:
 			values[i] = new(sql.NullString)
-		case record.FieldCreatedAt, record.FieldUpdatedAt:
+		case task.FieldCreatedAt, task.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case record.FieldID, record.FieldUserID, record.FieldModelID:
+		case task.FieldID, task.FieldUserID, task.FieldModelID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -111,193 +124,207 @@ func (*Record) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the Record fields.
-func (r *Record) assignValues(columns []string, values []any) error {
+// to the Task fields.
+func (t *Task) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case record.FieldID:
+		case task.FieldID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
-				r.ID = *value
+				t.ID = *value
 			}
-		case record.FieldUserID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field user_id", values[i])
-			} else if value != nil {
-				r.UserID = *value
-			}
-		case record.FieldModelID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field model_id", values[i])
-			} else if value != nil {
-				r.ModelID = *value
-			}
-		case record.FieldTaskID:
+		case task.FieldTaskID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field task_id", values[i])
 			} else if value.Valid {
-				r.TaskID = value.String
+				t.TaskID = value.String
 			}
-		case record.FieldModelType:
+		case task.FieldUserID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value != nil {
+				t.UserID = *value
+			}
+		case task.FieldModelID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field model_id", values[i])
+			} else if value != nil {
+				t.ModelID = *value
+			}
+		case task.FieldRequestID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field request_id", values[i])
+			} else if value.Valid {
+				t.RequestID = value.String
+			}
+		case task.FieldModelType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field model_type", values[i])
 			} else if value.Valid {
-				r.ModelType = consts.ModelType(value.String)
+				t.ModelType = consts.ModelType(value.String)
 			}
-		case record.FieldPrompt:
+		case task.FieldPrompt:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field prompt", values[i])
 			} else if value.Valid {
-				r.Prompt = value.String
+				t.Prompt = value.String
 			}
-		case record.FieldCompletion:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field completion", values[i])
-			} else if value.Valid {
-				r.Completion = value.String
-			}
-		case record.FieldIsAccept:
+		case task.FieldIsAccept:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_accept", values[i])
 			} else if value.Valid {
-				r.IsAccept = value.Bool
+				t.IsAccept = value.Bool
 			}
-		case record.FieldProgramLanguage:
+		case task.FieldProgramLanguage:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field program_language", values[i])
 			} else if value.Valid {
-				r.ProgramLanguage = value.String
+				t.ProgramLanguage = value.String
 			}
-		case record.FieldWorkMode:
+		case task.FieldWorkMode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field work_mode", values[i])
 			} else if value.Valid {
-				r.WorkMode = value.String
+				t.WorkMode = value.String
 			}
-		case record.FieldCodeLines:
+		case task.FieldCompletion:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field completion", values[i])
+			} else if value.Valid {
+				t.Completion = value.String
+			}
+		case task.FieldCodeLines:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field code_lines", values[i])
 			} else if value.Valid {
-				r.CodeLines = value.Int64
+				t.CodeLines = value.Int64
 			}
-		case record.FieldInputTokens:
+		case task.FieldInputTokens:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field input_tokens", values[i])
 			} else if value.Valid {
-				r.InputTokens = value.Int64
+				t.InputTokens = value.Int64
 			}
-		case record.FieldOutputTokens:
+		case task.FieldOutputTokens:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field output_tokens", values[i])
 			} else if value.Valid {
-				r.OutputTokens = value.Int64
+				t.OutputTokens = value.Int64
 			}
-		case record.FieldCreatedAt:
+		case task.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				r.CreatedAt = value.Time
+				t.CreatedAt = value.Time
 			}
-		case record.FieldUpdatedAt:
+		case task.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				r.UpdatedAt = value.Time
+				t.UpdatedAt = value.Time
 			}
 		default:
-			r.selectValues.Set(columns[i], values[i])
+			t.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the Record.
+// Value returns the ent.Value that was dynamically selected and assigned to the Task.
 // This includes values selected through modifiers, order, etc.
-func (r *Record) Value(name string) (ent.Value, error) {
-	return r.selectValues.Get(name)
+func (t *Task) Value(name string) (ent.Value, error) {
+	return t.selectValues.Get(name)
 }
 
-// QueryUser queries the "user" edge of the Record entity.
-func (r *Record) QueryUser() *UserQuery {
-	return NewRecordClient(r.config).QueryUser(r)
+// QueryTaskRecords queries the "task_records" edge of the Task entity.
+func (t *Task) QueryTaskRecords() *TaskRecordQuery {
+	return NewTaskClient(t.config).QueryTaskRecords(t)
 }
 
-// QueryModel queries the "model" edge of the Record entity.
-func (r *Record) QueryModel() *ModelQuery {
-	return NewRecordClient(r.config).QueryModel(r)
+// QueryUser queries the "user" edge of the Task entity.
+func (t *Task) QueryUser() *UserQuery {
+	return NewTaskClient(t.config).QueryUser(t)
 }
 
-// Update returns a builder for updating this Record.
-// Note that you need to call Record.Unwrap() before calling this method if this Record
+// QueryModel queries the "model" edge of the Task entity.
+func (t *Task) QueryModel() *ModelQuery {
+	return NewTaskClient(t.config).QueryModel(t)
+}
+
+// Update returns a builder for updating this Task.
+// Note that you need to call Task.Unwrap() before calling this method if this Task
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (r *Record) Update() *RecordUpdateOne {
-	return NewRecordClient(r.config).UpdateOne(r)
+func (t *Task) Update() *TaskUpdateOne {
+	return NewTaskClient(t.config).UpdateOne(t)
 }
 
-// Unwrap unwraps the Record entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the Task entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (r *Record) Unwrap() *Record {
-	_tx, ok := r.config.driver.(*txDriver)
+func (t *Task) Unwrap() *Task {
+	_tx, ok := t.config.driver.(*txDriver)
 	if !ok {
-		panic("db: Record is not a transactional entity")
+		panic("db: Task is not a transactional entity")
 	}
-	r.config.driver = _tx.drv
-	return r
+	t.config.driver = _tx.drv
+	return t
 }
 
 // String implements the fmt.Stringer.
-func (r *Record) String() string {
+func (t *Task) String() string {
 	var builder strings.Builder
-	builder.WriteString("Record(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", r.ID))
+	builder.WriteString("Task(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", t.ID))
+	builder.WriteString("task_id=")
+	builder.WriteString(t.TaskID)
+	builder.WriteString(", ")
 	builder.WriteString("user_id=")
-	builder.WriteString(fmt.Sprintf("%v", r.UserID))
+	builder.WriteString(fmt.Sprintf("%v", t.UserID))
 	builder.WriteString(", ")
 	builder.WriteString("model_id=")
-	builder.WriteString(fmt.Sprintf("%v", r.ModelID))
+	builder.WriteString(fmt.Sprintf("%v", t.ModelID))
 	builder.WriteString(", ")
-	builder.WriteString("task_id=")
-	builder.WriteString(r.TaskID)
+	builder.WriteString("request_id=")
+	builder.WriteString(t.RequestID)
 	builder.WriteString(", ")
 	builder.WriteString("model_type=")
-	builder.WriteString(fmt.Sprintf("%v", r.ModelType))
+	builder.WriteString(fmt.Sprintf("%v", t.ModelType))
 	builder.WriteString(", ")
 	builder.WriteString("prompt=")
-	builder.WriteString(r.Prompt)
-	builder.WriteString(", ")
-	builder.WriteString("completion=")
-	builder.WriteString(r.Completion)
+	builder.WriteString(t.Prompt)
 	builder.WriteString(", ")
 	builder.WriteString("is_accept=")
-	builder.WriteString(fmt.Sprintf("%v", r.IsAccept))
+	builder.WriteString(fmt.Sprintf("%v", t.IsAccept))
 	builder.WriteString(", ")
 	builder.WriteString("program_language=")
-	builder.WriteString(r.ProgramLanguage)
+	builder.WriteString(t.ProgramLanguage)
 	builder.WriteString(", ")
 	builder.WriteString("work_mode=")
-	builder.WriteString(r.WorkMode)
+	builder.WriteString(t.WorkMode)
+	builder.WriteString(", ")
+	builder.WriteString("completion=")
+	builder.WriteString(t.Completion)
 	builder.WriteString(", ")
 	builder.WriteString("code_lines=")
-	builder.WriteString(fmt.Sprintf("%v", r.CodeLines))
+	builder.WriteString(fmt.Sprintf("%v", t.CodeLines))
 	builder.WriteString(", ")
 	builder.WriteString("input_tokens=")
-	builder.WriteString(fmt.Sprintf("%v", r.InputTokens))
+	builder.WriteString(fmt.Sprintf("%v", t.InputTokens))
 	builder.WriteString(", ")
 	builder.WriteString("output_tokens=")
-	builder.WriteString(fmt.Sprintf("%v", r.OutputTokens))
+	builder.WriteString(fmt.Sprintf("%v", t.OutputTokens))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(r.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(t.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(r.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(t.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// Records is a parsable slice of Record.
-type Records []*Record
+// Tasks is a parsable slice of Task.
+type Tasks []*Task

@@ -21,8 +21,9 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
+	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 )
@@ -94,8 +95,9 @@ func checkColumn(table, column string) error {
 			billingusage.Table:      billingusage.ValidColumn,
 			invitecode.Table:        invitecode.ValidColumn,
 			model.Table:             model.ValidColumn,
-			record.Table:            record.ValidColumn,
 			setting.Table:           setting.ValidColumn,
+			task.Table:              task.ValidColumn,
+			taskrecord.Table:        taskrecord.ValidColumn,
 			user.Table:              user.ValidColumn,
 			userloginhistory.Table:  userloginhistory.ValidColumn,
 		})

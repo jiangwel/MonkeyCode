@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/google/uuid"
 )
@@ -161,19 +161,19 @@ func (mc *ModelCreate) SetID(u uuid.UUID) *ModelCreate {
 	return mc
 }
 
-// AddRecordIDs adds the "records" edge to the Record entity by IDs.
-func (mc *ModelCreate) AddRecordIDs(ids ...uuid.UUID) *ModelCreate {
-	mc.mutation.AddRecordIDs(ids...)
+// AddTaskIDs adds the "tasks" edge to the Task entity by IDs.
+func (mc *ModelCreate) AddTaskIDs(ids ...uuid.UUID) *ModelCreate {
+	mc.mutation.AddTaskIDs(ids...)
 	return mc
 }
 
-// AddRecords adds the "records" edges to the Record entity.
-func (mc *ModelCreate) AddRecords(r ...*Record) *ModelCreate {
-	ids := make([]uuid.UUID, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+// AddTasks adds the "tasks" edges to the Task entity.
+func (mc *ModelCreate) AddTasks(t ...*Task) *ModelCreate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return mc.AddRecordIDs(ids...)
+	return mc.AddTaskIDs(ids...)
 }
 
 // SetUser sets the "user" edge to the User entity.
@@ -336,15 +336,15 @@ func (mc *ModelCreate) createSpec() (*Model, *sqlgraph.CreateSpec) {
 		_spec.SetField(model.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := mc.mutation.RecordsIDs(); len(nodes) > 0 {
+	if nodes := mc.mutation.TasksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   model.RecordsTable,
-			Columns: []string{model.RecordsColumn},
+			Table:   model.TasksTable,
+			Columns: []string{model.TasksColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(record.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

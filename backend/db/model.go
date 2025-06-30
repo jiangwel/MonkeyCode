@@ -52,8 +52,8 @@ type Model struct {
 
 // ModelEdges holds the relations/edges for other nodes in the graph.
 type ModelEdges struct {
-	// Records holds the value of the records edge.
-	Records []*Record `json:"records,omitempty"`
+	// Tasks holds the value of the tasks edge.
+	Tasks []*Task `json:"tasks,omitempty"`
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -61,13 +61,13 @@ type ModelEdges struct {
 	loadedTypes [2]bool
 }
 
-// RecordsOrErr returns the Records value or an error if the edge
+// TasksOrErr returns the Tasks value or an error if the edge
 // was not loaded in eager-loading.
-func (e ModelEdges) RecordsOrErr() ([]*Record, error) {
+func (e ModelEdges) TasksOrErr() ([]*Task, error) {
 	if e.loadedTypes[0] {
-		return e.Records, nil
+		return e.Tasks, nil
 	}
-	return nil, &NotLoadedError{edge: "records"}
+	return nil, &NotLoadedError{edge: "tasks"}
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -200,9 +200,9 @@ func (m *Model) Value(name string) (ent.Value, error) {
 	return m.selectValues.Get(name)
 }
 
-// QueryRecords queries the "records" edge of the Model entity.
-func (m *Model) QueryRecords() *RecordQuery {
-	return NewModelClient(m.config).QueryRecords(m)
+// QueryTasks queries the "tasks" edge of the Model entity.
+func (m *Model) QueryTasks() *TaskQuery {
+	return NewModelClient(m.config).QueryTasks(m)
 }
 
 // QueryUser queries the "user" edge of the Model entity.

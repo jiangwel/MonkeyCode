@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 
 	"github.com/GoYoko/web"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
+	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 )
@@ -25,12 +25,12 @@ func NewBillingRepo(db *db.Client) domain.BillingRepo {
 
 // ChatInfo implements domain.BillingRepo.
 func (b *BillingRepo) ChatInfo(ctx context.Context, id string) (*domain.ChatInfo, error) {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return nil, err
-	}
-
-	record, err := b.db.Record.Query().Where(record.ID(uid)).First(ctx)
+	record, err := b.db.Task.Query().
+		WithTaskRecords(func(trq *db.TaskRecordQuery) {
+			trq.Order(taskrecord.ByCreatedAt(sql.OrderAsc()))
+		}).
+		Where(task.TaskID(id)).
+		First(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -40,12 +40,7 @@ func (b *BillingRepo) ChatInfo(ctx context.Context, id string) (*domain.ChatInfo
 
 // CompletionInfo implements domain.BillingRepo.
 func (b *BillingRepo) CompletionInfo(ctx context.Context, id string) (*domain.CompletionInfo, error) {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return nil, err
-	}
-
-	record, err := b.db.Record.Query().Where(record.ID(uid)).First(ctx)
+	record, err := b.db.Task.Query().Where(task.TaskID(id)).First(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -55,11 +50,12 @@ func (b *BillingRepo) CompletionInfo(ctx context.Context, id string) (*domain.Co
 
 // ListChatRecord implements domain.BillingRepo.
 func (b *BillingRepo) ListChatRecord(ctx context.Context, page *web.Pagination) (*domain.ListChatRecordResp, error) {
-	q := b.db.Record.Query().
+	q := b.db.Task.Query().
 		WithUser().
 		WithModel().
-		Where(record.ModelType(consts.ModelTypeLLM)).
-		Order(record.ByCreatedAt(sql.OrderDesc()))
+		WithTaskRecords().
+		Where(task.ModelType(consts.ModelTypeLLM)).
+		Order(task.ByCreatedAt(sql.OrderDesc()))
 
 	records, p, err := q.Page(ctx, page.Page, page.Size)
 	if err != nil {
@@ -68,7 +64,7 @@ func (b *BillingRepo) ListChatRecord(ctx context.Context, page *web.Pagination) 
 
 	return &domain.ListChatRecordResp{
 		PageInfo: p,
-		Records: cvt.Iter(records, func(_ int, r *db.Record) *domain.ChatRecord {
+		Records: cvt.Iter(records, func(_ int, r *db.Task) *domain.ChatRecord {
 			return cvt.From(r, &domain.ChatRecord{})
 		}),
 	}, nil
@@ -76,11 +72,11 @@ func (b *BillingRepo) ListChatRecord(ctx context.Context, page *web.Pagination) 
 
 // ListCompletionRecord implements domain.BillingRepo.
 func (b *BillingRepo) ListCompletionRecord(ctx context.Context, page *web.Pagination) (*domain.ListCompletionRecordResp, error) {
-	q := b.db.Record.Query().
+	q := b.db.Task.Query().
 		WithUser().
 		WithModel().
-		Where(record.ModelType(consts.ModelTypeCoder)).
-		Order(record.ByCreatedAt(sql.OrderDesc()))
+		Where(task.ModelType(consts.ModelTypeCoder)).
+		Order(task.ByCreatedAt(sql.OrderDesc()))
 	records, p, err := q.Page(ctx, page.Page, page.Size)
 	if err != nil {
 		return nil, err
@@ -88,7 +84,7 @@ func (b *BillingRepo) ListCompletionRecord(ctx context.Context, page *web.Pagina
 
 	return &domain.ListCompletionRecordResp{
 		PageInfo: p,
-		Records: cvt.Iter(records, func(_ int, r *db.Record) *domain.CompletionRecord {
+		Records: cvt.Iter(records, func(_ int, r *db.Task) *domain.CompletionRecord {
 			return cvt.From(r, &domain.CompletionRecord{})
 		}),
 	}, nil

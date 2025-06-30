@@ -18,8 +18,9 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
+	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 )
@@ -323,33 +324,6 @@ func (f TraverseModel) Traverse(ctx context.Context, q db.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *db.ModelQuery", q)
 }
 
-// The RecordFunc type is an adapter to allow the use of ordinary function as a Querier.
-type RecordFunc func(context.Context, *db.RecordQuery) (db.Value, error)
-
-// Query calls f(ctx, q).
-func (f RecordFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
-	if q, ok := q.(*db.RecordQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *db.RecordQuery", q)
-}
-
-// The TraverseRecord type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseRecord func(context.Context, *db.RecordQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseRecord) Intercept(next db.Querier) db.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseRecord) Traverse(ctx context.Context, q db.Query) error {
-	if q, ok := q.(*db.RecordQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *db.RecordQuery", q)
-}
-
 // The SettingFunc type is an adapter to allow the use of ordinary function as a Querier.
 type SettingFunc func(context.Context, *db.SettingQuery) (db.Value, error)
 
@@ -375,6 +349,60 @@ func (f TraverseSetting) Traverse(ctx context.Context, q db.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *db.SettingQuery", q)
+}
+
+// The TaskFunc type is an adapter to allow the use of ordinary function as a Querier.
+type TaskFunc func(context.Context, *db.TaskQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f TaskFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.TaskQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.TaskQuery", q)
+}
+
+// The TraverseTask type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseTask func(context.Context, *db.TaskQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseTask) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseTask) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.TaskQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.TaskQuery", q)
+}
+
+// The TaskRecordFunc type is an adapter to allow the use of ordinary function as a Querier.
+type TaskRecordFunc func(context.Context, *db.TaskRecordQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f TaskRecordFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.TaskRecordQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.TaskRecordQuery", q)
+}
+
+// The TraverseTaskRecord type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseTaskRecord func(context.Context, *db.TaskRecordQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseTaskRecord) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseTaskRecord) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.TaskRecordQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.TaskRecordQuery", q)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -452,10 +480,12 @@ func NewQuery(q db.Query) (Query, error) {
 		return &query[*db.InviteCodeQuery, predicate.InviteCode, invitecode.OrderOption]{typ: db.TypeInviteCode, tq: q}, nil
 	case *db.ModelQuery:
 		return &query[*db.ModelQuery, predicate.Model, model.OrderOption]{typ: db.TypeModel, tq: q}, nil
-	case *db.RecordQuery:
-		return &query[*db.RecordQuery, predicate.Record, record.OrderOption]{typ: db.TypeRecord, tq: q}, nil
 	case *db.SettingQuery:
 		return &query[*db.SettingQuery, predicate.Setting, setting.OrderOption]{typ: db.TypeSetting, tq: q}, nil
+	case *db.TaskQuery:
+		return &query[*db.TaskQuery, predicate.Task, task.OrderOption]{typ: db.TypeTask, tq: q}, nil
+	case *db.TaskRecordQuery:
+		return &query[*db.TaskRecordQuery, predicate.TaskRecord, taskrecord.OrderOption]{typ: db.TypeTaskRecord, tq: q}, nil
 	case *db.UserQuery:
 		return &query[*db.UserQuery, predicate.User, user.OrderOption]{typ: db.TypeUser, tq: q}, nil
 	case *db.UserLoginHistoryQuery:

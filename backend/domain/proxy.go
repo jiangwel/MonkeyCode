@@ -26,8 +26,8 @@ type ProxyUsecase interface {
 }
 
 type ProxyRepo interface {
-	Record(ctx context.Context, record *db.Record) error
-	UpdateByTaskID(ctx context.Context, taskID string, fn func(*db.RecordUpdateOne)) error
+	Record(ctx context.Context, record *RecordParam) error
+	UpdateByTaskID(ctx context.Context, taskID string, fn func(*db.TaskUpdateOne)) error
 	SelectModelWithLoadBalancing(modelName string, modelType consts.ModelType) (*db.Model, error)
 	ValidateApiKey(ctx context.Context, key string) (*db.ApiKey, error)
 }
@@ -38,6 +38,7 @@ type AcceptCompletionReq struct {
 }
 
 type RecordParam struct {
+	RequestID       string
 	TaskID          string
 	UserID          string
 	ModelID         string

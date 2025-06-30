@@ -117,18 +117,6 @@ func (f ModelFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ModelMutation", m)
 }
 
-// The RecordFunc type is an adapter to allow the use of ordinary
-// function as Record mutator.
-type RecordFunc func(context.Context, *db.RecordMutation) (db.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f RecordFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
-	if mv, ok := m.(*db.RecordMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.RecordMutation", m)
-}
-
 // The SettingFunc type is an adapter to allow the use of ordinary
 // function as Setting mutator.
 type SettingFunc func(context.Context, *db.SettingMutation) (db.Value, error)
@@ -139,6 +127,30 @@ func (f SettingFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.SettingMutation", m)
+}
+
+// The TaskFunc type is an adapter to allow the use of ordinary
+// function as Task mutator.
+type TaskFunc func(context.Context, *db.TaskMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TaskFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.TaskMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TaskMutation", m)
+}
+
+// The TaskRecordFunc type is an adapter to allow the use of ordinary
+// function as TaskRecord mutator.
+type TaskRecordFunc func(context.Context, *db.TaskRecordMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TaskRecordFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.TaskRecordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TaskRecordMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

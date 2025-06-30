@@ -11,7 +11,7 @@ import (
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
-	"github.com/chaitin/MonkeyCode/backend/db/record"
+	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 )
@@ -27,28 +27,28 @@ func NewDashboardRepo(db *db.Client) domain.DashboardRepo {
 // CategoryStat implements domain.DashboardRepo.
 func (d *DashboardRepo) CategoryStat(ctx context.Context) (*domain.CategoryStat, error) {
 	var cs []domain.CategoryPoint
-	if err := d.db.Record.Query().
-		Where(record.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
-		Where(record.WorkModeNEQ("")).
+	if err := d.db.Task.Query().
+		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.WorkModeNEQ("")).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("work_mode", "category"),
 				sql.As("COUNT(*)", "value"),
-			).GroupBy(record.FieldWorkMode).
+			).GroupBy(task.FieldWorkMode).
 				OrderBy(sql.Desc("value"))
 		}).
 		Scan(ctx, &cs); err != nil {
 		return nil, err
 	}
 	var ps []domain.CategoryPoint
-	if err := d.db.Record.Query().
-		Where(record.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
-		Where(record.ProgramLanguageNotNil()).
+	if err := d.db.Task.Query().
+		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.ProgramLanguageNEQ("")).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("program_language", "category"),
 				sql.As("COUNT(*)", "value"),
-			).GroupBy(record.FieldProgramLanguage).
+			).GroupBy(task.FieldProgramLanguage).
 				OrderBy(sql.Desc("value"))
 		}).
 		Scan(ctx, &ps); err != nil {
@@ -90,8 +90,8 @@ type DateValue struct {
 // TimeStat implements domain.DashboardRepo.
 func (d *DashboardRepo) TimeStat(ctx context.Context) (*domain.TimeStat, error) {
 	ds := make([]DateValue, 0)
-	if err := d.db.Record.Query().
-		Where(record.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+	if err := d.db.Task.Query().
+		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("date_trunc('day', created_at)", "date"),
@@ -99,7 +99,7 @@ func (d *DashboardRepo) TimeStat(ctx context.Context) (*domain.TimeStat, error) 
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'llm')", "llm_count"),
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'coder')", "code_count"),
 				sql.As("COUNT(*) FILTER (WHERE is_accept = true AND model_type = 'coder')", "accepted_count"),
-				sql.As(sql.Sum(record.FieldCodeLines), "code_lines"),
+				sql.As(sql.Sum(task.FieldCodeLines), "code_lines"),
 			).GroupBy("date").
 				OrderBy(sql.Asc("date"))
 		}).
@@ -108,8 +108,8 @@ func (d *DashboardRepo) TimeStat(ctx context.Context) (*domain.TimeStat, error) 
 	}
 
 	dsOneHour := make([]DateValue, 0)
-	if err := d.db.Record.Query().
-		Where(record.CreatedAtGTE(time.Now().Add(-time.Hour))).
+	if err := d.db.Task.Query().
+		Where(task.CreatedAtGTE(time.Now().Add(-time.Hour))).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("date_trunc('minute', created_at)", "date"),
@@ -177,13 +177,13 @@ type UserCodeRank struct {
 // UserCodeRank implements domain.DashboardRepo.
 func (d *DashboardRepo) UserCodeRank(ctx context.Context) ([]*domain.UserCodeRank, error) {
 	var rs []UserCodeRank
-	if err := d.db.Record.Query().
-		Where(record.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+	if err := d.db.Task.Query().
+		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("user_id", "user_id"),
-				sql.As(sql.Sum(record.FieldCodeLines), "code_lines"),
-			).GroupBy(record.FieldUserID).
+				sql.As(sql.Sum(task.FieldCodeLines), "code_lines"),
+			).GroupBy(task.FieldUserID).
 				OrderBy(sql.Desc("code_lines"))
 		}).
 		Scan(ctx, &rs); err != nil {
@@ -216,18 +216,18 @@ func (d *DashboardRepo) UserEvents(ctx context.Context, userID string) ([]*domai
 	if err != nil {
 		return nil, err
 	}
-	rs, err := d.db.Record.Query().
+	rs, err := d.db.Task.Query().
 		WithUser().
-		Where(record.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
-		Where(record.HasUserWith(user.ID(id))).
-		Order(record.ByCreatedAt(sql.OrderDesc())).
+		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.HasUserWith(user.ID(id))).
+		Order(task.ByCreatedAt(sql.OrderDesc())).
 		Limit(100).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return cvt.Iter(rs, func(_ int, v *db.Record) *domain.UserEvent {
+	return cvt.Iter(rs, func(_ int, v *db.Task) *domain.UserEvent {
 		return &domain.UserEvent{
 			Name:      v.Edges.User.Username,
 			CreatedAt: v.CreatedAt.Unix(),
@@ -242,9 +242,9 @@ func (d *DashboardRepo) UserStat(ctx context.Context, userID string) (*domain.Us
 		return nil, err
 	}
 	var ds []DateValue
-	if err := d.db.Record.Query().
-		Where(record.HasUserWith(user.ID(id))).
-		Where(record.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+	if err := d.db.Task.Query().
+		Where(task.HasUserWith(user.ID(id))).
+		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("date_trunc('day', created_at)", "date"),
@@ -252,7 +252,7 @@ func (d *DashboardRepo) UserStat(ctx context.Context, userID string) (*domain.Us
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'llm')", "llm_count"),
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'coder')", "code_count"),
 				sql.As("COUNT(*) FILTER (WHERE is_accept = true AND model_type = 'coder')", "accepted_count"),
-				sql.As(sql.Sum(record.FieldCodeLines), "code_lines"),
+				sql.As(sql.Sum(task.FieldCodeLines), "code_lines"),
 			).GroupBy("date").
 				OrderBy(sql.Asc("date"))
 		}).
@@ -261,30 +261,30 @@ func (d *DashboardRepo) UserStat(ctx context.Context, userID string) (*domain.Us
 	}
 
 	var cs []domain.CategoryPoint
-	if err := d.db.Record.Query().
-		Where(record.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
-		Where(record.HasUserWith(user.ID(id))).
-		Where(record.WorkModeNotNil()).
+	if err := d.db.Task.Query().
+		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.HasUserWith(user.ID(id))).
+		Where(task.WorkModeNotNil()).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("work_mode", "category"),
 				sql.As("COUNT(*)", "value"),
-			).GroupBy(record.FieldWorkMode).
+			).GroupBy(task.FieldWorkMode).
 				OrderBy(sql.Desc("value"))
 		}).
 		Scan(ctx, &cs); err != nil {
 		return nil, err
 	}
 	var ps []domain.CategoryPoint
-	if err := d.db.Record.Query().
-		Where(record.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
-		Where(record.HasUserWith(user.ID(id))).
-		Where(record.ProgramLanguageNotNil()).
+	if err := d.db.Task.Query().
+		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.HasUserWith(user.ID(id))).
+		Where(task.ProgramLanguageNotNil()).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("program_language", "category"),
 				sql.As("COUNT(*)", "value"),
-			).GroupBy(record.FieldProgramLanguage).
+			).GroupBy(task.FieldProgramLanguage).
 				OrderBy(sql.Desc("value"))
 		}).
 		Scan(ctx, &ps); err != nil {
@@ -339,9 +339,9 @@ func (d *DashboardRepo) UserHeatmap(ctx context.Context, userID string) ([]*doma
 	}
 
 	var rs []DateValue
-	if err := d.db.Record.Query().
-		Where(record.HasUserWith(user.ID(id))).
-		Where(record.CreatedAtGTE(time.Now().AddDate(-1, 0, 0))).
+	if err := d.db.Task.Query().
+		Where(task.HasUserWith(user.ID(id))).
+		Where(task.CreatedAtGTE(time.Now().AddDate(-1, 0, 0))).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("date_trunc('day', created_at)", "date"),
