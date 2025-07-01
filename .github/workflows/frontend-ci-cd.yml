@@ -20,9 +20,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./ui
     outputs:
       version: ${{ steps.get_version.outputs.VERSION }}
     steps:
@@ -55,21 +52,36 @@ jobs:
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          cd ui
+          pnpm install
 
       - name: Build frontend
         run: |
+          cd ui
           echo "VITE_APP_VERSION=${{ steps.get_version.outputs.VERSION }}" >> .env.production
           pnpm run build
 
       - name: 'Tar files'
-        run: tar -cvf dist.tar dist
+        run: tar -cvf ui/dist.tar ui/dist
+
+      - name: List files for debugging
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Listing current directory:"
+          ls -la
+          echo "Listing dist directory:"
+          ls -la ui/dist || echo "dist directory not found"
+          echo "Checking if dist.tar exists:"
+          ls -la ui/dist.tar || echo "dist.tar not found"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
-          path: ./ui/dist.tar
+          path: ui/dist.tar
+          if-no-files-found: error
+          include-hidden-files: true
 
   package:
     needs: build
@@ -84,15 +96,15 @@ jobs:
         with:
           name: frontend-build
 
-      - name: Extract files
-        run: |
-          tar -xvf dist.tar
-
       - name: Check file structure
         run: |
           echo "Current directory: $(pwd)"
-          echo "Listing dist directory:"
-          ls -la dist
+          echo "Listing current directory:"
+          ls -la
+
+      - name: Extract files
+        run: |
+          tar -xvf dist.tar
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -110,8 +122,8 @@ jobs:
       - name: Package and push
         uses: docker/build-push-action@v5
         with:
-          context: ./ui
-          file: ./ui/.Dockerfile
+          context: ui
+          file: ui/.Dockerfile
           push: true
           platforms: linux/amd64, linux/arm64
           tags: |

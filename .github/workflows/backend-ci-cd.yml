@@ -93,8 +93,8 @@ jobs:
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./build/Dockerfile
+          context: ./backend
+          file: ./backend/build/Dockerfile
           push: true
           platforms: linux/amd64, linux/arm64
           tags: |
