@@ -127,7 +127,7 @@ jobs:
           push: true
           platforms: linux/amd64, linux/arm64
           tags: |
-            ${{ env.REGISTRY }}/frontend:v${{ needs.build.outputs.version }}
+            ${{ env.REGISTRY }}/frontend:${{ needs.build.outputs.version }}
             ${{ env.REGISTRY }}/frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

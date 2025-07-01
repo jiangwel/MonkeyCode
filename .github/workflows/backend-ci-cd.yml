@@ -98,7 +98,7 @@ jobs:
           push: true
           platforms: linux/amd64, linux/arm64
           tags: |
-            ${{ env.REGISTRY }}/backend:v${{ steps.get_version.outputs.VERSION }}
+            ${{ env.REGISTRY }}/backend:${{ steps.get_version.outputs.VERSION }}
             ${{ env.REGISTRY }}/backend:latest
           build-args: |
             GOCACHE=/tmp/go-build
