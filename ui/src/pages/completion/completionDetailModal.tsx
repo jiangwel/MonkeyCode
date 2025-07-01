@@ -33,9 +33,9 @@ const ChatDetailModal = ({
     if (!data) return;
     getChatInfo({ id: data.id! }).then((res) => {
       setContent(
-        `<code class="language-${data.program_language}">${
-          res.content || ''
-        }</code>`
+        data.program_language
+          ? `\`\`\`${data.program_language}\n${res.content || ''}\n\`\`\``
+          : res.content || ''
       );
     });
     // getConversationChatDetailModal({ id }).then((res) => {

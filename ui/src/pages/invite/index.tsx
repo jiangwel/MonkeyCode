@@ -19,9 +19,14 @@ import {
   InputAdornment,
   IconButton,
   CircularProgress,
+  Stack,
 } from '@mui/material';
 import { useRequest } from 'ahooks';
-import { postRegister } from '@/api/User';
+import {
+  postRegister,
+  getUserOauthSignupOrIn,
+  getGetSetting,
+} from '@/api/User';
 import { Icon } from '@c-x/ui';
 
 import DownloadIcon from '@mui/icons-material/Download';
@@ -63,9 +68,9 @@ const StepCard = styled(Box)(({ theme }) => ({
 }));
 
 const Invite = () => {
-  const { id } = useParams();
+  const { id, step } = useParams();
   const [showPassword, setShowPassword] = useState(false);
-
+  const { data: loginSetting = {} } = useRequest(getGetSetting);
   const {
     control,
     handleSubmit,
@@ -80,7 +85,7 @@ const Invite = () => {
   const { runAsync: register, loading } = useRequest(postRegister, {
     manual: true,
   });
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(step ? parseInt(step) : 1);
 
   const onNext = () => {
     setActiveStep(activeStep + 1);
@@ -107,10 +112,19 @@ const Invite = () => {
     });
   }, []);
 
+  const onDingdingLogin = () => {
+    getUserOauthSignupOrIn({
+      platform: 'dingtalk',
+      redirect_url: `${window.location.origin}/invite/${id}/2`,
+    }).then((res) => {
+      window.location.href = res.url!;
+    });
+  };
+
   const renderStepContent = () => {
     switch (activeStep) {
-      case 0:
-        return (
+      case 1:
+        return !loginSetting.enable_dingtalk_oauth ? (
           <Box component='form' onSubmit={onRegister}>
             <Grid container spacing={3}>
               <Grid size={12}>
@@ -229,9 +243,21 @@ const Invite = () => {
               </Grid>
             </Grid>
           </Box>
+        ) : (
+          <Stack>
+            <Button
+              size='large'
+              variant='contained'
+              sx={{ alignSelf: 'center' }}
+              onClick={onDingdingLogin}
+            >
+              <Icon type='icon-dingding' sx={{ fontSize: 20, mr: 1 }} />
+              使用钉钉登录
+            </Button>
+          </Stack>
         );
 
-      case 1:
+      case 2:
         return (
           <StepCard>
             <DownloadIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
@@ -262,7 +288,7 @@ const Invite = () => {
           </StepCard>
         );
 
-      case 2:
+      case 3:
         return (
           <StepCard>
             <MenuBookIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />

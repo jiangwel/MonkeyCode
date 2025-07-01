@@ -97,6 +97,10 @@ const MarkDown = ({
 
   const answer = processContent(content);
 
+  console.log(answer);
+
+  console.log(content);
+
   if (content.length === 0) return null;
 
   return (
@@ -446,12 +450,13 @@ const MarkDown = ({
               ...rest
             }: React.HTMLAttributes<HTMLElement>) {
               const match = /language-(\w+)/.exec(className || '');
+              console.log(children, rest);
               return match ? (
                 <SyntaxHighlighter
                   showLineNumbers
                   {...rest}
                   language={match[1] || 'bash'}
-                  style={github}
+                  style={anOldHope}
                   onClick={() => {
                     if (navigator.clipboard) {
                       navigator.clipboard.writeText(

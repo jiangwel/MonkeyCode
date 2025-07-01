@@ -23,6 +23,7 @@ import {
   DomainListUserResp,
   DomainLoginReq,
   DomainLoginResp,
+  DomainOAuthURLResp,
   DomainRegisterReq,
   DomainSetting,
   DomainUpdateSettingReq,
@@ -32,6 +33,8 @@ import {
   GetListAdminUserParams,
   GetListUserParams,
   GetLoginHistoryParams,
+  GetUserOauthCallbackParams,
+  GetUserOauthSignupOrInParams,
   WebResp,
 } from "./types";
 
@@ -394,6 +397,66 @@ export const getLoginHistory = (
     }
   >({
     path: `/api/v1/user/login-history`,
+    method: "GET",
+    query: query,
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
+ * @description 用户 OAuth 回调
+ *
+ * @tags User
+ * @name GetUserOauthCallback
+ * @summary 用户 OAuth 回调
+ * @request GET:/api/v1/user/oauth/callback
+ * @response `200` `(WebResp & {
+    data?: string,
+
+})` OK
+ */
+
+export const getUserOauthCallback = (
+  query: GetUserOauthCallbackParams,
+  params: RequestParams = {},
+) =>
+  request<
+    WebResp & {
+      data?: string;
+    }
+  >({
+    path: `/api/v1/user/oauth/callback`,
+    method: "GET",
+    query: query,
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
+ * @description 用户 OAuth 登录或注册
+ *
+ * @tags User
+ * @name GetUserOauthSignupOrIn
+ * @summary 用户 OAuth 登录或注册
+ * @request GET:/api/v1/user/oauth/signup-or-in
+ * @response `200` `(WebResp & {
+    data?: DomainOAuthURLResp,
+
+})` OK
+ */
+
+export const getUserOauthSignupOrIn = (
+  query: GetUserOauthSignupOrInParams,
+  params: RequestParams = {},
+) =>
+  request<
+    WebResp & {
+      data?: DomainOAuthURLResp;
+    }
+  >({
+    path: `/api/v1/user/oauth/signup-or-in`,
     method: "GET",
     query: query,
     type: ContentType.Json,
