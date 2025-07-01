@@ -376,9 +376,13 @@ func (p *LLMProxy) handleCompletionStream(ctx context.Context, w http.ResponseWr
 					if len(t.Choices) > 0 {
 						rc.Completion += t.Choices[0].Text
 					}
-					rc.InputTokens += int64(t.Usage.PromptTokens)
+					rc.InputTokens = int64(t.Usage.PromptTokens)
 					rc.OutputTokens += int64(t.Usage.CompletionTokens)
 				}
+			}
+
+			if rc.OutputTokens == 0 {
+				return
 			}
 
 			p.logger.With("record", rc).DebugContext(ctx, "流式记录")
@@ -469,6 +473,10 @@ func (p *LLMProxy) handleCompletion(ctx context.Context, w http.ResponseWriter, 
 }
 
 func (p *LLMProxy) recordCompletion(c *Ctx, modelID string, req domain.CompletionRequest, resp *openai.CompletionResponse) {
+	if resp.Usage.CompletionTokens == 0 {
+		return
+	}
+
 	ctx := context.Background()
 	prompt := req.Prompt.(string)
 	rc := &domain.RecordParam{
