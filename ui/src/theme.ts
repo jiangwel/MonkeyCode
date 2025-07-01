@@ -54,7 +54,7 @@ const lightTheme = createTheme(
         auxiliary: 'rgba(33,34,45, 0.5)',
         disabled: 'rgba(33,34,45, 0.2)',
       },
-      divider: '#ECEEF1',
+      // divider: '#ECEEF1',
     },
     shadows: [
       ...defaultTheme.shadows.slice(0, 8),

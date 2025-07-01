@@ -16,6 +16,11 @@ export enum ConstsUserStatus {
   UserStatusLocked = "locked",
 }
 
+export enum ConstsUserPlatform {
+  UserPlatformEmail = "email",
+  UserPlatformDingTalk = "dingtalk",
+}
+
 export enum ConstsModelType {
   ModelTypeLLM = "llm",
   ModelTypeCoder = "coder",
@@ -312,6 +317,10 @@ export interface DomainModelTokenUsageResp {
   total_output?: number;
 }
 
+export interface DomainOAuthURLResp {
+  url?: string;
+}
+
 export interface DomainProviderModel {
   /** 模型列表 */
   models?: DomainModelBasic[];
@@ -333,6 +342,8 @@ export interface DomainSetting {
   created_at?: number;
   /** 是否禁用密码登录 */
   disable_password_login?: boolean;
+  /** 是否开启钉钉OAuth */
+  enable_dingtalk_oauth?: boolean;
   /** 是否开启SSO */
   enable_sso?: boolean;
   /** 是否强制两步验证 */
@@ -419,8 +430,14 @@ export interface DomainUpdateModelReq {
 }
 
 export interface DomainUpdateSettingReq {
+  /** 钉钉客户端ID */
+  dingtalk_client_id?: string;
+  /** 钉钉客户端密钥 */
+  dingtalk_client_secret?: string;
   /** 是否禁用密码登录 */
   disable_password_login?: boolean;
+  /** 是否开启钉钉OAuth */
+  enable_dingtalk_oauth?: boolean;
   /** 是否开启SSO */
   enable_sso?: boolean;
   /** 是否强制两步验证 */
@@ -636,4 +653,18 @@ export interface GetLoginHistoryParams {
   page?: number;
   /** 每页多少条记录 */
   size?: number;
+}
+
+export interface GetUserOauthCallbackParams {
+  code: string;
+  state: string;
+}
+
+export interface GetUserOauthSignupOrInParams {
+  /** 第三方平台 dingtalk */
+  platform: "email" | "dingtalk";
+  /** 登录成功后跳转的 URL */
+  redirect_url?: string;
+  /** 会话ID */
+  session_id?: string;
 }

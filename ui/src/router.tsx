@@ -80,7 +80,7 @@ const routerConfig = [
     ],
   },
   {
-    path: '/invite/:id',
+    path: '/invite/:id/:step?',
     element: <Invite />,
   },
   {

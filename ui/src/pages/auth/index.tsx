@@ -12,17 +12,20 @@ import {
   Grid2 as Grid,
   InputAdornment,
   IconButton,
+  Divider,
+  Stack,
 } from '@mui/material';
-import { Icon } from '@c-x/ui';
+import { Icon, message } from '@c-x/ui';
 
 // @ts-ignore
 import { AestheticFluidBg } from '@/assets/jsm/AestheticFluidBg.module.js';
 
 import { useSearchParams } from 'react-router-dom';
-import { postLogin } from '@/api/User';
+import { postLogin, getUserOauthSignupOrIn, getGetSetting } from '@/api/User';
 
 import { useForm, Controller } from 'react-hook-form';
 import { styled } from '@mui/material/styles';
+import { useRequest } from 'ahooks';
 
 // 样式化组件
 const StyledContainer = styled(Container)(({ theme }) => ({
@@ -111,6 +114,7 @@ const AuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const [searchParams] = useSearchParams();
+  const { data: loginSetting = {} } = useRequest(getGetSetting);
 
   const {
     control,
@@ -132,7 +136,8 @@ const AuthPage = () => {
       try {
         const sessionId = searchParams.get('session_id');
         if (!sessionId) {
-          throw new Error('缺少会话ID参数');
+          message.error('缺少会话ID参数');
+          return;
         }
 
         // 用户登录
@@ -245,17 +250,6 @@ const AuthPage = () => {
     />
   );
 
-  // 渲染错误提示
-  const renderErrorAlert = () => {
-    if (!error) return null;
-
-    return (
-      <Grid size={12}>
-        <Alert severity='error'>{error}</Alert>
-      </Grid>
-    );
-  };
-
   // 渲染登录按钮
   const renderLoginButton = () => (
     <Grid size={12}>
@@ -271,6 +265,32 @@ const AuthPage = () => {
     </Grid>
   );
 
+  const onDingdingLogin = () => {
+    getUserOauthSignupOrIn({
+      platform: 'dingtalk',
+      redirect_url: window.location.origin + window.location.pathname,
+      // @ts-ignore
+      session_id: searchParams.get('session_id') || null,
+    }).then((res) => {
+      if (res.url) {
+        window.location.href = res.url;
+      }
+    });
+  };
+
+  const dingdingLogin = () => {
+    return (
+      <Stack justifyContent='center'>
+        <Divider sx={{ my: 3, fontSize: 12, borderColor: 'divider' }}>
+          使用其他方式登录
+        </Divider>
+        <IconButton sx={{ alignSelf: 'center' }} onClick={onDingdingLogin}>
+          <Icon type='icon-dingding' sx={{ fontSize: 30 }} />
+        </IconButton>
+      </Stack>
+    );
+  };
+
   // 渲染登录表单
   const renderLoginForm = () => (
     <>
@@ -284,19 +304,27 @@ const AuthPage = () => {
       <Box component='form' onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={4}>
           <Grid size={12}>{renderUsernameField()}</Grid>
-
           <Grid size={12}>{renderPasswordField()}</Grid>
 
-          {renderErrorAlert()}
           {renderLoginButton()}
         </Grid>
       </Box>
     </>
   );
 
+  useEffect(() => {
+    const redirect_url = searchParams.get('redirect_url');
+    if (redirect_url) {
+      window.location.href = redirect_url;
+    }
+  }, []);
+
   return (
     <StyledContainer id='box'>
-      <StyledPaper elevation={3}>{renderLoginForm()}</StyledPaper>
+      <StyledPaper elevation={3}>
+        {!loginSetting.disable_password_login && renderLoginForm()}
+        {loginSetting.enable_dingtalk_oauth && dingdingLogin()}
+      </StyledPaper>
     </StyledContainer>
   );
 };

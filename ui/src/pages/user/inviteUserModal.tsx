@@ -17,7 +17,7 @@ const InviteUserModal = ({
   const { loading, refresh } = useRequest(getInvite, {
     manual: true,
     onSuccess: (data) => {
-      setInviteUrl(location.origin + '/invite/' + data?.code);
+      setInviteUrl(location.origin + '/invite/' + data?.code + '/1');
     },
   });
 

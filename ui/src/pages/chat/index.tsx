@@ -56,7 +56,7 @@ const Chat = () => {
       dataIndex: 'question',
       title: '任务',
       render(value: string, record) {
-        const cleanValue = value?.replace(/^<task>|<\/task>$/g, '') || value;
+        const cleanValue = value?.replace(/<\/?task>/g, '') || value;
         return (
           <Box
             onClick={() => setChatDetailModal(record)}
