@@ -4,11 +4,15 @@ on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+*"
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci-cd.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'backend/**'
+      - '.github/workflows/backend-ci-cd.yml'
 
 env:
   REGISTRY: chaitin-registry.cn-hangzhou.cr.aliyuncs.com/monkeycode
@@ -54,15 +58,10 @@ jobs:
             exit 1
           fi
 
-      - name: Run wire generation
-        run: make wire
-
-      - name: Generate swagger docs
-        run: make swag
-
   build:
     needs: test
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
     defaults:
       run:
         working-directory: ./backend
@@ -96,7 +95,7 @@ jobs:
         with:
           context: .
           file: ./build/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           platforms: linux/amd64, linux/arm64
           tags: |
             ${{ env.REGISTRY }}/backend:v${{ steps.get_version.outputs.VERSION }}
@@ -105,18 +104,5 @@ jobs:
             GOCACHE=/tmp/go-build
             GOMODCACHE=/tmp/go-mod
             REPO_COMMIT=${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build and push nginx image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./build/Dockerfile.nginx
-          push: ${{ github.event_name != 'pull_request' }}
-          platforms: linux/amd64, linux/arm64
-          tags: |
-            ${{ env.REGISTRY }}/nginx:v${{ steps.get_version.outputs.VERSION }}
-            ${{ env.REGISTRY }}/nginx:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
