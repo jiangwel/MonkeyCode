@@ -21,6 +21,10 @@ const (
 	FieldPassword = "password"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
+	// FieldAvatarURL holds the string denoting the avatar_url field in the database.
+	FieldAvatarURL = "avatar_url"
+	// FieldPlatform holds the string denoting the platform field in the database.
+	FieldPlatform = "platform"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -33,6 +37,8 @@ const (
 	EdgeModels = "models"
 	// EdgeTasks holds the string denoting the tasks edge name in mutations.
 	EdgeTasks = "tasks"
+	// EdgeIdentities holds the string denoting the identities edge name in mutations.
+	EdgeIdentities = "identities"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// LoginHistoriesTable is the table that holds the login_histories relation/edge.
@@ -56,6 +62,13 @@ const (
 	TasksInverseTable = "tasks"
 	// TasksColumn is the table column denoting the tasks relation/edge.
 	TasksColumn = "user_id"
+	// IdentitiesTable is the table that holds the identities relation/edge.
+	IdentitiesTable = "user_identities"
+	// IdentitiesInverseTable is the table name for the UserIdentity entity.
+	// It exists in this package in order to avoid circular dependency with the "useridentity" package.
+	IdentitiesInverseTable = "user_identities"
+	// IdentitiesColumn is the table column denoting the identities relation/edge.
+	IdentitiesColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -64,6 +77,8 @@ var Columns = []string{
 	FieldUsername,
 	FieldPassword,
 	FieldEmail,
+	FieldAvatarURL,
+	FieldPlatform,
 	FieldStatus,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -80,6 +95,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultPlatform holds the default value on creation for the "platform" field.
+	DefaultPlatform consts.UserPlatform
 	// DefaultStatus holds the default value on creation for the "status" field.
 	DefaultStatus consts.UserStatus
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -109,6 +126,16 @@ func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 // ByEmail orders the results by the email field.
 func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
+}
+
+// ByAvatarURL orders the results by the avatar_url field.
+func ByAvatarURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAvatarURL, opts...).ToFunc()
+}
+
+// ByPlatform orders the results by the platform field.
+func ByPlatform(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPlatform, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.
@@ -167,6 +194,20 @@ func ByTasks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTasksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByIdentitiesCount orders the results by identities count.
+func ByIdentitiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newIdentitiesStep(), opts...)
+	}
+}
+
+// ByIdentities orders the results by identities terms.
+func ByIdentities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIdentitiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newLoginHistoriesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -186,5 +227,12 @@ func newTasksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TasksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, TasksTable, TasksColumn),
+	)
+}
+func newIdentitiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IdentitiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, IdentitiesTable, IdentitiesColumn),
 	)
 }

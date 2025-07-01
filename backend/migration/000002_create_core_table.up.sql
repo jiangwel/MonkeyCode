@@ -18,18 +18,34 @@ CREATE TABLE IF NOT EXISTS invite_codes (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- 用户表
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE,
+    username VARCHAR(255),
+    password VARCHAR(255),
+    email VARCHAR(255),
+    avatar_url VARCHAR(255),
     status VARCHAR(20) DEFAULT 'active',
+    platform VARCHAR(12),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
+CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_users_username ON users (username) WHERE username IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_users_email ON users (email) WHERE email IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS user_identities (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v1(),
+    user_id UUID NOT NULL,
+    platform VARCHAR(12) NOT NULL,
+    identity_id VARCHAR(64) NOT NULL,
+    union_id VARCHAR(64),
+    nickname VARCHAR(255),
+    email VARCHAR(255),
+    avatar_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_user_identities_platform_identity_id ON user_identities (platform, identity_id);
 
 CREATE TABLE IF NOT EXISTS user_login_histories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -143,6 +159,9 @@ CREATE TABLE IF NOT EXISTS settings (
     enable_sso BOOLEAN DEFAULT FALSE,
     force_two_factor_auth BOOLEAN DEFAULT FALSE,
     disable_password_login BOOLEAN DEFAULT FALSE,
+    enable_dingtalk_oauth BOOLEAN DEFAULT FALSE,
+    dingtalk_client_id VARCHAR(255),
+    dingtalk_client_secret VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

@@ -14,6 +14,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
+	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
 )
@@ -209,4 +210,46 @@ func (r *UserRepo) DeleteAdmin(ctx context.Context, id string) error {
 		return errors.New("admin cannot be deleted")
 	}
 	return r.db.Admin.DeleteOne(admin).Exec(ctx)
+}
+
+func (r *UserRepo) SignUpOrIn(ctx context.Context, platform consts.UserPlatform, req *domain.OAuthUserInfo) (*db.User, error) {
+	var u *db.User
+	err := entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		ui, err := tx.UserIdentity.Query().
+			WithUser().
+			Where(useridentity.Platform(platform), useridentity.IdentityID(req.ID)).
+			First(ctx)
+		if err == nil {
+			u = ui.Edges.User
+			return nil
+		}
+		if !db.IsNotFound(err) {
+			return err
+		}
+		user, err := tx.User.Create().
+			SetUsername(req.Name).
+			SetEmail(req.Email).
+			SetAvatarURL(req.AvatarURL).
+			SetPlatform(platform).
+			SetStatus(consts.UserStatusActive).
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+		_, err = tx.UserIdentity.Create().
+			SetUserID(user.ID).
+			SetPlatform(platform).
+			SetIdentityID(req.ID).
+			SetUnionID(req.UnionID).
+			SetNickname(req.Name).
+			SetAvatarURL(req.AvatarURL).
+			SetEmail(req.Email).
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+		u = user
+		return nil
+	})
+	return u, err
 }

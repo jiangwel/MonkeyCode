@@ -165,6 +165,18 @@ func (f UserFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.UserMutation", m)
 }
 
+// The UserIdentityFunc type is an adapter to allow the use of ordinary
+// function as UserIdentity mutator.
+type UserIdentityFunc func(context.Context, *db.UserIdentityMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserIdentityFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.UserIdentityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.UserIdentityMutation", m)
+}
+
 // The UserLoginHistoryFunc type is an adapter to allow the use of ordinary
 // function as UserLoginHistory mutator.
 type UserLoginHistoryFunc func(context.Context, *db.UserLoginHistoryMutation) (db.Value, error)

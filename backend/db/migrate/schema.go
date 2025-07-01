@@ -191,6 +191,9 @@ var (
 		{Name: "enable_sso", Type: field.TypeBool, Default: false},
 		{Name: "force_two_factor_auth", Type: field.TypeBool, Default: false},
 		{Name: "disable_password_login", Type: field.TypeBool, Default: false},
+		{Name: "enable_dingtalk_oauth", Type: field.TypeBool, Default: false},
+		{Name: "dingtalk_client_id", Type: field.TypeString, Nullable: true},
+		{Name: "dingtalk_client_secret", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -265,9 +268,11 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "username", Type: field.TypeString, Unique: true},
-		{Name: "password", Type: field.TypeString},
-		{Name: "email", Type: field.TypeString, Unique: true},
+		{Name: "username", Type: field.TypeString, Nullable: true},
+		{Name: "password", Type: field.TypeString, Nullable: true},
+		{Name: "email", Type: field.TypeString, Nullable: true},
+		{Name: "avatar_url", Type: field.TypeString, Nullable: true},
+		{Name: "platform", Type: field.TypeString, Default: "email"},
 		{Name: "status", Type: field.TypeString, Default: "active"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -277,6 +282,32 @@ var (
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+	}
+	// UserIdentitiesColumns holds the columns for the "user_identities" table.
+	UserIdentitiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "platform", Type: field.TypeString, Default: "email"},
+		{Name: "identity_id", Type: field.TypeString},
+		{Name: "union_id", Type: field.TypeString, Nullable: true},
+		{Name: "nickname", Type: field.TypeString, Nullable: true},
+		{Name: "email", Type: field.TypeString, Nullable: true},
+		{Name: "avatar_url", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// UserIdentitiesTable holds the schema information for the "user_identities" table.
+	UserIdentitiesTable = &schema.Table{
+		Name:       "user_identities",
+		Columns:    UserIdentitiesColumns,
+		PrimaryKey: []*schema.Column{UserIdentitiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_identities_users_identities",
+				Columns:    []*schema.Column{UserIdentitiesColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// UserLoginHistoriesColumns holds the columns for the "user_login_histories" table.
 	UserLoginHistoriesColumns = []*schema.Column{
@@ -322,6 +353,7 @@ var (
 		TasksTable,
 		TaskRecordsTable,
 		UsersTable,
+		UserIdentitiesTable,
 		UserLoginHistoriesTable,
 	}
 )
@@ -370,6 +402,10 @@ func init() {
 	}
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",
+	}
+	UserIdentitiesTable.ForeignKeys[0].RefTable = UsersTable
+	UserIdentitiesTable.Annotation = &entsql.Annotation{
+		Table: "user_identities",
 	}
 	UserLoginHistoriesTable.ForeignKeys[0].RefTable = UsersTable
 	UserLoginHistoriesTable.Annotation = &entsql.Annotation{

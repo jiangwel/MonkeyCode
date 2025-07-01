@@ -16,6 +16,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
+	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 	"github.com/google/uuid"
 )
@@ -34,15 +35,67 @@ func (uc *UserCreate) SetUsername(s string) *UserCreate {
 	return uc
 }
 
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (uc *UserCreate) SetNillableUsername(s *string) *UserCreate {
+	if s != nil {
+		uc.SetUsername(*s)
+	}
+	return uc
+}
+
 // SetPassword sets the "password" field.
 func (uc *UserCreate) SetPassword(s string) *UserCreate {
 	uc.mutation.SetPassword(s)
 	return uc
 }
 
+// SetNillablePassword sets the "password" field if the given value is not nil.
+func (uc *UserCreate) SetNillablePassword(s *string) *UserCreate {
+	if s != nil {
+		uc.SetPassword(*s)
+	}
+	return uc
+}
+
 // SetEmail sets the "email" field.
 func (uc *UserCreate) SetEmail(s string) *UserCreate {
 	uc.mutation.SetEmail(s)
+	return uc
+}
+
+// SetNillableEmail sets the "email" field if the given value is not nil.
+func (uc *UserCreate) SetNillableEmail(s *string) *UserCreate {
+	if s != nil {
+		uc.SetEmail(*s)
+	}
+	return uc
+}
+
+// SetAvatarURL sets the "avatar_url" field.
+func (uc *UserCreate) SetAvatarURL(s string) *UserCreate {
+	uc.mutation.SetAvatarURL(s)
+	return uc
+}
+
+// SetNillableAvatarURL sets the "avatar_url" field if the given value is not nil.
+func (uc *UserCreate) SetNillableAvatarURL(s *string) *UserCreate {
+	if s != nil {
+		uc.SetAvatarURL(*s)
+	}
+	return uc
+}
+
+// SetPlatform sets the "platform" field.
+func (uc *UserCreate) SetPlatform(cp consts.UserPlatform) *UserCreate {
+	uc.mutation.SetPlatform(cp)
+	return uc
+}
+
+// SetNillablePlatform sets the "platform" field if the given value is not nil.
+func (uc *UserCreate) SetNillablePlatform(cp *consts.UserPlatform) *UserCreate {
+	if cp != nil {
+		uc.SetPlatform(*cp)
+	}
 	return uc
 }
 
@@ -139,6 +192,21 @@ func (uc *UserCreate) AddTasks(t ...*Task) *UserCreate {
 	return uc.AddTaskIDs(ids...)
 }
 
+// AddIdentityIDs adds the "identities" edge to the UserIdentity entity by IDs.
+func (uc *UserCreate) AddIdentityIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddIdentityIDs(ids...)
+	return uc
+}
+
+// AddIdentities adds the "identities" edges to the UserIdentity entity.
+func (uc *UserCreate) AddIdentities(u ...*UserIdentity) *UserCreate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddIdentityIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -174,6 +242,10 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() {
+	if _, ok := uc.mutation.Platform(); !ok {
+		v := user.DefaultPlatform
+		uc.mutation.SetPlatform(v)
+	}
 	if _, ok := uc.mutation.Status(); !ok {
 		v := user.DefaultStatus
 		uc.mutation.SetStatus(v)
@@ -190,14 +262,8 @@ func (uc *UserCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
-	if _, ok := uc.mutation.Username(); !ok {
-		return &ValidationError{Name: "username", err: errors.New(`db: missing required field "User.username"`)}
-	}
-	if _, ok := uc.mutation.Password(); !ok {
-		return &ValidationError{Name: "password", err: errors.New(`db: missing required field "User.password"`)}
-	}
-	if _, ok := uc.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New(`db: missing required field "User.email"`)}
+	if _, ok := uc.mutation.Platform(); !ok {
+		return &ValidationError{Name: "platform", err: errors.New(`db: missing required field "User.platform"`)}
 	}
 	if _, ok := uc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`db: missing required field "User.status"`)}
@@ -256,6 +322,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 		_node.Email = value
 	}
+	if value, ok := uc.mutation.AvatarURL(); ok {
+		_spec.SetField(user.FieldAvatarURL, field.TypeString, value)
+		_node.AvatarURL = value
+	}
+	if value, ok := uc.mutation.Platform(); ok {
+		_spec.SetField(user.FieldPlatform, field.TypeString, value)
+		_node.Platform = value
+	}
 	if value, ok := uc.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeString, value)
 		_node.Status = value
@@ -309,6 +383,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.IdentitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.IdentitiesTable,
+			Columns: []string{user.IdentitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(useridentity.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -380,6 +470,12 @@ func (u *UserUpsert) UpdateUsername() *UserUpsert {
 	return u
 }
 
+// ClearUsername clears the value of the "username" field.
+func (u *UserUpsert) ClearUsername() *UserUpsert {
+	u.SetNull(user.FieldUsername)
+	return u
+}
+
 // SetPassword sets the "password" field.
 func (u *UserUpsert) SetPassword(v string) *UserUpsert {
 	u.Set(user.FieldPassword, v)
@@ -392,6 +488,12 @@ func (u *UserUpsert) UpdatePassword() *UserUpsert {
 	return u
 }
 
+// ClearPassword clears the value of the "password" field.
+func (u *UserUpsert) ClearPassword() *UserUpsert {
+	u.SetNull(user.FieldPassword)
+	return u
+}
+
 // SetEmail sets the "email" field.
 func (u *UserUpsert) SetEmail(v string) *UserUpsert {
 	u.Set(user.FieldEmail, v)
@@ -401,6 +503,42 @@ func (u *UserUpsert) SetEmail(v string) *UserUpsert {
 // UpdateEmail sets the "email" field to the value that was provided on create.
 func (u *UserUpsert) UpdateEmail() *UserUpsert {
 	u.SetExcluded(user.FieldEmail)
+	return u
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *UserUpsert) ClearEmail() *UserUpsert {
+	u.SetNull(user.FieldEmail)
+	return u
+}
+
+// SetAvatarURL sets the "avatar_url" field.
+func (u *UserUpsert) SetAvatarURL(v string) *UserUpsert {
+	u.Set(user.FieldAvatarURL, v)
+	return u
+}
+
+// UpdateAvatarURL sets the "avatar_url" field to the value that was provided on create.
+func (u *UserUpsert) UpdateAvatarURL() *UserUpsert {
+	u.SetExcluded(user.FieldAvatarURL)
+	return u
+}
+
+// ClearAvatarURL clears the value of the "avatar_url" field.
+func (u *UserUpsert) ClearAvatarURL() *UserUpsert {
+	u.SetNull(user.FieldAvatarURL)
+	return u
+}
+
+// SetPlatform sets the "platform" field.
+func (u *UserUpsert) SetPlatform(v consts.UserPlatform) *UserUpsert {
+	u.Set(user.FieldPlatform, v)
+	return u
+}
+
+// UpdatePlatform sets the "platform" field to the value that was provided on create.
+func (u *UserUpsert) UpdatePlatform() *UserUpsert {
+	u.SetExcluded(user.FieldPlatform)
 	return u
 }
 
@@ -502,6 +640,13 @@ func (u *UserUpsertOne) UpdateUsername() *UserUpsertOne {
 	})
 }
 
+// ClearUsername clears the value of the "username" field.
+func (u *UserUpsertOne) ClearUsername() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearUsername()
+	})
+}
+
 // SetPassword sets the "password" field.
 func (u *UserUpsertOne) SetPassword(v string) *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
@@ -516,6 +661,13 @@ func (u *UserUpsertOne) UpdatePassword() *UserUpsertOne {
 	})
 }
 
+// ClearPassword clears the value of the "password" field.
+func (u *UserUpsertOne) ClearPassword() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearPassword()
+	})
+}
+
 // SetEmail sets the "email" field.
 func (u *UserUpsertOne) SetEmail(v string) *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
@@ -527,6 +679,48 @@ func (u *UserUpsertOne) SetEmail(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateEmail() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEmail()
+	})
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *UserUpsertOne) ClearEmail() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearEmail()
+	})
+}
+
+// SetAvatarURL sets the "avatar_url" field.
+func (u *UserUpsertOne) SetAvatarURL(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAvatarURL(v)
+	})
+}
+
+// UpdateAvatarURL sets the "avatar_url" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateAvatarURL() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAvatarURL()
+	})
+}
+
+// ClearAvatarURL clears the value of the "avatar_url" field.
+func (u *UserUpsertOne) ClearAvatarURL() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearAvatarURL()
+	})
+}
+
+// SetPlatform sets the "platform" field.
+func (u *UserUpsertOne) SetPlatform(v consts.UserPlatform) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPlatform(v)
+	})
+}
+
+// UpdatePlatform sets the "platform" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdatePlatform() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePlatform()
 	})
 }
 
@@ -801,6 +995,13 @@ func (u *UserUpsertBulk) UpdateUsername() *UserUpsertBulk {
 	})
 }
 
+// ClearUsername clears the value of the "username" field.
+func (u *UserUpsertBulk) ClearUsername() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearUsername()
+	})
+}
+
 // SetPassword sets the "password" field.
 func (u *UserUpsertBulk) SetPassword(v string) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
@@ -815,6 +1016,13 @@ func (u *UserUpsertBulk) UpdatePassword() *UserUpsertBulk {
 	})
 }
 
+// ClearPassword clears the value of the "password" field.
+func (u *UserUpsertBulk) ClearPassword() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearPassword()
+	})
+}
+
 // SetEmail sets the "email" field.
 func (u *UserUpsertBulk) SetEmail(v string) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
@@ -826,6 +1034,48 @@ func (u *UserUpsertBulk) SetEmail(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateEmail() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEmail()
+	})
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *UserUpsertBulk) ClearEmail() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearEmail()
+	})
+}
+
+// SetAvatarURL sets the "avatar_url" field.
+func (u *UserUpsertBulk) SetAvatarURL(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAvatarURL(v)
+	})
+}
+
+// UpdateAvatarURL sets the "avatar_url" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateAvatarURL() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAvatarURL()
+	})
+}
+
+// ClearAvatarURL clears the value of the "avatar_url" field.
+func (u *UserUpsertBulk) ClearAvatarURL() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearAvatarURL()
+	})
+}
+
+// SetPlatform sets the "platform" field.
+func (u *UserUpsertBulk) SetPlatform(v consts.UserPlatform) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPlatform(v)
+	})
+}
+
+// UpdatePlatform sets the "platform" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdatePlatform() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePlatform()
 	})
 }
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"strings"
 	"time"
 
@@ -13,7 +14,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/GoYoko/web"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
+	"github.com/chaitin/MonkeyCode/backend/pkg/oauth"
 
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db"
@@ -151,15 +154,6 @@ func (u *UserUsecase) Register(ctx context.Context, req *domain.RegisterReq) (*d
 }
 
 func (u *UserUsecase) Login(ctx context.Context, req *domain.LoginReq) (*domain.LoginResp, error) {
-	s, err := u.redis.Get(ctx, fmt.Sprintf("vscode:session:%s", req.SessionID)).Result()
-	if err != nil {
-		return nil, err
-	}
-	session := &domain.VSCodeSession{}
-	if err := json.Unmarshal([]byte(s), session); err != nil {
-		return nil, err
-	}
-
 	user, err := u.repo.GetByName(ctx, req.Username)
 	if err != nil {
 		return nil, errcode.ErrUserNotFound.Wrap(err)
@@ -173,10 +167,26 @@ func (u *UserUsecase) Login(ctx context.Context, req *domain.LoginReq) (*domain.
 		return nil, err
 	}
 
-	r := fmt.Sprintf("%s?state=%s&api_key=%s&expires_in=3600&username=%s", session.RedirectURI, session.State, apiKey.Key, user.Username)
+	r, err := u.getVSCodeURL(ctx, req.SessionID, apiKey.Key, user.Username)
+	if err != nil {
+		return nil, err
+	}
 	return &domain.LoginResp{
 		RedirectURL: r,
 	}, nil
+}
+
+func (u *UserUsecase) getVSCodeURL(ctx context.Context, sessionID, apiKey, username string) (string, error) {
+	s, err := u.redis.Get(ctx, fmt.Sprintf("vscode:session:%s", sessionID)).Result()
+	if err != nil {
+		return "", err
+	}
+	session := &domain.VSCodeSession{}
+	if err := json.Unmarshal([]byte(s), session); err != nil {
+		return "", err
+	}
+	r := fmt.Sprintf("%s?state=%s&api_key=%s&expires_in=3600&username=%s", session.RedirectURI, session.State, apiKey, username)
+	return r, nil
 }
 
 func (u *UserUsecase) AdminLogin(ctx context.Context, req *domain.LoginReq) (*domain.AdminUser, error) {
@@ -249,6 +259,15 @@ func (u *UserUsecase) UpdateSetting(ctx context.Context, req *domain.UpdateSetti
 		if req.DisablePasswordLogin != nil {
 			s.SetDisablePasswordLogin(*req.DisablePasswordLogin)
 		}
+		if req.EnableDingtalkOAuth != nil {
+			s.SetEnableDingtalkOauth(*req.EnableDingtalkOAuth)
+		}
+		if req.DingtalkClientID != nil {
+			s.SetDingtalkClientID(*req.DingtalkClientID)
+		}
+		if req.DingtalkClientSecret != nil {
+			s.SetDingtalkClientSecret(*req.DingtalkClientSecret)
+		}
 	})
 	if err != nil {
 		return nil, err
@@ -282,4 +301,112 @@ func (u *UserUsecase) Delete(ctx context.Context, id string) error {
 
 func (u *UserUsecase) DeleteAdmin(ctx context.Context, id string) error {
 	return u.repo.DeleteAdmin(ctx, id)
+}
+
+func (u *UserUsecase) OAuthSignUpOrIn(ctx context.Context, req *domain.OAuthSignUpOrInReq) (*domain.OAuthURLResp, error) {
+	setting, err := u.repo.GetSetting(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cfg := domain.OAuthConfig{
+		Debug:       u.cfg.Debug,
+		Platform:    req.Platform,
+		RedirectURI: fmt.Sprintf("%s/api/v1/user/oauth/callback", u.cfg.BaseUrl),
+	}
+
+	switch req.Platform {
+	case consts.UserPlatformDingTalk:
+		cfg.ClientID = setting.DingtalkClientID
+		cfg.ClientSecret = setting.DingtalkClientSecret
+	}
+
+	oauth, err := oauth.NewOAuther(cfg)
+	if err != nil {
+		return nil, err
+	}
+	state, url := oauth.GetAuthorizeURL()
+
+	session := &domain.OAuthState{
+		SessionID:   req.SessionID,
+		Kind:        consts.OAuthKindSignUpOrIn,
+		Platform:    req.Platform,
+		RedirectURL: req.RedirectURL,
+	}
+	b, err := json.Marshal(session)
+	if err != nil {
+		return nil, err
+	}
+	if err := u.redis.Set(ctx, fmt.Sprintf("oauth:state:%s", state), b, 15*time.Minute).Err(); err != nil {
+		return nil, err
+	}
+
+	return &domain.OAuthURLResp{
+		URL: url,
+	}, nil
+}
+
+func (u *UserUsecase) OAuthCallback(ctx context.Context, req *domain.OAuthCallbackReq) (string, error) {
+	b, err := u.redis.Get(ctx, fmt.Sprintf("oauth:state:%s", req.State)).Result()
+	if err != nil {
+		return "", err
+	}
+	var session domain.OAuthState
+	if err := json.Unmarshal([]byte(b), &session); err != nil {
+		return "", err
+	}
+
+	switch session.Kind {
+	case consts.OAuthKindSignUpOrIn:
+		return u.OAuthSignUpOrInCallback(ctx, req, &session)
+	default:
+		return "", errcode.ErrOAuthStateInvalid
+	}
+}
+
+func (u *UserUsecase) OAuthSignUpOrInCallback(ctx context.Context, req *domain.OAuthCallbackReq, session *domain.OAuthState) (string, error) {
+	setting, err := u.repo.GetSetting(ctx)
+	if err != nil {
+		return "", err
+	}
+	cfg := domain.OAuthConfig{
+		Debug:    u.cfg.Debug,
+		Platform: session.Platform,
+	}
+	switch session.Platform {
+	case consts.UserPlatformDingTalk:
+		cfg.ClientID = setting.DingtalkClientID
+		cfg.ClientSecret = setting.DingtalkClientSecret
+	}
+
+	oauth, err := oauth.NewOAuther(cfg)
+	if err != nil {
+		return "", err
+	}
+	userInfo, err := oauth.GetUserInfo(req.Code)
+	if err != nil {
+		return "", err
+	}
+
+	user, err := u.repo.SignUpOrIn(ctx, session.Platform, userInfo)
+	if err != nil {
+		return "", err
+	}
+
+	apiKey, err := u.repo.GetOrCreateApiKey(ctx, user.ID.String())
+	if err != nil {
+		return "", err
+	}
+
+	redirect := session.RedirectURL
+
+	if session.SessionID != "" {
+		r, err := u.getVSCodeURL(ctx, session.SessionID, apiKey.Key, user.Username)
+		if err != nil {
+			return "", err
+		}
+		redirect = fmt.Sprintf("%s?redirect_url=%s", redirect, url.QueryEscape(r))
+	}
+
+	u.logger.Debug("oauth callback", "redirect", redirect)
+	return redirect, nil
 }

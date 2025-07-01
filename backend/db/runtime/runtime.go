@@ -19,6 +19,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
+	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/ent/schema"
 )
@@ -169,12 +170,16 @@ func init() {
 	settingDescDisablePasswordLogin := settingFields[3].Descriptor()
 	// setting.DefaultDisablePasswordLogin holds the default value on creation for the disable_password_login field.
 	setting.DefaultDisablePasswordLogin = settingDescDisablePasswordLogin.Default.(bool)
+	// settingDescEnableDingtalkOauth is the schema descriptor for enable_dingtalk_oauth field.
+	settingDescEnableDingtalkOauth := settingFields[4].Descriptor()
+	// setting.DefaultEnableDingtalkOauth holds the default value on creation for the enable_dingtalk_oauth field.
+	setting.DefaultEnableDingtalkOauth = settingDescEnableDingtalkOauth.Default.(bool)
 	// settingDescCreatedAt is the schema descriptor for created_at field.
-	settingDescCreatedAt := settingFields[4].Descriptor()
+	settingDescCreatedAt := settingFields[7].Descriptor()
 	// setting.DefaultCreatedAt holds the default value on creation for the created_at field.
 	setting.DefaultCreatedAt = settingDescCreatedAt.Default.(func() time.Time)
 	// settingDescUpdatedAt is the schema descriptor for updated_at field.
-	settingDescUpdatedAt := settingFields[5].Descriptor()
+	settingDescUpdatedAt := settingFields[8].Descriptor()
 	// setting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	setting.DefaultUpdatedAt = settingDescUpdatedAt.Default.(func() time.Time)
 	// setting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -209,18 +214,32 @@ func init() {
 	taskrecord.UpdateDefaultUpdatedAt = taskrecordDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
+	// userDescPlatform is the schema descriptor for platform field.
+	userDescPlatform := userFields[5].Descriptor()
+	// user.DefaultPlatform holds the default value on creation for the platform field.
+	user.DefaultPlatform = consts.UserPlatform(userDescPlatform.Default.(string))
 	// userDescStatus is the schema descriptor for status field.
-	userDescStatus := userFields[4].Descriptor()
+	userDescStatus := userFields[6].Descriptor()
 	// user.DefaultStatus holds the default value on creation for the status field.
 	user.DefaultStatus = consts.UserStatus(userDescStatus.Default.(string))
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[5].Descriptor()
+	userDescCreatedAt := userFields[7].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[6].Descriptor()
+	userDescUpdatedAt := userFields[8].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	useridentityFields := schema.UserIdentity{}.Fields()
+	_ = useridentityFields
+	// useridentityDescPlatform is the schema descriptor for platform field.
+	useridentityDescPlatform := useridentityFields[2].Descriptor()
+	// useridentity.DefaultPlatform holds the default value on creation for the platform field.
+	useridentity.DefaultPlatform = consts.UserPlatform(useridentityDescPlatform.Default.(string))
+	// useridentityDescCreatedAt is the schema descriptor for created_at field.
+	useridentityDescCreatedAt := useridentityFields[8].Descriptor()
+	// useridentity.DefaultCreatedAt holds the default value on creation for the created_at field.
+	useridentity.DefaultCreatedAt = useridentityDescCreatedAt.Default.(func() time.Time)
 	userloginhistoryFields := schema.UserLoginHistory{}.Fields()
 	_ = userloginhistoryFields
 	// userloginhistoryDescCreatedAt is the schema descriptor for created_at field.

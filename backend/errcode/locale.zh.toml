@@ -12,3 +12,6 @@ other = "邀请码无效"
 
 [err-email-invalid]
 other = "邮箱格式错误"
+
+[err-oauth-state-invalid]
+other = "OAuth 状态无效"

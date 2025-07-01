@@ -44,9 +44,9 @@ func NewUserHandler(
 	// admin
 	admin := w.Group("/api/v1/admin")
 	admin.POST("/login", web.BindHandler(u.AdminLogin))
+	admin.GET("/setting", web.BaseHandler(u.GetSetting))
 
 	admin.Use(auth.Auth())
-	admin.GET("/setting", web.BaseHandler(u.GetSetting))
 	admin.PUT("/setting", web.BindHandler(u.UpdateSetting))
 	admin.POST("/create", web.BindHandler(u.CreateAdmin))
 	admin.GET("/list", web.BaseHandler(u.AdminList, web.WithPage()))
@@ -54,6 +54,8 @@ func NewUserHandler(
 	admin.DELETE("/delete", web.BaseHandler(u.DeleteAdmin))
 
 	g := w.Group("/api/v1/user")
+	g.GET("/oauth/signup-or-in", web.BindHandler(u.OAuthSignUpOrIn))
+	g.GET("/oauth/callback", web.BindHandler(u.OAuthCallback))
 	g.POST("/register", web.BindHandler(u.Register))
 	g.POST("/login", web.BindHandler(u.Login))
 
@@ -367,6 +369,45 @@ func (h *UserHandler) UpdateSetting(c *web.Context, req domain.UpdateSettingReq)
 		return err
 	}
 	return c.Success(resp)
+}
+
+// OAuthSignUpOrIn 用户 OAuth 登录或注册
+//
+//	@Tags			User
+//	@Summary		用户 OAuth 登录或注册
+//	@Description	用户 OAuth 登录或注册
+//	@ID				user-oauth-signup-or-in
+//	@Accept			json
+//	@Produce		json
+//	@Param			req	query		domain.OAuthSignUpOrInReq	true	"param"
+//	@Success		200	{object}	web.Resp{data=domain.OAuthURLResp}
+//	@Router			/api/v1/user/oauth/signup-or-in [get]
+func (h *UserHandler) OAuthSignUpOrIn(ctx *web.Context, req domain.OAuthSignUpOrInReq) error {
+	resp, err := h.usecase.OAuthSignUpOrIn(ctx.Request().Context(), &req)
+	if err != nil {
+		return err
+	}
+	return ctx.Success(resp)
+}
+
+// OAuthCallback 用户 OAuth 回调
+//
+//	@Tags			User
+//	@Summary		用户 OAuth 回调
+//	@Description	用户 OAuth 回调
+//	@ID				user-oauth-callback
+//	@Accept			json
+//	@Produce		json
+//	@Param			req	query		domain.OAuthCallbackReq	true	"param"
+//	@Success		200	{object}	web.Resp{data=string}
+//	@Router			/api/v1/user/oauth/callback [get]
+func (h *UserHandler) OAuthCallback(ctx *web.Context, req domain.OAuthCallbackReq) error {
+	resp, err := h.usecase.OAuthCallback(ctx.Request().Context(), &req)
+	if err != nil {
+		return err
+	}
+	ctx.Redirect(http.StatusFound, resp)
+	return nil
 }
 
 func (h *UserHandler) InitAdmin() error {

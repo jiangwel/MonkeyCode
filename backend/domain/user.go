@@ -27,6 +27,8 @@ type UserUsecase interface {
 	Register(ctx context.Context, req *RegisterReq) (*User, error)
 	GetSetting(ctx context.Context) (*Setting, error)
 	UpdateSetting(ctx context.Context, req *UpdateSettingReq) (*Setting, error)
+	OAuthSignUpOrIn(ctx context.Context, req *OAuthSignUpOrInReq) (*OAuthURLResp, error)
+	OAuthCallback(ctx context.Context, req *OAuthCallbackReq) (string, error)
 }
 
 type UserRepo interface {
@@ -47,6 +49,7 @@ type UserRepo interface {
 	AdminLoginHistory(ctx context.Context, page *web.Pagination) ([]*db.AdminLoginHistory, *db.PageInfo, error)
 	GetSetting(ctx context.Context) (*db.Setting, error)
 	UpdateSetting(ctx context.Context, fn func(*db.SettingUpdateOne)) (*db.Setting, error)
+	SignUpOrIn(ctx context.Context, platform consts.UserPlatform, req *OAuthUserInfo) (*db.User, error)
 }
 
 type UpdateUserReq struct {
@@ -245,15 +248,19 @@ type VSCodeSession struct {
 }
 
 type UpdateSettingReq struct {
-	EnableSSO            *bool `json:"enable_sso"`             // 是否开启SSO
-	ForceTwoFactorAuth   *bool `json:"force_two_factor_auth"`  // 是否强制两步验证
-	DisablePasswordLogin *bool `json:"disable_password_login"` // 是否禁用密码登录
+	EnableSSO            *bool   `json:"enable_sso"`             // 是否开启SSO
+	ForceTwoFactorAuth   *bool   `json:"force_two_factor_auth"`  // 是否强制两步验证
+	DisablePasswordLogin *bool   `json:"disable_password_login"` // 是否禁用密码登录
+	EnableDingtalkOAuth  *bool   `json:"enable_dingtalk_oauth"`  // 是否开启钉钉OAuth
+	DingtalkClientID     *string `json:"dingtalk_client_id"`     // 钉钉客户端ID
+	DingtalkClientSecret *string `json:"dingtalk_client_secret"` // 钉钉客户端密钥
 }
 
 type Setting struct {
 	EnableSSO            bool  `json:"enable_sso"`             // 是否开启SSO
 	ForceTwoFactorAuth   bool  `json:"force_two_factor_auth"`  // 是否强制两步验证
 	DisablePasswordLogin bool  `json:"disable_password_login"` // 是否禁用密码登录
+	EnableDingtalkOAuth  bool  `json:"enable_dingtalk_oauth"`  // 是否开启钉钉OAuth
 	CreatedAt            int64 `json:"created_at"`             // 创建时间
 	UpdatedAt            int64 `json:"updated_at"`             // 更新时间
 }
@@ -266,6 +273,7 @@ func (s *Setting) From(e *db.Setting) *Setting {
 	s.EnableSSO = e.EnableSSO
 	s.ForceTwoFactorAuth = e.ForceTwoFactorAuth
 	s.DisablePasswordLogin = e.DisablePasswordLogin
+	s.EnableDingtalkOAuth = e.EnableDingtalkOauth
 	s.CreatedAt = e.CreatedAt.Unix()
 	s.UpdatedAt = e.UpdatedAt.Unix()
 

@@ -1375,6 +1375,121 @@
                 }
             }
         },
+        "/api/v1/user/oauth/callback": {
+            "get": {
+                "description": "用户 OAuth 回调",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "用户 OAuth 回调",
+                "operationId": "user-oauth-callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/oauth/signup-or-in": {
+            "get": {
+                "description": "用户 OAuth 登录或注册",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "用户 OAuth 登录或注册",
+                "operationId": "user-oauth-signup-or-in",
+                "parameters": [
+                    {
+                        "enum": [
+                            "email",
+                            "dingtalk"
+                        ],
+                        "type": "string",
+                        "x-enum-varnames": [
+                            "UserPlatformEmail",
+                            "UserPlatformDingTalk"
+                        ],
+                        "description": "第三方平台 dingtalk",
+                        "name": "platform",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "登录成功后跳转的 URL",
+                        "name": "redirect_url",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "会话ID",
+                        "name": "session_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.OAuthURLResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/user/register": {
             "post": {
                 "description": "注册用户",
@@ -1651,6 +1766,17 @@
                 "ModelTypeEmbedding",
                 "ModelTypeAudio",
                 "ModelTypeReranker"
+            ]
+        },
+        "consts.UserPlatform": {
+            "type": "string",
+            "enum": [
+                "email",
+                "dingtalk"
+            ],
+            "x-enum-varnames": [
+                "UserPlatformEmail",
+                "UserPlatformDingTalk"
             ]
         },
         "consts.UserStatus": {
@@ -2312,6 +2438,14 @@
                 }
             }
         },
+        "domain.OAuthURLResp": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.ProviderModel": {
             "type": "object",
             "properties": {
@@ -2354,6 +2488,10 @@
                 },
                 "disable_password_login": {
                     "description": "是否禁用密码登录",
+                    "type": "boolean"
+                },
+                "enable_dingtalk_oauth": {
+                    "description": "是否开启钉钉OAuth",
                     "type": "boolean"
                 },
                 "enable_sso": {
@@ -2546,8 +2684,20 @@
         "domain.UpdateSettingReq": {
             "type": "object",
             "properties": {
+                "dingtalk_client_id": {
+                    "description": "钉钉客户端ID",
+                    "type": "string"
+                },
+                "dingtalk_client_secret": {
+                    "description": "钉钉客户端密钥",
+                    "type": "string"
+                },
                 "disable_password_login": {
                     "description": "是否禁用密码登录",
+                    "type": "boolean"
+                },
+                "enable_dingtalk_oauth": {
+                    "description": "是否开启钉钉OAuth",
                     "type": "boolean"
                 },
                 "enable_sso": {

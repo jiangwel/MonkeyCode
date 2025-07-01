@@ -193,6 +193,20 @@ func (u *UserQuery) Page(ctx context.Context, page, size int) ([]*User, *PageInf
 	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
 }
 
+func (ui *UserIdentityQuery) Page(ctx context.Context, page, size int) ([]*UserIdentity, *PageInfo, error) {
+	cnt, err := ui.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := ui.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
 func (ulh *UserLoginHistoryQuery) Page(ctx context.Context, page, size int) ([]*UserLoginHistory, *PageInfo, error) {
 	cnt, err := ulh.Count(ctx)
 	if err != nil {

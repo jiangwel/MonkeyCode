@@ -40,6 +40,8 @@ type Tx struct {
 	TaskRecord *TaskRecordClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserIdentity is the client for interacting with the UserIdentity builders.
+	UserIdentity *UserIdentityClient
 	// UserLoginHistory is the client for interacting with the UserLoginHistory builders.
 	UserLoginHistory *UserLoginHistoryClient
 
@@ -186,6 +188,7 @@ func (tx *Tx) init() {
 	tx.Task = NewTaskClient(tx.config)
 	tx.TaskRecord = NewTaskRecordClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserIdentity = NewUserIdentityClient(tx.config)
 	tx.UserLoginHistory = NewUserLoginHistoryClient(tx.config)
 }
 

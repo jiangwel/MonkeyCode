@@ -25,6 +25,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
+	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 )
 
@@ -99,6 +100,7 @@ func checkColumn(table, column string) error {
 			task.Table:              task.ValidColumn,
 			taskrecord.Table:        taskrecord.ValidColumn,
 			user.Table:              user.ValidColumn,
+			useridentity.Table:      useridentity.ValidColumn,
 			userloginhistory.Table:  userloginhistory.ValidColumn,
 		})
 	})
