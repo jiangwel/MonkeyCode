@@ -2,15 +2,20 @@ name: Frontend CI/CD
 
 on:
   push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
     paths:
       - 'ui/**'
       - '.github/workflows/frontend-ci-cd.yml'
+  pull_request:
     branches:
       - main
-  pull_request:
     paths:
       - 'ui/**'
       - '.github/workflows/frontend-ci-cd.yml'
+
+env:
+  REGISTRY: chaitin-registry.cn-hangzhou.cr.aliyuncs.com/monkeycode
 
 jobs:
   build:
@@ -34,6 +39,16 @@ jobs:
         with:
           version: 8
 
+      - name: Get version
+        id: get_version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=$(git describe --tags --always --dirty)
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+
       - name: Get pnpm store directory
         shell: bash
         run: |
@@ -43,16 +58,23 @@ jobs:
         run: pnpm install
 
       - name: Build frontend
-        run:
+        run: |
           echo "VITE_APP_VERSION=${{ steps.get_version.outputs.VERSION }}" >> .env.production
           pnpm run build
 
       - name: 'Tar files'
         run: tar -cvf dist.tar dist
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: ./ui/dist.tar
+
   package:
     needs: build
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -81,7 +103,7 @@ jobs:
       - name: Login to Aliyun Container Registry
         uses: docker/login-action@v3
         with:
-          registry: chaitin-registry.cn-hangzhou.cr.aliyuncs.com
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.CT_ALIYUN_USER }}
           password: ${{ secrets.CT_ALIYUN_PASS }}
 
@@ -89,9 +111,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./ui
-          file: ./ui/Dockerfile
+          file: ./ui/.Dockerfile
           push: true
           platforms: linux/amd64, linux/arm64
-          tags: chaitin-registry.cn-hangzhou.cr.aliyuncs.com/chaitin/monkey-code-frontend:v${{ needs.build.outputs.version }}
+          tags: |
+            ${{ env.REGISTRY }}/frontend:v${{ needs.build.outputs.version }}
+            ${{ env.REGISTRY }}/frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
