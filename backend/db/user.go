@@ -25,6 +25,10 @@ type User struct {
 	Password string `json:"password,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// AvatarURL holds the value of the "avatar_url" field.
+	AvatarURL string `json:"avatar_url,omitempty"`
+	// Platform holds the value of the "platform" field.
+	Platform consts.UserPlatform `json:"platform,omitempty"`
 	// Status holds the value of the "status" field.
 	Status consts.UserStatus `json:"status,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -45,9 +49,11 @@ type UserEdges struct {
 	Models []*Model `json:"models,omitempty"`
 	// Tasks holds the value of the tasks edge.
 	Tasks []*Task `json:"tasks,omitempty"`
+	// Identities holds the value of the identities edge.
+	Identities []*UserIdentity `json:"identities,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // LoginHistoriesOrErr returns the LoginHistories value or an error if the edge
@@ -77,12 +83,21 @@ func (e UserEdges) TasksOrErr() ([]*Task, error) {
 	return nil, &NotLoadedError{edge: "tasks"}
 }
 
+// IdentitiesOrErr returns the Identities value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) IdentitiesOrErr() ([]*UserIdentity, error) {
+	if e.loadedTypes[3] {
+		return e.Identities, nil
+	}
+	return nil, &NotLoadedError{edge: "identities"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldUsername, user.FieldPassword, user.FieldEmail, user.FieldStatus:
+		case user.FieldUsername, user.FieldPassword, user.FieldEmail, user.FieldAvatarURL, user.FieldPlatform, user.FieldStatus:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -126,6 +141,18 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field email", values[i])
 			} else if value.Valid {
 				u.Email = value.String
+			}
+		case user.FieldAvatarURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field avatar_url", values[i])
+			} else if value.Valid {
+				u.AvatarURL = value.String
+			}
+		case user.FieldPlatform:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field platform", values[i])
+			} else if value.Valid {
+				u.Platform = consts.UserPlatform(value.String)
 			}
 		case user.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -173,6 +200,11 @@ func (u *User) QueryTasks() *TaskQuery {
 	return NewUserClient(u.config).QueryTasks(u)
 }
 
+// QueryIdentities queries the "identities" edge of the User entity.
+func (u *User) QueryIdentities() *UserIdentityQuery {
+	return NewUserClient(u.config).QueryIdentities(u)
+}
+
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -204,6 +236,12 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("email=")
 	builder.WriteString(u.Email)
+	builder.WriteString(", ")
+	builder.WriteString("avatar_url=")
+	builder.WriteString(u.AvatarURL)
+	builder.WriteString(", ")
+	builder.WriteString("platform=")
+	builder.WriteString(fmt.Sprintf("%v", u.Platform))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", u.Status))

@@ -15,4 +15,5 @@ var (
 	ErrPassword          = web.NewBadRequestErr("err-password")
 	ErrInviteCodeInvalid = web.NewBadRequestErr("err-invite-code-invalid")
 	ErrEmailInvalid      = web.NewBadRequestErr("err-email-invalid")
+	ErrOAuthStateInvalid = web.NewBadRequestErr("err-oauth-state-invalid")
 )

@@ -22,6 +22,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
+	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 )
 
@@ -432,6 +433,33 @@ func (f TraverseUser) Traverse(ctx context.Context, q db.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *db.UserQuery", q)
 }
 
+// The UserIdentityFunc type is an adapter to allow the use of ordinary function as a Querier.
+type UserIdentityFunc func(context.Context, *db.UserIdentityQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f UserIdentityFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.UserIdentityQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.UserIdentityQuery", q)
+}
+
+// The TraverseUserIdentity type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseUserIdentity func(context.Context, *db.UserIdentityQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseUserIdentity) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseUserIdentity) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.UserIdentityQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.UserIdentityQuery", q)
+}
+
 // The UserLoginHistoryFunc type is an adapter to allow the use of ordinary function as a Querier.
 type UserLoginHistoryFunc func(context.Context, *db.UserLoginHistoryQuery) (db.Value, error)
 
@@ -488,6 +516,8 @@ func NewQuery(q db.Query) (Query, error) {
 		return &query[*db.TaskRecordQuery, predicate.TaskRecord, taskrecord.OrderOption]{typ: db.TypeTaskRecord, tq: q}, nil
 	case *db.UserQuery:
 		return &query[*db.UserQuery, predicate.User, user.OrderOption]{typ: db.TypeUser, tq: q}, nil
+	case *db.UserIdentityQuery:
+		return &query[*db.UserIdentityQuery, predicate.UserIdentity, useridentity.OrderOption]{typ: db.TypeUserIdentity, tq: q}, nil
 	case *db.UserLoginHistoryQuery:
 		return &query[*db.UserLoginHistoryQuery, predicate.UserLoginHistory, userloginhistory.OrderOption]{typ: db.TypeUserLoginHistory, tq: q}, nil
 	default:

@@ -24,6 +24,12 @@ type Setting struct {
 	ForceTwoFactorAuth bool `json:"force_two_factor_auth,omitempty"`
 	// DisablePasswordLogin holds the value of the "disable_password_login" field.
 	DisablePasswordLogin bool `json:"disable_password_login,omitempty"`
+	// EnableDingtalkOauth holds the value of the "enable_dingtalk_oauth" field.
+	EnableDingtalkOauth bool `json:"enable_dingtalk_oauth,omitempty"`
+	// DingtalkClientID holds the value of the "dingtalk_client_id" field.
+	DingtalkClientID string `json:"dingtalk_client_id,omitempty"`
+	// DingtalkClientSecret holds the value of the "dingtalk_client_secret" field.
+	DingtalkClientSecret string `json:"dingtalk_client_secret,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -36,8 +42,10 @@ func (*Setting) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case setting.FieldEnableSSO, setting.FieldForceTwoFactorAuth, setting.FieldDisablePasswordLogin:
+		case setting.FieldEnableSSO, setting.FieldForceTwoFactorAuth, setting.FieldDisablePasswordLogin, setting.FieldEnableDingtalkOauth:
 			values[i] = new(sql.NullBool)
+		case setting.FieldDingtalkClientID, setting.FieldDingtalkClientSecret:
+			values[i] = new(sql.NullString)
 		case setting.FieldCreatedAt, setting.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case setting.FieldID:
@@ -80,6 +88,24 @@ func (s *Setting) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field disable_password_login", values[i])
 			} else if value.Valid {
 				s.DisablePasswordLogin = value.Bool
+			}
+		case setting.FieldEnableDingtalkOauth:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field enable_dingtalk_oauth", values[i])
+			} else if value.Valid {
+				s.EnableDingtalkOauth = value.Bool
+			}
+		case setting.FieldDingtalkClientID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field dingtalk_client_id", values[i])
+			} else if value.Valid {
+				s.DingtalkClientID = value.String
+			}
+		case setting.FieldDingtalkClientSecret:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field dingtalk_client_secret", values[i])
+			} else if value.Valid {
+				s.DingtalkClientSecret = value.String
 			}
 		case setting.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -137,6 +163,15 @@ func (s *Setting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("disable_password_login=")
 	builder.WriteString(fmt.Sprintf("%v", s.DisablePasswordLogin))
+	builder.WriteString(", ")
+	builder.WriteString("enable_dingtalk_oauth=")
+	builder.WriteString(fmt.Sprintf("%v", s.EnableDingtalkOauth))
+	builder.WriteString(", ")
+	builder.WriteString("dingtalk_client_id=")
+	builder.WriteString(s.DingtalkClientID)
+	builder.WriteString(", ")
+	builder.WriteString("dingtalk_client_secret=")
+	builder.WriteString(s.DingtalkClientSecret)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(s.CreatedAt.Format(time.ANSIC))

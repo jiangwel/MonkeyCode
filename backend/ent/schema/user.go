@@ -30,9 +30,11 @@ func (User) Annotations() []schema.Annotation {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}),
-		field.String("username").Unique(),
-		field.String("password"),
-		field.String("email").Unique(),
+		field.String("username").Optional(),
+		field.String("password").Optional(),
+		field.String("email").Optional(),
+		field.String("avatar_url").Optional(),
+		field.String("platform").GoType(consts.UserPlatform("")).Default(string(consts.UserPlatformEmail)),
 		field.String("status").GoType(consts.UserStatus("")).Default(string(consts.UserStatusActive)),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now),
@@ -45,5 +47,6 @@ func (User) Edges() []ent.Edge {
 		edge.To("login_histories", UserLoginHistory.Type),
 		edge.To("models", Model.Type),
 		edge.To("tasks", Task.Type),
+		edge.To("identities", UserIdentity.Type),
 	}
 }
