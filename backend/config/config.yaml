@@ -1,5 +1,9 @@
-debug: true
+{{- if eq .ENABLE_PUBLIC_ACCESS "true" -}}
 base_url: http://{{.LOCAL_IP}}:{{.NGINX_PORT}}
+{{- else -}}
+base_url: http://{{.REMOTE_IP}}:{{.NGINX_PORT}}
+{{- end -}}
+
 logger:
   level: info
 server:

@@ -24,7 +24,7 @@ MonkeyCode 是一个开源的 AI 编程助手，旨在通过智能代码补全�
 使用 root 权限登录你的服务器，然后执行以下命令。
 
 ```bash
-bash -c "$(curl -fsSLk https://release.baizhi.cloud/monkeycode/install.sh)"
+bash -c "$(curl -fsSLk https://release.baizhi.cloud/monkeycode/manager.sh)"
 ```
 
 根据命令提示的选项进行安装，命令执行过程将会持续几分钟，请耐心等待。
