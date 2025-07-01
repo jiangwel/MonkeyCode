@@ -19,6 +19,28 @@ MonkeyCode 是一个开源的 AI 编程助手，旨在通过智能代码补全�
 
 ### 安装 MonkeyCode
 
+你需要一台支持 Docker 20.x 以上版本的 Linux 系统来安装 MonkeyCode。
+
+使用 root 权限登录你的服务器，然后执行以下命令。
+
+```bash
+bash -c "$(curl -fsSLk https://release.baizhi.cloud/monkeycode/install.sh)"
+```
+
+根据命令提示的选项进行安装，命令执行过程将会持续几分钟，请耐心等待。
+
+### 登录 MonkeyCode
+
+安装成功后会输出如下的访问信息。通过输出的用户名和密码登录访问地址。
+
+```
+SUCCESS  控制台信息:
+SUCCESS    访问地址(内网): http://*.*.*.*:<port>
+SUCCESS    访问地址(外网): http://*.*.*.*:<port>
+SUCCESS    用户名: admin
+SUCCESS    密码: **********************
+```
+
 ### 配置与初始化
 
 ### 邀请成员
