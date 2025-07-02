@@ -131,6 +131,7 @@ export interface DomainCompletionInfo {
   content?: string;
   created_at?: number;
   id?: string;
+  prompt?: string;
 }
 
 export interface DomainCompletionRecord {
@@ -330,11 +331,13 @@ export interface DomainProviderModel {
 
 export interface DomainRegisterReq {
   /** 邀请码 */
-  code?: string;
+  code: string;
   /** 邮箱 */
-  email?: string;
+  email: string;
   /** 密码 */
-  password?: string;
+  password: string;
+  /** 用户名 */
+  username: string;
 }
 
 export interface DomainSetting {
@@ -585,6 +588,12 @@ export interface GetChatInfoParams {
 }
 
 export interface GetListChatRecordParams {
+  /** 作者 */
+  author?: string;
+  /** 是否接受筛选 */
+  is_accept?: boolean;
+  /** 语言 */
+  language?: string;
   /** 下一页标识 */
   next_token?: string;
   /** 分页 */
@@ -599,6 +608,12 @@ export interface GetCompletionInfoParams {
 }
 
 export interface GetListCompletionRecordParams {
+  /** 作者 */
+  author?: string;
+  /** 是否接受筛选 */
+  is_accept?: boolean;
+  /** 语言 */
+  language?: string;
   /** 下一页标识 */
   next_token?: string;
   /** 分页 */

@@ -50,7 +50,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
   background: 'rgba(255, 255, 255, 0.85)',
   backdropFilter: 'blur(10px)',
-  width: 600,
+  width: 500,
   borderRadius: theme.spacing(2),
   boxShadow:
     '0px 0px 4px 0px rgba(54,59,76,0.1), 0px 20px 40px 0px rgba(54,59,76,0.1)',
@@ -67,6 +67,27 @@ const StepCard = styled(Box)(({ theme }) => ({
   borderRadius: theme.spacing(2),
 }));
 
+const IconWrapper = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: theme.palette.text.primary,
+  marginRight: theme.spacing(2),
+  fontSize: 16,
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '.MuiInputBase-root': {
+    backgroundColor: '#fff',
+    paddingLeft: '20px',
+  },
+  '.MuiInputBase-input': {
+    paddingTop: '16px',
+    paddingBottom: '16px',
+    fontSize: 14,
+  },
+}));
+
 const Invite = () => {
   const { id, step } = useParams();
   const [showPassword, setShowPassword] = useState(false);
@@ -79,6 +100,7 @@ const Invite = () => {
     defaultValues: {
       email: '',
       password: '',
+      username: '',
     },
   });
 
@@ -92,7 +114,7 @@ const Invite = () => {
   };
 
   const onRegister = handleSubmit((data) => {
-    register({ ...data, code: id }).then(() => {
+    register({ ...data, code: id! }).then(() => {
       onNext();
     });
   });
@@ -129,6 +151,35 @@ const Invite = () => {
             <Grid container spacing={3}>
               <Grid size={12}>
                 <Controller
+                  name='username'
+                  control={control}
+                  rules={{
+                    required: '请输入用户名',
+                  }}
+                  render={({ field }) => (
+                    <StyledTextField
+                      {...field}
+                      fullWidth
+                      placeholder='请输入您的用户名'
+                      variant='outlined'
+                      error={!!errors.username}
+                      helperText={errors.username?.message}
+                      disabled={loading}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <IconWrapper>
+                              <Icon type='icon-zhanghao' />
+                            </IconWrapper>
+                          ),
+                        },
+                      }}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={12}>
+                <Controller
                   name='email'
                   control={control}
                   rules={{
@@ -139,7 +190,7 @@ const Invite = () => {
                     },
                   }}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       fullWidth
                       placeholder='请输入您的邮箱地址'
@@ -150,14 +201,9 @@ const Invite = () => {
                       slotProps={{
                         input: {
                           startAdornment: (
-                            <Icon
-                              type='icon-youxiang'
-                              sx={{
-                                color: 'text.primary',
-                                mr: 1,
-                                fontSize: 18,
-                              }}
-                            />
+                            <IconWrapper>
+                              <Icon type='icon-youxiang' />
+                            </IconWrapper>
                           ),
                         },
                       }}
@@ -178,7 +224,7 @@ const Invite = () => {
                     },
                   }}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       fullWidth
                       placeholder='请设置您的密码'
@@ -190,14 +236,9 @@ const Invite = () => {
                       slotProps={{
                         input: {
                           startAdornment: (
-                            <Icon
-                              type='icon-mima'
-                              sx={{
-                                color: 'text.primary',
-                                mr: 1,
-                                fontSize: 18,
-                              }}
-                            />
+                            <IconWrapper>
+                              <Icon type='icon-mima' />
+                            </IconWrapper>
                           ),
                           endAdornment: (
                             <InputAdornment position='end'>
@@ -349,7 +390,7 @@ const Invite = () => {
         </LogoContainer>
 
         <Stepper
-          activeStep={activeStep}
+          activeStep={activeStep - 1}
           alternativeLabel
           sx={{
             mb: 4,
