@@ -40,6 +40,10 @@ func main() {
 		panic(err)
 	}
 
+	if err := s.modelV1.InitModel(); err != nil {
+		panic(err)
+	}
+
 	svc := service.NewService(service.WithPprof())
 	svc.Add(s)
 	if err := svc.Run(); err != nil {

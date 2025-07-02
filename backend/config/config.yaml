@@ -28,3 +28,7 @@ llm_proxy:
   request_log_path: /app/request/logs
 vscode:
   vsix_file: /app/static/monkeycode.vsix
+init_model:
+  model_name: ""
+  model_key: ""
+  model_url: ""

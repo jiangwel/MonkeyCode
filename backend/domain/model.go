@@ -16,6 +16,7 @@ type ModelUsecase interface {
 	Update(ctx context.Context, req *UpdateModelReq) (*Model, error)
 	Check(ctx context.Context, req *CheckModelReq) (*Model, error)
 	GetTokenUsage(ctx context.Context, modelType consts.ModelType) (*ModelTokenUsageResp, error)
+	InitModel(ctx context.Context) error
 }
 
 type ModelRepo interface {
@@ -25,6 +26,7 @@ type ModelRepo interface {
 	MyModelList(ctx context.Context, req *MyModelListReq) ([]*db.Model, error)
 	ModelUsage(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]ModelUsage, error)
 	GetTokenUsage(ctx context.Context, modelType consts.ModelType) (*ModelTokenUsageResp, error)
+	InitModel(ctx context.Context, modelName, modelKey, modelURL string) error
 }
 
 type MyModelListReq struct {

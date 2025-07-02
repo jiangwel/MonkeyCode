@@ -60,6 +60,12 @@ type Config struct {
 	VSCode struct {
 		VSIXFile string `mapstructure:"vsix_file"`
 	} `mapstructure:"vscode"`
+
+	InitModel struct {
+		ModelName string `mapstructure:"model_name"`
+		ModelKey  string `mapstructure:"model_key"`
+		ModelURL  string `mapstructure:"model_url"`
+	} `mapstructure:"init_model"`
 }
 
 func Init(dir string) (*Config, error) {
