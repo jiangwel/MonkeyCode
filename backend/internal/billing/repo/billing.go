@@ -40,7 +40,12 @@ func (b *BillingRepo) ChatInfo(ctx context.Context, id string) (*domain.ChatInfo
 
 // CompletionInfo implements domain.BillingRepo.
 func (b *BillingRepo) CompletionInfo(ctx context.Context, id string) (*domain.CompletionInfo, error) {
-	record, err := b.db.Task.Query().Where(task.TaskID(id)).First(ctx)
+	record, err := b.db.Task.Query().
+		WithTaskRecords(func(trq *db.TaskRecordQuery) {
+			trq.Order(taskrecord.ByCreatedAt(sql.OrderAsc()))
+		}).
+		Where(task.TaskID(id)).
+		First(ctx)
 	if err != nil {
 		return nil, err
 	}

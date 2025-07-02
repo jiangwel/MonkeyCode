@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	entsql "entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
@@ -36,11 +36,11 @@ func (r *ModelRepo) Create(ctx context.Context, m *domain.CreateModelReq) (*db.M
 		SetAPIBase(m.APIBase).
 		SetAPIKey(m.APIKey).
 		SetModelType(m.ModelType).
-		SetStatus(consts.ModelStatusActive).
+		SetStatus(consts.ModelStatusInactive).
 		Save(ctx)
 }
 
-func (r *ModelRepo) Update(ctx context.Context, id string, fn func(up *db.ModelUpdateOne)) (*db.Model, error) {
+func (r *ModelRepo) Update(ctx context.Context, id string, fn func(tx *db.Tx, old *db.Model, up *db.ModelUpdateOne) error) (*db.Model, error) {
 	modelID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,9 @@ func (r *ModelRepo) Update(ctx context.Context, id string, fn func(up *db.ModelU
 		}
 
 		up := tx.Model.UpdateOneID(old.ID)
-		fn(up)
+		if err := fn(tx, old, up); err != nil {
+			return err
+		}
 		if n, err := up.Save(ctx); err != nil {
 			return err
 		} else {
@@ -69,7 +71,10 @@ func (r *ModelRepo) MyModelList(ctx context.Context, req *domain.MyModelListReq)
 	if err != nil {
 		return nil, err
 	}
-	q := r.db.Model.Query().Where(model.UserID(userID)).Where(model.ModelType(req.ModelType))
+	q := r.db.Model.Query().
+		Where(model.UserID(userID)).
+		Where(model.ModelType(req.ModelType)).
+		Order(model.ByCreatedAt(sql.OrderAsc()))
 	return q.All(ctx)
 }
 
@@ -77,11 +82,11 @@ func (r *ModelRepo) ModelUsage(ctx context.Context, ids []uuid.UUID) (map[uuid.U
 	var usages []domain.ModelUsage
 	err := r.db.Task.Query().
 		Where(task.ModelIDIn(ids...)).
-		Modify(func(s *entsql.Selector) {
+		Modify(func(s *sql.Selector) {
 			s.Select(
-				entsql.As(task.FieldModelID, "model_id"),
-				entsql.As(entsql.Sum(task.FieldInputTokens), "input"),
-				entsql.As(entsql.Sum(task.FieldOutputTokens), "output"),
+				sql.As(task.FieldModelID, "model_id"),
+				sql.As(sql.Sum(task.FieldInputTokens), "input"),
+				sql.As(sql.Sum(task.FieldOutputTokens), "output"),
 			).
 				GroupBy("model_id").
 				OrderBy("model_id")
@@ -114,11 +119,11 @@ func (r *ModelRepo) GetTokenUsage(ctx context.Context, modelType consts.ModelTyp
 			task.ModelType(modelType),
 			task.CreatedAtGTE(time.Now().AddDate(0, 0, -90)),
 		).
-		Modify(func(s *entsql.Selector) {
+		Modify(func(s *sql.Selector) {
 			s.Select(
-				entsql.As("date_trunc('day', created_at)", "date"),
-				entsql.As(entsql.Sum(task.FieldInputTokens), "input_tokens"),
-				entsql.As(entsql.Sum(task.FieldOutputTokens), "output_tokens"),
+				sql.As("date_trunc('day', created_at)", "date"),
+				sql.As(sql.Sum(task.FieldInputTokens), "input_tokens"),
+				sql.As(sql.Sum(task.FieldOutputTokens), "output_tokens"),
 			).
 				GroupBy("date").
 				OrderBy("date")

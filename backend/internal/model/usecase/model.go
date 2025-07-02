@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
@@ -66,7 +67,7 @@ func (m *ModelUsecase) GetTokenUsage(ctx context.Context, modelType consts.Model
 
 // Update implements domain.ModelUsecase.
 func (m *ModelUsecase) Update(ctx context.Context, req *domain.UpdateModelReq) (*domain.Model, error) {
-	model, err := m.repo.Update(ctx, req.ID, func(up *db.ModelUpdateOne) {
+	model, err := m.repo.Update(ctx, req.ID, func(tx *db.Tx, old *db.Model, up *db.ModelUpdateOne) error {
 		if req.ModelName != nil {
 			up.SetModelName(*req.ModelName)
 		}
@@ -80,8 +81,17 @@ func (m *ModelUsecase) Update(ctx context.Context, req *domain.UpdateModelReq) (
 			up.SetAPIKey(*req.APIKey)
 		}
 		if req.Status != nil {
+			if *req.Status == consts.ModelStatusActive {
+				if err := tx.Model.Update().
+					Where(model.ModelType(old.ModelType)).
+					SetStatus(consts.ModelStatusInactive).
+					Exec(ctx); err != nil {
+					return err
+				}
+			}
 			up.SetStatus(*req.Status)
 		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
