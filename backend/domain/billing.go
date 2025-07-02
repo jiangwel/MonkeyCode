@@ -87,6 +87,7 @@ func (c *CompletionRecord) From(e *db.Task) *CompletionRecord {
 
 type CompletionInfo struct {
 	ID        string `json:"id"`
+	Prompt    string `json:"prompt"`
 	Content   string `json:"content"`
 	CreatedAt int64  `json:"created_at"`
 }
@@ -96,6 +97,7 @@ func (c *CompletionInfo) From(e *db.Task) *CompletionInfo {
 		return c
 	}
 	c.ID = e.TaskID
+	c.Prompt = e.Prompt
 	c.Content = e.Completion
 	c.CreatedAt = e.CreatedAt.Unix()
 	return c

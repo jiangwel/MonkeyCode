@@ -74,6 +74,7 @@ func (r *UserRepo) CreateUser(ctx context.Context, user *db.User) (*db.User, err
 		SetEmail(user.Email).
 		SetPassword(user.Password).
 		SetStatus(user.Status).
+		SetPlatform(user.Platform).
 		Save(ctx)
 }
 
