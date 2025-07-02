@@ -23,8 +23,8 @@ func NewBillingHandler(
 	g := w.Group("/api/v1/billing")
 	g.Use(auth.Auth())
 
-	g.GET("/chat/record", web.BaseHandler(b.ListChatRecord, web.WithPage()))
-	g.GET("/completion/record", web.BaseHandler(b.ListCompletionRecord, web.WithPage()))
+	g.GET("/chat/record", web.BindHandler(b.ListChatRecord, web.WithPage()))
+	g.GET("/completion/record", web.BindHandler(b.ListCompletionRecord, web.WithPage()))
 	g.GET("/completion/info", web.BaseHandler(b.CompletionInfo))
 	g.GET("/chat/info", web.BaseHandler(b.ChatInfo))
 
@@ -39,11 +39,12 @@ func NewBillingHandler(
 //	@ID				list-chat-record
 //	@Accept			json
 //	@Produce		json
-//	@Param			page	query		web.Pagination	true	"分页"
+//	@Param			page	query		domain.ListRecordReq	true	"参数"
 //	@Success		200		{object}	web.Resp{data=domain.ListChatRecordResp}
 //	@Router			/api/v1/billing/chat/record [get]
-func (h *BillingHandler) ListChatRecord(c *web.Context) error {
-	records, err := h.usecase.ListChatRecord(c.Request().Context(), c.Page())
+func (h *BillingHandler) ListChatRecord(c *web.Context, req domain.ListRecordReq) error {
+	req.Pagination = c.Page()
+	records, err := h.usecase.ListChatRecord(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}
@@ -58,11 +59,12 @@ func (h *BillingHandler) ListChatRecord(c *web.Context) error {
 //	@ID				list-completion-record
 //	@Accept			json
 //	@Produce		json
-//	@Param			page	query		web.Pagination	true	"分页"
+//	@Param			page	query		domain.ListRecordReq	true	"参数"
 //	@Success		200		{object}	web.Resp{data=domain.ListCompletionRecordResp}
 //	@Router			/api/v1/billing/completion/record [get]
-func (h *BillingHandler) ListCompletionRecord(c *web.Context) error {
-	records, err := h.usecase.ListCompletionRecord(c.Request().Context(), c.Page())
+func (h *BillingHandler) ListCompletionRecord(c *web.Context, req domain.ListRecordReq) error {
+	req.Pagination = c.Page()
+	records, err := h.usecase.ListCompletionRecord(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}

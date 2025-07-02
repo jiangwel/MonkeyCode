@@ -401,6 +401,24 @@
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "作者",
+                        "name": "author",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否接受筛选",
+                        "name": "is_accept",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "语言",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "下一页标识",
                         "name": "next_token",
                         "in": "query"
@@ -500,6 +518,24 @@
                 "summary": "获取补全记录",
                 "operationId": "list-completion-record",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "作者",
+                        "name": "author",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否接受筛选",
+                        "name": "is_accept",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "语言",
+                        "name": "language",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "description": "下一页标识",

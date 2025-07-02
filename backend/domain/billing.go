@@ -10,17 +10,24 @@ import (
 )
 
 type BillingUsecase interface {
-	ListChatRecord(ctx context.Context, page *web.Pagination) (*ListChatRecordResp, error)
-	ListCompletionRecord(ctx context.Context, page *web.Pagination) (*ListCompletionRecordResp, error)
+	ListChatRecord(ctx context.Context, req ListRecordReq) (*ListChatRecordResp, error)
+	ListCompletionRecord(ctx context.Context, req ListRecordReq) (*ListCompletionRecordResp, error)
 	CompletionInfo(ctx context.Context, id string) (*CompletionInfo, error)
 	ChatInfo(ctx context.Context, id string) (*ChatInfo, error)
 }
 
 type BillingRepo interface {
-	ListChatRecord(ctx context.Context, page *web.Pagination) (*ListChatRecordResp, error)
-	ListCompletionRecord(ctx context.Context, page *web.Pagination) (*ListCompletionRecordResp, error)
+	ListChatRecord(ctx context.Context, req ListRecordReq) (*ListChatRecordResp, error)
+	ListCompletionRecord(ctx context.Context, req ListRecordReq) (*ListCompletionRecordResp, error)
 	CompletionInfo(ctx context.Context, id string) (*CompletionInfo, error)
 	ChatInfo(ctx context.Context, id string) (*ChatInfo, error)
+}
+
+type ListRecordReq struct {
+	*web.Pagination
+	Author   string `json:"author" query:"author"`       // 作者
+	Language string `json:"language" query:"language"`   // 语言
+	IsAccept *bool  `json:"is_accept" query:"is_accept"` // 是否接受筛选
 }
 
 type ListChatRecordResp struct {
