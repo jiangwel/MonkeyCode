@@ -2464,6 +2464,12 @@
         },
         "domain.RegisterReq": {
             "type": "object",
+            "required": [
+                "code",
+                "email",
+                "password",
+                "username"
+            ],
             "properties": {
                 "code": {
                     "description": "邀请码",
@@ -2475,6 +2481,10 @@
                 },
                 "password": {
                     "description": "密码",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "用户名",
                     "type": "string"
                 }
             }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -136,14 +135,12 @@ func (u *UserUsecase) Register(ctx context.Context, req *domain.RegisterReq) (*d
 	if err != nil {
 		return nil, err
 	}
-	parts := strings.Split(req.Email, "@")
-	if len(parts) != 2 {
-		return nil, errcode.ErrEmailInvalid
-	}
 	user := &db.User{
-		Username: parts[0],
+		Username: req.Username,
 		Email:    req.Email,
 		Password: string(hash),
+		Status:   consts.UserStatusActive,
+		Platform: consts.UserPlatformEmail,
 	}
 	n, err := u.repo.CreateUser(ctx, user)
 	if err != nil {

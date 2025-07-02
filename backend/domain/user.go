@@ -95,9 +95,10 @@ type ListReq struct {
 }
 
 type RegisterReq struct {
-	Email    string `json:"email"`    // 邮箱
-	Password string `json:"password"` // 密码
-	Code     string `json:"code"`     // 邀请码
+	Username string `json:"username" validate:"required"` // 用户名
+	Email    string `json:"email" validate:"required"`    // 邮箱
+	Password string `json:"password" validate:"required"` // 密码
+	Code     string `json:"code" validate:"required"`     // 邀请码
 }
 
 type ListLoginHistoryResp struct {
