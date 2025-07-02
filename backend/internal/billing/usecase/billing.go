@@ -3,8 +3,6 @@ package usecase
 import (
 	"context"
 
-	"github.com/GoYoko/web"
-
 	"github.com/chaitin/MonkeyCode/backend/domain"
 )
 
@@ -17,13 +15,13 @@ func NewBillingUsecase(repo domain.BillingRepo) domain.BillingUsecase {
 }
 
 // ListChatRecord implements domain.BillingUsecase.
-func (b *BillingUsecase) ListChatRecord(ctx context.Context, page *web.Pagination) (*domain.ListChatRecordResp, error) {
-	return b.repo.ListChatRecord(ctx, page)
+func (b *BillingUsecase) ListChatRecord(ctx context.Context, req domain.ListRecordReq) (*domain.ListChatRecordResp, error) {
+	return b.repo.ListChatRecord(ctx, req)
 }
 
 // ListCompletionRecord implements domain.BillingUsecase.
-func (b *BillingUsecase) ListCompletionRecord(ctx context.Context, page *web.Pagination) (*domain.ListCompletionRecordResp, error) {
-	return b.repo.ListCompletionRecord(ctx, page)
+func (b *BillingUsecase) ListCompletionRecord(ctx context.Context, req domain.ListRecordReq) (*domain.ListCompletionRecordResp, error) {
+	return b.repo.ListCompletionRecord(ctx, req)
 }
 
 // CompletionInfo implements domain.BillingUsecase.

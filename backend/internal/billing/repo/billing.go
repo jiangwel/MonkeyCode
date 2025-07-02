@@ -5,12 +5,11 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/GoYoko/web"
-
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
+	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 )
@@ -54,7 +53,7 @@ func (b *BillingRepo) CompletionInfo(ctx context.Context, id string) (*domain.Co
 }
 
 // ListChatRecord implements domain.BillingRepo.
-func (b *BillingRepo) ListChatRecord(ctx context.Context, page *web.Pagination) (*domain.ListChatRecordResp, error) {
+func (b *BillingRepo) ListChatRecord(ctx context.Context, req domain.ListRecordReq) (*domain.ListChatRecordResp, error) {
 	q := b.db.Task.Query().
 		WithUser().
 		WithModel().
@@ -62,7 +61,9 @@ func (b *BillingRepo) ListChatRecord(ctx context.Context, page *web.Pagination) 
 		Where(task.ModelType(consts.ModelTypeLLM)).
 		Order(task.ByCreatedAt(sql.OrderDesc()))
 
-	records, p, err := q.Page(ctx, page.Page, page.Size)
+	filterTask(q, req)
+
+	records, p, err := q.Page(ctx, req.Page, req.Size)
 	if err != nil {
 		return nil, err
 	}
@@ -75,14 +76,37 @@ func (b *BillingRepo) ListChatRecord(ctx context.Context, page *web.Pagination) 
 	}, nil
 }
 
+func filterTask(q *db.TaskQuery, req domain.ListRecordReq) {
+	if req.IsAccept != nil {
+		q.Where(task.IsAccept(*req.IsAccept))
+	}
+
+	if req.Author != "" {
+		q.Where(task.HasUserWith(func(s *sql.Selector) {
+			s.Where(sql.Like(s.C(user.FieldUsername), "%"+req.Author+"%"))
+		}))
+	}
+
+	if req.Language != "" {
+		q.Where(func(s *sql.Selector) {
+			s.Where(
+				sql.Like(s.C(task.FieldProgramLanguage), "%"+req.Language+"%"),
+			)
+		})
+	}
+}
+
 // ListCompletionRecord implements domain.BillingRepo.
-func (b *BillingRepo) ListCompletionRecord(ctx context.Context, page *web.Pagination) (*domain.ListCompletionRecordResp, error) {
+func (b *BillingRepo) ListCompletionRecord(ctx context.Context, req domain.ListRecordReq) (*domain.ListCompletionRecordResp, error) {
 	q := b.db.Task.Query().
 		WithUser().
 		WithModel().
 		Where(task.ModelType(consts.ModelTypeCoder)).
 		Order(task.ByCreatedAt(sql.OrderDesc()))
-	records, p, err := q.Page(ctx, page.Page, page.Size)
+
+	filterTask(q, req)
+
+	records, p, err := q.Page(ctx, req.Page, req.Size)
 	if err != nil {
 		return nil, err
 	}
