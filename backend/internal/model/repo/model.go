@@ -9,6 +9,7 @@ import (
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
+	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/domain"
@@ -176,4 +177,32 @@ func (r *ModelRepo) List(ctx context.Context) (*domain.AllModelResp, error) {
 		}),
 	}
 	return resp, nil
+}
+
+func (r *ModelRepo) InitModel(ctx context.Context, modelName, modelKey, modelURL string) error {
+	n, err := r.db.Model.Query().
+		Where(model.ModelName(modelName)).
+		Where(model.Provider("百智云")).
+		Count(ctx)
+	if err != nil {
+		return err
+	}
+	if n > 0 {
+		return nil
+	}
+
+	a, err := r.db.Admin.Query().Where(admin.Username("admin")).Only(ctx)
+	if err != nil {
+		return err
+	}
+
+	return r.db.Model.Create().
+		SetAPIKey(modelKey).
+		SetModelName(modelName).
+		SetModelType(consts.ModelTypeCoder).
+		SetAPIBase(modelURL).
+		SetProvider("百智云").
+		SetStatus(consts.ModelStatusActive).
+		SetUserID(a.ID).
+		Exec(ctx)
 }

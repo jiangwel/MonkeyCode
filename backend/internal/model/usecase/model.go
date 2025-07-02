@@ -2,9 +2,11 @@ package usecase
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 
+	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 
@@ -14,11 +16,17 @@ import (
 )
 
 type ModelUsecase struct {
-	repo domain.ModelRepo
+	logger *slog.Logger
+	repo   domain.ModelRepo
+	cfg    *config.Config
 }
 
-func NewModelUsecase(repo domain.ModelRepo) domain.ModelUsecase {
-	return &ModelUsecase{repo: repo}
+func NewModelUsecase(
+	logger *slog.Logger,
+	repo domain.ModelRepo,
+	cfg *config.Config,
+) domain.ModelUsecase {
+	return &ModelUsecase{repo: repo, cfg: cfg, logger: logger}
 }
 
 func (m *ModelUsecase) Check(ctx context.Context, req *domain.CheckModelReq) (*domain.Model, error) {
@@ -97,4 +105,9 @@ func (m *ModelUsecase) Update(ctx context.Context, req *domain.UpdateModelReq) (
 		return nil, err
 	}
 	return cvt.From(model, &domain.Model{}), nil
+}
+
+func (m *ModelUsecase) InitModel(ctx context.Context) error {
+	m.logger.With("init_model", m.cfg.InitModel).Debug("init model")
+	return m.repo.InitModel(ctx, m.cfg.InitModel.ModelName, m.cfg.InitModel.ModelKey, m.cfg.InitModel.ModelURL)
 }

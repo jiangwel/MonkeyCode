@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/GoYoko/web"
@@ -150,4 +151,8 @@ func (h *ModelHandler) GetTokenUsage(c *web.Context, req domain.GetTokenUsageReq
 		return err
 	}
 	return c.Success(resp)
+}
+
+func (h *ModelHandler) InitModel() error {
+	return h.usecase.InitModel(context.Background())
 }
