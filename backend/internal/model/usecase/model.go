@@ -47,50 +47,7 @@ func (m *ModelUsecase) MyModelList(ctx context.Context, req *domain.MyModelListR
 }
 
 func (m *ModelUsecase) List(ctx context.Context) (*domain.AllModelResp, error) {
-	return &domain.AllModelResp{
-		Providers: []domain.ProviderModel{
-			{
-				Provider: "百智云",
-				Models: []domain.ModelBasic{
-					{
-						Provider: "百智云",
-						Name:     "deepseek-v3",
-						APIBase:  "https://model-square.app.baizhi.cloud/v1",
-					},
-					{
-						Provider: "百智云",
-						Name:     "deepseek-r1",
-						APIBase:  "https://model-square.app.baizhi.cloud/v1",
-					},
-					{
-						Provider: "百智云",
-						Name:     "qwen2.5-coder-1.5b-instruct",
-						APIBase:  "https://model-square.app.baizhi.cloud/v1",
-					},
-					{
-						Provider: "百智云",
-						Name:     "qwen2.5-coder-7b-instruct",
-						APIBase:  "https://model-square.app.baizhi.cloud/v1",
-					},
-				},
-			},
-			{
-				Provider: "DeepSeek",
-				Models: []domain.ModelBasic{
-					{
-						Provider: "DeepSeek",
-						Name:     "deepseek-chat",
-						APIBase:  "https://api.deepseek.com",
-					},
-					{
-						Provider: "DeepSeek",
-						Name:     "deepseek-reasoner",
-						APIBase:  "https://api.deepseek.com",
-					},
-				},
-			},
-		},
-	}, nil
+	return m.repo.List(ctx)
 }
 
 // Create implements domain.ModelUsecase.

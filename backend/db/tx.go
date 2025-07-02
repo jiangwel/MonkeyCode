@@ -32,6 +32,10 @@ type Tx struct {
 	InviteCode *InviteCodeClient
 	// Model is the client for interacting with the Model builders.
 	Model *ModelClient
+	// ModelProvider is the client for interacting with the ModelProvider builders.
+	ModelProvider *ModelProviderClient
+	// ModelProviderModel is the client for interacting with the ModelProviderModel builders.
+	ModelProviderModel *ModelProviderModelClient
 	// Setting is the client for interacting with the Setting builders.
 	Setting *SettingClient
 	// Task is the client for interacting with the Task builders.
@@ -184,6 +188,8 @@ func (tx *Tx) init() {
 	tx.BillingUsage = NewBillingUsageClient(tx.config)
 	tx.InviteCode = NewInviteCodeClient(tx.config)
 	tx.Model = NewModelClient(tx.config)
+	tx.ModelProvider = NewModelProviderClient(tx.config)
+	tx.ModelProviderModel = NewModelProviderModelClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
 	tx.Task = NewTaskClient(tx.config)
 	tx.TaskRecord = NewTaskRecordClient(tx.config)

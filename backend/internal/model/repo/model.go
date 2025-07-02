@@ -149,3 +149,26 @@ func (r *ModelRepo) GetTokenUsage(ctx context.Context, modelType consts.ModelTyp
 
 	return resp, nil
 }
+
+func (r *ModelRepo) List(ctx context.Context) (*domain.AllModelResp, error) {
+	providers, err := r.db.ModelProvider.Query().WithModels().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &domain.AllModelResp{
+		Providers: cvt.Iter(providers, func(_ int, p *db.ModelProvider) domain.ProviderModel {
+			return domain.ProviderModel{
+				Provider: p.Name,
+				Models: cvt.Iter(p.Edges.Models, func(_ int, m *db.ModelProviderModel) domain.ModelBasic {
+					return domain.ModelBasic{
+						Name:     m.Name,
+						Provider: p.Name,
+						APIBase:  p.APIBase,
+					}
+				}),
+			}
+		}),
+	}
+	return resp, nil
+}

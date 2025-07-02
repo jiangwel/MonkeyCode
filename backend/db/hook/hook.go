@@ -117,6 +117,30 @@ func (f ModelFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ModelMutation", m)
 }
 
+// The ModelProviderFunc type is an adapter to allow the use of ordinary
+// function as ModelProvider mutator.
+type ModelProviderFunc func(context.Context, *db.ModelProviderMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ModelProviderFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ModelProviderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ModelProviderMutation", m)
+}
+
+// The ModelProviderModelFunc type is an adapter to allow the use of ordinary
+// function as ModelProviderModel mutator.
+type ModelProviderModelFunc func(context.Context, *db.ModelProviderModelMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ModelProviderModelFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ModelProviderModelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ModelProviderModelMutation", m)
+}
+
 // The SettingFunc type is an adapter to allow the use of ordinary
 // function as Setting mutator.
 type SettingFunc func(context.Context, *db.SettingMutation) (db.Value, error)

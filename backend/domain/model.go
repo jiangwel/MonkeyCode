@@ -19,6 +19,7 @@ type ModelUsecase interface {
 }
 
 type ModelRepo interface {
+	List(ctx context.Context) (*AllModelResp, error)
 	Create(ctx context.Context, m *CreateModelReq) (*db.Model, error)
 	Update(ctx context.Context, id string, fn func(up *db.ModelUpdateOne)) (*db.Model, error)
 	MyModelList(ctx context.Context, req *MyModelListReq) ([]*db.Model, error)
