@@ -21,6 +21,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
+	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
+	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
@@ -87,21 +89,23 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			admin.Table:             admin.ValidColumn,
-			adminloginhistory.Table: adminloginhistory.ValidColumn,
-			apikey.Table:            apikey.ValidColumn,
-			billingplan.Table:       billingplan.ValidColumn,
-			billingquota.Table:      billingquota.ValidColumn,
-			billingrecord.Table:     billingrecord.ValidColumn,
-			billingusage.Table:      billingusage.ValidColumn,
-			invitecode.Table:        invitecode.ValidColumn,
-			model.Table:             model.ValidColumn,
-			setting.Table:           setting.ValidColumn,
-			task.Table:              task.ValidColumn,
-			taskrecord.Table:        taskrecord.ValidColumn,
-			user.Table:              user.ValidColumn,
-			useridentity.Table:      useridentity.ValidColumn,
-			userloginhistory.Table:  userloginhistory.ValidColumn,
+			admin.Table:              admin.ValidColumn,
+			adminloginhistory.Table:  adminloginhistory.ValidColumn,
+			apikey.Table:             apikey.ValidColumn,
+			billingplan.Table:        billingplan.ValidColumn,
+			billingquota.Table:       billingquota.ValidColumn,
+			billingrecord.Table:      billingrecord.ValidColumn,
+			billingusage.Table:       billingusage.ValidColumn,
+			invitecode.Table:         invitecode.ValidColumn,
+			model.Table:              model.ValidColumn,
+			modelprovider.Table:      modelprovider.ValidColumn,
+			modelprovidermodel.Table: modelprovidermodel.ValidColumn,
+			setting.Table:            setting.ValidColumn,
+			task.Table:               task.ValidColumn,
+			taskrecord.Table:         taskrecord.ValidColumn,
+			user.Table:               user.ValidColumn,
+			useridentity.Table:       useridentity.ValidColumn,
+			userloginhistory.Table:   userloginhistory.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

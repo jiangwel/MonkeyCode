@@ -17,6 +17,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
+	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
+	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
@@ -325,6 +327,60 @@ func (f TraverseModel) Traverse(ctx context.Context, q db.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *db.ModelQuery", q)
 }
 
+// The ModelProviderFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ModelProviderFunc func(context.Context, *db.ModelProviderQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f ModelProviderFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.ModelProviderQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.ModelProviderQuery", q)
+}
+
+// The TraverseModelProvider type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseModelProvider func(context.Context, *db.ModelProviderQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseModelProvider) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseModelProvider) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.ModelProviderQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.ModelProviderQuery", q)
+}
+
+// The ModelProviderModelFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ModelProviderModelFunc func(context.Context, *db.ModelProviderModelQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f ModelProviderModelFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.ModelProviderModelQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.ModelProviderModelQuery", q)
+}
+
+// The TraverseModelProviderModel type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseModelProviderModel func(context.Context, *db.ModelProviderModelQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseModelProviderModel) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseModelProviderModel) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.ModelProviderModelQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.ModelProviderModelQuery", q)
+}
+
 // The SettingFunc type is an adapter to allow the use of ordinary function as a Querier.
 type SettingFunc func(context.Context, *db.SettingQuery) (db.Value, error)
 
@@ -508,6 +564,10 @@ func NewQuery(q db.Query) (Query, error) {
 		return &query[*db.InviteCodeQuery, predicate.InviteCode, invitecode.OrderOption]{typ: db.TypeInviteCode, tq: q}, nil
 	case *db.ModelQuery:
 		return &query[*db.ModelQuery, predicate.Model, model.OrderOption]{typ: db.TypeModel, tq: q}, nil
+	case *db.ModelProviderQuery:
+		return &query[*db.ModelProviderQuery, predicate.ModelProvider, modelprovider.OrderOption]{typ: db.TypeModelProvider, tq: q}, nil
+	case *db.ModelProviderModelQuery:
+		return &query[*db.ModelProviderModelQuery, predicate.ModelProviderModel, modelprovidermodel.OrderOption]{typ: db.TypeModelProviderModel, tq: q}, nil
 	case *db.SettingQuery:
 		return &query[*db.SettingQuery, predicate.Setting, setting.OrderOption]{typ: db.TypeSetting, tq: q}, nil
 	case *db.TaskQuery:

@@ -98,7 +98,9 @@ func (c *CompletionInfo) From(e *db.Task) *CompletionInfo {
 	}
 	c.ID = e.TaskID
 	c.Prompt = e.Prompt
-	c.Content = e.Completion
+	if len(e.Edges.TaskRecords) > 0 {
+		c.Content = e.Edges.TaskRecords[0].Completion
+	}
 	c.CreatedAt = e.CreatedAt.Unix()
 	return c
 }

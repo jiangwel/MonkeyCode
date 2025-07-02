@@ -19,8 +19,9 @@ type ModelUsecase interface {
 }
 
 type ModelRepo interface {
+	List(ctx context.Context) (*AllModelResp, error)
 	Create(ctx context.Context, m *CreateModelReq) (*db.Model, error)
-	Update(ctx context.Context, id string, fn func(up *db.ModelUpdateOne)) (*db.Model, error)
+	Update(ctx context.Context, id string, fn func(tx *db.Tx, old *db.Model, up *db.ModelUpdateOne) error) (*db.Model, error)
 	MyModelList(ctx context.Context, req *MyModelListReq) ([]*db.Model, error)
 	ModelUsage(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]ModelUsage, error)
 	GetTokenUsage(ctx context.Context, modelType consts.ModelType) (*ModelTokenUsageResp, error)

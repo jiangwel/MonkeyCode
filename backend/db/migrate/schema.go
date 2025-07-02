@@ -185,6 +185,43 @@ var (
 			},
 		},
 	}
+	// ModelProvidersColumns holds the columns for the "model_providers" table.
+	ModelProvidersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "api_base", Type: field.TypeString},
+		{Name: "priority", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ModelProvidersTable holds the schema information for the "model_providers" table.
+	ModelProvidersTable = &schema.Table{
+		Name:       "model_providers",
+		Columns:    ModelProvidersColumns,
+		PrimaryKey: []*schema.Column{ModelProvidersColumns[0]},
+	}
+	// ModelProviderModelsColumns holds the columns for the "model_provider_models" table.
+	ModelProviderModelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "provider_id", Type: field.TypeString, Nullable: true},
+	}
+	// ModelProviderModelsTable holds the schema information for the "model_provider_models" table.
+	ModelProviderModelsTable = &schema.Table{
+		Name:       "model_provider_models",
+		Columns:    ModelProviderModelsColumns,
+		PrimaryKey: []*schema.Column{ModelProviderModelsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "model_provider_models_model_providers_models",
+				Columns:    []*schema.Column{ModelProviderModelsColumns[4]},
+				RefColumns: []*schema.Column{ModelProvidersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// SettingsColumns holds the columns for the "settings" table.
 	SettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -349,6 +386,8 @@ var (
 		BillingUsagesTable,
 		InviteCodesTable,
 		ModelsTable,
+		ModelProvidersTable,
+		ModelProviderModelsTable,
 		SettingsTable,
 		TasksTable,
 		TaskRecordsTable,
@@ -387,6 +426,13 @@ func init() {
 	ModelsTable.ForeignKeys[0].RefTable = UsersTable
 	ModelsTable.Annotation = &entsql.Annotation{
 		Table: "models",
+	}
+	ModelProvidersTable.Annotation = &entsql.Annotation{
+		Table: "model_providers",
+	}
+	ModelProviderModelsTable.ForeignKeys[0].RefTable = ModelProvidersTable
+	ModelProviderModelsTable.Annotation = &entsql.Annotation{
+		Table: "model_provider_models",
 	}
 	SettingsTable.Annotation = &entsql.Annotation{
 		Table: "settings",

@@ -15,6 +15,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
+	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
+	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
@@ -22,6 +24,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/ent/schema"
+	"github.com/google/uuid"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -156,6 +159,54 @@ func init() {
 	model.DefaultUpdatedAt = modelDescUpdatedAt.Default.(func() time.Time)
 	// model.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	model.UpdateDefaultUpdatedAt = modelDescUpdatedAt.UpdateDefault.(func() time.Time)
+	modelproviderFields := schema.ModelProvider{}.Fields()
+	_ = modelproviderFields
+	// modelproviderDescName is the schema descriptor for name field.
+	modelproviderDescName := modelproviderFields[1].Descriptor()
+	// modelprovider.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	modelprovider.NameValidator = modelproviderDescName.Validators[0].(func(string) error)
+	// modelproviderDescAPIBase is the schema descriptor for api_base field.
+	modelproviderDescAPIBase := modelproviderFields[2].Descriptor()
+	// modelprovider.APIBaseValidator is a validator for the "api_base" field. It is called by the builders before save.
+	modelprovider.APIBaseValidator = modelproviderDescAPIBase.Validators[0].(func(string) error)
+	// modelproviderDescPriority is the schema descriptor for priority field.
+	modelproviderDescPriority := modelproviderFields[3].Descriptor()
+	// modelprovider.DefaultPriority holds the default value on creation for the priority field.
+	modelprovider.DefaultPriority = modelproviderDescPriority.Default.(int)
+	// modelproviderDescCreatedAt is the schema descriptor for created_at field.
+	modelproviderDescCreatedAt := modelproviderFields[4].Descriptor()
+	// modelprovider.DefaultCreatedAt holds the default value on creation for the created_at field.
+	modelprovider.DefaultCreatedAt = modelproviderDescCreatedAt.Default.(func() time.Time)
+	// modelproviderDescUpdatedAt is the schema descriptor for updated_at field.
+	modelproviderDescUpdatedAt := modelproviderFields[5].Descriptor()
+	// modelprovider.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	modelprovider.DefaultUpdatedAt = modelproviderDescUpdatedAt.Default.(func() time.Time)
+	// modelprovider.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	modelprovider.UpdateDefaultUpdatedAt = modelproviderDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// modelproviderDescID is the schema descriptor for id field.
+	modelproviderDescID := modelproviderFields[0].Descriptor()
+	// modelprovider.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	modelprovider.IDValidator = modelproviderDescID.Validators[0].(func(string) error)
+	modelprovidermodelFields := schema.ModelProviderModel{}.Fields()
+	_ = modelprovidermodelFields
+	// modelprovidermodelDescName is the schema descriptor for name field.
+	modelprovidermodelDescName := modelprovidermodelFields[1].Descriptor()
+	// modelprovidermodel.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	modelprovidermodel.NameValidator = modelprovidermodelDescName.Validators[0].(func(string) error)
+	// modelprovidermodelDescCreatedAt is the schema descriptor for created_at field.
+	modelprovidermodelDescCreatedAt := modelprovidermodelFields[3].Descriptor()
+	// modelprovidermodel.DefaultCreatedAt holds the default value on creation for the created_at field.
+	modelprovidermodel.DefaultCreatedAt = modelprovidermodelDescCreatedAt.Default.(func() time.Time)
+	// modelprovidermodelDescUpdatedAt is the schema descriptor for updated_at field.
+	modelprovidermodelDescUpdatedAt := modelprovidermodelFields[4].Descriptor()
+	// modelprovidermodel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	modelprovidermodel.DefaultUpdatedAt = modelprovidermodelDescUpdatedAt.Default.(func() time.Time)
+	// modelprovidermodel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	modelprovidermodel.UpdateDefaultUpdatedAt = modelprovidermodelDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// modelprovidermodelDescID is the schema descriptor for id field.
+	modelprovidermodelDescID := modelprovidermodelFields[0].Descriptor()
+	// modelprovidermodel.DefaultID holds the default value on creation for the id field.
+	modelprovidermodel.DefaultID = modelprovidermodelDescID.Default.(func() uuid.UUID)
 	settingFields := schema.Setting{}.Fields()
 	_ = settingFields
 	// settingDescEnableSSO is the schema descriptor for enable_sso field.

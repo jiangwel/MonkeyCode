@@ -33,6 +33,12 @@ type InviteCode func(*sql.Selector)
 // Model is the predicate function for model builders.
 type Model func(*sql.Selector)
 
+// ModelProvider is the predicate function for modelprovider builders.
+type ModelProvider func(*sql.Selector)
+
+// ModelProviderModel is the predicate function for modelprovidermodel builders.
+type ModelProviderModel func(*sql.Selector)
+
 // Setting is the predicate function for setting builders.
 type Setting func(*sql.Selector)
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
@@ -47,50 +48,7 @@ func (m *ModelUsecase) MyModelList(ctx context.Context, req *domain.MyModelListR
 }
 
 func (m *ModelUsecase) List(ctx context.Context) (*domain.AllModelResp, error) {
-	return &domain.AllModelResp{
-		Providers: []domain.ProviderModel{
-			{
-				Provider: "百智云",
-				Models: []domain.ModelBasic{
-					{
-						Provider: "百智云",
-						Name:     "deepseek-v3",
-						APIBase:  "https://model-square.app.baizhi.cloud/v1",
-					},
-					{
-						Provider: "百智云",
-						Name:     "deepseek-r1",
-						APIBase:  "https://model-square.app.baizhi.cloud/v1",
-					},
-					{
-						Provider: "百智云",
-						Name:     "qwen2.5-coder-1.5b-instruct",
-						APIBase:  "https://model-square.app.baizhi.cloud/v1",
-					},
-					{
-						Provider: "百智云",
-						Name:     "qwen2.5-coder-7b-instruct",
-						APIBase:  "https://model-square.app.baizhi.cloud/v1",
-					},
-				},
-			},
-			{
-				Provider: "DeepSeek",
-				Models: []domain.ModelBasic{
-					{
-						Provider: "DeepSeek",
-						Name:     "deepseek-chat",
-						APIBase:  "https://api.deepseek.com",
-					},
-					{
-						Provider: "DeepSeek",
-						Name:     "deepseek-reasoner",
-						APIBase:  "https://api.deepseek.com",
-					},
-				},
-			},
-		},
-	}, nil
+	return m.repo.List(ctx)
 }
 
 // Create implements domain.ModelUsecase.
@@ -109,7 +67,7 @@ func (m *ModelUsecase) GetTokenUsage(ctx context.Context, modelType consts.Model
 
 // Update implements domain.ModelUsecase.
 func (m *ModelUsecase) Update(ctx context.Context, req *domain.UpdateModelReq) (*domain.Model, error) {
-	model, err := m.repo.Update(ctx, req.ID, func(up *db.ModelUpdateOne) {
+	model, err := m.repo.Update(ctx, req.ID, func(tx *db.Tx, old *db.Model, up *db.ModelUpdateOne) error {
 		if req.ModelName != nil {
 			up.SetModelName(*req.ModelName)
 		}
@@ -123,8 +81,17 @@ func (m *ModelUsecase) Update(ctx context.Context, req *domain.UpdateModelReq) (
 			up.SetAPIKey(*req.APIKey)
 		}
 		if req.Status != nil {
+			if *req.Status == consts.ModelStatusActive {
+				if err := tx.Model.Update().
+					Where(model.ModelType(old.ModelType)).
+					SetStatus(consts.ModelStatusInactive).
+					Exec(ctx); err != nil {
+					return err
+				}
+			}
 			up.SetStatus(*req.Status)
 		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
