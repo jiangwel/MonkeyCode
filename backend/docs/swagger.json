@@ -2008,6 +2008,9 @@
                 },
                 "id": {
                     "type": "string"
+                },
+                "prompt": {
+                    "type": "string"
                 }
             }
         },
