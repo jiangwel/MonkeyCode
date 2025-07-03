@@ -11,10 +11,11 @@ import {
   TextField,
   Chip,
   Paper,
-  ButtonBase,
+  Link,
   IconButton,
   Menu,
   MenuItem,
+  Typography,
 } from '@mui/material';
 import { Table, MenuSelect, Modal, message } from '@c-x/ui';
 import InviteUserModal from './inviteUserModal';
@@ -23,6 +24,7 @@ import { ConstsUserStatus, DomainUser } from '@/api/types';
 import dayjs from 'dayjs';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const ResetPasswordModal = ({
   open,
@@ -248,40 +250,39 @@ const MemberManage = () => {
     {
       title: '账号',
       dataIndex: 'username',
-    },
-    {
-      title: '两步认证',
-      dataIndex: 'two_step_auth',
-      render: (text) => {
-        return text ? (
-          <Chip label='启动' color='success' size='small' />
-        ) : (
-          <Chip label='未启用' size='small' />
-        );
+      render: (text, record) => {
+        return  <>
+          <Stack>
+            <Link onClick={() => navigate(`/dashboard/member/${record.id}`)} sx={{
+              '&:hover': {
+                color: 'info.main',
+              },
+              cursor: 'pointer'
+            }}>
+              <Stack direction={'row'}>
+                <AccountCircleIcon fontSize='small' sx={{ mr: 1, lineHeight: 24 }}/>
+                <Typography>{text}</Typography>
+              </Stack>
+            </Link>
+            <Typography color='text.auxiliary'>{record.email}</Typography>
+          </Stack>
+        </>;
       },
     },
     {
-      title: '最近活跃时间',
+      title: '加入时间',
+      dataIndex: 'created_at',
+      width: 120,
+      render: (text) => {
+        return dayjs.unix(text).fromNow();
+      },
+    },
+    {
+      title: '最近活跃',
       dataIndex: 'last_active_at',
-      render: (text) => {
-        return dayjs.unix(text).format('YYYY-MM-DD HH:mm:ss');
-      },
-    },
-    {
-      title: '统计使用情况',
-      dataIndex: 'status',
-      render: (_, record) => {
-        return (
-          <ButtonBase
-            disableRipple
-            onClick={() => navigate(`/dashboard/member/${record.id}`)}
-            sx={{
-              color: 'info.main',
-            }}
-          >
-            点击查看
-          </ButtonBase>
-        );
+      width: 120,
+      render: (text, record) => {
+        return record.last_active_at === 0 ? '从未使用' : dayjs.unix(text).fromNow();
       },
     },
     {

@@ -72,98 +72,90 @@ const User = () => {
   };
 
   return (
-    <Stack gap={2}>
-      <Grid container spacing={2}>
-        <Grid size={6} container>
-          <Grid size={12}>
-            <StyledCard>
-              <StyledLabel>强制成员启用两步认证</StyledLabel>
-              <Switch
-                checked={data?.force_two_factor_auth}
-                onChange={(e) => {
-                  updateSetting({ force_two_factor_auth: e.target.checked });
-                }}
-              />
-            </StyledCard>
-          </Grid>
-          <Grid size={12}>
-            <StyledCard>
-              <StyledLabel>禁止成员使用密码登录</StyledLabel>
-              <Switch
-                checked={data?.disable_password_login}
-                onChange={(e) =>
-                  updateSetting({ disable_password_login: e.target.checked })
+    <Stack gap={2} direction={'row'}>
+      <Stack gap={2} direction={'column'}>
+        <MemberManage />
+      </Stack>
+      <Stack gap={2} direction={'column'}>
+        <Card >
+          <StyledLabel>第三方登录</StyledLabel>
+          <Stack
+            direction='row'
+            alignItems='center'
+            spacing={2}
+            sx={{ mt: 2 }}
+          >
+            <Button
+              variant='outlined'
+              color='primary'
+              sx={{ gap: 3 }}
+              onClick={() => {
+                if (dingdingCheck) {
+                  onDisabledDingdingLogin();
+                } else {
+                  setDingdingLoginSettingModalOpen(true);
                 }
-              />
-            </StyledCard>
-          </Grid>
-        </Grid>
-        <Grid size={6} container>
-          <Grid size={12}>
-            <Card sx={{ height: '100%' }}>
-              <StyledLabel>第三方登录</StyledLabel>
-              <Stack
-                direction='row'
-                alignItems='center'
-                spacing={2}
-                sx={{ mt: 2, height: 'calc(100% - 40px)' }}
-              >
-                <Button
-                  variant='outlined'
-                  color='primary'
-                  sx={{ gap: 3 }}
-                  onClick={() => {
-                    if (dingdingCheck) {
-                      onDisabledDingdingLogin();
-                    } else {
-                      setDingdingLoginSettingModalOpen(true);
-                    }
-                  }}
-                >
-                  <Radio size='small' sx={{ p: 0.5 }} checked={dingdingCheck} />
-                  <Stack direction='row' alignItems='center' gap={2}>
-                    <Stack direction='row' alignItems='center' gap={1}>
-                      <Icon type='icon-dingding' sx={{ fontSize: 18 }}></Icon>
-                      钉钉
-                    </Stack>
-                  </Stack>
-                </Button>
-                <Button
-                  variant='outlined'
-                  color='primary'
-                  sx={{ gap: 3 }}
-                  disabled
-                >
-                  <Radio size='small' sx={{ p: 0.5 }} disabled />
-                  <Stack direction='row' alignItems='center' gap={2}>
-                    <Stack direction='row' alignItems='center' gap={1}>
-                      <Icon type='icon-weixin' sx={{ fontSize: 18 }}></Icon>
-                      微信
-                    </Stack>
-                  </Stack>
-                </Button>
-                <Button
-                  variant='outlined'
-                  color='primary'
-                  sx={{ gap: 3 }}
-                  disabled
-                >
-                  <Radio size='small' sx={{ p: 0.5 }} disabled />
-                  <Stack direction='row' alignItems='center' gap={2}>
-                    <Stack direction='row' alignItems='center' gap={1}>
-                      <Icon type='icon-github' sx={{ fontSize: 18 }}></Icon>
-                      GitHub
-                    </Stack>
-                  </Stack>
-                </Button>
+              }}
+            >
+              <Radio size='small' sx={{ p: 0.5 }} checked={dingdingCheck} />
+              <Stack direction='row' alignItems='center' gap={2}>
+                <Stack direction='row' alignItems='center' gap={1}>
+                  <Icon type='icon-dingding' sx={{ fontSize: 18 }}></Icon>
+                  钉钉
+                </Stack>
               </Stack>
-            </Card>
-          </Grid>
-        </Grid>
-      </Grid>
+            </Button>
+            <Button
+              variant='outlined'
+              color='primary'
+              sx={{ gap: 3 }}
+              disabled
+            >
+              <Radio size='small' sx={{ p: 0.5 }} disabled />
+              <Stack direction='row' alignItems='center' gap={2}>
+                <Stack direction='row' alignItems='center' gap={1}>
+                  <Icon type='icon-weixin' sx={{ fontSize: 18 }}></Icon>
+                  微信
+                </Stack>
+              </Stack>
+            </Button>
+            <Button
+              variant='outlined'
+              color='primary'
+              sx={{ gap: 3 }}
+              disabled
+            >
+              <Radio size='small' sx={{ p: 0.5 }} disabled />
+              <Stack direction='row' alignItems='center' gap={2}>
+                <Stack direction='row' alignItems='center' gap={1}>
+                  <Icon type='icon-github' sx={{ fontSize: 18 }}></Icon>
+                  GitHub
+                </Stack>
+              </Stack>
+            </Button>
+          </Stack>
+        </Card>
+        <StyledCard>
+          <StyledLabel>禁止成员使用密码登录</StyledLabel>
+          <Switch
+            checked={data?.disable_password_login}
+            onChange={(e) =>
+              updateSetting({ disable_password_login: e.target.checked })
+            }
+          />
+        </StyledCard>
+        <StyledCard>
+          <StyledLabel>强制成员启用两步认证</StyledLabel>
+          <Switch
+            checked={data?.force_two_factor_auth}
+            onChange={(e) => {
+              updateSetting({ force_two_factor_auth: e.target.checked });
+            }}
+          />
+        </StyledCard>
+        <LoginHistory />
+      </Stack>
 
-      <MemberManage />
-      <LoginHistory />
       <DingingLoginSettingModal
         open={dingdingLoginSettingModalOpen}
         onClose={() => setDingdingLoginSettingModalOpen(false)}

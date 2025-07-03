@@ -45,7 +45,7 @@ const menus = [
     show: true,
   },
   {
-    label: '用户管理',
+    label: '成员管理',
     value: '/user',
     pathname: 'user',
     icon: 'icon-yonghuguanli1',

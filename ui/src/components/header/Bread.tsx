@@ -9,7 +9,7 @@ const OtherBread = {
   chat: { title: '对话记录', to: '/chat' },
   completion: { title: '补全记录', to: '/completion' },
   model: { title: '模型管理', to: '/model' },
-  user: { title: '用户管理', to: '/user' },
+  user: { title: '成员管理', to: '/user' },
   admin: { title: '管理员', to: '/admin' },
 };
 
