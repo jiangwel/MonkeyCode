@@ -591,6 +591,35 @@
                 ],
                 "summary": "获取分类统计信息",
                 "operationId": "category-stat-dashboard",
+                "parameters": [
+                    {
+                        "maximum": 90,
+                        "minimum": 24,
+                        "type": "integer",
+                        "default": 90,
+                        "description": "持续时间 (小时或天数)`",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hour",
+                            "day"
+                        ],
+                        "type": "string",
+                        "default": "day",
+                        "description": "精度: \"hour\", \"day\"",
+                        "name": "precision",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户ID，可jj",
+                        "name": "user_id",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -663,6 +692,35 @@
                 ],
                 "summary": "获取时间统计信息",
                 "operationId": "time-stat-dashboard",
+                "parameters": [
+                    {
+                        "maximum": 90,
+                        "minimum": 24,
+                        "type": "integer",
+                        "default": 90,
+                        "description": "持续时间 (小时或天数)`",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hour",
+                            "day"
+                        ],
+                        "type": "string",
+                        "default": "day",
+                        "description": "精度: \"hour\", \"day\"",
+                        "name": "precision",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户ID，可jj",
+                        "name": "user_id",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -699,6 +757,35 @@
                 ],
                 "summary": "用户贡献榜",
                 "operationId": "user-code-rank-dashboard",
+                "parameters": [
+                    {
+                        "maximum": 90,
+                        "minimum": 24,
+                        "type": "integer",
+                        "default": 90,
+                        "description": "持续时间 (小时或天数)`",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hour",
+                            "day"
+                        ],
+                        "type": "string",
+                        "default": "day",
+                        "description": "精度: \"hour\", \"day\"",
+                        "name": "precision",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户ID，可jj",
+                        "name": "user_id",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -740,11 +827,31 @@
                 "operationId": "user-events-dashboard",
                 "parameters": [
                     {
+                        "maximum": 90,
+                        "minimum": 24,
+                        "type": "integer",
+                        "default": 90,
+                        "description": "持续时间 (小时或天数)`",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hour",
+                            "day"
+                        ],
                         "type": "string",
-                        "description": "用户ID",
-                        "name": "user_id",
+                        "default": "day",
+                        "description": "精度: \"hour\", \"day\"",
+                        "name": "precision",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户ID，可jj",
+                        "name": "user_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -833,8 +940,29 @@
                 "operationId": "user-stat-dashboard",
                 "parameters": [
                     {
+                        "maximum": 90,
+                        "minimum": 24,
+                        "type": "integer",
+                        "default": 90,
+                        "description": "持续时间 (小时或天数)`",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hour",
+                            "day"
+                        ],
                         "type": "string",
-                        "description": "用户ID",
+                        "default": "day",
+                        "description": "精度: \"hour\", \"day\"",
+                        "name": "precision",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户ID，可jj",
                         "name": "user_id",
                         "in": "query"
                     }

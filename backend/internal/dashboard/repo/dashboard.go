@@ -2,18 +2,18 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-
-	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/domain"
+	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 )
 
 type DashboardRepo struct {
@@ -25,10 +25,10 @@ func NewDashboardRepo(db *db.Client) domain.DashboardRepo {
 }
 
 // CategoryStat implements domain.DashboardRepo.
-func (d *DashboardRepo) CategoryStat(ctx context.Context) (*domain.CategoryStat, error) {
+func (d *DashboardRepo) CategoryStat(ctx context.Context, req domain.StatisticsFilter) (*domain.CategoryStat, error) {
 	var cs []domain.CategoryPoint
 	if err := d.db.Task.Query().
-		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.CreatedAtGTE(req.StartTime())).
 		Where(task.WorkModeNEQ("")).
 		Modify(func(s *sql.Selector) {
 			s.Select(
@@ -42,7 +42,7 @@ func (d *DashboardRepo) CategoryStat(ctx context.Context) (*domain.CategoryStat,
 	}
 	var ps []domain.CategoryPoint
 	if err := d.db.Task.Query().
-		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.CreatedAtGTE(req.StartTime())).
 		Where(task.ProgramLanguageNEQ("")).
 		Modify(func(s *sql.Selector) {
 			s.Select(
@@ -88,13 +88,13 @@ type DateValue struct {
 }
 
 // TimeStat implements domain.DashboardRepo.
-func (d *DashboardRepo) TimeStat(ctx context.Context) (*domain.TimeStat, error) {
+func (d *DashboardRepo) TimeStat(ctx context.Context, req domain.StatisticsFilter) (*domain.TimeStat, error) {
 	ds := make([]DateValue, 0)
 	if err := d.db.Task.Query().
-		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.CreatedAtGTE(req.StartTime())).
 		Modify(func(s *sql.Selector) {
 			s.Select(
-				sql.As("date_trunc('day', created_at)", "date"),
+				sql.As(fmt.Sprintf("date_trunc('%s', created_at)", req.Precision), "date"),
 				sql.As("COUNT(DISTINCT user_id)", "user_count"),
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'llm')", "llm_count"),
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'coder')", "code_count"),
@@ -175,10 +175,11 @@ type UserCodeRank struct {
 }
 
 // UserCodeRank implements domain.DashboardRepo.
-func (d *DashboardRepo) UserCodeRank(ctx context.Context) ([]*domain.UserCodeRank, error) {
+func (d *DashboardRepo) UserCodeRank(ctx context.Context, req domain.StatisticsFilter) ([]*domain.UserCodeRank, error) {
 	var rs []UserCodeRank
 	if err := d.db.Task.Query().
-		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.CreatedAtGTE(req.StartTime())).
+		Where(task.IsAccept(true)).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("user_id", "user_id"),
@@ -211,14 +212,14 @@ func (d *DashboardRepo) UserCodeRank(ctx context.Context) ([]*domain.UserCodeRan
 }
 
 // UserEvents implements domain.DashboardRepo.
-func (d *DashboardRepo) UserEvents(ctx context.Context, userID string) ([]*domain.UserEvent, error) {
-	id, err := uuid.Parse(userID)
+func (d *DashboardRepo) UserEvents(ctx context.Context, req domain.StatisticsFilter) ([]*domain.UserEvent, error) {
+	id, err := uuid.Parse(req.UserID)
 	if err != nil {
 		return nil, err
 	}
 	rs, err := d.db.Task.Query().
 		WithUser().
-		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.CreatedAtGTE(req.StartTime())).
 		Where(task.HasUserWith(user.ID(id))).
 		Order(task.ByCreatedAt(sql.OrderDesc())).
 		Limit(100).
@@ -236,18 +237,18 @@ func (d *DashboardRepo) UserEvents(ctx context.Context, userID string) ([]*domai
 }
 
 // UserStat implements domain.DashboardRepo.
-func (d *DashboardRepo) UserStat(ctx context.Context, userID string) (*domain.UserStat, error) {
-	id, err := uuid.Parse(userID)
+func (d *DashboardRepo) UserStat(ctx context.Context, req domain.StatisticsFilter) (*domain.UserStat, error) {
+	id, err := uuid.Parse(req.UserID)
 	if err != nil {
 		return nil, err
 	}
 	var ds []DateValue
 	if err := d.db.Task.Query().
 		Where(task.HasUserWith(user.ID(id))).
-		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.CreatedAtGTE(req.StartTime())).
 		Modify(func(s *sql.Selector) {
 			s.Select(
-				sql.As("date_trunc('day', created_at)", "date"),
+				sql.As(fmt.Sprintf("date_trunc('%s', created_at)", req.Precision), "date"),
 				sql.As("COUNT(DISTINCT user_id)", "user_count"),
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'llm')", "llm_count"),
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'coder')", "code_count"),
@@ -262,7 +263,7 @@ func (d *DashboardRepo) UserStat(ctx context.Context, userID string) (*domain.Us
 
 	var cs []domain.CategoryPoint
 	if err := d.db.Task.Query().
-		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.CreatedAtGTE(req.StartTime())).
 		Where(task.HasUserWith(user.ID(id))).
 		Where(task.WorkModeNotNil()).
 		Modify(func(s *sql.Selector) {
@@ -277,7 +278,7 @@ func (d *DashboardRepo) UserStat(ctx context.Context, userID string) (*domain.Us
 	}
 	var ps []domain.CategoryPoint
 	if err := d.db.Task.Query().
-		Where(task.CreatedAtGTE(time.Now().AddDate(0, 0, -90))).
+		Where(task.CreatedAtGTE(req.StartTime())).
 		Where(task.HasUserWith(user.ID(id))).
 		Where(task.ProgramLanguageNotNil()).
 		Modify(func(s *sql.Selector) {
