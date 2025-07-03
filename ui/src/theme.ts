@@ -85,6 +85,7 @@ const lightTheme = createTheme(
               borderWidth: '1px !important',
             },
             borderRadius: '10px !important',
+            fontSize: 14,
           },
         },
       },
@@ -123,6 +124,13 @@ const lightTheme = createTheme(
           root: {
             lineHeight: '1.5',
             borderRadius: '10px',
+          },
+        },
+      },
+      MuiInputLabel: {
+        styleOverrides: {
+          root: {
+            fontSize: 14,
           },
         },
       },
