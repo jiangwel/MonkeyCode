@@ -83,11 +83,6 @@ func ModelType(v consts.ModelType) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldModelType, vc))
 }
 
-// Prompt applies equality check predicate on the "prompt" field. It's identical to PromptEQ.
-func Prompt(v string) predicate.Task {
-	return predicate.Task(sql.FieldEQ(FieldPrompt, v))
-}
-
 // IsAccept applies equality check predicate on the "is_accept" field. It's identical to IsAcceptEQ.
 func IsAccept(v bool) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldIsAccept, v))
@@ -415,81 +410,6 @@ func ModelTypeEqualFold(v consts.ModelType) predicate.Task {
 func ModelTypeContainsFold(v consts.ModelType) predicate.Task {
 	vc := string(v)
 	return predicate.Task(sql.FieldContainsFold(FieldModelType, vc))
-}
-
-// PromptEQ applies the EQ predicate on the "prompt" field.
-func PromptEQ(v string) predicate.Task {
-	return predicate.Task(sql.FieldEQ(FieldPrompt, v))
-}
-
-// PromptNEQ applies the NEQ predicate on the "prompt" field.
-func PromptNEQ(v string) predicate.Task {
-	return predicate.Task(sql.FieldNEQ(FieldPrompt, v))
-}
-
-// PromptIn applies the In predicate on the "prompt" field.
-func PromptIn(vs ...string) predicate.Task {
-	return predicate.Task(sql.FieldIn(FieldPrompt, vs...))
-}
-
-// PromptNotIn applies the NotIn predicate on the "prompt" field.
-func PromptNotIn(vs ...string) predicate.Task {
-	return predicate.Task(sql.FieldNotIn(FieldPrompt, vs...))
-}
-
-// PromptGT applies the GT predicate on the "prompt" field.
-func PromptGT(v string) predicate.Task {
-	return predicate.Task(sql.FieldGT(FieldPrompt, v))
-}
-
-// PromptGTE applies the GTE predicate on the "prompt" field.
-func PromptGTE(v string) predicate.Task {
-	return predicate.Task(sql.FieldGTE(FieldPrompt, v))
-}
-
-// PromptLT applies the LT predicate on the "prompt" field.
-func PromptLT(v string) predicate.Task {
-	return predicate.Task(sql.FieldLT(FieldPrompt, v))
-}
-
-// PromptLTE applies the LTE predicate on the "prompt" field.
-func PromptLTE(v string) predicate.Task {
-	return predicate.Task(sql.FieldLTE(FieldPrompt, v))
-}
-
-// PromptContains applies the Contains predicate on the "prompt" field.
-func PromptContains(v string) predicate.Task {
-	return predicate.Task(sql.FieldContains(FieldPrompt, v))
-}
-
-// PromptHasPrefix applies the HasPrefix predicate on the "prompt" field.
-func PromptHasPrefix(v string) predicate.Task {
-	return predicate.Task(sql.FieldHasPrefix(FieldPrompt, v))
-}
-
-// PromptHasSuffix applies the HasSuffix predicate on the "prompt" field.
-func PromptHasSuffix(v string) predicate.Task {
-	return predicate.Task(sql.FieldHasSuffix(FieldPrompt, v))
-}
-
-// PromptIsNil applies the IsNil predicate on the "prompt" field.
-func PromptIsNil() predicate.Task {
-	return predicate.Task(sql.FieldIsNull(FieldPrompt))
-}
-
-// PromptNotNil applies the NotNil predicate on the "prompt" field.
-func PromptNotNil() predicate.Task {
-	return predicate.Task(sql.FieldNotNull(FieldPrompt))
-}
-
-// PromptEqualFold applies the EqualFold predicate on the "prompt" field.
-func PromptEqualFold(v string) predicate.Task {
-	return predicate.Task(sql.FieldEqualFold(FieldPrompt, v))
-}
-
-// PromptContainsFold applies the ContainsFold predicate on the "prompt" field.
-func PromptContainsFold(v string) predicate.Task {
-	return predicate.Task(sql.FieldContainsFold(FieldPrompt, v))
 }
 
 // IsAcceptEQ applies the EQ predicate on the "is_accept" field.

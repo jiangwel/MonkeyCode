@@ -1,8 +1,11 @@
 package promptparser
 
 import (
+	"encoding/xml"
 	"fmt"
 	"regexp"
+
+	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 )
 
 type PromptParser interface {
@@ -51,15 +54,25 @@ func (n *NormalParser) Parse(prompt string) (*Info, error) {
 }
 
 type TaskParse struct {
+	Task        string `xml:"task"`
+	Feedback    string `xml:"feedback"`
+	UserMessage string `xml:"user_message"`
 }
 
 func (m *TaskParse) Parse(prompt string) (*Info, error) {
-	re := regexp.MustCompile(`<task>(.*)</task><file_content path="(.*)">(.*)</file_content><environment_details>(.*)</environment_details>`)
-	match := re.FindStringSubmatch(prompt)
-	if len(match) < 5 {
-		return nil, fmt.Errorf("invalid prompt")
+	var tp TaskParse
+	prompt = "<root>" + prompt + "</root>"
+	if err := xml.Unmarshal([]byte(prompt), &tp); err != nil {
+		return nil, err
 	}
+
 	return &Info{
-		Prompt: match[1],
+		Prompt: cvt.CanditionVar(func() (string, bool) {
+			return tp.Task, tp.Task != ""
+		}, func() (string, bool) {
+			return tp.Feedback, tp.Feedback != ""
+		}, func() (string, bool) {
+			return tp.UserMessage, tp.UserMessage != ""
+		}),
 	}, nil
 }

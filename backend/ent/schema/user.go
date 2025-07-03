@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
+	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
 )
 
 // User holds the schema definition for the User entity.
@@ -23,6 +24,12 @@ func (User) Annotations() []schema.Annotation {
 		entsql.Annotation{
 			Table: "users",
 		},
+	}
+}
+
+func (User) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		entx.SoftDeleteMixin{},
 	}
 }
 

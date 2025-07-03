@@ -10,6 +10,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
+	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
 )
@@ -62,7 +63,6 @@ func (r *ProxyRepo) Record(ctx context.Context, record *domain.RecordParam) erro
 				SetRequestID(record.RequestID).
 				SetUserID(userID).
 				SetModelID(modelID).
-				SetPrompt(record.Prompt).
 				SetProgramLanguage(record.ProgramLanguage).
 				SetInputTokens(record.InputTokens).
 				SetOutputTokens(record.OutputTokens).
@@ -93,8 +93,26 @@ func (r *ProxyRepo) Record(ctx context.Context, record *domain.RecordParam) erro
 			}
 		}
 
+		if record.Role == consts.ChatRoleUser {
+			count, err := tx.TaskRecord.Query().
+				Where(
+					taskrecord.TaskID(t.ID),
+					taskrecord.Role(consts.ChatRoleUser),
+					taskrecord.Prompt(record.Prompt),
+				).
+				Count(ctx)
+			if err != nil {
+				return err
+			}
+			if count > 0 {
+				return nil
+			}
+		}
+
 		_, err = tx.TaskRecord.Create().
 			SetTaskID(t.ID).
+			SetRole(record.Role).
+			SetPrompt(record.Prompt).
 			SetCompletion(record.Completion).
 			SetOutputTokens(record.OutputTokens).
 			Save(ctx)

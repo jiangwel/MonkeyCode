@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/google/uuid"
@@ -21,6 +22,10 @@ type TaskRecord struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// TaskID holds the value of the "task_id" field.
 	TaskID uuid.UUID `json:"task_id,omitempty"`
+	// Prompt holds the value of the "prompt" field.
+	Prompt string `json:"prompt,omitempty"`
+	// Role holds the value of the "role" field.
+	Role consts.ChatRole `json:"role,omitempty"`
 	// Completion holds the value of the "completion" field.
 	Completion string `json:"completion,omitempty"`
 	// OutputTokens holds the value of the "output_tokens" field.
@@ -62,7 +67,7 @@ func (*TaskRecord) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case taskrecord.FieldOutputTokens:
 			values[i] = new(sql.NullInt64)
-		case taskrecord.FieldCompletion:
+		case taskrecord.FieldPrompt, taskrecord.FieldRole, taskrecord.FieldCompletion:
 			values[i] = new(sql.NullString)
 		case taskrecord.FieldCreatedAt, taskrecord.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -94,6 +99,18 @@ func (tr *TaskRecord) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field task_id", values[i])
 			} else if value != nil {
 				tr.TaskID = *value
+			}
+		case taskrecord.FieldPrompt:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field prompt", values[i])
+			} else if value.Valid {
+				tr.Prompt = value.String
+			}
+		case taskrecord.FieldRole:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field role", values[i])
+			} else if value.Valid {
+				tr.Role = consts.ChatRole(value.String)
 			}
 		case taskrecord.FieldCompletion:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -162,6 +179,12 @@ func (tr *TaskRecord) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", tr.ID))
 	builder.WriteString("task_id=")
 	builder.WriteString(fmt.Sprintf("%v", tr.TaskID))
+	builder.WriteString(", ")
+	builder.WriteString("prompt=")
+	builder.WriteString(tr.Prompt)
+	builder.WriteString(", ")
+	builder.WriteString("role=")
+	builder.WriteString(fmt.Sprintf("%v", tr.Role))
 	builder.WriteString(", ")
 	builder.WriteString("completion=")
 	builder.WriteString(tr.Completion)

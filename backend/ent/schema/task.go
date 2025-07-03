@@ -34,7 +34,6 @@ func (Task) Fields() []ent.Field {
 		field.UUID("model_id", uuid.UUID{}).Optional(),
 		field.String("request_id").Optional(),
 		field.String("model_type").GoType(consts.ModelType("")),
-		field.String("prompt").Optional(),
 		field.Bool("is_accept").Default(false),
 		field.String("program_language").Optional(),
 		field.String("work_mode").Optional(),

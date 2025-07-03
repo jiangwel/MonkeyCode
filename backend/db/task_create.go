@@ -82,20 +82,6 @@ func (tc *TaskCreate) SetModelType(ct consts.ModelType) *TaskCreate {
 	return tc
 }
 
-// SetPrompt sets the "prompt" field.
-func (tc *TaskCreate) SetPrompt(s string) *TaskCreate {
-	tc.mutation.SetPrompt(s)
-	return tc
-}
-
-// SetNillablePrompt sets the "prompt" field if the given value is not nil.
-func (tc *TaskCreate) SetNillablePrompt(s *string) *TaskCreate {
-	if s != nil {
-		tc.SetPrompt(*s)
-	}
-	return tc
-}
-
 // SetIsAccept sets the "is_accept" field.
 func (tc *TaskCreate) SetIsAccept(b bool) *TaskCreate {
 	tc.mutation.SetIsAccept(b)
@@ -367,10 +353,6 @@ func (tc *TaskCreate) createSpec() (*Task, *sqlgraph.CreateSpec) {
 		_spec.SetField(task.FieldModelType, field.TypeString, value)
 		_node.ModelType = value
 	}
-	if value, ok := tc.mutation.Prompt(); ok {
-		_spec.SetField(task.FieldPrompt, field.TypeString, value)
-		_node.Prompt = value
-	}
 	if value, ok := tc.mutation.IsAccept(); ok {
 		_spec.SetField(task.FieldIsAccept, field.TypeBool, value)
 		_node.IsAccept = value
@@ -584,24 +566,6 @@ func (u *TaskUpsert) SetModelType(v consts.ModelType) *TaskUpsert {
 // UpdateModelType sets the "model_type" field to the value that was provided on create.
 func (u *TaskUpsert) UpdateModelType() *TaskUpsert {
 	u.SetExcluded(task.FieldModelType)
-	return u
-}
-
-// SetPrompt sets the "prompt" field.
-func (u *TaskUpsert) SetPrompt(v string) *TaskUpsert {
-	u.Set(task.FieldPrompt, v)
-	return u
-}
-
-// UpdatePrompt sets the "prompt" field to the value that was provided on create.
-func (u *TaskUpsert) UpdatePrompt() *TaskUpsert {
-	u.SetExcluded(task.FieldPrompt)
-	return u
-}
-
-// ClearPrompt clears the value of the "prompt" field.
-func (u *TaskUpsert) ClearPrompt() *TaskUpsert {
-	u.SetNull(task.FieldPrompt)
 	return u
 }
 
@@ -903,27 +867,6 @@ func (u *TaskUpsertOne) SetModelType(v consts.ModelType) *TaskUpsertOne {
 func (u *TaskUpsertOne) UpdateModelType() *TaskUpsertOne {
 	return u.Update(func(s *TaskUpsert) {
 		s.UpdateModelType()
-	})
-}
-
-// SetPrompt sets the "prompt" field.
-func (u *TaskUpsertOne) SetPrompt(v string) *TaskUpsertOne {
-	return u.Update(func(s *TaskUpsert) {
-		s.SetPrompt(v)
-	})
-}
-
-// UpdatePrompt sets the "prompt" field to the value that was provided on create.
-func (u *TaskUpsertOne) UpdatePrompt() *TaskUpsertOne {
-	return u.Update(func(s *TaskUpsert) {
-		s.UpdatePrompt()
-	})
-}
-
-// ClearPrompt clears the value of the "prompt" field.
-func (u *TaskUpsertOne) ClearPrompt() *TaskUpsertOne {
-	return u.Update(func(s *TaskUpsert) {
-		s.ClearPrompt()
 	})
 }
 
@@ -1419,27 +1362,6 @@ func (u *TaskUpsertBulk) SetModelType(v consts.ModelType) *TaskUpsertBulk {
 func (u *TaskUpsertBulk) UpdateModelType() *TaskUpsertBulk {
 	return u.Update(func(s *TaskUpsert) {
 		s.UpdateModelType()
-	})
-}
-
-// SetPrompt sets the "prompt" field.
-func (u *TaskUpsertBulk) SetPrompt(v string) *TaskUpsertBulk {
-	return u.Update(func(s *TaskUpsert) {
-		s.SetPrompt(v)
-	})
-}
-
-// UpdatePrompt sets the "prompt" field to the value that was provided on create.
-func (u *TaskUpsertBulk) UpdatePrompt() *TaskUpsertBulk {
-	return u.Update(func(s *TaskUpsert) {
-		s.UpdatePrompt()
-	})
-}
-
-// ClearPrompt clears the value of the "prompt" field.
-func (u *TaskUpsertBulk) ClearPrompt() *TaskUpsertBulk {
-	return u.Update(func(s *TaskUpsert) {
-		s.ClearPrompt()
 	})
 }
 

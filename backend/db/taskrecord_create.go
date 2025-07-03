@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/google/uuid"
@@ -36,6 +37,26 @@ func (trc *TaskRecordCreate) SetNillableTaskID(u *uuid.UUID) *TaskRecordCreate {
 	if u != nil {
 		trc.SetTaskID(*u)
 	}
+	return trc
+}
+
+// SetPrompt sets the "prompt" field.
+func (trc *TaskRecordCreate) SetPrompt(s string) *TaskRecordCreate {
+	trc.mutation.SetPrompt(s)
+	return trc
+}
+
+// SetNillablePrompt sets the "prompt" field if the given value is not nil.
+func (trc *TaskRecordCreate) SetNillablePrompt(s *string) *TaskRecordCreate {
+	if s != nil {
+		trc.SetPrompt(*s)
+	}
+	return trc
+}
+
+// SetRole sets the "role" field.
+func (trc *TaskRecordCreate) SetRole(cr consts.ChatRole) *TaskRecordCreate {
+	trc.mutation.SetRole(cr)
 	return trc
 }
 
@@ -137,6 +158,9 @@ func (trc *TaskRecordCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (trc *TaskRecordCreate) check() error {
+	if _, ok := trc.mutation.Role(); !ok {
+		return &ValidationError{Name: "role", err: errors.New(`db: missing required field "TaskRecord.role"`)}
+	}
 	if _, ok := trc.mutation.Completion(); !ok {
 		return &ValidationError{Name: "completion", err: errors.New(`db: missing required field "TaskRecord.completion"`)}
 	}
@@ -184,6 +208,14 @@ func (trc *TaskRecordCreate) createSpec() (*TaskRecord, *sqlgraph.CreateSpec) {
 	if id, ok := trc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
+	}
+	if value, ok := trc.mutation.Prompt(); ok {
+		_spec.SetField(taskrecord.FieldPrompt, field.TypeString, value)
+		_node.Prompt = value
+	}
+	if value, ok := trc.mutation.Role(); ok {
+		_spec.SetField(taskrecord.FieldRole, field.TypeString, value)
+		_node.Role = value
 	}
 	if value, ok := trc.mutation.Completion(); ok {
 		_spec.SetField(taskrecord.FieldCompletion, field.TypeString, value)
@@ -285,6 +317,36 @@ func (u *TaskRecordUpsert) UpdateTaskID() *TaskRecordUpsert {
 // ClearTaskID clears the value of the "task_id" field.
 func (u *TaskRecordUpsert) ClearTaskID() *TaskRecordUpsert {
 	u.SetNull(taskrecord.FieldTaskID)
+	return u
+}
+
+// SetPrompt sets the "prompt" field.
+func (u *TaskRecordUpsert) SetPrompt(v string) *TaskRecordUpsert {
+	u.Set(taskrecord.FieldPrompt, v)
+	return u
+}
+
+// UpdatePrompt sets the "prompt" field to the value that was provided on create.
+func (u *TaskRecordUpsert) UpdatePrompt() *TaskRecordUpsert {
+	u.SetExcluded(taskrecord.FieldPrompt)
+	return u
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (u *TaskRecordUpsert) ClearPrompt() *TaskRecordUpsert {
+	u.SetNull(taskrecord.FieldPrompt)
+	return u
+}
+
+// SetRole sets the "role" field.
+func (u *TaskRecordUpsert) SetRole(v consts.ChatRole) *TaskRecordUpsert {
+	u.Set(taskrecord.FieldRole, v)
+	return u
+}
+
+// UpdateRole sets the "role" field to the value that was provided on create.
+func (u *TaskRecordUpsert) UpdateRole() *TaskRecordUpsert {
+	u.SetExcluded(taskrecord.FieldRole)
 	return u
 }
 
@@ -408,6 +470,41 @@ func (u *TaskRecordUpsertOne) UpdateTaskID() *TaskRecordUpsertOne {
 func (u *TaskRecordUpsertOne) ClearTaskID() *TaskRecordUpsertOne {
 	return u.Update(func(s *TaskRecordUpsert) {
 		s.ClearTaskID()
+	})
+}
+
+// SetPrompt sets the "prompt" field.
+func (u *TaskRecordUpsertOne) SetPrompt(v string) *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.SetPrompt(v)
+	})
+}
+
+// UpdatePrompt sets the "prompt" field to the value that was provided on create.
+func (u *TaskRecordUpsertOne) UpdatePrompt() *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.UpdatePrompt()
+	})
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (u *TaskRecordUpsertOne) ClearPrompt() *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.ClearPrompt()
+	})
+}
+
+// SetRole sets the "role" field.
+func (u *TaskRecordUpsertOne) SetRole(v consts.ChatRole) *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.SetRole(v)
+	})
+}
+
+// UpdateRole sets the "role" field to the value that was provided on create.
+func (u *TaskRecordUpsertOne) UpdateRole() *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.UpdateRole()
 	})
 }
 
@@ -707,6 +804,41 @@ func (u *TaskRecordUpsertBulk) UpdateTaskID() *TaskRecordUpsertBulk {
 func (u *TaskRecordUpsertBulk) ClearTaskID() *TaskRecordUpsertBulk {
 	return u.Update(func(s *TaskRecordUpsert) {
 		s.ClearTaskID()
+	})
+}
+
+// SetPrompt sets the "prompt" field.
+func (u *TaskRecordUpsertBulk) SetPrompt(v string) *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.SetPrompt(v)
+	})
+}
+
+// UpdatePrompt sets the "prompt" field to the value that was provided on create.
+func (u *TaskRecordUpsertBulk) UpdatePrompt() *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.UpdatePrompt()
+	})
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (u *TaskRecordUpsertBulk) ClearPrompt() *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.ClearPrompt()
+	})
+}
+
+// SetRole sets the "role" field.
+func (u *TaskRecordUpsertBulk) SetRole(v consts.ChatRole) *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.SetRole(v)
+	})
+}
+
+// UpdateRole sets the "role" field to the value that was provided on create.
+func (u *TaskRecordUpsertBulk) UpdateRole() *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.UpdateRole()
 	})
 }
 

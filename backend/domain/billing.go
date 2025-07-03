@@ -5,6 +5,7 @@ import (
 
 	"github.com/GoYoko/web"
 
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 )
@@ -58,7 +59,9 @@ func (c *ChatRecord) From(e *db.Task) *ChatRecord {
 		return c
 	}
 	c.ID = e.TaskID
-	c.Question = e.Prompt
+	if len(e.Edges.TaskRecords) > 0 {
+		c.Question = e.Edges.TaskRecords[0].Prompt
+	}
 	c.User = cvt.From(e.Edges.User, &User{})
 	c.Model = cvt.From(e.Edges.Model, &Model{})
 	c.WorkMode = e.WorkMode
@@ -104,18 +107,33 @@ func (c *CompletionInfo) From(e *db.Task) *CompletionInfo {
 		return c
 	}
 	c.ID = e.TaskID
-	c.Prompt = e.Prompt
 	if len(e.Edges.TaskRecords) > 0 {
+		c.Prompt = e.Edges.TaskRecords[0].Prompt
 		c.Content = e.Edges.TaskRecords[0].Completion
 	}
 	c.CreatedAt = e.CreatedAt.Unix()
 	return c
 }
 
+type ChatContent struct {
+	Role      consts.ChatRole `json:"role"`    // 角色，如user: 用户的提问 assistant: 机器人回复
+	Content   string          `json:"content"` // 内容
+	CreatedAt int64           `json:"created_at"`
+}
+
+func (c *ChatContent) From(e *db.TaskRecord) *ChatContent {
+	if e == nil {
+		return c
+	}
+	c.Role = e.Role
+	c.Content = e.Completion
+	c.CreatedAt = e.CreatedAt.Unix()
+	return c
+}
+
 type ChatInfo struct {
-	ID        string `json:"id"`
-	Content   string `json:"content"`
-	CreatedAt int64  `json:"created_at"`
+	ID       string         `json:"id"`
+	Contents []*ChatContent `json:"contents"` // 消息内容
 }
 
 func (c *ChatInfo) From(e *db.Task) *ChatInfo {
@@ -123,10 +141,9 @@ func (c *ChatInfo) From(e *db.Task) *ChatInfo {
 		return c
 	}
 	c.ID = e.TaskID
-	for _, tr := range e.Edges.TaskRecords {
-		c.Content += tr.Completion + "\n"
-	}
-	c.CreatedAt = e.CreatedAt.Unix()
+	c.Contents = cvt.Iter(e.Edges.TaskRecords, func(_ int, r *db.TaskRecord) *ChatContent {
+		return cvt.From(r, &ChatContent{})
+	})
 	return c
 }
 

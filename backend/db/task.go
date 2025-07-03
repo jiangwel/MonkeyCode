@@ -31,8 +31,6 @@ type Task struct {
 	RequestID string `json:"request_id,omitempty"`
 	// ModelType holds the value of the "model_type" field.
 	ModelType consts.ModelType `json:"model_type,omitempty"`
-	// Prompt holds the value of the "prompt" field.
-	Prompt string `json:"prompt,omitempty"`
 	// IsAccept holds the value of the "is_accept" field.
 	IsAccept bool `json:"is_accept,omitempty"`
 	// ProgramLanguage holds the value of the "program_language" field.
@@ -110,7 +108,7 @@ func (*Task) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case task.FieldCodeLines, task.FieldInputTokens, task.FieldOutputTokens:
 			values[i] = new(sql.NullInt64)
-		case task.FieldTaskID, task.FieldRequestID, task.FieldModelType, task.FieldPrompt, task.FieldProgramLanguage, task.FieldWorkMode, task.FieldCompletion:
+		case task.FieldTaskID, task.FieldRequestID, task.FieldModelType, task.FieldProgramLanguage, task.FieldWorkMode, task.FieldCompletion:
 			values[i] = new(sql.NullString)
 		case task.FieldCreatedAt, task.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -166,12 +164,6 @@ func (t *Task) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field model_type", values[i])
 			} else if value.Valid {
 				t.ModelType = consts.ModelType(value.String)
-			}
-		case task.FieldPrompt:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field prompt", values[i])
-			} else if value.Valid {
-				t.Prompt = value.String
 			}
 		case task.FieldIsAccept:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -292,9 +284,6 @@ func (t *Task) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("model_type=")
 	builder.WriteString(fmt.Sprintf("%v", t.ModelType))
-	builder.WriteString(", ")
-	builder.WriteString("prompt=")
-	builder.WriteString(t.Prompt)
 	builder.WriteString(", ")
 	builder.WriteString("is_accept=")
 	builder.WriteString(fmt.Sprintf("%v", t.IsAccept))

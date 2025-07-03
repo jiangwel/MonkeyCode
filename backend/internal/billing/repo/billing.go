@@ -57,7 +57,9 @@ func (b *BillingRepo) ListChatRecord(ctx context.Context, req domain.ListRecordR
 	q := b.db.Task.Query().
 		WithUser().
 		WithModel().
-		WithTaskRecords().
+		WithTaskRecords(func(trq *db.TaskRecordQuery) {
+			trq.Order(taskrecord.ByCreatedAt(sql.OrderAsc()))
+		}).
 		Where(task.ModelType(consts.ModelTypeLLM)).
 		Order(task.ByCreatedAt(sql.OrderDesc()))
 
@@ -101,6 +103,9 @@ func (b *BillingRepo) ListCompletionRecord(ctx context.Context, req domain.ListR
 	q := b.db.Task.Query().
 		WithUser().
 		WithModel().
+		WithTaskRecords(func(trq *db.TaskRecordQuery) {
+			trq.Order(taskrecord.ByCreatedAt(sql.OrderAsc()))
+		}).
 		Where(task.ModelType(consts.ModelTypeCoder)).
 		Order(task.ByCreatedAt(sql.OrderDesc()))
 

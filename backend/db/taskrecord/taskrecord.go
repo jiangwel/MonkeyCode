@@ -16,6 +16,10 @@ const (
 	FieldID = "id"
 	// FieldTaskID holds the string denoting the task_id field in the database.
 	FieldTaskID = "task_id"
+	// FieldPrompt holds the string denoting the prompt field in the database.
+	FieldPrompt = "prompt"
+	// FieldRole holds the string denoting the role field in the database.
+	FieldRole = "role"
 	// FieldCompletion holds the string denoting the completion field in the database.
 	FieldCompletion = "completion"
 	// FieldOutputTokens holds the string denoting the output_tokens field in the database.
@@ -41,6 +45,8 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldTaskID,
+	FieldPrompt,
+	FieldRole,
 	FieldCompletion,
 	FieldOutputTokens,
 	FieldCreatedAt,
@@ -77,6 +83,16 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByTaskID orders the results by the task_id field.
 func ByTaskID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTaskID, opts...).ToFunc()
+}
+
+// ByPrompt orders the results by the prompt field.
+func ByPrompt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPrompt, opts...).ToFunc()
+}
+
+// ByRole orders the results by the role field.
+func ByRole(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRole, opts...).ToFunc()
 }
 
 // ByCompletion orders the results by the completion field.

@@ -24,8 +24,6 @@ const (
 	FieldRequestID = "request_id"
 	// FieldModelType holds the string denoting the model_type field in the database.
 	FieldModelType = "model_type"
-	// FieldPrompt holds the string denoting the prompt field in the database.
-	FieldPrompt = "prompt"
 	// FieldIsAccept holds the string denoting the is_accept field in the database.
 	FieldIsAccept = "is_accept"
 	// FieldProgramLanguage holds the string denoting the program_language field in the database.
@@ -83,7 +81,6 @@ var Columns = []string{
 	FieldModelID,
 	FieldRequestID,
 	FieldModelType,
-	FieldPrompt,
 	FieldIsAccept,
 	FieldProgramLanguage,
 	FieldWorkMode,
@@ -147,11 +144,6 @@ func ByRequestID(opts ...sql.OrderTermOption) OrderOption {
 // ByModelType orders the results by the model_type field.
 func ByModelType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldModelType, opts...).ToFunc()
-}
-
-// ByPrompt orders the results by the prompt field.
-func ByPrompt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPrompt, opts...).ToFunc()
 }
 
 // ByIsAccept orders the results by the is_accept field.
