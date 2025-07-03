@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS users (
     status VARCHAR(20) DEFAULT 'active',
     platform VARCHAR(12),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_users_username ON users (username) WHERE username IS NOT NULL;
@@ -122,7 +123,6 @@ CREATE TABLE IF NOT EXISTS tasks (
     model_id UUID NOT NULL,
     request_id VARCHAR(255),
     model_type VARCHAR(255) NOT NULL,
-    prompt TEXT,
     completion TEXT,
     is_accept BOOLEAN DEFAULT FALSE,
     program_language VARCHAR(255),
@@ -146,6 +146,8 @@ CREATE INDEX IF NOT EXISTS idx_tasks_updated_at ON tasks (updated_at);
 CREATE TABLE IF NOT EXISTS task_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v1(),
     task_id UUID NOT NULL,
+    role VARCHAR(255),
+    prompt TEXT,
     completion TEXT,
     output_tokens BIGINT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

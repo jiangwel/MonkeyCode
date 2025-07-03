@@ -104,7 +104,6 @@ func (h *V1Handler) ChatCompletion(c *web.Context, req openai.ChatCompletionRequ
 		return BadRequest(c, "模型不能为空")
 	}
 
-	h.logger.With("request", req).DebugContext(c.Request().Context(), "处理聊天补全请求")
 	// if len(req.Tools) > 0 && req.Model != "qwen-max" {
 	// 	if h.toolsCall(c, req, req.Stream, req.Model) {
 	// 		return nil

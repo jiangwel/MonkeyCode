@@ -1776,6 +1776,17 @@
                 "AdminStatusInactive"
             ]
         },
+        "consts.ChatRole": {
+            "type": "string",
+            "enum": [
+                "user",
+                "assistant"
+            ],
+            "x-enum-varnames": [
+                "ChatRoleUser",
+                "ChatRoleAssistant"
+            ]
+        },
         "consts.ModelStatus": {
             "type": "string",
             "enum": [
@@ -1947,14 +1958,35 @@
                 }
             }
         },
-        "domain.ChatInfo": {
+        "domain.ChatContent": {
             "type": "object",
             "properties": {
                 "content": {
+                    "description": "内容",
                     "type": "string"
                 },
                 "created_at": {
                     "type": "integer"
+                },
+                "role": {
+                    "description": "角色，如user: 用户的提问 assistant: 机器人回复",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/consts.ChatRole"
+                        }
+                    ]
+                }
+            }
+        },
+        "domain.ChatInfo": {
+            "type": "object",
+            "properties": {
+                "contents": {
+                    "description": "消息内容",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ChatContent"
+                    }
                 },
                 "id": {
                     "type": "string"

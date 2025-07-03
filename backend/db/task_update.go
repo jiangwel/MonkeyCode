@@ -122,26 +122,6 @@ func (tu *TaskUpdate) SetNillableModelType(ct *consts.ModelType) *TaskUpdate {
 	return tu
 }
 
-// SetPrompt sets the "prompt" field.
-func (tu *TaskUpdate) SetPrompt(s string) *TaskUpdate {
-	tu.mutation.SetPrompt(s)
-	return tu
-}
-
-// SetNillablePrompt sets the "prompt" field if the given value is not nil.
-func (tu *TaskUpdate) SetNillablePrompt(s *string) *TaskUpdate {
-	if s != nil {
-		tu.SetPrompt(*s)
-	}
-	return tu
-}
-
-// ClearPrompt clears the value of the "prompt" field.
-func (tu *TaskUpdate) ClearPrompt() *TaskUpdate {
-	tu.mutation.ClearPrompt()
-	return tu
-}
-
 // SetIsAccept sets the "is_accept" field.
 func (tu *TaskUpdate) SetIsAccept(b bool) *TaskUpdate {
 	tu.mutation.SetIsAccept(b)
@@ -443,12 +423,6 @@ func (tu *TaskUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := tu.mutation.ModelType(); ok {
 		_spec.SetField(task.FieldModelType, field.TypeString, value)
 	}
-	if value, ok := tu.mutation.Prompt(); ok {
-		_spec.SetField(task.FieldPrompt, field.TypeString, value)
-	}
-	if tu.mutation.PromptCleared() {
-		_spec.ClearField(task.FieldPrompt, field.TypeString)
-	}
 	if value, ok := tu.mutation.IsAccept(); ok {
 		_spec.SetField(task.FieldIsAccept, field.TypeBool, value)
 	}
@@ -713,26 +687,6 @@ func (tuo *TaskUpdateOne) SetNillableModelType(ct *consts.ModelType) *TaskUpdate
 	if ct != nil {
 		tuo.SetModelType(*ct)
 	}
-	return tuo
-}
-
-// SetPrompt sets the "prompt" field.
-func (tuo *TaskUpdateOne) SetPrompt(s string) *TaskUpdateOne {
-	tuo.mutation.SetPrompt(s)
-	return tuo
-}
-
-// SetNillablePrompt sets the "prompt" field if the given value is not nil.
-func (tuo *TaskUpdateOne) SetNillablePrompt(s *string) *TaskUpdateOne {
-	if s != nil {
-		tuo.SetPrompt(*s)
-	}
-	return tuo
-}
-
-// ClearPrompt clears the value of the "prompt" field.
-func (tuo *TaskUpdateOne) ClearPrompt() *TaskUpdateOne {
-	tuo.mutation.ClearPrompt()
 	return tuo
 }
 
@@ -1066,12 +1020,6 @@ func (tuo *TaskUpdateOne) sqlSave(ctx context.Context) (_node *Task, err error) 
 	}
 	if value, ok := tuo.mutation.ModelType(); ok {
 		_spec.SetField(task.FieldModelType, field.TypeString, value)
-	}
-	if value, ok := tuo.mutation.Prompt(); ok {
-		_spec.SetField(task.FieldPrompt, field.TypeString, value)
-	}
-	if tuo.mutation.PromptCleared() {
-		_spec.ClearField(task.FieldPrompt, field.TypeString)
 	}
 	if value, ok := tuo.mutation.IsAccept(); ok {
 		_spec.SetField(task.FieldIsAccept, field.TypeBool, value)

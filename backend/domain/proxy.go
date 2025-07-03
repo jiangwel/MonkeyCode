@@ -43,6 +43,7 @@ type RecordParam struct {
 	UserID          string
 	ModelID         string
 	ModelType       consts.ModelType
+	Role            consts.ChatRole
 	Prompt          string
 	ProgramLanguage string
 	InputTokens     int64
@@ -51,4 +52,23 @@ type RecordParam struct {
 	Completion      string
 	WorkMode        string
 	CodeLines       int64
+}
+
+func (r *RecordParam) Clone() *RecordParam {
+	return &RecordParam{
+		RequestID:       r.RequestID,
+		TaskID:          r.TaskID,
+		UserID:          r.UserID,
+		ModelID:         r.ModelID,
+		ModelType:       r.ModelType,
+		Role:            r.Role,
+		Prompt:          r.Prompt,
+		ProgramLanguage: r.ProgramLanguage,
+		InputTokens:     r.InputTokens,
+		OutputTokens:    r.OutputTokens,
+		IsAccept:        r.IsAccept,
+		Completion:      r.Completion,
+		WorkMode:        r.WorkMode,
+		CodeLines:       r.CodeLines,
+	}
 }

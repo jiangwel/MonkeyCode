@@ -246,7 +246,6 @@ var (
 		{Name: "task_id", Type: field.TypeString, Unique: true},
 		{Name: "request_id", Type: field.TypeString, Nullable: true},
 		{Name: "model_type", Type: field.TypeString},
-		{Name: "prompt", Type: field.TypeString, Nullable: true},
 		{Name: "is_accept", Type: field.TypeBool, Default: false},
 		{Name: "program_language", Type: field.TypeString, Nullable: true},
 		{Name: "work_mode", Type: field.TypeString, Nullable: true},
@@ -267,13 +266,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "tasks_models_tasks",
-				Columns:    []*schema.Column{TasksColumns[14]},
+				Columns:    []*schema.Column{TasksColumns[13]},
 				RefColumns: []*schema.Column{ModelsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "tasks_users_tasks",
-				Columns:    []*schema.Column{TasksColumns[15]},
+				Columns:    []*schema.Column{TasksColumns[14]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -282,6 +281,8 @@ var (
 	// TaskRecordsColumns holds the columns for the "task_records" table.
 	TaskRecordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "prompt", Type: field.TypeString, Nullable: true},
+		{Name: "role", Type: field.TypeString},
 		{Name: "completion", Type: field.TypeString},
 		{Name: "output_tokens", Type: field.TypeInt64},
 		{Name: "created_at", Type: field.TypeTime},
@@ -296,7 +297,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "task_records_tasks_task_records",
-				Columns:    []*schema.Column{TaskRecordsColumns[5]},
+				Columns:    []*schema.Column{TaskRecordsColumns[7]},
 				RefColumns: []*schema.Column{TasksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -305,6 +306,7 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "username", Type: field.TypeString, Nullable: true},
 		{Name: "password", Type: field.TypeString, Nullable: true},
 		{Name: "email", Type: field.TypeString, Nullable: true},

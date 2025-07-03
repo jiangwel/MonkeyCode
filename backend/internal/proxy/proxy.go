@@ -20,7 +20,9 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/domain"
+	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 	"github.com/chaitin/MonkeyCode/backend/pkg/logger"
+	"github.com/chaitin/MonkeyCode/backend/pkg/promptparser"
 	"github.com/chaitin/MonkeyCode/backend/pkg/request"
 )
 
@@ -346,6 +348,7 @@ func (p *LLMProxy) handleCompletionStream(ctx context.Context, w http.ResponseWr
 			ModelID:   m.ID,
 			ModelType: consts.ModelTypeLLM,
 			Prompt:    req.Prompt.(string),
+			Role:      consts.ChatRoleAssistant,
 		}
 		buf := bufio.NewWriterSize(w, 32*1024)
 		defer buf.Flush()
@@ -537,32 +540,44 @@ func streamRead(ctx context.Context, r io.Reader, fn func([]byte) error) error {
 	}
 }
 
-func getPrompt(req *openai.ChatCompletionRequest) string {
+func (p *LLMProxy) getPrompt(ctx context.Context, req *openai.ChatCompletionRequest) string {
+	prompt := ""
+	parse := promptparser.New(promptparser.KindTask)
 	for _, message := range req.Messages {
 		if message.Role == "system" {
 			continue
 		}
 
-		if strings.Contains(message.Content, "<task>") {
-			return message.Content
+		if strings.Contains(message.Content, "<task>") ||
+			strings.Contains(message.Content, "<feedback>") ||
+			strings.Contains(message.Content, "<user_message>") {
+			if info, err := parse.Parse(message.Content); err == nil {
+				prompt = info.Prompt
+			} else {
+				p.logger.With("message", message.Content).WarnContext(ctx, "解析Prompt失败", "error", err)
+			}
 		}
 
 		for _, m := range message.MultiContent {
-			if strings.Contains(m.Text, "<task>") {
-				return m.Text
+			if strings.Contains(m.Text, "<task>") ||
+				strings.Contains(m.Text, "<feedback>") ||
+				strings.Contains(m.Text, "<user_message>") {
+				if info, err := parse.Parse(m.Text); err == nil {
+					prompt = info.Prompt
+				} else {
+					p.logger.With("message", m.Text).WarnContext(ctx, "解析Prompt失败", "error", err)
+				}
 			}
 		}
 	}
-	return ""
+	return prompt
 }
 
 func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.ResponseWriter, req *openai.ChatCompletionRequest) {
 	endpoint := "/chat/completions"
 	p.handle(ctx, func(c *Ctx, log *RequestResponseLog) error {
-		// 记录开始时间用于性能监控
 		startTime := time.Now()
 
-		// 使用负载均衡算法选择模型
 		m, err := p.usecase.SelectModelWithLoadBalancing(req.Model, consts.ModelTypeLLM)
 		if err != nil {
 			p.logger.With("modelName", req.Model, "modelType", consts.ModelTypeLLM).WarnContext(ctx, "流式请求模型选择失败", "error", err)
@@ -570,37 +585,34 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 			return err
 		}
 
-		prompt := getPrompt(req)
+		prompt := p.getPrompt(ctx, req)
 		mode := req.Metadata["mode"]
 		taskID := req.Metadata["task_id"]
 
-		// 构造上游API URL
 		upstream := m.APIBase + endpoint
 		log.UpstreamURL = upstream
 
-		// 创建上游请求
 		body, err := json.Marshal(req)
 		if err != nil {
 			p.logger.ErrorContext(ctx, "序列化请求体失败", "error", err)
 			return fmt.Errorf("序列化请求体失败: %w", err)
 		}
 
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, upstream, bytes.NewReader(body))
+		newReq, err := http.NewRequestWithContext(ctx, http.MethodPost, upstream, bytes.NewReader(body))
 		if err != nil {
 			p.logger.With("upstream", upstream).WarnContext(ctx, "创建上游流式请求失败", "error", err)
 			return fmt.Errorf("创建上游请求失败: %w", err)
 		}
 
-		// 设置请求头
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Accept", "text/event-stream")
+		newReq.Header.Set("Content-Type", "application/json")
+		newReq.Header.Set("Accept", "text/event-stream")
 		if m.APIKey != "" && m.APIKey != "none" {
-			req.Header.Set("Authorization", "Bearer "+m.APIKey)
+			newReq.Header.Set("Authorization", "Bearer "+m.APIKey)
 		}
 
 		// 保存请求头（去除敏感信息）
 		requestHeaders := make(map[string][]string)
-		for k, v := range req.Header {
+		for k, v := range newReq.Header {
 			if k != "Authorization" {
 				requestHeaders[k] = v
 			} else {
@@ -616,13 +628,16 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 			"modelType", consts.ModelTypeLLM,
 			"apiBase", m.APIBase,
 			"work_mode", mode,
-			"requestHeader", req.Header,
-			"requestBody", req,
+			"requestHeader", newReq.Header,
+			"requestBody", newReq,
 			"taskID", taskID,
+			"messages", cvt.Filter(req.Messages, func(i int, v openai.ChatCompletionMessage) (openai.ChatCompletionMessage, bool) {
+				return v, v.Role != "system"
+			}),
 		).DebugContext(ctx, "转发流式请求到上游API")
 
 		// 发送请求
-		resp, err := p.client.Do(req)
+		resp, err := p.client.Do(newReq)
 		if err != nil {
 			p.logger.With("upstreamURL", upstream).WarnContext(ctx, "发送上游流式请求失败", "error", err)
 			return fmt.Errorf("发送上游请求失败: %w", err)
@@ -651,7 +666,7 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 				p.logger.With(
 					"endpoint", endpoint,
 					"upstreamURL", upstream,
-					"requestBody", req,
+					"requestBody", newReq,
 					"statusCode", resp.StatusCode,
 					"errorType", errorResp.Error.Type,
 					"errorCode", errorResp.Error.Code,
@@ -665,7 +680,7 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 			p.logger.With(
 				"endpoint", endpoint,
 				"upstreamURL", upstream,
-				"requestBody", req,
+				"requestBody", newReq,
 				"statusCode", resp.StatusCode,
 				"responseBody", string(responseBody),
 			).WarnContext(ctx, "上游API流式请求异常详情")
@@ -697,6 +712,7 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 			ModelType: consts.ModelTypeLLM,
 			WorkMode:  mode,
 			Prompt:    prompt,
+			Role:      consts.ChatRoleAssistant,
 		}
 		buf := bufio.NewWriterSize(w, 32*1024)
 		defer buf.Flush()
@@ -705,6 +721,16 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 		defer close(ch)
 
 		go func(rc *domain.RecordParam) {
+			if rc.Prompt != "" {
+				urc := rc.Clone()
+				urc.Role = consts.ChatRoleUser
+				urc.Completion = urc.Prompt
+				if err := p.usecase.Record(context.Background(), urc); err != nil {
+					p.logger.With("modelID", m.ID, "modelName", m.ModelName, "modelType", consts.ModelTypeLLM).
+						WarnContext(ctx, "插入流式记录失败", "error", err)
+				}
+			}
+
 			for line := range ch {
 				if bytes.HasPrefix(line, []byte("data:")) {
 					line = bytes.TrimPrefix(line, []byte("data: "))
@@ -774,7 +800,7 @@ func (p *LLMProxy) handleChatCompletion(ctx context.Context, w http.ResponseWrit
 		}
 
 		startTime := time.Now()
-		prompt := getPrompt(req)
+		prompt := p.getPrompt(ctx, req)
 		mode := req.Metadata["mode"]
 		taskID := req.Metadata["task_id"]
 

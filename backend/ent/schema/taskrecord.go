@@ -9,6 +9,8 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+
+	"github.com/chaitin/MonkeyCode/backend/consts"
 )
 
 // TaskRecord holds the schema definition for the TaskRecord entity.
@@ -29,6 +31,8 @@ func (TaskRecord) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Unique(),
 		field.UUID("task_id", uuid.UUID{}).Optional(),
+		field.String("prompt").Optional(),
+		field.String("role").GoType(consts.ChatRole("")),
 		field.String("completion"),
 		field.Int64("output_tokens"),
 		field.Time("created_at").Default(time.Now),

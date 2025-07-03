@@ -9017,7 +9017,6 @@ type TaskMutation struct {
 	task_id             *string
 	request_id          *string
 	model_type          *consts.ModelType
-	prompt              *string
 	is_accept           *bool
 	program_language    *string
 	work_mode           *string
@@ -9364,55 +9363,6 @@ func (m *TaskMutation) OldModelType(ctx context.Context) (v consts.ModelType, er
 // ResetModelType resets all changes to the "model_type" field.
 func (m *TaskMutation) ResetModelType() {
 	m.model_type = nil
-}
-
-// SetPrompt sets the "prompt" field.
-func (m *TaskMutation) SetPrompt(s string) {
-	m.prompt = &s
-}
-
-// Prompt returns the value of the "prompt" field in the mutation.
-func (m *TaskMutation) Prompt() (r string, exists bool) {
-	v := m.prompt
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPrompt returns the old "prompt" field's value of the Task entity.
-// If the Task object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TaskMutation) OldPrompt(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPrompt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPrompt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPrompt: %w", err)
-	}
-	return oldValue.Prompt, nil
-}
-
-// ClearPrompt clears the value of the "prompt" field.
-func (m *TaskMutation) ClearPrompt() {
-	m.prompt = nil
-	m.clearedFields[task.FieldPrompt] = struct{}{}
-}
-
-// PromptCleared returns if the "prompt" field was cleared in this mutation.
-func (m *TaskMutation) PromptCleared() bool {
-	_, ok := m.clearedFields[task.FieldPrompt]
-	return ok
-}
-
-// ResetPrompt resets all changes to the "prompt" field.
-func (m *TaskMutation) ResetPrompt() {
-	m.prompt = nil
-	delete(m.clearedFields, task.FieldPrompt)
 }
 
 // SetIsAccept sets the "is_accept" field.
@@ -10022,7 +9972,7 @@ func (m *TaskMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TaskMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 14)
 	if m.task_id != nil {
 		fields = append(fields, task.FieldTaskID)
 	}
@@ -10037,9 +9987,6 @@ func (m *TaskMutation) Fields() []string {
 	}
 	if m.model_type != nil {
 		fields = append(fields, task.FieldModelType)
-	}
-	if m.prompt != nil {
-		fields = append(fields, task.FieldPrompt)
 	}
 	if m.is_accept != nil {
 		fields = append(fields, task.FieldIsAccept)
@@ -10086,8 +10033,6 @@ func (m *TaskMutation) Field(name string) (ent.Value, bool) {
 		return m.RequestID()
 	case task.FieldModelType:
 		return m.ModelType()
-	case task.FieldPrompt:
-		return m.Prompt()
 	case task.FieldIsAccept:
 		return m.IsAccept()
 	case task.FieldProgramLanguage:
@@ -10125,8 +10070,6 @@ func (m *TaskMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldRequestID(ctx)
 	case task.FieldModelType:
 		return m.OldModelType(ctx)
-	case task.FieldPrompt:
-		return m.OldPrompt(ctx)
 	case task.FieldIsAccept:
 		return m.OldIsAccept(ctx)
 	case task.FieldProgramLanguage:
@@ -10188,13 +10131,6 @@ func (m *TaskMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetModelType(v)
-		return nil
-	case task.FieldPrompt:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPrompt(v)
 		return nil
 	case task.FieldIsAccept:
 		v, ok := value.(bool)
@@ -10337,9 +10273,6 @@ func (m *TaskMutation) ClearedFields() []string {
 	if m.FieldCleared(task.FieldRequestID) {
 		fields = append(fields, task.FieldRequestID)
 	}
-	if m.FieldCleared(task.FieldPrompt) {
-		fields = append(fields, task.FieldPrompt)
-	}
 	if m.FieldCleared(task.FieldProgramLanguage) {
 		fields = append(fields, task.FieldProgramLanguage)
 	}
@@ -10381,9 +10314,6 @@ func (m *TaskMutation) ClearField(name string) error {
 	case task.FieldRequestID:
 		m.ClearRequestID()
 		return nil
-	case task.FieldPrompt:
-		m.ClearPrompt()
-		return nil
 	case task.FieldProgramLanguage:
 		m.ClearProgramLanguage()
 		return nil
@@ -10424,9 +10354,6 @@ func (m *TaskMutation) ResetField(name string) error {
 		return nil
 	case task.FieldModelType:
 		m.ResetModelType()
-		return nil
-	case task.FieldPrompt:
-		m.ResetPrompt()
 		return nil
 	case task.FieldIsAccept:
 		m.ResetIsAccept()
@@ -10585,6 +10512,8 @@ type TaskRecordMutation struct {
 	op               Op
 	typ              string
 	id               *uuid.UUID
+	prompt           *string
+	role             *consts.ChatRole
 	completion       *string
 	output_tokens    *int64
 	addoutput_tokens *int64
@@ -10749,6 +10678,91 @@ func (m *TaskRecordMutation) TaskIDCleared() bool {
 func (m *TaskRecordMutation) ResetTaskID() {
 	m.task = nil
 	delete(m.clearedFields, taskrecord.FieldTaskID)
+}
+
+// SetPrompt sets the "prompt" field.
+func (m *TaskRecordMutation) SetPrompt(s string) {
+	m.prompt = &s
+}
+
+// Prompt returns the value of the "prompt" field in the mutation.
+func (m *TaskRecordMutation) Prompt() (r string, exists bool) {
+	v := m.prompt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrompt returns the old "prompt" field's value of the TaskRecord entity.
+// If the TaskRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskRecordMutation) OldPrompt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrompt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrompt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrompt: %w", err)
+	}
+	return oldValue.Prompt, nil
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (m *TaskRecordMutation) ClearPrompt() {
+	m.prompt = nil
+	m.clearedFields[taskrecord.FieldPrompt] = struct{}{}
+}
+
+// PromptCleared returns if the "prompt" field was cleared in this mutation.
+func (m *TaskRecordMutation) PromptCleared() bool {
+	_, ok := m.clearedFields[taskrecord.FieldPrompt]
+	return ok
+}
+
+// ResetPrompt resets all changes to the "prompt" field.
+func (m *TaskRecordMutation) ResetPrompt() {
+	m.prompt = nil
+	delete(m.clearedFields, taskrecord.FieldPrompt)
+}
+
+// SetRole sets the "role" field.
+func (m *TaskRecordMutation) SetRole(cr consts.ChatRole) {
+	m.role = &cr
+}
+
+// Role returns the value of the "role" field in the mutation.
+func (m *TaskRecordMutation) Role() (r consts.ChatRole, exists bool) {
+	v := m.role
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRole returns the old "role" field's value of the TaskRecord entity.
+// If the TaskRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskRecordMutation) OldRole(ctx context.Context) (v consts.ChatRole, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRole is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRole requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRole: %w", err)
+	}
+	return oldValue.Role, nil
+}
+
+// ResetRole resets all changes to the "role" field.
+func (m *TaskRecordMutation) ResetRole() {
+	m.role = nil
 }
 
 // SetCompletion sets the "completion" field.
@@ -10976,9 +10990,15 @@ func (m *TaskRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TaskRecordMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 7)
 	if m.task != nil {
 		fields = append(fields, taskrecord.FieldTaskID)
+	}
+	if m.prompt != nil {
+		fields = append(fields, taskrecord.FieldPrompt)
+	}
+	if m.role != nil {
+		fields = append(fields, taskrecord.FieldRole)
 	}
 	if m.completion != nil {
 		fields = append(fields, taskrecord.FieldCompletion)
@@ -11002,6 +11022,10 @@ func (m *TaskRecordMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case taskrecord.FieldTaskID:
 		return m.TaskID()
+	case taskrecord.FieldPrompt:
+		return m.Prompt()
+	case taskrecord.FieldRole:
+		return m.Role()
 	case taskrecord.FieldCompletion:
 		return m.Completion()
 	case taskrecord.FieldOutputTokens:
@@ -11021,6 +11045,10 @@ func (m *TaskRecordMutation) OldField(ctx context.Context, name string) (ent.Val
 	switch name {
 	case taskrecord.FieldTaskID:
 		return m.OldTaskID(ctx)
+	case taskrecord.FieldPrompt:
+		return m.OldPrompt(ctx)
+	case taskrecord.FieldRole:
+		return m.OldRole(ctx)
 	case taskrecord.FieldCompletion:
 		return m.OldCompletion(ctx)
 	case taskrecord.FieldOutputTokens:
@@ -11044,6 +11072,20 @@ func (m *TaskRecordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTaskID(v)
+		return nil
+	case taskrecord.FieldPrompt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrompt(v)
+		return nil
+	case taskrecord.FieldRole:
+		v, ok := value.(consts.ChatRole)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRole(v)
 		return nil
 	case taskrecord.FieldCompletion:
 		v, ok := value.(string)
@@ -11121,6 +11163,9 @@ func (m *TaskRecordMutation) ClearedFields() []string {
 	if m.FieldCleared(taskrecord.FieldTaskID) {
 		fields = append(fields, taskrecord.FieldTaskID)
 	}
+	if m.FieldCleared(taskrecord.FieldPrompt) {
+		fields = append(fields, taskrecord.FieldPrompt)
+	}
 	return fields
 }
 
@@ -11138,6 +11183,9 @@ func (m *TaskRecordMutation) ClearField(name string) error {
 	case taskrecord.FieldTaskID:
 		m.ClearTaskID()
 		return nil
+	case taskrecord.FieldPrompt:
+		m.ClearPrompt()
+		return nil
 	}
 	return fmt.Errorf("unknown TaskRecord nullable field %s", name)
 }
@@ -11148,6 +11196,12 @@ func (m *TaskRecordMutation) ResetField(name string) error {
 	switch name {
 	case taskrecord.FieldTaskID:
 		m.ResetTaskID()
+		return nil
+	case taskrecord.FieldPrompt:
+		m.ResetPrompt()
+		return nil
+	case taskrecord.FieldRole:
+		m.ResetRole()
 		return nil
 	case taskrecord.FieldCompletion:
 		m.ResetCompletion()
@@ -11245,6 +11299,7 @@ type UserMutation struct {
 	op                     Op
 	typ                    string
 	id                     *uuid.UUID
+	deleted_at             *time.Time
 	username               *string
 	password               *string
 	email                  *string
@@ -11373,6 +11428,55 @@ func (m *UserMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *UserMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *UserMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *UserMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[user.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *UserMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *UserMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, user.FieldDeletedAt)
 }
 
 // SetUsername sets the "username" field.
@@ -11965,7 +12069,10 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
+	if m.deleted_at != nil {
+		fields = append(fields, user.FieldDeletedAt)
+	}
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
 	}
@@ -11998,6 +12105,8 @@ func (m *UserMutation) Fields() []string {
 // schema.
 func (m *UserMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case user.FieldDeletedAt:
+		return m.DeletedAt()
 	case user.FieldUsername:
 		return m.Username()
 	case user.FieldPassword:
@@ -12023,6 +12132,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case user.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
 	case user.FieldUsername:
 		return m.OldUsername(ctx)
 	case user.FieldPassword:
@@ -12048,6 +12159,13 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *UserMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case user.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
 	case user.FieldUsername:
 		v, ok := value.(string)
 		if !ok {
@@ -12134,6 +12252,9 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(user.FieldDeletedAt) {
+		fields = append(fields, user.FieldDeletedAt)
+	}
 	if m.FieldCleared(user.FieldUsername) {
 		fields = append(fields, user.FieldUsername)
 	}
@@ -12160,6 +12281,9 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
 	switch name {
+	case user.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
 	case user.FieldUsername:
 		m.ClearUsername()
 		return nil
@@ -12180,6 +12304,9 @@ func (m *UserMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *UserMutation) ResetField(name string) error {
 	switch name {
+	case user.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
 	case user.FieldUsername:
 		m.ResetUsername()
 		return nil

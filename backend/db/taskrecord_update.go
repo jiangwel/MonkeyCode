@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
@@ -48,6 +49,40 @@ func (tru *TaskRecordUpdate) SetNillableTaskID(u *uuid.UUID) *TaskRecordUpdate {
 // ClearTaskID clears the value of the "task_id" field.
 func (tru *TaskRecordUpdate) ClearTaskID() *TaskRecordUpdate {
 	tru.mutation.ClearTaskID()
+	return tru
+}
+
+// SetPrompt sets the "prompt" field.
+func (tru *TaskRecordUpdate) SetPrompt(s string) *TaskRecordUpdate {
+	tru.mutation.SetPrompt(s)
+	return tru
+}
+
+// SetNillablePrompt sets the "prompt" field if the given value is not nil.
+func (tru *TaskRecordUpdate) SetNillablePrompt(s *string) *TaskRecordUpdate {
+	if s != nil {
+		tru.SetPrompt(*s)
+	}
+	return tru
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (tru *TaskRecordUpdate) ClearPrompt() *TaskRecordUpdate {
+	tru.mutation.ClearPrompt()
+	return tru
+}
+
+// SetRole sets the "role" field.
+func (tru *TaskRecordUpdate) SetRole(cr consts.ChatRole) *TaskRecordUpdate {
+	tru.mutation.SetRole(cr)
+	return tru
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (tru *TaskRecordUpdate) SetNillableRole(cr *consts.ChatRole) *TaskRecordUpdate {
+	if cr != nil {
+		tru.SetRole(*cr)
+	}
 	return tru
 }
 
@@ -173,6 +208,15 @@ func (tru *TaskRecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := tru.mutation.Prompt(); ok {
+		_spec.SetField(taskrecord.FieldPrompt, field.TypeString, value)
+	}
+	if tru.mutation.PromptCleared() {
+		_spec.ClearField(taskrecord.FieldPrompt, field.TypeString)
+	}
+	if value, ok := tru.mutation.Role(); ok {
+		_spec.SetField(taskrecord.FieldRole, field.TypeString, value)
+	}
 	if value, ok := tru.mutation.Completion(); ok {
 		_spec.SetField(taskrecord.FieldCompletion, field.TypeString, value)
 	}
@@ -256,6 +300,40 @@ func (truo *TaskRecordUpdateOne) SetNillableTaskID(u *uuid.UUID) *TaskRecordUpda
 // ClearTaskID clears the value of the "task_id" field.
 func (truo *TaskRecordUpdateOne) ClearTaskID() *TaskRecordUpdateOne {
 	truo.mutation.ClearTaskID()
+	return truo
+}
+
+// SetPrompt sets the "prompt" field.
+func (truo *TaskRecordUpdateOne) SetPrompt(s string) *TaskRecordUpdateOne {
+	truo.mutation.SetPrompt(s)
+	return truo
+}
+
+// SetNillablePrompt sets the "prompt" field if the given value is not nil.
+func (truo *TaskRecordUpdateOne) SetNillablePrompt(s *string) *TaskRecordUpdateOne {
+	if s != nil {
+		truo.SetPrompt(*s)
+	}
+	return truo
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (truo *TaskRecordUpdateOne) ClearPrompt() *TaskRecordUpdateOne {
+	truo.mutation.ClearPrompt()
+	return truo
+}
+
+// SetRole sets the "role" field.
+func (truo *TaskRecordUpdateOne) SetRole(cr consts.ChatRole) *TaskRecordUpdateOne {
+	truo.mutation.SetRole(cr)
+	return truo
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (truo *TaskRecordUpdateOne) SetNillableRole(cr *consts.ChatRole) *TaskRecordUpdateOne {
+	if cr != nil {
+		truo.SetRole(*cr)
+	}
 	return truo
 }
 
@@ -410,6 +488,15 @@ func (truo *TaskRecordUpdateOne) sqlSave(ctx context.Context) (_node *TaskRecord
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := truo.mutation.Prompt(); ok {
+		_spec.SetField(taskrecord.FieldPrompt, field.TypeString, value)
+	}
+	if truo.mutation.PromptCleared() {
+		_spec.ClearField(taskrecord.FieldPrompt, field.TypeString)
+	}
+	if value, ok := truo.mutation.Role(); ok {
+		_spec.SetField(taskrecord.FieldRole, field.TypeString, value)
 	}
 	if value, ok := truo.mutation.Completion(); ok {
 		_spec.SetField(taskrecord.FieldCompletion, field.TypeString, value)

@@ -7,6 +7,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/google/uuid"
 )
@@ -61,6 +62,17 @@ func TaskID(v uuid.UUID) predicate.TaskRecord {
 	return predicate.TaskRecord(sql.FieldEQ(FieldTaskID, v))
 }
 
+// Prompt applies equality check predicate on the "prompt" field. It's identical to PromptEQ.
+func Prompt(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldEQ(FieldPrompt, v))
+}
+
+// Role applies equality check predicate on the "role" field. It's identical to RoleEQ.
+func Role(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldEQ(FieldRole, vc))
+}
+
 // Completion applies equality check predicate on the "completion" field. It's identical to CompletionEQ.
 func Completion(v string) predicate.TaskRecord {
 	return predicate.TaskRecord(sql.FieldEQ(FieldCompletion, v))
@@ -109,6 +121,165 @@ func TaskIDIsNil() predicate.TaskRecord {
 // TaskIDNotNil applies the NotNil predicate on the "task_id" field.
 func TaskIDNotNil() predicate.TaskRecord {
 	return predicate.TaskRecord(sql.FieldNotNull(FieldTaskID))
+}
+
+// PromptEQ applies the EQ predicate on the "prompt" field.
+func PromptEQ(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldEQ(FieldPrompt, v))
+}
+
+// PromptNEQ applies the NEQ predicate on the "prompt" field.
+func PromptNEQ(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldNEQ(FieldPrompt, v))
+}
+
+// PromptIn applies the In predicate on the "prompt" field.
+func PromptIn(vs ...string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldIn(FieldPrompt, vs...))
+}
+
+// PromptNotIn applies the NotIn predicate on the "prompt" field.
+func PromptNotIn(vs ...string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldNotIn(FieldPrompt, vs...))
+}
+
+// PromptGT applies the GT predicate on the "prompt" field.
+func PromptGT(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldGT(FieldPrompt, v))
+}
+
+// PromptGTE applies the GTE predicate on the "prompt" field.
+func PromptGTE(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldGTE(FieldPrompt, v))
+}
+
+// PromptLT applies the LT predicate on the "prompt" field.
+func PromptLT(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldLT(FieldPrompt, v))
+}
+
+// PromptLTE applies the LTE predicate on the "prompt" field.
+func PromptLTE(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldLTE(FieldPrompt, v))
+}
+
+// PromptContains applies the Contains predicate on the "prompt" field.
+func PromptContains(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldContains(FieldPrompt, v))
+}
+
+// PromptHasPrefix applies the HasPrefix predicate on the "prompt" field.
+func PromptHasPrefix(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldHasPrefix(FieldPrompt, v))
+}
+
+// PromptHasSuffix applies the HasSuffix predicate on the "prompt" field.
+func PromptHasSuffix(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldHasSuffix(FieldPrompt, v))
+}
+
+// PromptIsNil applies the IsNil predicate on the "prompt" field.
+func PromptIsNil() predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldIsNull(FieldPrompt))
+}
+
+// PromptNotNil applies the NotNil predicate on the "prompt" field.
+func PromptNotNil() predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldNotNull(FieldPrompt))
+}
+
+// PromptEqualFold applies the EqualFold predicate on the "prompt" field.
+func PromptEqualFold(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldEqualFold(FieldPrompt, v))
+}
+
+// PromptContainsFold applies the ContainsFold predicate on the "prompt" field.
+func PromptContainsFold(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldContainsFold(FieldPrompt, v))
+}
+
+// RoleEQ applies the EQ predicate on the "role" field.
+func RoleEQ(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldEQ(FieldRole, vc))
+}
+
+// RoleNEQ applies the NEQ predicate on the "role" field.
+func RoleNEQ(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldNEQ(FieldRole, vc))
+}
+
+// RoleIn applies the In predicate on the "role" field.
+func RoleIn(vs ...consts.ChatRole) predicate.TaskRecord {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.TaskRecord(sql.FieldIn(FieldRole, v...))
+}
+
+// RoleNotIn applies the NotIn predicate on the "role" field.
+func RoleNotIn(vs ...consts.ChatRole) predicate.TaskRecord {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.TaskRecord(sql.FieldNotIn(FieldRole, v...))
+}
+
+// RoleGT applies the GT predicate on the "role" field.
+func RoleGT(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldGT(FieldRole, vc))
+}
+
+// RoleGTE applies the GTE predicate on the "role" field.
+func RoleGTE(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldGTE(FieldRole, vc))
+}
+
+// RoleLT applies the LT predicate on the "role" field.
+func RoleLT(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldLT(FieldRole, vc))
+}
+
+// RoleLTE applies the LTE predicate on the "role" field.
+func RoleLTE(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldLTE(FieldRole, vc))
+}
+
+// RoleContains applies the Contains predicate on the "role" field.
+func RoleContains(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldContains(FieldRole, vc))
+}
+
+// RoleHasPrefix applies the HasPrefix predicate on the "role" field.
+func RoleHasPrefix(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldHasPrefix(FieldRole, vc))
+}
+
+// RoleHasSuffix applies the HasSuffix predicate on the "role" field.
+func RoleHasSuffix(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldHasSuffix(FieldRole, vc))
+}
+
+// RoleEqualFold applies the EqualFold predicate on the "role" field.
+func RoleEqualFold(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldEqualFold(FieldRole, vc))
+}
+
+// RoleContainsFold applies the ContainsFold predicate on the "role" field.
+func RoleContainsFold(v consts.ChatRole) predicate.TaskRecord {
+	vc := string(v)
+	return predicate.TaskRecord(sql.FieldContainsFold(FieldRole, vc))
 }
 
 // CompletionEQ applies the EQ predicate on the "completion" field.

@@ -238,15 +238,15 @@ func init() {
 	taskFields := schema.Task{}.Fields()
 	_ = taskFields
 	// taskDescIsAccept is the schema descriptor for is_accept field.
-	taskDescIsAccept := taskFields[7].Descriptor()
+	taskDescIsAccept := taskFields[6].Descriptor()
 	// task.DefaultIsAccept holds the default value on creation for the is_accept field.
 	task.DefaultIsAccept = taskDescIsAccept.Default.(bool)
 	// taskDescCreatedAt is the schema descriptor for created_at field.
-	taskDescCreatedAt := taskFields[14].Descriptor()
+	taskDescCreatedAt := taskFields[13].Descriptor()
 	// task.DefaultCreatedAt holds the default value on creation for the created_at field.
 	task.DefaultCreatedAt = taskDescCreatedAt.Default.(func() time.Time)
 	// taskDescUpdatedAt is the schema descriptor for updated_at field.
-	taskDescUpdatedAt := taskFields[15].Descriptor()
+	taskDescUpdatedAt := taskFields[14].Descriptor()
 	// task.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	task.DefaultUpdatedAt = taskDescUpdatedAt.Default.(func() time.Time)
 	// task.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -254,15 +254,20 @@ func init() {
 	taskrecordFields := schema.TaskRecord{}.Fields()
 	_ = taskrecordFields
 	// taskrecordDescCreatedAt is the schema descriptor for created_at field.
-	taskrecordDescCreatedAt := taskrecordFields[4].Descriptor()
+	taskrecordDescCreatedAt := taskrecordFields[6].Descriptor()
 	// taskrecord.DefaultCreatedAt holds the default value on creation for the created_at field.
 	taskrecord.DefaultCreatedAt = taskrecordDescCreatedAt.Default.(func() time.Time)
 	// taskrecordDescUpdatedAt is the schema descriptor for updated_at field.
-	taskrecordDescUpdatedAt := taskrecordFields[5].Descriptor()
+	taskrecordDescUpdatedAt := taskrecordFields[7].Descriptor()
 	// taskrecord.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	taskrecord.DefaultUpdatedAt = taskrecordDescUpdatedAt.Default.(func() time.Time)
 	// taskrecord.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	taskrecord.UpdateDefaultUpdatedAt = taskrecordDescUpdatedAt.UpdateDefault.(func() time.Time)
+	userMixin := schema.User{}.Mixin()
+	userMixinHooks0 := userMixin[0].Hooks()
+	user.Hooks[0] = userMixinHooks0[0]
+	userMixinInters0 := userMixin[0].Interceptors()
+	user.Interceptors[0] = userMixinInters0[0]
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescPlatform is the schema descriptor for platform field.
