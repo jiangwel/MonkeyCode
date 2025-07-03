@@ -78,6 +78,9 @@ const ModelItem = ({
         overflow: 'hidden',
         position: 'relative',
         transition: 'all 0.3s ease',
+        borderStyle: 'solid',
+        borderWidth: '1px',
+        borderColor: data.is_active ? 'success.main' : 'transparent',
         boxShadow:
           '0px 0px 10px 0px rgba(68, 80, 91, 0.1), 0px 0px 2px 0px rgba(68, 80, 91, 0.1)',
         '&:hover': {
