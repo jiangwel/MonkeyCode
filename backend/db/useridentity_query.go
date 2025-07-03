@@ -302,12 +302,12 @@ func (uiq *UserIdentityQuery) WithUser(opts ...func(*UserQuery)) *UserIdentityQu
 // Example:
 //
 //	var v []struct {
-//		UserID uuid.UUID `json:"user_id,omitempty"`
+//		DeletedAt time.Time `json:"deleted_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.UserIdentity.Query().
-//		GroupBy(useridentity.FieldUserID).
+//		GroupBy(useridentity.FieldDeletedAt).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (uiq *UserIdentityQuery) GroupBy(field string, fields ...string) *UserIdentityGroupBy {
@@ -325,11 +325,11 @@ func (uiq *UserIdentityQuery) GroupBy(field string, fields ...string) *UserIdent
 // Example:
 //
 //	var v []struct {
-//		UserID uuid.UUID `json:"user_id,omitempty"`
+//		DeletedAt time.Time `json:"deleted_at,omitempty"`
 //	}
 //
 //	client.UserIdentity.Query().
-//		Select(useridentity.FieldUserID).
+//		Select(useridentity.FieldDeletedAt).
 //		Scan(ctx, &v)
 func (uiq *UserIdentityQuery) Select(fields ...string) *UserIdentitySelect {
 	uiq.ctx.Fields = append(uiq.ctx.Fields, fields...)

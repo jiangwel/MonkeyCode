@@ -325,6 +325,7 @@ var (
 	// UserIdentitiesColumns holds the columns for the "user_identities" table.
 	UserIdentitiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "platform", Type: field.TypeString, Default: "email"},
 		{Name: "identity_id", Type: field.TypeString},
 		{Name: "union_id", Type: field.TypeString, Nullable: true},
@@ -342,7 +343,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_identities_users_identities",
-				Columns:    []*schema.Column{UserIdentitiesColumns[8]},
+				Columns:    []*schema.Column{UserIdentitiesColumns[9]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

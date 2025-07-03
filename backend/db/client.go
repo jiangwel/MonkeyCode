@@ -2693,12 +2693,14 @@ func (c *UserIdentityClient) QueryUser(ui *UserIdentity) *UserQuery {
 
 // Hooks returns the client hooks.
 func (c *UserIdentityClient) Hooks() []Hook {
-	return c.hooks.UserIdentity
+	hooks := c.hooks.UserIdentity
+	return append(hooks[:len(hooks):len(hooks)], useridentity.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
 func (c *UserIdentityClient) Interceptors() []Interceptor {
-	return c.inters.UserIdentity
+	inters := c.inters.UserIdentity
+	return append(inters[:len(inters):len(inters)], useridentity.Interceptors[:]...)
 }
 
 func (c *UserIdentityClient) mutate(ctx context.Context, m *UserIdentityMutation) (Value, error) {

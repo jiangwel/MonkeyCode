@@ -5,6 +5,7 @@ package useridentity
 import (
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/chaitin/MonkeyCode/backend/consts"
@@ -15,6 +16,8 @@ const (
 	Label = "user_identity"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
+	FieldDeletedAt = "deleted_at"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldPlatform holds the string denoting the platform field in the database.
@@ -47,6 +50,7 @@ const (
 // Columns holds all SQL columns for useridentity fields.
 var Columns = []string{
 	FieldID,
+	FieldDeletedAt,
 	FieldUserID,
 	FieldPlatform,
 	FieldIdentityID,
@@ -67,7 +71,14 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/chaitin/MonkeyCode/backend/db/runtime"
 var (
+	Hooks        [1]ent.Hook
+	Interceptors [1]ent.Interceptor
 	// DefaultPlatform holds the default value on creation for the "platform" field.
 	DefaultPlatform consts.UserPlatform
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -80,6 +91,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByDeletedAt orders the results by the deleted_at field.
+func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
 }
 
 // ByUserID orders the results by the user_id field.

@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS users (
     deleted_at TIMESTAMPTZ
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_users_username ON users (username) WHERE username IS NOT NULL;
-CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_users_email ON users (email) WHERE email IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_users_username ON users (username) WHERE deleted_at IS NULL AND username != '';
+CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_users_email ON users (email) WHERE deleted_at IS NULL AND email != '';
 
 CREATE TABLE IF NOT EXISTS user_identities (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v1(),
@@ -43,10 +43,11 @@ CREATE TABLE IF NOT EXISTS user_identities (
     nickname VARCHAR(255),
     email VARCHAR(255),
     avatar_url TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_user_identities_platform_identity_id ON user_identities (platform, identity_id);
+CREATE UNIQUE INDEX IF NOT EXISTS unique_idx_user_identities_platform_identity_id ON user_identities (platform, identity_id) WHERE deleted_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS user_login_histories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
