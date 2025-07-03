@@ -11,11 +11,18 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
+	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
 )
 
 // UserIdentity holds the schema definition for the UserIdentity entity.
 type UserIdentity struct {
 	ent.Schema
+}
+
+func (UserIdentity) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		entx.SoftDeleteMixin{},
+	}
 }
 
 func (UserIdentity) Annotations() []schema.Annotation {

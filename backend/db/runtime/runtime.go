@@ -286,6 +286,11 @@ func init() {
 	userDescUpdatedAt := userFields[8].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	useridentityMixin := schema.UserIdentity{}.Mixin()
+	useridentityMixinHooks0 := useridentityMixin[0].Hooks()
+	useridentity.Hooks[0] = useridentityMixinHooks0[0]
+	useridentityMixinInters0 := useridentityMixin[0].Interceptors()
+	useridentity.Interceptors[0] = useridentityMixinInters0[0]
 	useridentityFields := schema.UserIdentity{}.Fields()
 	_ = useridentityFields
 	// useridentityDescPlatform is the schema descriptor for platform field.

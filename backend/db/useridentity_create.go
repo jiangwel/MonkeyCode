@@ -26,6 +26,20 @@ type UserIdentityCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (uic *UserIdentityCreate) SetDeletedAt(t time.Time) *UserIdentityCreate {
+	uic.mutation.SetDeletedAt(t)
+	return uic
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (uic *UserIdentityCreate) SetNillableDeletedAt(t *time.Time) *UserIdentityCreate {
+	if t != nil {
+		uic.SetDeletedAt(*t)
+	}
+	return uic
+}
+
 // SetUserID sets the "user_id" field.
 func (uic *UserIdentityCreate) SetUserID(u uuid.UUID) *UserIdentityCreate {
 	uic.mutation.SetUserID(u)
@@ -148,7 +162,9 @@ func (uic *UserIdentityCreate) Mutation() *UserIdentityMutation {
 
 // Save creates the UserIdentity in the database.
 func (uic *UserIdentityCreate) Save(ctx context.Context) (*UserIdentity, error) {
-	uic.defaults()
+	if err := uic.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, uic.sqlSave, uic.mutation, uic.hooks)
 }
 
@@ -175,15 +191,19 @@ func (uic *UserIdentityCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (uic *UserIdentityCreate) defaults() {
+func (uic *UserIdentityCreate) defaults() error {
 	if _, ok := uic.mutation.Platform(); !ok {
 		v := useridentity.DefaultPlatform
 		uic.mutation.SetPlatform(v)
 	}
 	if _, ok := uic.mutation.CreatedAt(); !ok {
+		if useridentity.DefaultCreatedAt == nil {
+			return fmt.Errorf("db: uninitialized useridentity.DefaultCreatedAt (forgotten import db/runtime?)")
+		}
 		v := useridentity.DefaultCreatedAt()
 		uic.mutation.SetCreatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -232,6 +252,10 @@ func (uic *UserIdentityCreate) createSpec() (*UserIdentity, *sqlgraph.CreateSpec
 	if id, ok := uic.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
+	}
+	if value, ok := uic.mutation.DeletedAt(); ok {
+		_spec.SetField(useridentity.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = value
 	}
 	if value, ok := uic.mutation.Platform(); ok {
 		_spec.SetField(useridentity.FieldPlatform, field.TypeString, value)
@@ -285,7 +309,7 @@ func (uic *UserIdentityCreate) createSpec() (*UserIdentity, *sqlgraph.CreateSpec
 // of the `INSERT` statement. For example:
 //
 //	client.UserIdentity.Create().
-//		SetUserID(v).
+//		SetDeletedAt(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -294,7 +318,7 @@ func (uic *UserIdentityCreate) createSpec() (*UserIdentity, *sqlgraph.CreateSpec
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UserIdentityUpsert) {
-//			SetUserID(v+v).
+//			SetDeletedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (uic *UserIdentityCreate) OnConflict(opts ...sql.ConflictOption) *UserIdentityUpsertOne {
@@ -329,6 +353,24 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserIdentityUpsert) SetDeletedAt(v time.Time) *UserIdentityUpsert {
+	u.Set(useridentity.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserIdentityUpsert) UpdateDeletedAt() *UserIdentityUpsert {
+	u.SetExcluded(useridentity.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserIdentityUpsert) ClearDeletedAt() *UserIdentityUpsert {
+	u.SetNull(useridentity.FieldDeletedAt)
+	return u
+}
 
 // SetUserID sets the "user_id" field.
 func (u *UserIdentityUpsert) SetUserID(v uuid.UUID) *UserIdentityUpsert {
@@ -502,6 +544,27 @@ func (u *UserIdentityUpsertOne) Update(set func(*UserIdentityUpsert)) *UserIdent
 		set(&UserIdentityUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserIdentityUpsertOne) SetDeletedAt(v time.Time) *UserIdentityUpsertOne {
+	return u.Update(func(s *UserIdentityUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserIdentityUpsertOne) UpdateDeletedAt() *UserIdentityUpsertOne {
+	return u.Update(func(s *UserIdentityUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserIdentityUpsertOne) ClearDeletedAt() *UserIdentityUpsertOne {
+	return u.Update(func(s *UserIdentityUpsert) {
+		s.ClearDeletedAt()
+	})
 }
 
 // SetUserID sets the "user_id" field.
@@ -787,7 +850,7 @@ func (uicb *UserIdentityCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UserIdentityUpsert) {
-//			SetUserID(v+v).
+//			SetDeletedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (uicb *UserIdentityCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserIdentityUpsertBulk {
@@ -864,6 +927,27 @@ func (u *UserIdentityUpsertBulk) Update(set func(*UserIdentityUpsert)) *UserIden
 		set(&UserIdentityUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserIdentityUpsertBulk) SetDeletedAt(v time.Time) *UserIdentityUpsertBulk {
+	return u.Update(func(s *UserIdentityUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserIdentityUpsertBulk) UpdateDeletedAt() *UserIdentityUpsertBulk {
+	return u.Update(func(s *UserIdentityUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserIdentityUpsertBulk) ClearDeletedAt() *UserIdentityUpsertBulk {
+	return u.Update(func(s *UserIdentityUpsert) {
+		s.ClearDeletedAt()
+	})
 }
 
 // SetUserID sets the "user_id" field.

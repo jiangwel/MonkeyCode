@@ -32,6 +32,26 @@ func (uiu *UserIdentityUpdate) Where(ps ...predicate.UserIdentity) *UserIdentity
 	return uiu
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (uiu *UserIdentityUpdate) SetDeletedAt(t time.Time) *UserIdentityUpdate {
+	uiu.mutation.SetDeletedAt(t)
+	return uiu
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (uiu *UserIdentityUpdate) SetNillableDeletedAt(t *time.Time) *UserIdentityUpdate {
+	if t != nil {
+		uiu.SetDeletedAt(*t)
+	}
+	return uiu
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (uiu *UserIdentityUpdate) ClearDeletedAt() *UserIdentityUpdate {
+	uiu.mutation.ClearDeletedAt()
+	return uiu
+}
+
 // SetUserID sets the "user_id" field.
 func (uiu *UserIdentityUpdate) SetUserID(u uuid.UUID) *UserIdentityUpdate {
 	uiu.mutation.SetUserID(u)
@@ -232,6 +252,12 @@ func (uiu *UserIdentityUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := uiu.mutation.DeletedAt(); ok {
+		_spec.SetField(useridentity.FieldDeletedAt, field.TypeTime, value)
+	}
+	if uiu.mutation.DeletedAtCleared() {
+		_spec.ClearField(useridentity.FieldDeletedAt, field.TypeTime)
+	}
 	if value, ok := uiu.mutation.Platform(); ok {
 		_spec.SetField(useridentity.FieldPlatform, field.TypeString, value)
 	}
@@ -314,6 +340,26 @@ type UserIdentityUpdateOne struct {
 	hooks     []Hook
 	mutation  *UserIdentityMutation
 	modifiers []func(*sql.UpdateBuilder)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (uiuo *UserIdentityUpdateOne) SetDeletedAt(t time.Time) *UserIdentityUpdateOne {
+	uiuo.mutation.SetDeletedAt(t)
+	return uiuo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (uiuo *UserIdentityUpdateOne) SetNillableDeletedAt(t *time.Time) *UserIdentityUpdateOne {
+	if t != nil {
+		uiuo.SetDeletedAt(*t)
+	}
+	return uiuo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (uiuo *UserIdentityUpdateOne) ClearDeletedAt() *UserIdentityUpdateOne {
+	uiuo.mutation.ClearDeletedAt()
+	return uiuo
 }
 
 // SetUserID sets the "user_id" field.
@@ -545,6 +591,12 @@ func (uiuo *UserIdentityUpdateOne) sqlSave(ctx context.Context) (_node *UserIden
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := uiuo.mutation.DeletedAt(); ok {
+		_spec.SetField(useridentity.FieldDeletedAt, field.TypeTime, value)
+	}
+	if uiuo.mutation.DeletedAtCleared() {
+		_spec.ClearField(useridentity.FieldDeletedAt, field.TypeTime)
 	}
 	if value, ok := uiuo.mutation.Platform(); ok {
 		_spec.SetField(useridentity.FieldPlatform, field.TypeString, value)
