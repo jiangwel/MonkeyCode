@@ -1,16 +1,10 @@
-import Avatar from '@/components/avatar';
 import Card from '@/components/card';
-import { getChatInfo } from '@/api/Billing';
-import MarkDown from '@/components/markDown';
-import { addCommasToNumber, processText } from '@/utils';
-import { Ellipsis, Icon, Modal } from '@c-x/ui';
-import { Box, Stack, Tooltip, useTheme } from '@mui/material';
-import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
-import { DomainCompletionRecord } from '@/api/types';
+import { getCompletionInfo } from '@/api/Billing';
+import { Modal } from '@c-x/ui';
+import MonacoEditor from '@monaco-editor/react';
 
-type ConversationItem = any;
-type ToolInfo = any;
+import { useEffect, useState, useRef } from 'react';
+import { DomainCompletionRecord } from '@/api/types';
 
 const ChatDetailModal = ({
   data,
@@ -21,50 +15,76 @@ const ChatDetailModal = ({
   open: boolean;
   onClose: () => void;
 }) => {
-  const theme = useTheme();
-  const [ChatDetailModal, setChatDetailModal] =
-    useState<ConversationItem | null>(null);
-  const [content, setContent] = useState<string>('');
-  const [showToolInfo, setShowToolInfo] = useState<{ [key: string]: ToolInfo }>(
-    {}
-  );
+  const [editorValue, setEditorValue] = useState<string>('');
+  const editorRef = useRef<any>(null);
+  const [editorReady, setEditorReady] = useState(false);
+  const [highlightInfo, setHighlightInfo] = useState<any>(null);
 
   const getChatDetailModal = () => {
     if (!data) return;
-    getChatInfo({ id: data.id! }).then((res) => {
-      setContent(
-        data.program_language
-          ? `\`\`\`${data.program_language}\n${res.content || ''}\n\`\`\``
-          : res.content || ''
-      );
+    getCompletionInfo({ id: data.id! }).then((res) => {
+      const rawPrompt = res.prompt || '';
+      const content = res.content || '';
+      // 找到三个特殊标记的位置
+      const prefixTag = '<|fim_prefix|>';
+      const suffixTag = '<|fim_suffix|>';
+      const middleTag = '<|fim_middle|>';
+      const prefixIdx = rawPrompt.indexOf(prefixTag);
+      const suffixIdx = rawPrompt.indexOf(suffixTag);
+      const middleIdx = rawPrompt.indexOf(middleTag);
+      // 去掉特殊标记
+      const prompt = rawPrompt
+        .replace(prefixTag, '')
+        .replace(suffixTag, '')
+        .replace(middleTag, '');
+      // 重新定位插入点（因为去掉了前面的 tag，位置会变）
+      // 计算插入点：suffixTag 在原始 prompt 的位置，去掉 prefixTag 后的 offset
+      let insertIdx = suffixIdx;
+      if (prefixIdx !== -1 && prefixIdx < suffixIdx) {
+        insertIdx -= prefixTag.length;
+      }
+      if (middleIdx !== -1 && middleIdx < suffixIdx) {
+        insertIdx -= middleTag.length;
+      }
+      // 插入 content
+      const newValue =
+        prompt.slice(0, insertIdx) + content + prompt.slice(insertIdx);
+      setEditorValue(newValue);
+      // 计算高亮范围（行列）
+      const before = newValue.slice(0, insertIdx);
+      const contentLines = content.split('\n');
+      const beforeLines = before.split('\n');
+      const startLine = beforeLines.length;
+      const startColumn = beforeLines[beforeLines.length - 1].length + 1;
+      const endLine = startLine + contentLines.length - 1;
+      const endColumn =
+        contentLines.length === 1
+          ? startColumn + content.length
+          : contentLines[contentLines.length - 1].length + 1;
+      setHighlightInfo({ startLine, startColumn, endLine, endColumn });
     });
-    // getConversationChatDetailModal({ id }).then((res) => {
-    //   const newAnswer = res.answer
-    //   const toolWrapsIds = newAnswer.match(/<tools id="([^"]+)">/g)?.map(match => {
-    //     const idMatch = match.match(/<tools id="([^"]+)">/);
-    //     return idMatch ? idMatch[1] : null;
-    //   }).filter(Boolean) || [];
-    //   const toolIds = newAnswer.match(/<tool id="([^"]+)">/g)?.map(match => {
-    //     const idMatch = match.match(/<tool id="([^"]+)">/);
-    //     return idMatch ? idMatch[1] : null;
-    //   }).filter(Boolean) || [];
-    //   const obj: { [key: string]: ToolInfo } = {}
-    //   toolWrapsIds.forEach(id => {
-    //     obj[id!] = {
-    //       done: true,
-    //     }
-    //   })
-    //   toolIds.forEach(id => {
-    //     obj[id!] = {
-    //       args: false,
-    //       result: false,
-    //       done: true,
-    //     }
-    //   })
-    //   setShowToolInfo(obj)
-    //   setChatDetailModal({ ...res, answer: processText(res.answer) })
-    // })
   };
+
+  useEffect(() => {
+    if (editorReady && highlightInfo && editorRef.current) {
+      editorRef.current.deltaDecorations(
+        [],
+        [
+          {
+            range: {
+              startLineNumber: highlightInfo.startLine,
+              startColumn: highlightInfo.startColumn,
+              endLineNumber: highlightInfo.endLine,
+              endColumn: highlightInfo.endColumn,
+            },
+            options: {
+              inlineClassName: 'completion-highlight',
+            },
+          },
+        ]
+      );
+    }
+  }, [editorReady, highlightInfo, editorValue]);
 
   useEffect(() => {
     if (open) getChatDetailModal();
@@ -79,164 +99,71 @@ const ChatDetailModal = ({
       onCancel={onClose}
       footer={null}
     >
-      {ChatDetailModal ? (
-        <Box sx={{ fontSize: 14 }}>
-          <Stack
-            direction={'row'}
-            alignItems={'center'}
-            gap={3}
-            sx={{
+      <Card sx={{ p: 0 }}>
+        <div style={{ height: 420 }}>
+          <MonacoEditor
+            height='100%'
+            language={data?.program_language || 'plaintext'}
+            value={editorValue}
+            theme='vs-dark'
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
               fontSize: 14,
-              color: 'text.auxiliary',
-            }}
-          >
-            {ChatDetailModal.created_at && (
-              <Stack direction={'row'} alignItems={'center'} gap={1}>
-                <Icon type='icon-a-shijian2' />
-                {dayjs(ChatDetailModal.created_at).format(
-                  'YYYY-MM-DD HH:mm:ss'
-                )}
-              </Stack>
-            )}
-            {ChatDetailModal.remote_ip && (
-              <Stack direction={'row'} alignItems={'center'} gap={1}>
-                <Icon type='icon-IPdizhijiancha' />
-                {ChatDetailModal.remote_ip}
-              </Stack>
-            )}
-            {ChatDetailModal.model && (
-              <Stack direction={'row'} alignItems={'center'} gap={1}>
-                <Icon type='icon-moxing' />
-                使用模型
-                <Box>{ChatDetailModal.model}</Box>
-              </Stack>
-            )}
-            {data?.input_tokens && data?.output_tokens && (
-              <Tooltip
-                title={
-                  <Stack gap={1} sx={{ minWidth: 100, py: 1 }}>
-                    <Box>
-                      输入 Token 使用： {addCommasToNumber(data?.input_tokens)}
-                    </Box>
-                    <Box>
-                      输出 Token 使用： {addCommasToNumber(data?.output_tokens)}
-                    </Box>
-                  </Stack>
-                }
-              >
-                <Stack
-                  direction={'row'}
-                  alignItems={'center'}
-                  gap={1}
-                  sx={{ cursor: 'pointer' }}
-                >
-                  <Icon type='icon-moxing' />
-                  Token 统计
-                  <Box>
-                    {addCommasToNumber(
-                      data?.input_tokens + data?.output_tokens
-                    )}
-                  </Box>
-                  <Icon type='icon-a-wenhao8' />
-                </Stack>
-              </Tooltip>
-            )}
-          </Stack>
-          {ChatDetailModal.references?.length > 0 && (
-            <>
-              <Stack
-                direction={'row'}
-                alignItems={'center'}
-                gap={1}
-                sx={{
-                  fontWeight: 'bold',
-                  mt: 2,
-                  mb: 1,
-                  '&::before': {
-                    content: '""',
-                    display: 'inline-block',
-                    width: '4px',
-                    height: '12px',
-                    borderRadius: '2px',
-                    backgroundColor: theme.palette.primary.main,
-                  },
-                }}
-              >
-                内容来源
-              </Stack>
-              <Card sx={{ p: 2, bgcolor: 'background.paper2' }}>
-                {ChatDetailModal.references.map((item: any, index: number) => (
-                  <Stack
-                    direction={'row'}
-                    alignItems={'center'}
-                    gap={1}
-                    key={index}
-                  >
-                    <Avatar
-                      src={item.favicon}
-                      sx={{ width: 18, height: 18 }}
-                      errorIcon={
-                        <Icon
-                          type='icon-ditu_diqiu'
-                          sx={{ fontSize: 18, color: 'text.auxiliary' }}
-                        />
-                      }
-                    />
-                    <Ellipsis>
-                      <Box
-                        component={'a'}
-                        href={item.url}
-                        target='_blank'
-                        sx={{
-                          color: 'text.primary',
-                          '&:hover': { color: 'primary.main' },
-                        }}
-                      >
-                        {item.title}
-                      </Box>
-                    </Ellipsis>
-                  </Stack>
-                ))}
-              </Card>
-            </>
-          )}
-          <Stack
-            direction={'row'}
-            alignItems={'center'}
-            gap={1}
-            sx={{
-              fontWeight: 'bold',
-              mt: 2,
-              mb: 1,
-              '&::before': {
-                content: '""',
-                display: 'inline-block',
-                width: '4px',
-                height: '12px',
-                borderRadius: '2px',
-                backgroundColor: theme.palette.primary.main,
+              scrollBeyondLastLine: false,
+              wordWrap: 'on',
+              lineNumbers: 'on',
+              glyphMargin: false,
+              folding: false,
+              scrollbar: {
+                vertical: 'hidden',
+                horizontal: 'hidden',
+                handleMouseWheel: false,
+                alwaysConsumeMouseWheel: false,
+                useShadows: false,
               },
+              overviewRulerLanes: 0,
+              guides: {
+                indentation: true,
+                highlightActiveIndentation: true,
+                highlightActiveBracketPair: false,
+              },
+              renderLineHighlight: 'none',
+              cursorStyle: 'line',
+              cursorBlinking: 'solid',
+              cursorWidth: 0,
+              contextmenu: false,
+              selectionHighlight: false,
+              selectOnLineNumbers: false,
+              occurrencesHighlight: 'off',
+              links: false,
+              hover: { enabled: false },
+              codeLens: false,
+              dragAndDrop: false,
+              mouseWheelZoom: false,
+              accessibilitySupport: 'off',
+              bracketPairColorization: { enabled: false },
+              matchBrackets: 'never',
             }}
-          >
-            回答
-          </Stack>
-        </Box>
-      ) : (
-        <Box></Box>
-      )}
-      <Card
-        sx={{
-          '.markdown-body': {
-            background: 'transparent',
-          },
-          p: 0,
-        }}
-      >
-        <MarkDown
-          showToolInfo={showToolInfo}
-          setShowToolInfo={setShowToolInfo}
-          content={content}
-        />
+            onMount={(editor) => {
+              editorRef.current = editor;
+              setEditorReady(true);
+              // 隐藏光标
+              const editorDom = editor.getDomNode();
+              if (editorDom) {
+                const style = document.createElement('style');
+                style.innerHTML = `.monaco-editor .cursor { display: none !important; }`;
+                editorDom.appendChild(style);
+              }
+            }}
+          />
+        </div>
+        <style>{`
+          .completion-highlight {
+            background: #264f78 !important;
+            transition: background 0.2s;
+          }
+        `}</style>
       </Card>
     </Modal>
   );

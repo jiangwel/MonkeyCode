@@ -1,5 +1,5 @@
 'use client';
-import { createTheme } from '@mui/material';
+import { createTheme, Paper } from '@mui/material';
 import type { Shadows } from '@mui/material';
 import { zhCN } from '@mui/material/locale';
 import { zhCN as CuiZhCN } from '@c-x/ui/dist/local';
@@ -138,6 +138,24 @@ const lightTheme = createTheme(
           root: {
             fontFamily: 'var(--font-gilory), var(--font-HarmonyOS)',
             fontSize: '14px',
+          },
+        },
+      },
+      MuiAutocomplete: {
+        defaultProps: {
+          slotProps: {
+            paper: {
+              elevation: 8,
+            },
+          },
+        },
+        styleOverrides: {
+          paper: {
+            borderRadius: '10px',
+          },
+          option: {
+            fontSize: '14px',
+            fontFamily: 'var(--font-gilory), var(--font-HarmonyOS)',
           },
         },
       },
