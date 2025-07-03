@@ -21,11 +21,11 @@ func NewDashboardHandler(
 	g := w.Group("/api/v1/dashboard")
 	g.Use(auth.Auth())
 	g.GET("/statistics", web.BaseHandler(h.Statistics))
-	g.GET("/category-stat", web.BaseHandler(h.CategoryStat))
-	g.GET("/time-stat", web.BaseHandler(h.TimeStat))
-	g.GET("/user-stat", web.BaseHandler(h.UserStat))
-	g.GET("/user-events", web.BaseHandler(h.UserEvents))
-	g.GET("/user-code-rank", web.BaseHandler(h.UserCodeRank))
+	g.GET("/category-stat", web.BindHandler(h.CategoryStat))
+	g.GET("/time-stat", web.BindHandler(h.TimeStat))
+	g.GET("/user-stat", web.BindHandler(h.UserStat))
+	g.GET("/user-events", web.BindHandler(h.UserEvents))
+	g.GET("/user-code-rank", web.BindHandler(h.UserCodeRank))
 	g.GET("/user-heatmap", web.BaseHandler(h.UserHeatmap))
 
 	return h
@@ -57,10 +57,11 @@ func (h *DashboardHandler) Statistics(c *web.Context) error {
 //	@ID				category-stat-dashboard
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	web.Resp{data=domain.CategoryStat}
+//	@Param			filter	query		domain.StatisticsFilter	true	"筛选参数"
+//	@Success		200		{object}	web.Resp{data=domain.CategoryStat}
 //	@Router			/api/v1/dashboard/category-stat [get]
-func (h *DashboardHandler) CategoryStat(c *web.Context) error {
-	categoryStat, err := h.usecase.CategoryStat(c.Request().Context())
+func (h *DashboardHandler) CategoryStat(c *web.Context, req domain.StatisticsFilter) error {
+	categoryStat, err := h.usecase.CategoryStat(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}
@@ -75,10 +76,11 @@ func (h *DashboardHandler) CategoryStat(c *web.Context) error {
 //	@ID				time-stat-dashboard
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	web.Resp{data=domain.TimeStat}
+//	@Param			filter	query		domain.StatisticsFilter	true	"筛选参数"
+//	@Success		200		{object}	web.Resp{data=domain.TimeStat}
 //	@Router			/api/v1/dashboard/time-stat [get]
-func (h *DashboardHandler) TimeStat(c *web.Context) error {
-	timeStat, err := h.usecase.TimeStat(c.Request().Context())
+func (h *DashboardHandler) TimeStat(c *web.Context, req domain.StatisticsFilter) error {
+	timeStat, err := h.usecase.TimeStat(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}
@@ -93,11 +95,11 @@ func (h *DashboardHandler) TimeStat(c *web.Context) error {
 //	@ID				user-stat-dashboard
 //	@Accept			json
 //	@Produce		json
-//	@Param			user_id	query		string	false	"用户ID"
+//	@Param			filter	query		domain.StatisticsFilter	true	"筛选参数"
 //	@Success		200		{object}	web.Resp{data=domain.UserStat}
 //	@Router			/api/v1/dashboard/user-stat [get]
-func (h *DashboardHandler) UserStat(c *web.Context) error {
-	userStat, err := h.usecase.UserStat(c.Request().Context(), c.QueryParam("user_id"))
+func (h *DashboardHandler) UserStat(c *web.Context, req domain.StatisticsFilter) error {
+	userStat, err := h.usecase.UserStat(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}
@@ -112,11 +114,11 @@ func (h *DashboardHandler) UserStat(c *web.Context) error {
 //	@ID				user-events-dashboard
 //	@Accept			json
 //	@Produce		json
-//	@Param			user_id	query		string	true	"用户ID"
+//	@Param			filter	query		domain.StatisticsFilter	true	"筛选参数"
 //	@Success		200		{object}	web.Resp{data=[]domain.UserEvent}
 //	@Router			/api/v1/dashboard/user-events [get]
-func (h *DashboardHandler) UserEvents(c *web.Context) error {
-	userEvents, err := h.usecase.UserEvents(c.Request().Context(), c.QueryParam("user_id"))
+func (h *DashboardHandler) UserEvents(c *web.Context, req domain.StatisticsFilter) error {
+	userEvents, err := h.usecase.UserEvents(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}
@@ -131,10 +133,11 @@ func (h *DashboardHandler) UserEvents(c *web.Context) error {
 //	@ID				user-code-rank-dashboard
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	web.Resp{data=[]domain.UserCodeRank}
+//	@Param			filter	query		domain.StatisticsFilter	true	"筛选参数"
+//	@Success		200		{object}	web.Resp{data=[]domain.UserCodeRank}
 //	@Router			/api/v1/dashboard/user-code-rank [get]
-func (h *DashboardHandler) UserCodeRank(c *web.Context) error {
-	userCodeRank, err := h.usecase.UserCodeRank(c.Request().Context())
+func (h *DashboardHandler) UserCodeRank(c *web.Context, req domain.StatisticsFilter) error {
+	userCodeRank, err := h.usecase.UserCodeRank(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}

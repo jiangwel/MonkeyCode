@@ -21,24 +21,24 @@ func (u *DashboardUsecase) Statistics(ctx context.Context) (*domain.Statistics, 
 	return u.repo.Statistics(ctx)
 }
 
-func (u *DashboardUsecase) CategoryStat(ctx context.Context) (*domain.CategoryStat, error) {
-	return u.repo.CategoryStat(ctx)
+func (u *DashboardUsecase) CategoryStat(ctx context.Context, req domain.StatisticsFilter) (*domain.CategoryStat, error) {
+	return u.repo.CategoryStat(ctx, req)
 }
 
-func (u *DashboardUsecase) TimeStat(ctx context.Context) (*domain.TimeStat, error) {
-	return u.repo.TimeStat(ctx)
+func (u *DashboardUsecase) TimeStat(ctx context.Context, req domain.StatisticsFilter) (*domain.TimeStat, error) {
+	return u.repo.TimeStat(ctx, req)
 }
 
-func (u *DashboardUsecase) UserStat(ctx context.Context, username string) (*domain.UserStat, error) {
-	return u.repo.UserStat(ctx, username)
+func (u *DashboardUsecase) UserStat(ctx context.Context, req domain.StatisticsFilter) (*domain.UserStat, error) {
+	return u.repo.UserStat(ctx, req)
 }
 
-func (u *DashboardUsecase) UserEvents(ctx context.Context, username string) ([]*domain.UserEvent, error) {
-	return u.repo.UserEvents(ctx, username)
+func (u *DashboardUsecase) UserEvents(ctx context.Context, req domain.StatisticsFilter) ([]*domain.UserEvent, error) {
+	return u.repo.UserEvents(ctx, req)
 }
 
-func (u *DashboardUsecase) UserCodeRank(ctx context.Context) ([]*domain.UserCodeRank, error) {
-	return u.repo.UserCodeRank(ctx)
+func (u *DashboardUsecase) UserCodeRank(ctx context.Context, req domain.StatisticsFilter) ([]*domain.UserCodeRank, error) {
+	return u.repo.UserCodeRank(ctx, req)
 }
 
 func (u *DashboardUsecase) UserHeatmap(ctx context.Context, userID string) (*domain.UserHeatmapResp, error) {

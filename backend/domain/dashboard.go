@@ -2,33 +2,51 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/chaitin/MonkeyCode/backend/db"
 )
 
 type DashboardUsecase interface {
 	Statistics(ctx context.Context) (*Statistics, error)
-	CategoryStat(ctx context.Context) (*CategoryStat, error)
-	TimeStat(ctx context.Context) (*TimeStat, error)
-	UserCodeRank(ctx context.Context) ([]*UserCodeRank, error)
-	UserStat(ctx context.Context, userID string) (*UserStat, error)
-	UserEvents(ctx context.Context, userID string) ([]*UserEvent, error)
+	CategoryStat(ctx context.Context, req StatisticsFilter) (*CategoryStat, error)
+	TimeStat(ctx context.Context, req StatisticsFilter) (*TimeStat, error)
+	UserCodeRank(ctx context.Context, req StatisticsFilter) ([]*UserCodeRank, error)
+	UserStat(ctx context.Context, req StatisticsFilter) (*UserStat, error)
+	UserEvents(ctx context.Context, req StatisticsFilter) ([]*UserEvent, error)
 	UserHeatmap(ctx context.Context, userID string) (*UserHeatmapResp, error)
 }
 
 type DashboardRepo interface {
 	Statistics(ctx context.Context) (*Statistics, error)
-	CategoryStat(ctx context.Context) (*CategoryStat, error)
-	TimeStat(ctx context.Context) (*TimeStat, error)
-	UserCodeRank(ctx context.Context) ([]*UserCodeRank, error)
-	UserStat(ctx context.Context, userID string) (*UserStat, error)
-	UserEvents(ctx context.Context, userID string) ([]*UserEvent, error)
+	CategoryStat(ctx context.Context, req StatisticsFilter) (*CategoryStat, error)
+	TimeStat(ctx context.Context, req StatisticsFilter) (*TimeStat, error)
+	UserCodeRank(ctx context.Context, req StatisticsFilter) ([]*UserCodeRank, error)
+	UserStat(ctx context.Context, req StatisticsFilter) (*UserStat, error)
+	UserEvents(ctx context.Context, req StatisticsFilter) ([]*UserEvent, error)
 	UserHeatmap(ctx context.Context, userID string) ([]*UserHeatmap, error)
 }
 
 type Statistics struct {
 	TotalUsers    int64 `json:"total_users"`    // 总用户数
 	DisabledUsers int64 `json:"disabled_users"` // 禁用用户数
+}
+
+type StatisticsFilter struct {
+	Precision string `json:"precision" query:"precision" validate:"required,oneof=hour day" default:"day"` // 精度: "hour", "day"
+	Duration  int    `json:"duration" query:"duration" validate:"gte=24,lte=90" default:"90"`              // 持续时间 (小时或天数)`
+	UserID    string `json:"user_id,omitempty" query:"user_id"`                                            // 用户ID，可jj
+}
+
+func (s StatisticsFilter) StartTime() time.Time {
+	switch s.Precision {
+	case "hour":
+		return time.Now().Add(-time.Duration(s.Duration) * time.Hour)
+	case "day":
+		return time.Now().AddDate(0, 0, -int(s.Duration))
+	default:
+		return time.Now().AddDate(0, 0, -90)
+	}
 }
 
 type UserHeatmapResp struct {
