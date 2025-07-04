@@ -1,5 +1,9 @@
 package consts
 
+const (
+	UserActiveKeyFmt = "user:active:%s"
+)
+
 type UserStatus string
 
 const (

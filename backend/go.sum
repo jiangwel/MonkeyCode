@@ -8,8 +8,8 @@ github.com/BurntSushi/toml v1.5.0 h1:W5quZX/G/csjUnuI8SUYlsHs9M38FC7znL0lIO+DvMg
 github.com/BurntSushi/toml v1.5.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/DATA-DOG/go-sqlmock v1.5.0 h1:Shsta01QNfFxHCfpW6YH2STWB0MudeXXEWMr20OEh60=
 github.com/DATA-DOG/go-sqlmock v1.5.0/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
-github.com/GoYoko/web v1.1.0 h1:nIbtol5z0Y03d0nHsvGjv+W0fgmFRGUL8fzPN3kmrOY=
-github.com/GoYoko/web v1.1.0/go.mod h1:DL9/gvuUG2jcBE1XUIY+9QBrrhdshzPEdxMCzR9jUHo=
+github.com/GoYoko/web v1.0.0 h1:kcNxz8BvpKavE0/iqatOmUeCXVghaoD5xYDiHDulVaE=
+github.com/GoYoko/web v1.0.0/go.mod h1:DL9/gvuUG2jcBE1XUIY+9QBrrhdshzPEdxMCzR9jUHo=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/agext/levenshtein v1.2.3 h1:YB2fHEn0UJagG8T1rrWknE3ZQzWM06O8AMAatNn7lmo=

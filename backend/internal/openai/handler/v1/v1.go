@@ -25,6 +25,7 @@ func NewV1Handler(
 	proxy domain.Proxy,
 	usecase domain.OpenAIUsecase,
 	middleware *middleware.ProxyMiddleware,
+	active *middleware.ActiveMiddleware,
 ) *V1Handler {
 	h := &V1Handler{
 		logger:  logger.With(slog.String("handler", "openai")),
@@ -35,10 +36,10 @@ func NewV1Handler(
 
 	g := w.Group("/v1", middleware.Auth())
 	g.GET("/models", web.BaseHandler(h.ModelList))
-	g.POST("/completion/accept", web.BindHandler(h.AcceptCompletion))
-	g.POST("/chat/completions", web.BindHandler(h.ChatCompletion))
-	g.POST("/completions", web.BindHandler(h.Completions))
-	g.POST("/embeddings", web.BindHandler(h.Embeddings))
+	g.POST("/completion/accept", web.BindHandler(h.AcceptCompletion), active.Active())
+	g.POST("/chat/completions", web.BindHandler(h.ChatCompletion), active.Active())
+	g.POST("/completions", web.BindHandler(h.Completions), active.Active())
+	g.POST("/embeddings", web.BindHandler(h.Embeddings), active.Active())
 	return h
 }
 

@@ -629,7 +629,7 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 			"apiBase", m.APIBase,
 			"work_mode", mode,
 			"requestHeader", newReq.Header,
-			"requestBody", newReq,
+			"requestBody", req,
 			"taskID", taskID,
 			"messages", cvt.Filter(req.Messages, func(i int, v openai.ChatCompletionMessage) (openai.ChatCompletionMessage, bool) {
 				return v, v.Role != "system"

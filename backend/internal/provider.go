@@ -39,6 +39,7 @@ var Provider = wire.NewSet(
 	dashrepo.NewDashboardRepo,
 	middleware.NewProxyMiddleware,
 	middleware.NewAuthMiddleware,
+	middleware.NewActiveMiddleware,
 	userV1.NewUserHandler,
 	userrepo.NewUserRepo,
 	userusecase.NewUserUsecase,
