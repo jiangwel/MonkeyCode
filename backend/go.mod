@@ -4,7 +4,7 @@ go 1.23.7
 
 require (
 	entgo.io/ent v0.14.4
-	github.com/GoYoko/web v1.1.0
+	github.com/GoYoko/web v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0

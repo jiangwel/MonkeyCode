@@ -60,12 +60,34 @@ func (u *UserUsecase) List(ctx context.Context, req domain.ListReq) (*domain.Lis
 		return nil, err
 	}
 
+	ids := cvt.Iter(users, func(_ int, u *db.User) string { return u.ID.String() })
+	m, err := u.getUserActive(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
 	return &domain.ListUserResp{
 		PageInfo: p,
 		Users: cvt.Iter(users, func(_ int, e *db.User) *domain.User {
-			return cvt.From(e, &domain.User{}).From(e)
+			return cvt.From(e, &domain.User{
+				LastActiveAt: m[e.ID.String()],
+			})
 		}),
 	}, nil
+}
+
+func (u *UserUsecase) getUserActive(ctx context.Context, ids []string) (map[string]int64, error) {
+	m := make(map[string]int64)
+	for _, id := range ids {
+		key := fmt.Sprintf(consts.UserActiveKeyFmt, id)
+		if t, err := u.redis.Get(ctx, key).Int64(); err != nil {
+			u.logger.With("key", key).With("error", err).Warn("get user active time failed")
+		} else {
+			m[id] = t
+		}
+	}
+
+	return m, nil
 }
 
 // AdminList implements domain.UserUsecase.
