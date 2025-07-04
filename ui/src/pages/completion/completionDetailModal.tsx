@@ -5,16 +5,16 @@ import MonacoEditor from '@monaco-editor/react';
 
 import { useEffect, useState, useRef } from 'react';
 import { DomainCompletionRecord } from '@/api/types';
+import { getBaseLanguageId } from '@/utils';
 
-function getBaseLanguageId(languageId: string): string {
-  const map: Record<string, string> = {
-    typescriptreact: 'typescript',
-    javascriptreact: 'javascript',
-    tailwindcss: 'css',
-    'vue-html': 'vue',
-  };
-  return map[languageId] || languageId;
-}
+// 删除 <|im_start|> 和 <|im_end|> 及其间内容的工具函数
+const removeImBlocks = (text: string) => {
+  // 匹配前后可能的换行符
+  return text.replace(
+    /(^[ \t]*\r?\n)?<\|im_start\|>[\s\S]*?<\|im_end\|>(\r?\n)?/g,
+    ''
+  );
+};
 
 const ChatDetailModal = ({
   data,
@@ -33,7 +33,8 @@ const ChatDetailModal = ({
   const getChatDetailModal = () => {
     if (!data) return;
     getCompletionInfo({ id: data.id! }).then((res) => {
-      const rawPrompt = res.prompt || '';
+      // 先去除 <|im_start|> 和 <|im_end|> 及其间内容
+      const rawPrompt = removeImBlocks(res.prompt || '');
       const content = res.content || '';
       // 找到三个特殊标记的位置
       const prefixTag = '<|fim_prefix|>';

@@ -1,10 +1,3 @@
-// import {
-//   addModel,
-//   getModelByProviderBrand,
-//   ModelItem,
-//   testModel,
-//   updateModel,
-// } from '@/api';
 import {
   postCreateModel,
   putUpdateModel,
@@ -14,9 +7,9 @@ import {
 import Card from '@/components/card';
 import { ModelProvider } from '../constant';
 import { Icon, message, Modal } from '@c-x/ui';
+import { StyledFormLabel } from '@/components/form';
 import {
   Box,
-  Button,
   MenuItem,
   Stack,
   TextField,
@@ -26,7 +19,6 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
-  DomainModelBasic,
   ConstsModelType,
   DomainUpdateModelReq,
   DomainCreateModelReq,
@@ -51,7 +43,6 @@ const ModelModal = ({
   modelType,
 }: AddModelProps) => {
   const theme = useTheme();
-  const spaceId = 1;
   const {
     formState: { errors },
     handleSubmit,
@@ -64,10 +55,7 @@ const ModelModal = ({
       provider: data?.provider || 'DeepSeek',
       api_base: data?.api_base || ModelProvider.DeepSeek.defaultBaseUrl,
       model_name: data?.model_name || '',
-      // api_version: data?.api_version || '',
       api_key: data?.api_key || '',
-      // api_header_key: data?.api_header?.split('=')[0] || '',
-      // api_header_value: data?.api_header?.split('=')[1] || '',
     },
   });
 
@@ -78,34 +66,6 @@ const ModelModal = ({
   const [loading, setLoading] = useState(false);
   const [modelLoading, setModelLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-
-  // const getModel = (value: AddModelForm) => {
-  //   let header = '';
-  //   if (value.api_header_key && value.api_header_value) {
-  //     header = value.api_header_key + '=' + value.api_header_value;
-  //   }
-  //   setModelLoading(true);
-  //   getModelByProviderBrand({
-  //     space_id: spaceId,
-  //     api_key: value.api_key,
-  //     base_url: value.base_url,
-  //     provider_brand: value.provider_brand,
-  //     api_header: header,
-  //   })
-  //     .then((res) => {
-  //       setModelUserList(res.models || []);
-  //       if (data && (res.models || []).find((it) => it.model === data.model)) {
-  //         setValue('model', data.model);
-  //       } else {
-  //         setValue('model', res.models?.[0]?.model || '');
-  //       }
-  //       setSuccess(true);
-  //     })
-  //     .finally(() => {
-  //       setModelLoading(false);
-  //     });
-  // };
 
   const onCreateModel = (value: DomainCreateModelReq) => {
     return postCreateModel({
@@ -131,10 +91,6 @@ const ModelModal = ({
   };
 
   const onSubmit = (value: Required<DomainCreateModelReq>) => {
-    const header = '';
-    // if (value.api_header_key && value.api_header_value) {
-    //   header = value.api_header_key + '=' + value.api_header_value;
-    // }
     setError('');
     setLoading(true);
     postCheckModel({
@@ -162,26 +118,12 @@ const ModelModal = ({
   useEffect(() => {
     if (open) {
       if (data) {
-        if (data.provider_brand && data.provider_brand !== 'Other') {
-          // getModel({
-          //   api_key: data.api_key || '',
-          //   base_url: data.base_url || '',
-          //   model: data.model || '',
-          //   provider_brand: data.provider_brand || '',
-          //   api_version: data.api_version || '',
-          //   api_header_key: data.api_header?.split('=')[0] || '',
-          //   api_header_value: data.api_header?.split('=')[1] || '',
-          // });
-        }
         reset(
           {
             provider: data.provider || 'Other',
             model_name: data.model_name || '',
             api_base: data.api_base || '',
             api_key: data.api_key || '',
-            // api_version: data.api_version || '',
-            // api_header_key: data.api_header?.split('=')[0] || '',
-            // api_header_value: data.api_header?.split('=')[1] || '',
           },
           {
             keepDefaultValues: true,
@@ -213,10 +155,15 @@ const ModelModal = ({
 
   useEffect(() => {
     if (currentModelList.length > 0) {
-      setValue('api_base', currentModelList[0].api_base || '');
-      setValue('model_name', currentModelList[0].name || '');
+      if (data) {
+        setValue('api_base', data.api_base || '');
+        setValue('model_name', data.model_name || '');
+      } else {
+        setValue('api_base', currentModelList[0].api_base || '');
+        setValue('model_name', currentModelList[0].name || '');
+      }
     }
-  }, [currentModelList]);
+  }, [currentModelList, data]);
 
   return (
     <Modal
@@ -226,7 +173,6 @@ const ModelModal = ({
       onCancel={() => {
         reset();
         setModelUserList([]);
-        setSuccess(false);
         setLoading(false);
         setError('');
         onClose();
@@ -277,17 +223,13 @@ const ModelModal = ({
               }}
               onClick={() => {
                 if (data) return;
-                // setModelUserList([]);
                 setError('');
                 reset(
                   {
                     provider: it.provider as keyof typeof ModelProvider,
                     api_base: '',
                     model_name: '',
-                    // api_version: '',
                     api_key: '',
-                    // api_header_key: '',
-                    // api_header_value: '',
                   },
                   {
                     keepDefaultValues: true,
@@ -306,12 +248,7 @@ const ModelModal = ({
           ))}
         </Stack>
         <Box sx={{ flex: 1 }}>
-          <Box sx={{ fontSize: 14, lineHeight: '32px' }}>
-            API 地址{' '}
-            <Box component={'span'} sx={{ color: 'red' }}>
-              *
-            </Box>
-          </Box>
+          <StyledFormLabel required>API 地址</StyledFormLabel>
           <Controller
             control={control}
             name='api_base'
@@ -344,15 +281,11 @@ const ModelModal = ({
             justifyContent={'space-between'}
             sx={{ fontSize: 14, lineHeight: '32px', mt: 2 }}
           >
-            <Box>
+            <StyledFormLabel
+              required={ModelProvider[providerBrand].secretRequired}
+            >
               API Secret
-              {ModelProvider[providerBrand].secretRequired && (
-                <Box component={'span'} sx={{ color: 'red' }}>
-                  {' '}
-                  *
-                </Box>
-              )}
-            </Box>
+            </StyledFormLabel>
             {ModelProvider[providerBrand].modelDocumentUrl && (
               <Box
                 component={'span'}
@@ -396,131 +329,32 @@ const ModelModal = ({
               />
             )}
           />
-          {/* {providerBrand === 'AzureOpenAI' && (
-            <>
-              <Box sx={{ fontSize: 14, lineHeight: '32px', mt: 2 }}>
-                API Version
-              </Box>
-              <Controller
-                control={control}
-                name='api_version'
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    size='small'
-                    placeholder='2024-10-21'
-                    error={!!errors.api_version}
-                    helperText={errors.api_version?.message}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      setModelUserList([]);
-                      setValue('model', '');
-                      setSuccess(false);
-                    }}
-                  />
-                )}
-              />
-            </>
-          )} */}
-          {providerBrand === 'Other' ? (
-            <>
-              <Box sx={{ fontSize: 14, lineHeight: '32px', mt: 2 }}>
-                模型名称{' '}
-                <Box component={'span'} sx={{ color: 'red' }}>
-                  *
-                </Box>
-              </Box>
-              <Controller
-                control={control}
-                name='model_name'
-                rules={{
-                  required: '模型名称不能为空',
-                }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    size='small'
-                    placeholder=''
-                    error={!!errors.model_name}
-                    helperText={errors.model_name?.message}
-                  />
-                )}
-              />
-              <Box sx={{ fontSize: 12, color: 'error.main', mt: 1 }}>
-                需要与模型供应商提供的名称完全一致，不要随便填写
-              </Box>
-            </>
-          ) : (
-            <>
-              <Box sx={{ fontSize: 14, lineHeight: '32px', mt: 2 }}>
-                模型名称{' '}
-                <Box component={'span'} sx={{ color: 'red' }}>
-                  *
-                </Box>
-              </Box>
-              <Controller
-                control={control}
-                name='model_name'
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    select
-                    size='small'
-                    placeholder=''
-                    error={!!errors.model_name}
-                    helperText={errors.model_name?.message}
-                  >
-                    {currentModelList.map((it) => (
-                      <MenuItem key={it.name} value={it.name}>
-                        {it.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-              />
-              {/* {ModelProvider[providerBrand].customHeader && (
-                <>
-                  <Box sx={{ fontSize: 14, lineHeight: '32px', mt: 2 }}>
-                    Header
-                  </Box>
-                  <Stack direction={'row'} gap={1}>
-                    <Controller
-                      control={control}
-                      name='api_header_key'
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          size='small'
-                          placeholder='key'
-                          error={!!errors.api_header_key}
-                          helperText={errors.api_header_key?.message}
-                        />
-                      )}
-                    />
-                    <Box sx={{ fontSize: 14, lineHeight: '36px' }}>=</Box>
-                    <Controller
-                      control={control}
-                      name='api_header_value'
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          size='small'
-                          placeholder='value'
-                          error={!!errors.api_header_value}
-                          helperText={errors.api_header_value?.message}
-                        />
-                      )}
-                    />
-                  </Stack>
-                </>
-              )} */}
-            </>
-          )}
+
+          <Box sx={{ mt: 2 }}>
+            <StyledFormLabel required>模型名称</StyledFormLabel>
+          </Box>
+
+          <Controller
+            control={control}
+            name='model_name'
+            render={({ field }) => (
+              <TextField
+                {...field}
+                fullWidth
+                select
+                size='small'
+                placeholder=''
+                error={!!errors.model_name}
+                helperText={errors.model_name?.message}
+              >
+                {currentModelList.map((it) => (
+                  <MenuItem key={it.name} value={it.name}>
+                    {it.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />
           {error && (
             <Card
               sx={{

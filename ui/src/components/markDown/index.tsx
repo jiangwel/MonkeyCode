@@ -1,20 +1,14 @@
-// import { ToolInfo } from '@/api';
-import { Icon, message } from '@c-x/ui';
-import { Box, Button, IconButton, Stack, useTheme, alpha } from '@mui/material';
-import React, { useState, useRef } from 'react';
+import { message } from '@c-x/ui';
+import { Box, useTheme } from '@mui/material';
+import React from 'react';
 import ReactMarkdown, { Components } from 'react-markdown';
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import {
-  github,
-  anOldHope,
-} from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
-import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import { getBaseLanguageId } from '@/utils';
 import Diff from './diff';
-import { visit } from 'unist-util-visit';
+import Code from './code';
 
 interface ExtendedComponents extends Components {
   tools?: React.ComponentType<any>;
@@ -38,10 +32,46 @@ export const toolNames = [
   'switch_mode',
   'new_task',
   'fetch_instructions',
+  'follow_up',
 ];
 
 // 去掉下划线的标签名，用于Markdown渲染
 export const toolTagNames = toolNames.map((name) => name.replace(/_/g, ''));
+
+// 提取 <write_to_file> 块，解析 path、content、language，支持多个 <content>，每个加唯一 id，返回 newText 和 contentMap
+export interface WriteToFileContentMap {
+  [id: string]: {
+    code: string;
+    path: string;
+    language: string;
+  };
+}
+
+export function preprocessWriteToFile(text: string) {
+  let contentIndex = 0;
+  const contentMap: WriteToFileContentMap = {};
+  // 替换所有 <content>...</content> 为 <content id="content-x"></content> 并存入 contentMap
+  const newText = text.replace(
+    /<content>([\s\S]*?)(<\/content>|$)/g,
+    (match, code) => {
+      const id = `content-${contentIndex++}`;
+      // 尝试提取 path
+      let path = '';
+      let language = '';
+      // 向前查找最近的 <path> 标签
+      const pathMatch = text
+        .slice(0, text.indexOf(match))
+        .match(/<path>([\s\S]*?)<\/path>/);
+      if (pathMatch) {
+        path = pathMatch[1].trim();
+        language = getBaseLanguageId(path.split('.').pop() || 'plaintext');
+      }
+      contentMap[id] = { code: code.trim(), path, language };
+      return `<content id="${id}"></content>`;
+    }
+  );
+  return { newText, contentMap };
+}
 
 // 支持多组 diff 分隔符，容错处理
 function parseAndMergeDiffs(diffText: string) {
@@ -195,7 +225,9 @@ const MarkDown = ({
 
   // 预处理 markdown，提取 diffMap
   const { newMd, diffMap } = preprocessMarkdown(content);
-  const answer = processContent(newMd);
+  const { newText, contentMap: writeToFileContentMap } =
+    preprocessWriteToFile(newMd);
+  const answerMd = processContent(newText);
 
   if (content.length === 0) return null;
 
@@ -218,15 +250,23 @@ const MarkDown = ({
               tagNames: [
                 ...(defaultSchema.tagNames! as string[]),
                 'command',
-                'attemptcompletion',
                 ...toolTagNames,
                 'diff',
+                'suggest',
+                'content',
               ],
             },
           ],
         ]}
         components={
           {
+            followup: (props: any) => {
+              return <ul>{props.children}</ul>;
+            },
+            suggest: (props: any) => {
+              return <li>{props.children}</li>;
+            },
+
             diff: (props: any) => {
               const { node } = props;
               // 去掉 user-content- 前缀
@@ -294,20 +334,15 @@ const MarkDown = ({
             },
             command: ({ children }: React.HTMLAttributes<HTMLElement>) => {
               return (
-                <SyntaxHighlighter
+                <Code
+                  data={String(children).replace(/\n$/, '')}
                   language={'shell'}
-                  style={github}
-                  onClick={() => {
-                    if (navigator.clipboard) {
-                      navigator.clipboard.writeText(
-                        String(children).replace(/\n$/, '')
-                      );
-                      message.success('复制成功');
-                    }
+                  options={{
+                    lineNumbers: 'off',
                   }}
-                >
-                  {String(children)}
-                </SyntaxHighlighter>
+                  autoHeight
+                  autoWidth
+                />
               );
             },
             attemptcompletion: (props: React.HTMLAttributes<HTMLElement>) => {
@@ -326,6 +361,7 @@ const MarkDown = ({
                 </div>
               );
             },
+
             code({
               children,
               className,
@@ -333,22 +369,15 @@ const MarkDown = ({
             }: React.HTMLAttributes<HTMLElement>) {
               const match = /language-(\w+)/.exec(className || '');
               return match ? (
-                <SyntaxHighlighter
-                  showLineNumbers
-                  {...rest}
-                  language={match[1] || 'bash'}
-                  style={anOldHope}
-                  onClick={() => {
-                    if (navigator.clipboard) {
-                      navigator.clipboard.writeText(
-                        String(children).replace(/\n$/, '')
-                      );
-                      message.success('复制成功');
-                    }
+                <Code
+                  data={String(children).replace(/\n$/, '')}
+                  language={match?.[1] || 'plaintext'}
+                  autoHeight
+                  autoWidth
+                  options={{
+                    lineNumbers: 'off',
                   }}
-                >
-                  {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
+                />
               ) : (
                 <code
                   {...rest}
@@ -364,10 +393,26 @@ const MarkDown = ({
                 </code>
               );
             },
+            content: (props: any) => {
+              const id = props.node?.properties?.id?.replace(
+                /^user-content-/,
+                ''
+              );
+              const block = id ? writeToFileContentMap[id] : undefined;
+              if (!block) return null;
+              return (
+                <Code
+                  data={block.code}
+                  language={block.language || 'text'}
+                  autoHeight
+                  autoWidth
+                />
+              );
+            },
           } as ExtendedComponents
         }
       >
-        {answer}
+        {answerMd}
       </ReactMarkdown>
     </Box>
   );

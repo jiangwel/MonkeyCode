@@ -246,3 +246,17 @@ export const getRecent24HoursData = (
   }
   return { xData, yData };
 };
+
+export const getBaseLanguageId = (languageId: string): string => {
+  const map: Record<string, string> = {
+    typescriptreact: 'typescript',
+    javascriptreact: 'javascript',
+    tailwindcss: 'css',
+    shellscript: 'shell',
+    'vue-html': 'vue',
+    tsx: 'typescript',
+    jsx: 'javascript',
+    py: 'python',
+  };
+  return map[languageId] || languageId;
+};

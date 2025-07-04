@@ -82,15 +82,16 @@ const Completion = () => {
     is_accept?: 'accepted' | 'unaccepted' | '';
   }) => {
     setLoading(true);
+    const isAccept = params.is_accept || filterAccept;
     const res = await getListCompletionRecord({
       page: params.page || page,
       size: params.size || size,
       language: params.language || filterLang,
       author: params.author || filterUser,
       is_accept:
-        params.is_accept === 'accepted'
+        isAccept === 'accepted'
           ? true
-          : params.is_accept === 'unaccepted'
+          : isAccept === 'unaccepted'
           ? false
           : undefined,
     });

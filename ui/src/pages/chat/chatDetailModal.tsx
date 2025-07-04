@@ -98,7 +98,12 @@ const ChatDetailModal = ({
           对话记录-{data?.user?.username}
         </Ellipsis>
       }
-      width={1200}
+      sx={{
+        '.MuiDialog-paper': {
+          maxWidth: 1300,
+        },
+      }}
+      width={1300}
       open={open}
       onCancel={onClose}
       footer={null}

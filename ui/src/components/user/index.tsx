@@ -26,9 +26,9 @@ const User = ({
         <Stack direction={'row'} alignItems={'center'} gap={1}>
           <Avatar
             name={username}
-            sx={{ width: 22, height: 22, fontSize: 14 }}
+            sx={{ width: 20, height: 20, fontSize: 12 }}
           />
-          <Typography>{username}</Typography>
+          <Typography sx={{ pt: '2px' }}>{username}</Typography>
         </Stack>
       </Link>
       {email && (
