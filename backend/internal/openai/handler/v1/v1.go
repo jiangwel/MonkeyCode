@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 
 	"github.com/GoYoko/web"
 
+	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/internal/middleware"
 )
@@ -17,6 +19,8 @@ type V1Handler struct {
 	logger  *slog.Logger
 	proxy   domain.Proxy
 	usecase domain.OpenAIUsecase
+	euse    domain.ExtensionUsecase
+	config  *config.Config
 }
 
 func NewV1Handler(
@@ -24,15 +28,20 @@ func NewV1Handler(
 	w *web.Web,
 	proxy domain.Proxy,
 	usecase domain.OpenAIUsecase,
+	euse domain.ExtensionUsecase,
 	middleware *middleware.ProxyMiddleware,
 	active *middleware.ActiveMiddleware,
+	config *config.Config,
 ) *V1Handler {
 	h := &V1Handler{
 		logger:  logger.With(slog.String("handler", "openai")),
 		proxy:   proxy,
 		usecase: usecase,
+		euse:    euse,
+		config:  config,
 	}
 	w.GET("/api/config", web.BindHandler(h.GetConfig), middleware.Auth())
+	w.GET("/v1/version", web.BaseHandler(h.Version), middleware.Auth())
 
 	g := w.Group("/v1", middleware.Auth())
 	g.GET("/models", web.BaseHandler(h.ModelList))
@@ -51,6 +60,18 @@ func BadRequest(c *web.Context, msg string) error {
 		},
 	})
 	return nil
+}
+
+func (h *V1Handler) Version(c *web.Context) error {
+	v, err := h.euse.Latest(c.Request().Context())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, domain.VersionInfo{
+		Version: v.Version,
+		URL:     fmt.Sprintf("%s/api/v1/static/vsix/%s", h.config.BaseUrl, v.Version),
+	})
 }
 
 // AcceptCompletion 接受补全请求

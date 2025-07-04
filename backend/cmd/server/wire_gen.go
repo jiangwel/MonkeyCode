@@ -12,15 +12,17 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	v1_5 "github.com/chaitin/MonkeyCode/backend/internal/billing/handler/http/v1"
-	repo6 "github.com/chaitin/MonkeyCode/backend/internal/billing/repo"
-	usecase5 "github.com/chaitin/MonkeyCode/backend/internal/billing/usecase"
+	repo7 "github.com/chaitin/MonkeyCode/backend/internal/billing/repo"
+	usecase6 "github.com/chaitin/MonkeyCode/backend/internal/billing/usecase"
 	v1_4 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/handler/v1"
-	repo5 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/repo"
-	usecase4 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/usecase"
+	repo6 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/repo"
+	usecase5 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/usecase"
+	repo3 "github.com/chaitin/MonkeyCode/backend/internal/extension/repo"
+	usecase2 "github.com/chaitin/MonkeyCode/backend/internal/extension/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/middleware"
 	v1_2 "github.com/chaitin/MonkeyCode/backend/internal/model/handler/http/v1"
-	repo3 "github.com/chaitin/MonkeyCode/backend/internal/model/repo"
-	usecase2 "github.com/chaitin/MonkeyCode/backend/internal/model/usecase"
+	repo4 "github.com/chaitin/MonkeyCode/backend/internal/model/repo"
+	usecase3 "github.com/chaitin/MonkeyCode/backend/internal/model/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/openai/handler/v1"
 	repo2 "github.com/chaitin/MonkeyCode/backend/internal/openai/repo"
 	"github.com/chaitin/MonkeyCode/backend/internal/openai/usecase"
@@ -28,8 +30,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/repo"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/usecase"
 	v1_3 "github.com/chaitin/MonkeyCode/backend/internal/user/handler/v1"
-	repo4 "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
-	usecase3 "github.com/chaitin/MonkeyCode/backend/internal/user/usecase"
+	repo5 "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
+	usecase4 "github.com/chaitin/MonkeyCode/backend/internal/user/usecase"
 	"github.com/chaitin/MonkeyCode/backend/pkg"
 	"github.com/chaitin/MonkeyCode/backend/pkg/logger"
 	"github.com/chaitin/MonkeyCode/backend/pkg/session"
@@ -56,23 +58,25 @@ func newServer(dir string) (*Server, error) {
 	domainProxy := proxy.NewLLMProxy(proxyUsecase, configConfig, slogLogger)
 	openAIRepo := repo2.NewOpenAIRepo(client)
 	openAIUsecase := openai.NewOpenAIUsecase(configConfig, openAIRepo, slogLogger)
+	extensionRepo := repo3.NewExtensionRepo(client)
+	extensionUsecase := usecase2.NewExtensionUsecase(extensionRepo, configConfig, slogLogger)
 	proxyMiddleware := middleware.NewProxyMiddleware(proxyUsecase)
 	redisClient := store.NewRedisCli(configConfig)
 	activeMiddleware := middleware.NewActiveMiddleware(redisClient, slogLogger)
-	v1Handler := v1.NewV1Handler(slogLogger, web, domainProxy, openAIUsecase, proxyMiddleware, activeMiddleware)
-	modelRepo := repo3.NewModelRepo(client)
-	modelUsecase := usecase2.NewModelUsecase(slogLogger, modelRepo, configConfig)
+	v1Handler := v1.NewV1Handler(slogLogger, web, domainProxy, openAIUsecase, extensionUsecase, proxyMiddleware, activeMiddleware, configConfig)
+	modelRepo := repo4.NewModelRepo(client)
+	modelUsecase := usecase3.NewModelUsecase(slogLogger, modelRepo, configConfig)
 	sessionSession := session.NewSession(configConfig)
 	authMiddleware := middleware.NewAuthMiddleware(sessionSession, slogLogger)
 	modelHandler := v1_2.NewModelHandler(web, modelUsecase, authMiddleware, slogLogger)
-	userRepo := repo4.NewUserRepo(client)
-	userUsecase := usecase3.NewUserUsecase(configConfig, redisClient, userRepo, slogLogger)
-	userHandler := v1_3.NewUserHandler(web, userUsecase, authMiddleware, sessionSession, slogLogger, configConfig)
-	dashboardRepo := repo5.NewDashboardRepo(client)
-	dashboardUsecase := usecase4.NewDashboardUsecase(dashboardRepo)
+	userRepo := repo5.NewUserRepo(client)
+	userUsecase := usecase4.NewUserUsecase(configConfig, redisClient, userRepo, slogLogger)
+	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, authMiddleware, sessionSession, slogLogger, configConfig)
+	dashboardRepo := repo6.NewDashboardRepo(client)
+	dashboardUsecase := usecase5.NewDashboardUsecase(dashboardRepo)
 	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware)
-	billingRepo := repo6.NewBillingRepo(client)
-	billingUsecase := usecase5.NewBillingUsecase(billingRepo)
+	billingRepo := repo7.NewBillingRepo(client)
+	billingUsecase := usecase6.NewBillingUsecase(billingRepo)
 	billingHandler := v1_5.NewBillingHandler(web, billingUsecase, authMiddleware)
 	server := &Server{
 		config:      configConfig,

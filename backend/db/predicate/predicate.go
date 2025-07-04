@@ -27,6 +27,9 @@ type BillingRecord func(*sql.Selector)
 // BillingUsage is the predicate function for billingusage builders.
 type BillingUsage func(*sql.Selector)
 
+// Extension is the predicate function for extension builders.
+type Extension func(*sql.Selector)
+
 // InviteCode is the predicate function for invitecode builders.
 type InviteCode func(*sql.Selector)
 

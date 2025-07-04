@@ -141,6 +141,19 @@ var (
 		Columns:    BillingUsagesColumns,
 		PrimaryKey: []*schema.Column{BillingUsagesColumns[0]},
 	}
+	// ExtensionsColumns holds the columns for the "extensions" table.
+	ExtensionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "version", Type: field.TypeString},
+		{Name: "path", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// ExtensionsTable holds the schema information for the "extensions" table.
+	ExtensionsTable = &schema.Table{
+		Name:       "extensions",
+		Columns:    ExtensionsColumns,
+		PrimaryKey: []*schema.Column{ExtensionsColumns[0]},
+	}
 	// InviteCodesColumns holds the columns for the "invite_codes" table.
 	InviteCodesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -387,6 +400,7 @@ var (
 		BillingQuotasTable,
 		BillingRecordsTable,
 		BillingUsagesTable,
+		ExtensionsTable,
 		InviteCodesTable,
 		ModelsTable,
 		ModelProvidersTable,
@@ -422,6 +436,9 @@ func init() {
 	}
 	BillingUsagesTable.Annotation = &entsql.Annotation{
 		Table: "billing_usages",
+	}
+	ExtensionsTable.Annotation = &entsql.Annotation{
+		Table: "extensions",
 	}
 	InviteCodesTable.Annotation = &entsql.Annotation{
 		Table: "invite_codes",

@@ -109,6 +109,20 @@ func (bu *BillingUsageQuery) Page(ctx context.Context, page, size int) ([]*Billi
 	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
 }
 
+func (e *ExtensionQuery) Page(ctx context.Context, page, size int) ([]*Extension, *PageInfo, error) {
+	cnt, err := e.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := e.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
 func (ic *InviteCodeQuery) Page(ctx context.Context, page, size int) ([]*InviteCode, *PageInfo, error) {
 	cnt, err := ic.Count(ctx)
 	if err != nil {
