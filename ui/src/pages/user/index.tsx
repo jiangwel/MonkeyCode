@@ -52,13 +52,13 @@ const User = () => {
   });
 
   return (
-    <Stack gap={2}>
-      <Grid container spacing={2}>
-        <Grid size={6}>
+    <Stack gap={2} sx={{ height: '100%' }}>
+      <Grid container spacing={2} sx={{ height: '100%' }}>
+        <Grid size={6} sx={{ height: '100%' }}>
           <MemberManage />
         </Grid>
-        <Grid size={6} container spacing={2}>
-          <Grid size={12}>
+        <Grid size={6} container sx={{ height: '100%' }}>
+          <Stack gap={2} sx={{ height: '100%' }}>
             <StyledCard>
               <StyledLabel>强制成员启用两步认证</StyledLabel>
               <Switch
@@ -68,8 +68,6 @@ const User = () => {
                 }}
               />
             </StyledCard>
-          </Grid>
-          <Grid size={12}>
             <StyledCard>
               <StyledLabel>禁止成员使用密码登录</StyledLabel>
               <Switch
@@ -79,10 +77,7 @@ const User = () => {
                 }
               />
             </StyledCard>
-          </Grid>
-
-          <Grid size={12}>
-            <StyledCard sx={{ height: '100%' }}>
+            <StyledCard>
               <StyledLabel>
                 第三方登录
                 <Box
@@ -105,11 +100,8 @@ const User = () => {
                 配置
               </Button>
             </StyledCard>
-          </Grid>
-
-          <Grid size={12}>
             <LoginHistory />
-          </Grid>
+          </Stack>
         </Grid>
       </Grid>
 

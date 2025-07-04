@@ -1,9 +1,10 @@
-import React from 'react';
-import { styled, Stack, Box } from '@mui/material';
+import React, { useState } from 'react';
+import { styled, Stack, Box, Button } from '@mui/material';
 import { Empty } from '@c-x/ui';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import { TimeRange } from '../index';
+import ContributionModal from './contributionModal';
 
 import Card from '@/components/card';
 import {
@@ -23,13 +24,13 @@ const StyledCardValue = styled('div')(({ theme }) => ({
   fontWeight: 700,
 }));
 
-const StyledItem = styled('div')(({ theme }) => ({
+export const StyledItem = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(2),
 }));
 
-const StyledText = styled('a')(({ theme }) => ({
+export const StyledText = styled('a')(({ theme }) => ({
   fontSize: 14,
   color: theme.palette.text.primary,
   overflow: 'hidden',
@@ -37,20 +38,22 @@ const StyledText = styled('a')(({ theme }) => ({
   whiteSpace: 'nowrap',
 }));
 
-const StyledSerialNumber = styled('span')<{ num: number }>(({ theme, num }) => {
-  const numToColor = {
-    1: '#FE4545',
-    2: '#FF6600',
-    3: '#FFC600',
-  };
-  const color = numToColor[num as 1] || '#BCBCBC';
-  return {
-    color: color,
-    fontSize: 14,
-    fontWeight: 700,
-    width: 8,
-  };
-});
+export const StyledSerialNumber = styled('span')<{ num: number }>(
+  ({ theme, num }) => {
+    const numToColor = {
+      1: '#FE4545',
+      2: '#FF6600',
+      3: '#FFC600',
+    };
+    const color = numToColor[num as 1] || '#BCBCBC';
+    return {
+      color: color,
+      fontSize: 14,
+      fontWeight: 700,
+      width: 8,
+    };
+  }
+);
 
 export const ContributionCard = ({
   data = [],
@@ -60,11 +63,34 @@ export const ContributionCard = ({
   timeRange: TimeRange;
 }) => {
   const navigate = useNavigate();
-
+  const [contributionModalOpen, setContributionModalOpen] = useState(false);
   return (
     <Card sx={{ height: '100%' }}>
+      <ContributionModal
+        open={contributionModalOpen}
+        onCancel={() => setContributionModalOpen(false)}
+        data={data}
+      />
       <Stack direction='row' justifyContent='space-between' alignItems='center'>
-        <Box sx={{ fontWeight: 700 }}>用户贡献榜</Box>
+        <Stack
+          direction='row'
+          alignItems='center'
+          gap={1}
+          sx={{ fontWeight: 700 }}
+        >
+          用户贡献榜
+          <Box
+            sx={{
+              fontSize: 12,
+              color: 'info.main',
+              cursor: 'pointer',
+              fontWeight: 400,
+            }}
+            onClick={() => setContributionModalOpen(true)}
+          >
+            查看更多
+          </Box>
+        </Stack>
         <Box sx={{ fontSize: 12, color: 'text.tertiary' }}>
           {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}
         </Box>

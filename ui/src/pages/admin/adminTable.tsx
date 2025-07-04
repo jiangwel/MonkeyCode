@@ -17,7 +17,7 @@ import dayjs from 'dayjs';
 import { DomainAdminUser } from '@/api/types';
 import { Controller, useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import User from '@/components/user';
 
 const AddAdminModal = ({
   open,
@@ -182,6 +182,9 @@ const AdminTable = () => {
     {
       title: '账号',
       dataIndex: 'username',
+      render: (text) => {
+        return <User username={text} />;
+      },
     },
     {
       title: '最近活跃时间',
