@@ -28,6 +28,7 @@ type ProxyUsecase interface {
 type ProxyRepo interface {
 	Record(ctx context.Context, record *RecordParam) error
 	UpdateByTaskID(ctx context.Context, taskID string, fn func(*db.TaskUpdateOne)) error
+	AcceptCompletion(ctx context.Context, req *AcceptCompletionReq) error
 	SelectModelWithLoadBalancing(modelName string, modelType consts.ModelType) (*db.Model, error)
 	ValidateApiKey(ctx context.Context, key string) (*db.ApiKey, error)
 }

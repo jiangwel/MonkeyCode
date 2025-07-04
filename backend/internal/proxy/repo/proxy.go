@@ -133,3 +133,23 @@ func (r *ProxyRepo) UpdateByTaskID(ctx context.Context, taskID string, fn func(*
 		return up.Exec(ctx)
 	})
 }
+
+func (r *ProxyRepo) AcceptCompletion(ctx context.Context, req *domain.AcceptCompletionReq) error {
+	return entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		rc, err := tx.Task.Query().Where(task.TaskID(req.ID)).Only(ctx)
+		if err != nil {
+			return err
+		}
+
+		if err := tx.Task.UpdateOneID(rc.ID).
+			SetIsAccept(true).
+			SetCompletion(req.Completion).
+			Exec(ctx); err != nil {
+			return err
+		}
+
+		return tx.TaskRecord.Update().
+			Where(taskrecord.TaskID(rc.ID)).
+			SetCompletion(req.Completion).Exec(ctx)
+	})
+}
