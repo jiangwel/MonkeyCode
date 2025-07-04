@@ -30,6 +30,16 @@ func (r *ModelRepo) Create(ctx context.Context, m *domain.CreateModelReq) (*db.M
 	if err != nil {
 		return nil, err
 	}
+
+	n, err := r.db.Model.Query().Where(model.ModelType(m.ModelType)).Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	status := consts.ModelStatusInactive
+	if n == 0 {
+		status = consts.ModelStatusActive
+	}
+
 	return r.db.Model.Create().
 		SetUserID(uid).
 		SetModelName(m.ModelName).
@@ -37,7 +47,7 @@ func (r *ModelRepo) Create(ctx context.Context, m *domain.CreateModelReq) (*db.M
 		SetAPIBase(m.APIBase).
 		SetAPIKey(m.APIKey).
 		SetModelType(m.ModelType).
-		SetStatus(consts.ModelStatusInactive).
+		SetStatus(status).
 		Save(ctx)
 }
 
