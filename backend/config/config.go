@@ -57,15 +57,15 @@ type Config struct {
 		RequestLogPath string `mapstructure:"request_log_path"`
 	} `mapstructure:"llm_proxy"`
 
-	VSCode struct {
-		VSIXFile string `mapstructure:"vsix_file"`
-	} `mapstructure:"vscode"`
-
 	InitModel struct {
 		ModelName string `mapstructure:"model_name"`
 		ModelKey  string `mapstructure:"model_key"`
 		ModelURL  string `mapstructure:"model_url"`
 	} `mapstructure:"init_model"`
+
+	Extension struct {
+		Baseurl string `mapstructure:"baseurl"`
+	} `mapstructure:"extension"`
 }
 
 func Init(dir string) (*Config, error) {

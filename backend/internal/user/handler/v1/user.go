@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -18,6 +19,7 @@ import (
 
 type UserHandler struct {
 	usecase domain.UserUsecase
+	euse    domain.ExtensionUsecase
 	session *session.Session
 	logger  *slog.Logger
 	cfg     *config.Config
@@ -26,6 +28,7 @@ type UserHandler struct {
 func NewUserHandler(
 	w *web.Web,
 	usecase domain.UserUsecase,
+	euse domain.ExtensionUsecase,
 	auth *middleware.AuthMiddleware,
 	session *session.Session,
 	logger *slog.Logger,
@@ -36,9 +39,10 @@ func NewUserHandler(
 		session: session,
 		logger:  logger,
 		cfg:     cfg,
+		euse:    euse,
 	}
 
-	w.GET("/api/v1/static/vsix", web.BaseHandler(u.VSIXDownload))
+	w.GET("/api/v1/static/vsix/:version", web.BaseHandler(u.VSIXDownload))
 	w.POST("/api/v1/vscode/init-auth", web.BindHandler(u.VSCodeAuthInit))
 
 	// admin
@@ -88,9 +92,14 @@ func (h *UserHandler) VSCodeAuthInit(c *web.Context, req domain.VSCodeAuthInitRe
 //	@Produce		octet-stream
 //	@Router			/api/v1/static/vsix [get]
 func (h *UserHandler) VSIXDownload(c *web.Context) error {
+	v, err := h.euse.GetByVersion(c.Request().Context(), c.Param("version"))
+	if err != nil {
+		return err
+	}
+	disposition := fmt.Sprintf("attachment; filename=monkeycode-%s.vsix", v.Version)
 	c.Response().Header().Set("Content-Type", "application/octet-stream")
-	c.Response().Header().Set("Content-Disposition", "attachment; filename=monkeycode.vsix")
-	if err := vsix.ChangeVsixEndpoint(h.cfg.VSCode.VSIXFile, "extension/package.json", h.cfg.BaseUrl, c.Response().Writer); err != nil {
+	c.Response().Header().Set("Content-Disposition", disposition)
+	if err := vsix.ChangeVsixEndpoint(v.Path, "extension/package.json", h.cfg.BaseUrl, c.Response().Writer); err != nil {
 		return err
 	}
 	return nil

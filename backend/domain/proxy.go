@@ -33,6 +33,11 @@ type ProxyRepo interface {
 	ValidateApiKey(ctx context.Context, key string) (*db.ApiKey, error)
 }
 
+type VersionInfo struct {
+	Version string `json:"version"`
+	URL     string `json:"url"`
+}
+
 type AcceptCompletionReq struct {
 	ID         string `json:"id"`         // 记录ID
 	Completion string `json:"completion"` // 补全内容

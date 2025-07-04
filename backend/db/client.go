@@ -23,6 +23,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
 	"github.com/chaitin/MonkeyCode/backend/db/billingrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
+	"github.com/chaitin/MonkeyCode/backend/db/extension"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
@@ -56,6 +57,8 @@ type Client struct {
 	BillingRecord *BillingRecordClient
 	// BillingUsage is the client for interacting with the BillingUsage builders.
 	BillingUsage *BillingUsageClient
+	// Extension is the client for interacting with the Extension builders.
+	Extension *ExtensionClient
 	// InviteCode is the client for interacting with the InviteCode builders.
 	InviteCode *InviteCodeClient
 	// Model is the client for interacting with the Model builders.
@@ -94,6 +97,7 @@ func (c *Client) init() {
 	c.BillingQuota = NewBillingQuotaClient(c.config)
 	c.BillingRecord = NewBillingRecordClient(c.config)
 	c.BillingUsage = NewBillingUsageClient(c.config)
+	c.Extension = NewExtensionClient(c.config)
 	c.InviteCode = NewInviteCodeClient(c.config)
 	c.Model = NewModelClient(c.config)
 	c.ModelProvider = NewModelProviderClient(c.config)
@@ -203,6 +207,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		BillingQuota:       NewBillingQuotaClient(cfg),
 		BillingRecord:      NewBillingRecordClient(cfg),
 		BillingUsage:       NewBillingUsageClient(cfg),
+		Extension:          NewExtensionClient(cfg),
 		InviteCode:         NewInviteCodeClient(cfg),
 		Model:              NewModelClient(cfg),
 		ModelProvider:      NewModelProviderClient(cfg),
@@ -239,6 +244,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		BillingQuota:       NewBillingQuotaClient(cfg),
 		BillingRecord:      NewBillingRecordClient(cfg),
 		BillingUsage:       NewBillingUsageClient(cfg),
+		Extension:          NewExtensionClient(cfg),
 		InviteCode:         NewInviteCodeClient(cfg),
 		Model:              NewModelClient(cfg),
 		ModelProvider:      NewModelProviderClient(cfg),
@@ -279,9 +285,9 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Admin, c.AdminLoginHistory, c.ApiKey, c.BillingPlan, c.BillingQuota,
-		c.BillingRecord, c.BillingUsage, c.InviteCode, c.Model, c.ModelProvider,
-		c.ModelProviderModel, c.Setting, c.Task, c.TaskRecord, c.User, c.UserIdentity,
-		c.UserLoginHistory,
+		c.BillingRecord, c.BillingUsage, c.Extension, c.InviteCode, c.Model,
+		c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task, c.TaskRecord, c.User,
+		c.UserIdentity, c.UserLoginHistory,
 	} {
 		n.Use(hooks...)
 	}
@@ -292,9 +298,9 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Admin, c.AdminLoginHistory, c.ApiKey, c.BillingPlan, c.BillingQuota,
-		c.BillingRecord, c.BillingUsage, c.InviteCode, c.Model, c.ModelProvider,
-		c.ModelProviderModel, c.Setting, c.Task, c.TaskRecord, c.User, c.UserIdentity,
-		c.UserLoginHistory,
+		c.BillingRecord, c.BillingUsage, c.Extension, c.InviteCode, c.Model,
+		c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task, c.TaskRecord, c.User,
+		c.UserIdentity, c.UserLoginHistory,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -317,6 +323,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.BillingRecord.mutate(ctx, m)
 	case *BillingUsageMutation:
 		return c.BillingUsage.mutate(ctx, m)
+	case *ExtensionMutation:
+		return c.Extension.mutate(ctx, m)
 	case *InviteCodeMutation:
 		return c.InviteCode.mutate(ctx, m)
 	case *ModelMutation:
@@ -1306,6 +1314,139 @@ func (c *BillingUsageClient) mutate(ctx context.Context, m *BillingUsageMutation
 		return (&BillingUsageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown BillingUsage mutation op: %q", m.Op())
+	}
+}
+
+// ExtensionClient is a client for the Extension schema.
+type ExtensionClient struct {
+	config
+}
+
+// NewExtensionClient returns a client for the Extension from the given config.
+func NewExtensionClient(c config) *ExtensionClient {
+	return &ExtensionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `extension.Hooks(f(g(h())))`.
+func (c *ExtensionClient) Use(hooks ...Hook) {
+	c.hooks.Extension = append(c.hooks.Extension, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `extension.Intercept(f(g(h())))`.
+func (c *ExtensionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Extension = append(c.inters.Extension, interceptors...)
+}
+
+// Create returns a builder for creating a Extension entity.
+func (c *ExtensionClient) Create() *ExtensionCreate {
+	mutation := newExtensionMutation(c.config, OpCreate)
+	return &ExtensionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Extension entities.
+func (c *ExtensionClient) CreateBulk(builders ...*ExtensionCreate) *ExtensionCreateBulk {
+	return &ExtensionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ExtensionClient) MapCreateBulk(slice any, setFunc func(*ExtensionCreate, int)) *ExtensionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ExtensionCreateBulk{err: fmt.Errorf("calling to ExtensionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ExtensionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ExtensionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Extension.
+func (c *ExtensionClient) Update() *ExtensionUpdate {
+	mutation := newExtensionMutation(c.config, OpUpdate)
+	return &ExtensionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ExtensionClient) UpdateOne(e *Extension) *ExtensionUpdateOne {
+	mutation := newExtensionMutation(c.config, OpUpdateOne, withExtension(e))
+	return &ExtensionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ExtensionClient) UpdateOneID(id uuid.UUID) *ExtensionUpdateOne {
+	mutation := newExtensionMutation(c.config, OpUpdateOne, withExtensionID(id))
+	return &ExtensionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Extension.
+func (c *ExtensionClient) Delete() *ExtensionDelete {
+	mutation := newExtensionMutation(c.config, OpDelete)
+	return &ExtensionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ExtensionClient) DeleteOne(e *Extension) *ExtensionDeleteOne {
+	return c.DeleteOneID(e.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ExtensionClient) DeleteOneID(id uuid.UUID) *ExtensionDeleteOne {
+	builder := c.Delete().Where(extension.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ExtensionDeleteOne{builder}
+}
+
+// Query returns a query builder for Extension.
+func (c *ExtensionClient) Query() *ExtensionQuery {
+	return &ExtensionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeExtension},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Extension entity by its id.
+func (c *ExtensionClient) Get(ctx context.Context, id uuid.UUID) (*Extension, error) {
+	return c.Query().Where(extension.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ExtensionClient) GetX(ctx context.Context, id uuid.UUID) *Extension {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ExtensionClient) Hooks() []Hook {
+	return c.hooks.Extension
+}
+
+// Interceptors returns the client interceptors.
+func (c *ExtensionClient) Interceptors() []Interceptor {
+	return c.inters.Extension
+}
+
+func (c *ExtensionClient) mutate(ctx context.Context, m *ExtensionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ExtensionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ExtensionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ExtensionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ExtensionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Extension mutation op: %q", m.Op())
 	}
 }
 
@@ -2871,13 +3012,14 @@ func (c *UserLoginHistoryClient) mutate(ctx context.Context, m *UserLoginHistory
 type (
 	hooks struct {
 		Admin, AdminLoginHistory, ApiKey, BillingPlan, BillingQuota, BillingRecord,
-		BillingUsage, InviteCode, Model, ModelProvider, ModelProviderModel, Setting,
-		Task, TaskRecord, User, UserIdentity, UserLoginHistory []ent.Hook
+		BillingUsage, Extension, InviteCode, Model, ModelProvider, ModelProviderModel,
+		Setting, Task, TaskRecord, User, UserIdentity, UserLoginHistory []ent.Hook
 	}
 	inters struct {
 		Admin, AdminLoginHistory, ApiKey, BillingPlan, BillingQuota, BillingRecord,
-		BillingUsage, InviteCode, Model, ModelProvider, ModelProviderModel, Setting,
-		Task, TaskRecord, User, UserIdentity, UserLoginHistory []ent.Interceptor
+		BillingUsage, Extension, InviteCode, Model, ModelProvider, ModelProviderModel,
+		Setting, Task, TaskRecord, User, UserIdentity,
+		UserLoginHistory []ent.Interceptor
 	}
 )
 

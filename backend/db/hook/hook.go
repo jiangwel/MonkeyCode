@@ -93,6 +93,18 @@ func (f BillingUsageFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.BillingUsageMutation", m)
 }
 
+// The ExtensionFunc type is an adapter to allow the use of ordinary
+// function as Extension mutator.
+type ExtensionFunc func(context.Context, *db.ExtensionMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ExtensionFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ExtensionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ExtensionMutation", m)
+}
+
 // The InviteCodeFunc type is an adapter to allow the use of ordinary
 // function as InviteCode mutator.
 type InviteCodeFunc func(context.Context, *db.InviteCodeMutation) (db.Value, error)

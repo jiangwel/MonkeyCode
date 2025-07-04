@@ -13,6 +13,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
 	"github.com/chaitin/MonkeyCode/backend/db/billingrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
+	"github.com/chaitin/MonkeyCode/backend/db/extension"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
@@ -131,6 +132,12 @@ func init() {
 	billingusage.DefaultUpdatedAt = billingusageDescUpdatedAt.Default.(func() time.Time)
 	// billingusage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	billingusage.UpdateDefaultUpdatedAt = billingusageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	extensionFields := schema.Extension{}.Fields()
+	_ = extensionFields
+	// extensionDescCreatedAt is the schema descriptor for created_at field.
+	extensionDescCreatedAt := extensionFields[3].Descriptor()
+	// extension.DefaultCreatedAt holds the default value on creation for the created_at field.
+	extension.DefaultCreatedAt = extensionDescCreatedAt.Default.(func() time.Time)
 	invitecodeFields := schema.InviteCode{}.Fields()
 	_ = invitecodeFields
 	// invitecodeDescCreatedAt is the schema descriptor for created_at field.
