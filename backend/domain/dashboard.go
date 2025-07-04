@@ -35,7 +35,7 @@ type Statistics struct {
 type StatisticsFilter struct {
 	Precision string `json:"precision" query:"precision" validate:"required,oneof=hour day" default:"day"` // 精度: "hour", "day"
 	Duration  int    `json:"duration" query:"duration" validate:"gte=24,lte=90" default:"90"`              // 持续时间 (小时或天数)`
-	UserID    string `json:"user_id,omitempty" query:"user_id"`                                            // 用户ID，可jj
+	UserID    string `json:"user_id,omitempty" query:"user_id"`                                            // 用户ID，可选参数
 }
 
 func (s StatisticsFilter) StartTime() time.Time {

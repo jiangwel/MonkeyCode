@@ -219,6 +219,8 @@ func (d *DashboardRepo) UserEvents(ctx context.Context, req domain.StatisticsFil
 	}
 	rs, err := d.db.Task.Query().
 		WithUser().
+		WithTaskRecords().
+		Where(task.ModelType(consts.ModelTypeLLM)).
 		Where(task.CreatedAtGTE(req.StartTime())).
 		Where(task.HasUserWith(user.ID(id))).
 		Order(task.ByCreatedAt(sql.OrderDesc())).
@@ -228,11 +230,18 @@ func (d *DashboardRepo) UserEvents(ctx context.Context, req domain.StatisticsFil
 		return nil, err
 	}
 
-	return cvt.Iter(rs, func(_ int, v *db.Task) *domain.UserEvent {
-		return &domain.UserEvent{
-			Name:      v.Edges.User.Username,
-			CreatedAt: v.CreatedAt.Unix(),
+	return cvt.Filter(rs, func(_ int, v *db.Task) (*domain.UserEvent, bool) {
+		name := ""
+		for _, r := range v.Edges.TaskRecords {
+			if r.Role == consts.ChatRoleUser {
+				name = r.Prompt
+				break
+			}
 		}
+		return &domain.UserEvent{
+			Name:      name,
+			CreatedAt: v.CreatedAt.Unix(),
+		}, name != ""
 	}), nil
 }
 
@@ -265,7 +274,7 @@ func (d *DashboardRepo) UserStat(ctx context.Context, req domain.StatisticsFilte
 	if err := d.db.Task.Query().
 		Where(task.CreatedAtGTE(req.StartTime())).
 		Where(task.HasUserWith(user.ID(id))).
-		Where(task.WorkModeNotNil()).
+		Where(task.WorkModeNEQ("")).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("work_mode", "category"),
@@ -280,7 +289,7 @@ func (d *DashboardRepo) UserStat(ctx context.Context, req domain.StatisticsFilte
 	if err := d.db.Task.Query().
 		Where(task.CreatedAtGTE(req.StartTime())).
 		Where(task.HasUserWith(user.ID(id))).
-		Where(task.ProgramLanguageNotNil()).
+		Where(task.ProgramLanguageNEQ("")).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("program_language", "category"),

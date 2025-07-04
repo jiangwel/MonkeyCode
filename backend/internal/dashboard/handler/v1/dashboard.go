@@ -24,7 +24,7 @@ func NewDashboardHandler(
 	g.GET("/category-stat", web.BindHandler(h.CategoryStat))
 	g.GET("/time-stat", web.BindHandler(h.TimeStat))
 	g.GET("/user-stat", web.BindHandler(h.UserStat))
-	g.GET("/user-events", web.BindHandler(h.UserEvents))
+	g.GET("/user-events", web.BaseHandler(h.UserEvents))
 	g.GET("/user-code-rank", web.BindHandler(h.UserCodeRank))
 	g.GET("/user-heatmap", web.BaseHandler(h.UserHeatmap))
 
@@ -117,8 +117,12 @@ func (h *DashboardHandler) UserStat(c *web.Context, req domain.StatisticsFilter)
 //	@Param			filter	query		domain.StatisticsFilter	true	"筛选参数"
 //	@Success		200		{object}	web.Resp{data=[]domain.UserEvent}
 //	@Router			/api/v1/dashboard/user-events [get]
-func (h *DashboardHandler) UserEvents(c *web.Context, req domain.StatisticsFilter) error {
-	userEvents, err := h.usecase.UserEvents(c.Request().Context(), req)
+func (h *DashboardHandler) UserEvents(c *web.Context) error {
+	userEvents, err := h.usecase.UserEvents(c.Request().Context(), domain.StatisticsFilter{
+		Precision: "day",
+		Duration:  90,
+		UserID:    c.QueryParam("user_id"),
+	})
 	if err != nil {
 		return err
 	}
