@@ -190,7 +190,7 @@ const AdminTable = () => {
       title: '最近活跃时间',
       dataIndex: 'last_active_at',
       render: (text) => {
-        return dayjs(text).format('YYYY-MM-DD HH:mm:ss');
+        return text === 0 ? '从未使用' : dayjs.unix(text).fromNow();
       },
     },
     {

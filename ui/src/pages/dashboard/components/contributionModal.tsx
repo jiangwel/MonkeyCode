@@ -17,8 +17,8 @@ const ContributionModal = ({
       open={open}
       onCancel={onCancel}
       title='用户贡献榜'
-      showCancel={false}
-      okText='关闭'
+      footer={false}
+      onOk={onCancel}
     >
       <Box
         gap={0.5}
