@@ -5,7 +5,8 @@ import dayjs from 'dayjs';
 import { useRequest } from 'ahooks';
 import { getAdminLoginHistory } from '@/api/User';
 import { ColumnsType } from '@c-x/ui/dist/Table';
-import { DomainListAdminLoginHistoryResp, DomainAdminUser } from '@/api/types';
+import { DomainListAdminLoginHistoryResp } from '@/api/types';
+import User from '@/components/user';
 
 type LoginHistory = NonNullable<
   DomainListAdminLoginHistoryResp['login_histories']
@@ -18,7 +19,7 @@ const LoginHistory = () => {
       title: '账号',
       dataIndex: 'user',
       render: (user, record) => {
-        return record?.user?.username;
+        return <User username={record!.user!.username!} />;
       },
     },
     {

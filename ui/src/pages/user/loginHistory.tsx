@@ -6,6 +6,7 @@ import { Table } from '@c-x/ui';
 import dayjs from 'dayjs';
 import { ColumnsType } from '@c-x/ui/dist/Table';
 import { DomainListLoginHistoryResp } from '@/api/types';
+import User from '@/components/user';
 
 type LoginHistory = NonNullable<
   DomainListLoginHistoryResp['login_histories']
@@ -18,7 +19,13 @@ const LoginHistory = () => {
       title: '账号',
       dataIndex: 'user',
       render: (user, record) => {
-        return record?.user?.username;
+        return (
+          <User
+            username={record.user!.username!}
+            id={record.user!.id!}
+            email={record.user!.email!}
+          />
+        );
       },
     },
     {
@@ -54,7 +61,7 @@ const LoginHistory = () => {
     },
   ];
   return (
-    <Card>
+    <Card sx={{ flex: 1, height: 'calc(100% - 258px)' }}>
       <Stack
         direction='row'
         justifyContent='space-between'
@@ -64,6 +71,7 @@ const LoginHistory = () => {
         <Box sx={{ fontWeight: 700 }}>登录历史</Box>
       </Stack>
       <Table
+        height='calc(100% - 40px)'
         columns={columns}
         dataSource={data?.login_histories || []}
         pagination={false}

@@ -1,23 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Ellipsis } from '@c-x/ui';
+import { Table } from '@c-x/ui';
 import { getListChatRecord } from '@/api/Billing';
-import { aggregatedTime } from '@/utils';
 import dayjs from 'dayjs';
-import { convertTokensToRMB } from '@/utils';
 
 import Card from '@/components/card';
-import { Box, Stack, styled, Chip } from '@mui/material';
+import { Box } from '@mui/material';
 import StyledLabel from '@/components/label';
 
 import ChatDetailModal from './chatDetailModal';
 import { ColumnsType } from '@c-x/ui/dist/Table';
-import { DomainChatRecord } from '@/api/types';
+import { DomainChatRecord, DomainUser } from '@/api/types';
 import { addCommasToNumber } from '@/utils';
-
-const StyledHighlightText = styled('span')(({ theme }) => ({
-  color: theme.vars.palette.text.primary,
-  fontWeight: 700,
-}));
+import User from '@/components/user';
 
 const Chat = () => {
   const [page, setPage] = useState(1);
@@ -47,9 +41,15 @@ const Chat = () => {
     {
       dataIndex: 'user',
       title: '成员',
-      width: 160,
-      render(value: DomainChatRecord['user']) {
-        return value?.username;
+      width: 260,
+      render(value: DomainUser) {
+        return (
+          <User
+            id={value.id!}
+            username={value.username!}
+            email={value.email!}
+          />
+        );
       },
     },
     {

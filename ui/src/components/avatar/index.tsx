@@ -1,6 +1,5 @@
 import Logo from '@/assets/images/logo.png';
 import { Avatar as MuiAvatar, type SxProps } from '@mui/material';
-import { Icon } from '@c-x/ui';
 import { type ReactNode } from 'react';
 
 interface AvatarProps {
@@ -41,21 +40,15 @@ function stringAvatar(name: string) {
 
 const Avatar = (props: AvatarProps) => {
   const src = props.src;
+  const avatarObj = props.name ? stringAvatar(props.name) : undefined;
   return (
     <MuiAvatar
-      // sx={{
-      //   img: { objectFit: 'contain' },
-      //   bgcolor: 'transparent',
-      //   ...props.sx,
-      // }}
-
+      sx={props.name ? { ...avatarObj!.sx, ...props.sx } : props.sx}
       {...(props.name
-        ? stringAvatar(props.name)
-        : {
-            children: <img src={Logo} alt='logo' />,
-          })}
+        ? { children: avatarObj!.children }
+        : { children: <img src={Logo} alt='logo' /> })}
       src={src}
-    ></MuiAvatar>
+    />
   );
 };
 

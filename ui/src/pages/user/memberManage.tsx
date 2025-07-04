@@ -25,6 +25,7 @@ import dayjs from 'dayjs';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import User from '@/components/user';
 
 const ResetPasswordModal = ({
   open,
@@ -251,22 +252,13 @@ const MemberManage = () => {
       title: '账号',
       dataIndex: 'username',
       render: (text, record) => {
-        return  <>
-          <Stack>
-            <Link onClick={() => navigate(`/dashboard/member/${record.id}`)} sx={{
-              '&:hover': {
-                color: 'info.main',
-              },
-              cursor: 'pointer'
-            }}>
-              <Stack direction={'row'}>
-                <AccountCircleIcon fontSize='small' sx={{ mr: 1, lineHeight: 24 }}/>
-                <Typography>{text}</Typography>
-              </Stack>
-            </Link>
-            <Typography color='text.auxiliary'>{record.email}</Typography>
-          </Stack>
-        </>;
+        return (
+          <User
+            id={record.id!}
+            username={record.username!}
+            email={record.email!}
+          />
+        );
       },
     },
     {
@@ -282,7 +274,9 @@ const MemberManage = () => {
       dataIndex: 'last_active_at',
       width: 120,
       render: (text, record) => {
-        return record.last_active_at === 0 ? '从未使用' : dayjs.unix(text).fromNow();
+        return record.last_active_at === 0
+          ? '从未使用'
+          : dayjs.unix(text).fromNow();
       },
     },
     {
@@ -305,9 +299,8 @@ const MemberManage = () => {
       },
     },
   ];
-  console.log(currentUser);
   return (
-    <Card>
+    <Card sx={{ flex: 1, height: '100%' }}>
       <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={handleClose}>
         {currentUser?.status === ConstsUserStatus.UserStatusActive && (
           <MenuItem onClick={onLockUser}>解锁成员</MenuItem>
@@ -337,20 +330,7 @@ const MemberManage = () => {
       >
         <Box sx={{ fontWeight: 700 }}>成员列表</Box>
         <Stack direction='row' gap={1}>
-          <TextField
-            label='搜索'
-            size='small'
-            sx={{
-              fontSize: 14,
-              '.MuiInputLabel-root': {
-                fontSize: 14,
-              },
-              '.MuiInputBase-root': {
-                height: 36.5,
-                boxSizing: 'border-box',
-              },
-            }}
-          />
+          <TextField label='搜索' size='small' />
           <Button
             variant='contained'
             color='primary'
@@ -362,6 +342,7 @@ const MemberManage = () => {
       </Stack>
       <Table
         columns={columns}
+        height='calc(100% - 53px)'
         dataSource={data?.users || []}
         sx={{ mx: -2 }}
         pagination={false}

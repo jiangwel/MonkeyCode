@@ -1,29 +1,18 @@
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-} from 'react';
-import { DomainCompletionRecord } from '@/api/types';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { DomainCompletionRecord, DomainUser } from '@/api/types';
 import { getListCompletionRecord } from '@/api/Billing';
 import { useRequest } from 'ahooks';
 import { Table } from '@c-x/ui';
 import Card from '@/components/card';
 import {
-  Box,
-  Button,
   ButtonBase,
-  Chip,
   Stack,
-  alpha,
   MenuItem,
   Select,
   FormControl,
   InputLabel,
   Autocomplete,
   TextField,
-  InputAdornment,
 } from '@mui/material';
 import { getListUser } from '@/api/User';
 import dayjs from 'dayjs';
@@ -33,6 +22,7 @@ import CompletionDetailModal from './completionDetailModal';
 import StyledLabel from '@/components/label';
 import { LANG_OPTIONS } from './constant';
 import { ArrowDropDown as ArrowDropDownIcon } from '@mui/icons-material';
+import User from '@/components/user';
 
 // 防抖 hook
 function useDebounce(fn: (...args: any[]) => void, delay: number) {
@@ -113,8 +103,14 @@ const Completion = () => {
     {
       dataIndex: 'user',
       title: '成员',
-      render(value: DomainCompletionRecord['user']) {
-        return value?.username;
+      render(value: DomainUser) {
+        return (
+          <User
+            id={value.id!}
+            username={value.username!}
+            email={value.email!}
+          />
+        );
       },
     },
     {
