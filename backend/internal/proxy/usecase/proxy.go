@@ -6,7 +6,6 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
-	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 )
 
@@ -40,8 +39,5 @@ func (p *ProxyUsecase) ValidateApiKey(ctx context.Context, key string) (*domain.
 }
 
 func (p *ProxyUsecase) AcceptCompletion(ctx context.Context, req *domain.AcceptCompletionReq) error {
-	return p.repo.UpdateByTaskID(ctx, req.ID, func(ruo *db.TaskUpdateOne) {
-		ruo.SetIsAccept(true)
-		ruo.SetCompletion(req.Completion)
-	})
+	return p.repo.AcceptCompletion(ctx, req)
 }
