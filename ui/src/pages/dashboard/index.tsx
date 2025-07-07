@@ -1,19 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getListUser } from '@/api/User';
-import {
-  Stack,
-  TextField,
-  MenuItem,
-  InputAdornment,
-  IconButton,
-  Select,
-  FormControl,
-  InputLabel,
-} from '@mui/material';
-import dayjs from 'dayjs';
+import { Stack, MenuItem, Select } from '@mui/material';
 import { CusTabs } from '@c-x/ui';
 import GlobalStatistic from './components/globalStatistic';
-import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import { useRequest } from 'ahooks';
 import MemberStatistic from './components/memberStatistic';
 import { useParams } from 'react-router-dom';

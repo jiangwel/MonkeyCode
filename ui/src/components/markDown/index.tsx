@@ -6,9 +6,11 @@ import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
+
 import { getBaseLanguageId } from '@/utils';
 import Diff from './diff';
 import Code from './code';
+import Command from './command';
 
 interface ExtendedComponents extends Components {
   tools?: React.ComponentType<any>;
@@ -332,18 +334,10 @@ const MarkDown = ({
                 />
               );
             },
-            command: ({ children }: React.HTMLAttributes<HTMLElement>) => {
-              return (
-                <Code
-                  data={String(children).replace(/\n$/, '')}
-                  language={'shell'}
-                  options={{
-                    lineNumbers: 'off',
-                  }}
-                  autoHeight
-                  autoWidth
-                />
-              );
+            command: async ({
+              children,
+            }: React.HTMLAttributes<HTMLElement>) => {
+              return <Command lang='shell'>{children}</Command>;
             },
             attemptcompletion: (props: React.HTMLAttributes<HTMLElement>) => {
               return (
@@ -369,15 +363,9 @@ const MarkDown = ({
             }: React.HTMLAttributes<HTMLElement>) {
               const match = /language-(\w+)/.exec(className || '');
               return match ? (
-                <Code
-                  data={String(children).replace(/\n$/, '')}
-                  language={match?.[1] || 'plaintext'}
-                  autoHeight
-                  autoWidth
-                  options={{
-                    lineNumbers: 'off',
-                  }}
-                />
+                <Command lang={getBaseLanguageId(match[1])}>
+                  {String(children).replace(/\n$/, '')}
+                </Command>
               ) : (
                 <code
                   {...rest}
@@ -404,8 +392,8 @@ const MarkDown = ({
                 <Code
                   data={block.code}
                   language={block.language || 'text'}
-                  autoHeight
-                  autoWidth
+                  autoHeight={false}
+                  autoWidth={false}
                 />
               );
             },

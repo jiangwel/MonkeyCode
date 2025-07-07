@@ -24,7 +24,7 @@ const Version = () => {
       });
   }, []);
 
-  if (latestVersion === undefined) return null;
+  // if (latestVersion === undefined) return null;
 
   return (
     <Stack
