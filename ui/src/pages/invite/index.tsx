@@ -341,12 +341,12 @@ const Invite = () => {
               使用教程
             </Typography>
             <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
-              查看详细的使用教程，快速上手 MonkeyCode 客户端
+              查看详细的使用教程，快速上手使用 MonkeyCode
             </Typography>
             <Button
               variant='outlined'
               startIcon={<MenuBookIcon />}
-              href='https://www.monkeycode.cn/docs/client/quick-start'
+              href='https://monkeycode.docs.baizhi.cloud/node/0197e39a-14e7-79db-8e25-6d775407a85b'
               target='_blank'
               rel='noopener noreferrer'
               size='large'
