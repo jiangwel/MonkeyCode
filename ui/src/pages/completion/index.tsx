@@ -144,11 +144,12 @@ const Completion = () => {
     {
       dataIndex: 'program_language',
       title: '编程语言',
-      width: 140,
+      width: 160,
     },
     {
       dataIndex: 'input_tokens',
       title: '输入 Token',
+      width: 140,
       render(value: number) {
         return addCommasToNumber(value);
       },
@@ -156,6 +157,7 @@ const Completion = () => {
     {
       dataIndex: 'output_tokens',
       title: '输出 Token',
+      width: 140,
       render(value: number) {
         return addCommasToNumber(value);
       },
