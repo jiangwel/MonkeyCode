@@ -363,9 +363,7 @@ const MarkDown = ({
             }: React.HTMLAttributes<HTMLElement>) {
               const match = /language-(\w+)/.exec(className || '');
               return match ? (
-                <Command lang={getBaseLanguageId(match[1])}>
-                  {String(children).replace(/\n$/, '')}
-                </Command>
+                <Command>{String(children).replace(/\n$/, '')}</Command>
               ) : (
                 <code
                   {...rest}

@@ -5,7 +5,7 @@ import { useRequest } from 'ahooks';
 import { Table } from '@c-x/ui';
 import Card from '@/components/card';
 import {
-  ButtonBase,
+  Box,
   Stack,
   MenuItem,
   Select,
@@ -104,13 +104,12 @@ const Completion = () => {
       width: 150,
       render(_, record) {
         return (
-          <ButtonBase
-            disableRipple
+          <Box
             onClick={() => setCompletionDetailModal(record)}
-            sx={{ color: 'info.main' }}
+            sx={{ color: 'info.main', cursor: 'pointer' }}
           >
             点击查看
-          </ButtonBase>
+          </Box>
         );
       },
     },

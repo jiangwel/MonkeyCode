@@ -7,7 +7,8 @@ import { useEffect, useState } from 'react';
 import packageJson from '../../../package.json';
 
 const Version = () => {
-  const curVersion = import.meta.env.VITE_APP_VERSION || packageJson.version;
+  const curVersion =
+    import.meta.env.VITE_APP_VERSION || `v${packageJson.version}`;
   const [latestVersion, setLatestVersion] = useState<string | undefined>(
     undefined
   );
@@ -53,7 +54,7 @@ const Version = () => {
       </Stack>
       <Stack direction={'row'} alignItems={'center'} gap={0.5}>
         <Box sx={{ whiteSpace: 'nowrap' }}>{curVersion}</Box>
-        {latestVersion !== `v${curVersion}` && (
+        {latestVersion !== `${curVersion}` && (
           <Tooltip
             placement='top'
             arrow

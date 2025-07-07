@@ -16,7 +16,7 @@ const Dashboard = () => {
   const { tab, id } = useParams();
   const [tabValue, setTabValue] = useState(tab || 'global');
   const [memberData, setMemberData] = useState<DomainUser | null>(null);
-  const [timeRange, setTimeRange] = useState<TimeRange>('90d');
+  const [timeRange, setTimeRange] = useState<TimeRange>('24h');
 
   const { data: userData, refresh } = useRequest(
     () =>
