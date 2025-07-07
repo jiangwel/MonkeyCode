@@ -110,7 +110,6 @@ const GlobalStatistic = ({ timeRange }: { timeRange: TimeRange }) => {
       container
       spacing={2}
       sx={{
-        height: '100%',
         overflow: 'auto',
         borderRadius: 2.5,
       }}

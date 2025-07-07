@@ -135,7 +135,7 @@ const Chat = () => {
   return (
     <Card sx={{ flex: 1, height: '100%' }}>
       <Table
-        height='calc(100%)'
+        height='100%'
         sx={{ mx: -2 }}
         PaginationProps={{
           sx: {

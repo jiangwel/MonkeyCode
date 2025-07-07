@@ -2,17 +2,14 @@ import Avatar from '@/components/avatar';
 import Card from '@/components/card';
 import { getChatInfo } from '@/api/Billing';
 import MarkDown from '@/components/markDown';
-import { Ellipsis, Icon, Modal } from '@c-x/ui';
-import { styled } from '@mui/material/styles';
+import { Ellipsis, Modal } from '@c-x/ui';
+import { styled } from '@mui/material';
 import logo from '@/assets/images/logo.png';
 
 import { useEffect, useState } from 'react';
 import { DomainChatContent, DomainChatRecord } from '@/api/types';
 
-type ToolInfo = any;
-
 const StyledChatList = styled('div')(() => ({
-  background: '#f7f8fa',
   borderRadius: 4,
   padding: 24,
   minHeight: 400,
@@ -22,18 +19,33 @@ const StyledChatList = styled('div')(() => ({
 
 const StyledChatRow = styled('div', {
   shouldForwardProp: (prop) => prop !== 'isUser',
+})<{ isUser: boolean }>(({ isUser, theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: isUser ? 'flex-end' : 'flex-start',
+  gap: theme.spacing(1),
+  marginBottom: theme.spacing(2),
+}));
+
+const StyledChatUser = styled('div', {
+  shouldForwardProp: (prop) => prop !== 'isUser',
 })<{ isUser: boolean }>(({ isUser }) => ({
   display: 'flex',
   flexDirection: isUser ? 'row-reverse' : 'row',
-  alignItems: 'flex-start',
-  marginBottom: 28,
+  alignItems: 'center',
   position: 'relative',
+}));
+
+const StyledChatName = styled('div')(({ theme }) => ({
+  color: theme.vars.palette.text.primary,
+  fontSize: '14px',
+  fontWeight: 500,
 }));
 
 const StyledChatAvatar = styled('div', {
   shouldForwardProp: (prop) => prop !== 'isUser',
 })<{ isUser: boolean }>(({ isUser }) => ({
-  margin: isUser ? '0 0 0 18px' : '0 18px 0 0',
+  margin: isUser ? '0 0 0 12px' : '0 12px 0 0',
   display: 'flex',
   alignItems: 'flex-start',
   position: 'relative',
@@ -44,18 +56,13 @@ const StyledChatBubble = styled('div', {
   shouldForwardProp: (prop) => prop !== 'isUser',
 })<{ isUser: boolean }>(({ isUser }) => ({
   background: isUser ? '#e6f7ff' : '#f5f5f5',
-  borderRadius: 18,
-  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-  padding: '16px 20px',
+  margin: isUser ? '0 36px 0 0' : '0 0 0 36px',
+  borderRadius: 12,
+  padding: '8px 12px',
   minHeight: 36,
-  maxWidth: 1100,
+  maxWidth: 1040,
   wordBreak: 'break-word',
   position: 'relative',
-  transition: 'box-shadow 0.2s',
-  cursor: 'pointer',
-  '&:hover': {
-    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-  },
 }));
 
 const ChatDetailModal = ({
@@ -68,9 +75,6 @@ const ChatDetailModal = ({
   onClose: () => void;
 }) => {
   const [content, setContent] = useState<DomainChatContent[]>([]);
-  const [showToolInfo, setShowToolInfo] = useState<{ [key: string]: ToolInfo }>(
-    {}
-  );
 
   const getChatDetailModal = () => {
     if (!data) return;
@@ -103,7 +107,7 @@ const ChatDetailModal = ({
           maxWidth: 1300,
         },
       }}
-      width={1300}
+      width={1200}
       open={open}
       onCancel={onClose}
       footer={null}
@@ -112,21 +116,24 @@ const ChatDetailModal = ({
         <StyledChatList>
           {content.map((item, idx) => {
             const isUser = item.role === 'user';
-            const name = isUser ? data?.user?.username : 'AI';
+            const name = isUser ? data?.user?.username : 'MonkeyCode';
             const msg = item.content || '';
             return (
               <StyledChatRow key={idx} isUser={isUser}>
-                <StyledChatAvatar isUser={isUser}>
-                  <Avatar
-                    name={isUser ? name : undefined}
-                    src={isUser ? undefined : logo}
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      fontSize: 22,
-                    }}
-                  />
-                </StyledChatAvatar>
+                <StyledChatUser key={idx} isUser={isUser}>
+                  <StyledChatAvatar isUser={isUser}>
+                    <Avatar
+                      name={isUser ? name : undefined}
+                      src={isUser ? undefined : logo}
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        fontSize: 16,
+                      }}
+                    />
+                  </StyledChatAvatar>
+                  <StyledChatName>{name}</StyledChatName>
+                </StyledChatUser>
                 <StyledChatBubble isUser={isUser}>
                   <MarkDown content={msg} />
                 </StyledChatBubble>

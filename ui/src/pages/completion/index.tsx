@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { DomainCompletionRecord, DomainUser } from '@/api/types';
 import { getListCompletionRecord } from '@/api/Billing';
 import { useRequest } from 'ahooks';
 import { Table } from '@c-x/ui';
 import Card from '@/components/card';
 import {
-  ButtonBase,
+  Box,
   Stack,
   MenuItem,
   Select,
@@ -16,29 +16,13 @@ import {
 } from '@mui/material';
 import { getListUser } from '@/api/User';
 import dayjs from 'dayjs';
+import { useDebounceFn } from 'ahooks';
 import { ColumnsType } from '@c-x/ui/dist/Table';
 import { addCommasToNumber } from '@/utils';
 import CompletionDetailModal from './completionDetailModal';
 import StyledLabel from '@/components/label';
 import { LANG_OPTIONS } from './constant';
-import { ArrowDropDown as ArrowDropDownIcon } from '@mui/icons-material';
 import User from '@/components/user';
-
-// 防抖 hook
-function useDebounce(fn: (...args: any[]) => void, delay: number) {
-  const timer = useRef<number | null>(null);
-  const fnRef = useRef(fn);
-  fnRef.current = fn;
-  return useCallback(
-    (...args: any[]) => {
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => {
-        fnRef.current(...args);
-      }, delay);
-    },
-    [delay]
-  );
-}
 
 const Completion = () => {
   const [page, setPage] = useState(1);
@@ -60,7 +44,7 @@ const Completion = () => {
   const { data: userOptions = { users: [] } } = useRequest(() =>
     getListUser({
       page: 1,
-      size: 99999,
+      size: 10,
     })
   );
 
@@ -120,13 +104,12 @@ const Completion = () => {
       width: 150,
       render(_, record) {
         return (
-          <ButtonBase
-            disableRipple
+          <Box
             onClick={() => setCompletionDetailModal(record)}
-            sx={{ color: 'info.main' }}
+            sx={{ color: 'info.main', cursor: 'pointer' }}
           >
             点击查看
-          </ButtonBase>
+          </Box>
         );
       },
     },
@@ -172,16 +155,16 @@ const Completion = () => {
     },
   ];
 
-  const debounceSetFilterLang = useDebounce(
+  const debounceSetFilterLang = useDebounceFn(
     (val: string) => setFilterLang(val),
-    500
+    {
+      wait: 500,
+    }
   );
 
   return (
     <Card sx={{ flex: 1, height: '100%' }}>
-      {/* 筛选项 */}
       <Stack direction='row' spacing={2} sx={{ mb: 2 }}>
-        {/* 成员筛选 Autocomplete */}
         <Autocomplete
           size='small'
           sx={{ minWidth: 220 }}
@@ -200,7 +183,6 @@ const Completion = () => {
           renderInput={(params) => <TextField {...params} label='成员' />}
           clearOnEscape
         />
-        {/* 语言筛选 Autocomplete */}
         <Autocomplete
           size='small'
           sx={{ minWidth: 220 }}
@@ -212,13 +194,11 @@ const Completion = () => {
             setFilterLang(newValue ? String(newValue) : '');
           }}
           onInputChange={(_, newInputValue) =>
-            debounceSetFilterLang(newInputValue)
+            debounceSetFilterLang.run(newInputValue)
           }
-          popupIcon={<ArrowDropDownIcon />}
           renderInput={(params) => <TextField {...params} label='语言' />}
           clearOnEscape
         />
-        {/* 是否采纳筛选 Select 保持不变 */}
         <FormControl size='small' sx={{ minWidth: 180 }}>
           <InputLabel>是否采纳</InputLabel>
           <Select
@@ -262,6 +242,7 @@ const Completion = () => {
           },
         }}
       />
+
       <CompletionDetailModal
         open={!!completionDetailModal}
         onClose={() => setCompletionDetailModal(undefined)}

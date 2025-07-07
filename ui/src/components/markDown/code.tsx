@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 
 const CHAR_WIDTH = 8; // 估算每个字符宽度，实际可根据字体调整
 const MIN_WIDTH = 200;
-const MAX_WIDTH = 1060;
+const MAX_WIDTH = 960;
 const MAX_HEIGHT = 420;
 
 const Code = ({
@@ -21,7 +21,7 @@ const Code = ({
   autoWidth?: boolean;
 }) => {
   const editorRef = useRef<any>(null);
-  const [height, setHeight] = useState(100);
+  const [height, setHeight] = useState(420);
   const [width, setWidth] = useState(MAX_WIDTH);
 
   // 动态调整高度和宽度

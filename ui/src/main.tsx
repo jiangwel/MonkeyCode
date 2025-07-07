@@ -11,7 +11,6 @@ import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 import { lightTheme } from './theme';
-
 import router from './router';
 
 dayjs.locale('zh-cn');
