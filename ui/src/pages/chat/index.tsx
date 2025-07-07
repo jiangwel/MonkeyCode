@@ -54,7 +54,7 @@ const Chat = () => {
     },
     {
       dataIndex: 'question',
-      title: '任务',
+      title: '任务内容',
       render(value: string, record) {
         const cleanValue = value?.replace(/<\/?task>/g, '') || value;
         return (
@@ -68,7 +68,7 @@ const Chat = () => {
               whiteSpace: 'nowrap',
             }}
           >
-            {cleanValue}
+            {cleanValue || '无标题任务'}
           </Box>
         );
       },
@@ -78,16 +78,31 @@ const Chat = () => {
       title: '工作模式',
       width: 120,
       render(value: DomainChatRecord['work_mode']) {
-        const workModeMap: Record<string, string> = {
-          code: 'warning',
-          ask: 'info',
-          architect: 'success',
-          debugger: 'error',
-          orchestrator: 'info',
+        const workModeMap: Record<string, Record<string, string>> = {
+          code: {
+            name: '编程模式',
+            color: 'warning',
+          },
+          ask: {
+            name: '问答模式',
+            color: 'info',
+          },
+          architect: {
+            name: '架构模式',
+            color: 'success',
+          },
+          debug: {
+            name: '调试模式',
+            color: 'error',
+          },
+          orchestrator: {
+            name: '编排模式',
+            color: 'info',
+          },
         };
         return (
-          <StyledLabel color={value ? workModeMap[value] : 'default'}>
-            {value}
+          <StyledLabel color={value ? workModeMap[value]['color'] : 'default'}>
+            { value ? workModeMap[value]['name'] : '未知' }
           </StyledLabel>
         );
       },
