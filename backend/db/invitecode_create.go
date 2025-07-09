@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/google/uuid"
 )
@@ -33,6 +34,20 @@ func (icc *InviteCodeCreate) SetAdminID(u uuid.UUID) *InviteCodeCreate {
 // SetCode sets the "code" field.
 func (icc *InviteCodeCreate) SetCode(s string) *InviteCodeCreate {
 	icc.mutation.SetCode(s)
+	return icc
+}
+
+// SetStatus sets the "status" field.
+func (icc *InviteCodeCreate) SetStatus(ccs consts.InviteCodeStatus) *InviteCodeCreate {
+	icc.mutation.SetStatus(ccs)
+	return icc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (icc *InviteCodeCreate) SetNillableStatus(ccs *consts.InviteCodeStatus) *InviteCodeCreate {
+	if ccs != nil {
+		icc.SetStatus(*ccs)
+	}
 	return icc
 }
 
@@ -61,6 +76,12 @@ func (icc *InviteCodeCreate) SetNillableUpdatedAt(t *time.Time) *InviteCodeCreat
 	if t != nil {
 		icc.SetUpdatedAt(*t)
 	}
+	return icc
+}
+
+// SetExpiredAt sets the "expired_at" field.
+func (icc *InviteCodeCreate) SetExpiredAt(t time.Time) *InviteCodeCreate {
+	icc.mutation.SetExpiredAt(t)
 	return icc
 }
 
@@ -105,6 +126,10 @@ func (icc *InviteCodeCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (icc *InviteCodeCreate) defaults() {
+	if _, ok := icc.mutation.Status(); !ok {
+		v := invitecode.DefaultStatus
+		icc.mutation.SetStatus(v)
+	}
 	if _, ok := icc.mutation.CreatedAt(); !ok {
 		v := invitecode.DefaultCreatedAt()
 		icc.mutation.SetCreatedAt(v)
@@ -123,11 +148,17 @@ func (icc *InviteCodeCreate) check() error {
 	if _, ok := icc.mutation.Code(); !ok {
 		return &ValidationError{Name: "code", err: errors.New(`db: missing required field "InviteCode.code"`)}
 	}
+	if _, ok := icc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`db: missing required field "InviteCode.status"`)}
+	}
 	if _, ok := icc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`db: missing required field "InviteCode.created_at"`)}
 	}
 	if _, ok := icc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`db: missing required field "InviteCode.updated_at"`)}
+	}
+	if _, ok := icc.mutation.ExpiredAt(); !ok {
+		return &ValidationError{Name: "expired_at", err: errors.New(`db: missing required field "InviteCode.expired_at"`)}
 	}
 	return nil
 }
@@ -173,6 +204,10 @@ func (icc *InviteCodeCreate) createSpec() (*InviteCode, *sqlgraph.CreateSpec) {
 		_spec.SetField(invitecode.FieldCode, field.TypeString, value)
 		_node.Code = value
 	}
+	if value, ok := icc.mutation.Status(); ok {
+		_spec.SetField(invitecode.FieldStatus, field.TypeString, value)
+		_node.Status = value
+	}
 	if value, ok := icc.mutation.CreatedAt(); ok {
 		_spec.SetField(invitecode.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -180,6 +215,10 @@ func (icc *InviteCodeCreate) createSpec() (*InviteCode, *sqlgraph.CreateSpec) {
 	if value, ok := icc.mutation.UpdatedAt(); ok {
 		_spec.SetField(invitecode.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := icc.mutation.ExpiredAt(); ok {
+		_spec.SetField(invitecode.FieldExpiredAt, field.TypeTime, value)
+		_node.ExpiredAt = value
 	}
 	return _node, _spec
 }
@@ -257,6 +296,18 @@ func (u *InviteCodeUpsert) UpdateCode() *InviteCodeUpsert {
 	return u
 }
 
+// SetStatus sets the "status" field.
+func (u *InviteCodeUpsert) SetStatus(v consts.InviteCodeStatus) *InviteCodeUpsert {
+	u.Set(invitecode.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *InviteCodeUpsert) UpdateStatus() *InviteCodeUpsert {
+	u.SetExcluded(invitecode.FieldStatus)
+	return u
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (u *InviteCodeUpsert) SetCreatedAt(v time.Time) *InviteCodeUpsert {
 	u.Set(invitecode.FieldCreatedAt, v)
@@ -278,6 +329,18 @@ func (u *InviteCodeUpsert) SetUpdatedAt(v time.Time) *InviteCodeUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *InviteCodeUpsert) UpdateUpdatedAt() *InviteCodeUpsert {
 	u.SetExcluded(invitecode.FieldUpdatedAt)
+	return u
+}
+
+// SetExpiredAt sets the "expired_at" field.
+func (u *InviteCodeUpsert) SetExpiredAt(v time.Time) *InviteCodeUpsert {
+	u.Set(invitecode.FieldExpiredAt, v)
+	return u
+}
+
+// UpdateExpiredAt sets the "expired_at" field to the value that was provided on create.
+func (u *InviteCodeUpsert) UpdateExpiredAt() *InviteCodeUpsert {
+	u.SetExcluded(invitecode.FieldExpiredAt)
 	return u
 }
 
@@ -357,6 +420,20 @@ func (u *InviteCodeUpsertOne) UpdateCode() *InviteCodeUpsertOne {
 	})
 }
 
+// SetStatus sets the "status" field.
+func (u *InviteCodeUpsertOne) SetStatus(v consts.InviteCodeStatus) *InviteCodeUpsertOne {
+	return u.Update(func(s *InviteCodeUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *InviteCodeUpsertOne) UpdateStatus() *InviteCodeUpsertOne {
+	return u.Update(func(s *InviteCodeUpsert) {
+		s.UpdateStatus()
+	})
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (u *InviteCodeUpsertOne) SetCreatedAt(v time.Time) *InviteCodeUpsertOne {
 	return u.Update(func(s *InviteCodeUpsert) {
@@ -382,6 +459,20 @@ func (u *InviteCodeUpsertOne) SetUpdatedAt(v time.Time) *InviteCodeUpsertOne {
 func (u *InviteCodeUpsertOne) UpdateUpdatedAt() *InviteCodeUpsertOne {
 	return u.Update(func(s *InviteCodeUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetExpiredAt sets the "expired_at" field.
+func (u *InviteCodeUpsertOne) SetExpiredAt(v time.Time) *InviteCodeUpsertOne {
+	return u.Update(func(s *InviteCodeUpsert) {
+		s.SetExpiredAt(v)
+	})
+}
+
+// UpdateExpiredAt sets the "expired_at" field to the value that was provided on create.
+func (u *InviteCodeUpsertOne) UpdateExpiredAt() *InviteCodeUpsertOne {
+	return u.Update(func(s *InviteCodeUpsert) {
+		s.UpdateExpiredAt()
 	})
 }
 
@@ -628,6 +719,20 @@ func (u *InviteCodeUpsertBulk) UpdateCode() *InviteCodeUpsertBulk {
 	})
 }
 
+// SetStatus sets the "status" field.
+func (u *InviteCodeUpsertBulk) SetStatus(v consts.InviteCodeStatus) *InviteCodeUpsertBulk {
+	return u.Update(func(s *InviteCodeUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *InviteCodeUpsertBulk) UpdateStatus() *InviteCodeUpsertBulk {
+	return u.Update(func(s *InviteCodeUpsert) {
+		s.UpdateStatus()
+	})
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (u *InviteCodeUpsertBulk) SetCreatedAt(v time.Time) *InviteCodeUpsertBulk {
 	return u.Update(func(s *InviteCodeUpsert) {
@@ -653,6 +758,20 @@ func (u *InviteCodeUpsertBulk) SetUpdatedAt(v time.Time) *InviteCodeUpsertBulk {
 func (u *InviteCodeUpsertBulk) UpdateUpdatedAt() *InviteCodeUpsertBulk {
 	return u.Update(func(s *InviteCodeUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetExpiredAt sets the "expired_at" field.
+func (u *InviteCodeUpsertBulk) SetExpiredAt(v time.Time) *InviteCodeUpsertBulk {
+	return u.Update(func(s *InviteCodeUpsert) {
+		s.SetExpiredAt(v)
+	})
+}
+
+// UpdateExpiredAt sets the "expired_at" field to the value that was provided on create.
+func (u *InviteCodeUpsertBulk) UpdateExpiredAt() *InviteCodeUpsertBulk {
+	return u.Update(func(s *InviteCodeUpsert) {
+		s.UpdateExpiredAt()
 	})
 }
 

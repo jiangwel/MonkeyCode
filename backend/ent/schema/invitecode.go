@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/google/uuid"
 )
 
@@ -29,8 +30,10 @@ func (InviteCode) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}),
 		field.UUID("admin_id", uuid.UUID{}),
 		field.String("code").Unique(),
+		field.String("status").GoType(consts.InviteCodeStatus("")).Default(string(consts.InviteCodeStatusPending)),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
+		field.Time("expired_at"),
 	}
 }
 

@@ -140,12 +140,16 @@ func init() {
 	extension.DefaultCreatedAt = extensionDescCreatedAt.Default.(func() time.Time)
 	invitecodeFields := schema.InviteCode{}.Fields()
 	_ = invitecodeFields
+	// invitecodeDescStatus is the schema descriptor for status field.
+	invitecodeDescStatus := invitecodeFields[3].Descriptor()
+	// invitecode.DefaultStatus holds the default value on creation for the status field.
+	invitecode.DefaultStatus = consts.InviteCodeStatus(invitecodeDescStatus.Default.(string))
 	// invitecodeDescCreatedAt is the schema descriptor for created_at field.
-	invitecodeDescCreatedAt := invitecodeFields[3].Descriptor()
+	invitecodeDescCreatedAt := invitecodeFields[4].Descriptor()
 	// invitecode.DefaultCreatedAt holds the default value on creation for the created_at field.
 	invitecode.DefaultCreatedAt = invitecodeDescCreatedAt.Default.(func() time.Time)
 	// invitecodeDescUpdatedAt is the schema descriptor for updated_at field.
-	invitecodeDescUpdatedAt := invitecodeFields[4].Descriptor()
+	invitecodeDescUpdatedAt := invitecodeFields[5].Descriptor()
 	// invitecode.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	invitecode.DefaultUpdatedAt = invitecodeDescUpdatedAt.Default.(func() time.Time)
 	// invitecode.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

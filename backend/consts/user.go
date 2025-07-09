@@ -28,3 +28,10 @@ type OAuthKind string
 const (
 	OAuthKindSignUpOrIn OAuthKind = "signup_or_in"
 )
+
+type InviteCodeStatus string
+
+const (
+	InviteCodeStatusPending InviteCodeStatus = "pending"
+	InviteCodeStatusUsed    InviteCodeStatus = "used"
+)

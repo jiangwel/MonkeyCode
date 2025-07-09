@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/google/uuid"
 )
@@ -65,6 +66,12 @@ func Code(v string) predicate.InviteCode {
 	return predicate.InviteCode(sql.FieldEQ(FieldCode, v))
 }
 
+// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
+func Status(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldEQ(FieldStatus, vc))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.InviteCode {
 	return predicate.InviteCode(sql.FieldEQ(FieldCreatedAt, v))
@@ -73,6 +80,11 @@ func CreatedAt(v time.Time) predicate.InviteCode {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.InviteCode {
 	return predicate.InviteCode(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// ExpiredAt applies equality check predicate on the "expired_at" field. It's identical to ExpiredAtEQ.
+func ExpiredAt(v time.Time) predicate.InviteCode {
+	return predicate.InviteCode(sql.FieldEQ(FieldExpiredAt, v))
 }
 
 // AdminIDEQ applies the EQ predicate on the "admin_id" field.
@@ -180,6 +192,90 @@ func CodeContainsFold(v string) predicate.InviteCode {
 	return predicate.InviteCode(sql.FieldContainsFold(FieldCode, v))
 }
 
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldEQ(FieldStatus, vc))
+}
+
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldNEQ(FieldStatus, vc))
+}
+
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...consts.InviteCodeStatus) predicate.InviteCode {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.InviteCode(sql.FieldIn(FieldStatus, v...))
+}
+
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...consts.InviteCodeStatus) predicate.InviteCode {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.InviteCode(sql.FieldNotIn(FieldStatus, v...))
+}
+
+// StatusGT applies the GT predicate on the "status" field.
+func StatusGT(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldGT(FieldStatus, vc))
+}
+
+// StatusGTE applies the GTE predicate on the "status" field.
+func StatusGTE(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldGTE(FieldStatus, vc))
+}
+
+// StatusLT applies the LT predicate on the "status" field.
+func StatusLT(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldLT(FieldStatus, vc))
+}
+
+// StatusLTE applies the LTE predicate on the "status" field.
+func StatusLTE(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldLTE(FieldStatus, vc))
+}
+
+// StatusContains applies the Contains predicate on the "status" field.
+func StatusContains(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldContains(FieldStatus, vc))
+}
+
+// StatusHasPrefix applies the HasPrefix predicate on the "status" field.
+func StatusHasPrefix(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldHasPrefix(FieldStatus, vc))
+}
+
+// StatusHasSuffix applies the HasSuffix predicate on the "status" field.
+func StatusHasSuffix(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldHasSuffix(FieldStatus, vc))
+}
+
+// StatusEqualFold applies the EqualFold predicate on the "status" field.
+func StatusEqualFold(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldEqualFold(FieldStatus, vc))
+}
+
+// StatusContainsFold applies the ContainsFold predicate on the "status" field.
+func StatusContainsFold(v consts.InviteCodeStatus) predicate.InviteCode {
+	vc := string(v)
+	return predicate.InviteCode(sql.FieldContainsFold(FieldStatus, vc))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.InviteCode {
 	return predicate.InviteCode(sql.FieldEQ(FieldCreatedAt, v))
@@ -258,6 +354,46 @@ func UpdatedAtLT(v time.Time) predicate.InviteCode {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.InviteCode {
 	return predicate.InviteCode(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// ExpiredAtEQ applies the EQ predicate on the "expired_at" field.
+func ExpiredAtEQ(v time.Time) predicate.InviteCode {
+	return predicate.InviteCode(sql.FieldEQ(FieldExpiredAt, v))
+}
+
+// ExpiredAtNEQ applies the NEQ predicate on the "expired_at" field.
+func ExpiredAtNEQ(v time.Time) predicate.InviteCode {
+	return predicate.InviteCode(sql.FieldNEQ(FieldExpiredAt, v))
+}
+
+// ExpiredAtIn applies the In predicate on the "expired_at" field.
+func ExpiredAtIn(vs ...time.Time) predicate.InviteCode {
+	return predicate.InviteCode(sql.FieldIn(FieldExpiredAt, vs...))
+}
+
+// ExpiredAtNotIn applies the NotIn predicate on the "expired_at" field.
+func ExpiredAtNotIn(vs ...time.Time) predicate.InviteCode {
+	return predicate.InviteCode(sql.FieldNotIn(FieldExpiredAt, vs...))
+}
+
+// ExpiredAtGT applies the GT predicate on the "expired_at" field.
+func ExpiredAtGT(v time.Time) predicate.InviteCode {
+	return predicate.InviteCode(sql.FieldGT(FieldExpiredAt, v))
+}
+
+// ExpiredAtGTE applies the GTE predicate on the "expired_at" field.
+func ExpiredAtGTE(v time.Time) predicate.InviteCode {
+	return predicate.InviteCode(sql.FieldGTE(FieldExpiredAt, v))
+}
+
+// ExpiredAtLT applies the LT predicate on the "expired_at" field.
+func ExpiredAtLT(v time.Time) predicate.InviteCode {
+	return predicate.InviteCode(sql.FieldLT(FieldExpiredAt, v))
+}
+
+// ExpiredAtLTE applies the LTE predicate on the "expired_at" field.
+func ExpiredAtLTE(v time.Time) predicate.InviteCode {
+	return predicate.InviteCode(sql.FieldLTE(FieldExpiredAt, v))
 }
 
 // And groups predicates with the AND operator between them.

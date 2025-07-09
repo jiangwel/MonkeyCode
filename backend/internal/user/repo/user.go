@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -65,7 +66,32 @@ func (r *UserRepo) GetByName(ctx context.Context, username string) (*db.User, er
 }
 
 func (r *UserRepo) ValidateInviteCode(ctx context.Context, code string) (*db.InviteCode, error) {
-	return r.db.InviteCode.Query().Where(invitecode.Code(code)).Only(ctx)
+	var res *db.InviteCode
+	err := entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		ic, err := tx.InviteCode.Query().Where(invitecode.Code(code)).Only(ctx)
+		if err != nil {
+			return err
+		}
+
+		if ic.ExpiredAt.Before(time.Now()) {
+			return errors.New("invite code has expired")
+		}
+		if ic.Status == consts.InviteCodeStatusUsed {
+			return errors.New("invite code has been used")
+		}
+
+		ic, err = tx.InviteCode.UpdateOneID(ic.ID).
+			SetStatus(consts.InviteCodeStatusUsed).
+			Save(ctx)
+
+		if err != nil {
+			return err
+		}
+
+		res = ic
+		return nil
+	})
+	return res, err
 }
 
 func (r *UserRepo) CreateUser(ctx context.Context, user *db.User) (*db.User, error) {
@@ -97,6 +123,8 @@ func (r *UserRepo) CreateInviteCode(ctx context.Context, userID string, code str
 	return r.db.InviteCode.Create().
 		SetAdminID(adminID).
 		SetCode(code).
+		SetStatus(consts.InviteCodeStatusPending).
+		SetExpiredAt(time.Now().Add(15 * time.Minute)).
 		Save(ctx)
 }
 
