@@ -43,6 +43,7 @@ func NewUserHandler(
 	}
 
 	w.GET("/api/v1/static/vsix/:version", web.BaseHandler(u.VSIXDownload))
+	w.GET("/api/v1/static/vsix", web.BaseHandler(u.VSIXDownload))
 	w.POST("/api/v1/vscode/init-auth", web.BindHandler(u.VSCodeAuthInit))
 
 	// admin
