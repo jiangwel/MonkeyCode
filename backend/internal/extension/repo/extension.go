@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 
@@ -22,11 +23,18 @@ func NewExtensionRepo(db *db.Client) domain.ExtensionRepo {
 
 // Latest implements domain.ExtensionRepo.
 func (e *ExtensionRepo) Latest(ctx context.Context) (*db.Extension, error) {
-	return e.db.Extension.
+	es, err := e.db.Extension.
 		Query().
 		Order(extension.ByCreatedAt(sql.OrderDesc())).
 		Limit(1).
-		Only(ctx)
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(es) == 0 {
+		return nil, fmt.Errorf("extension not found")
+	}
+	return es[0], nil
 }
 
 // Save implements domain.ExtensionRepo.
