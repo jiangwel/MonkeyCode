@@ -38,5 +38,8 @@ func (e *ExtensionRepo) Save(ctx context.Context, ext *db.Extension) (*db.Extens
 }
 
 func (e *ExtensionRepo) GetByVersion(ctx context.Context, version string) (*db.Extension, error) {
+	if version == "" {
+		return e.Latest(ctx)
+	}
 	return e.db.Extension.Query().Where(extension.Version(version)).Only(ctx)
 }
