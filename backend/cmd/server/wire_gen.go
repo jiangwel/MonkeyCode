@@ -41,8 +41,8 @@ import (
 
 // Injectors from wire.go:
 
-func newServer(dir string) (*Server, error) {
-	configConfig, err := config.Init(dir)
+func newServer() (*Server, error) {
+	configConfig, err := config.Init()
 	if err != nil {
 		return nil, err
 	}

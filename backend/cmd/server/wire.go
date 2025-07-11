@@ -33,7 +33,7 @@ type Server struct {
 	billingV1   *billingv1.BillingHandler
 }
 
-func newServer(dir string) (*Server, error) {
+func newServer() (*Server, error) {
 	wire.Build(
 		wire.Struct(new(Server), "*"),
 		appSet,

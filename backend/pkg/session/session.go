@@ -42,8 +42,8 @@ func (s *Session) Save(c echo.Context, name, domain string, data any) (string, e
 		return "", err
 	}
 
-	if ok, _ := s.rdb.SetNX(context.Background(), id, string(b), expire).Result(); !ok {
-		return "", fmt.Errorf("failed to save session")
+	if ok, err := s.rdb.SetNX(context.Background(), id, string(b), expire).Result(); !ok || err != nil {
+		return "", fmt.Errorf("failed to save session: %w", err)
 	}
 
 	c.SetCookie(&http.Cookie{

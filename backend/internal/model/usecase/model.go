@@ -109,8 +109,8 @@ func (m *ModelUsecase) Update(ctx context.Context, req *domain.UpdateModelReq) (
 
 func (m *ModelUsecase) InitModel(ctx context.Context) error {
 	m.logger.With("init_model", m.cfg.InitModel).Debug("init model")
-	if m.cfg.InitModel.ModelName == "" {
+	if m.cfg.InitModel.Name == "" {
 		return nil
 	}
-	return m.repo.InitModel(ctx, m.cfg.InitModel.ModelName, m.cfg.InitModel.ModelKey, m.cfg.InitModel.ModelURL)
+	return m.repo.InitModel(ctx, m.cfg.InitModel.Name, m.cfg.InitModel.Key, m.cfg.InitModel.URL)
 }

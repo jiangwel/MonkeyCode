@@ -2,10 +2,10 @@ package config
 
 import (
 	_ "embed"
+	"strings"
 
 	"github.com/spf13/viper"
 
-	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 	"github.com/chaitin/MonkeyCode/backend/pkg/logger"
 )
 
@@ -20,9 +20,7 @@ type Config struct {
 	BaseUrl string `mapstructure:"base_url"`
 
 	Server struct {
-		Http struct {
-			Host string `mapstructure:"host"`
-		} `mapstructure:"http"`
+		Addr string `mapstructure:"addr"`
 	} `mapstructure:"server"`
 
 	Admin struct {
@@ -58,9 +56,9 @@ type Config struct {
 	} `mapstructure:"llm_proxy"`
 
 	InitModel struct {
-		ModelName string `mapstructure:"model_name"`
-		ModelKey  string `mapstructure:"model_key"`
-		ModelURL  string `mapstructure:"model_url"`
+		Name string `mapstructure:"name"`
+		Key  string `mapstructure:"key"`
+		URL  string `mapstructure:"url"`
 	} `mapstructure:"init_model"`
 
 	Extension struct {
@@ -68,35 +66,42 @@ type Config struct {
 	} `mapstructure:"extension"`
 }
 
-func Init(dir string) (*Config, error) {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(dir)
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
-	}
+func Init() (*Config, error) {
+	v := viper.New()
+	v.AutomaticEnv()
+	v.SetEnvPrefix("MONKEYCODE")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	v.SetDefault("debug", false)
+	v.SetDefault("logger.level", "info")
+	v.SetDefault("base_url", "")
+	v.SetDefault("server.addr", ":8888")
+	v.SetDefault("admin.user", "admin")
+	v.SetDefault("admin.password", "")
+	v.SetDefault("session.expire_day", 30)
+	v.SetDefault("database.master", "")
+	v.SetDefault("database.slave", "")
+	v.SetDefault("database.max_open_conns", 50)
+	v.SetDefault("database.max_idle_conns", 10)
+	v.SetDefault("database.conn_max_lifetime", 30)
+	v.SetDefault("redis.host", "monkeycode-redis")
+	v.SetDefault("redis.port", "6379")
+	v.SetDefault("redis.pass", "")
+	v.SetDefault("redis.db", 0)
+	v.SetDefault("redis.idle_conn", 20)
+	v.SetDefault("llm_proxy.timeout", "30s")
+	v.SetDefault("llm_proxy.keep_alive", "60s")
+	v.SetDefault("llm_proxy.client_pool_size", 100)
+	v.SetDefault("llm_proxy.request_log_path", "/app/request/logs")
+	v.SetDefault("init_model.name", "qwen2.5-coder-3b-instruct")
+	v.SetDefault("init_model.key", "")
+	v.SetDefault("init_model.url", "https://model-square.app.baizhi.cloud/v1")
+	v.SetDefault("extension.baseurl", "https://release.baizhi.cloud")
 
 	c := Config{}
-	if err := viper.Unmarshal(&c); err != nil {
+	if err := v.Unmarshal(&c); err != nil {
 		return nil, err
 	}
 
-	c = defaultValue(c)
 	return &c, nil
-}
-
-func defaultValue(c Config) Config {
-	c.Server.Http.Host = cvt.ZeroWithDefault(c.Server.Http.Host, ":8888")
-	c.Redis.IdleConn = cvt.ZeroWithDefault(c.Redis.IdleConn, 20)
-	c.Database.MaxOpenConns = cvt.ZeroWithDefault(c.Database.MaxOpenConns, 50)
-	c.Database.MaxIdleConns = cvt.ZeroWithDefault(c.Database.MaxIdleConns, 10)
-	c.Database.ConnMaxLifetime = cvt.ZeroWithDefault(c.Database.ConnMaxLifetime, 30)
-	c.Session.ExpireDay = cvt.ZeroWithDefault(c.Session.ExpireDay, 15)
-
-	c.LLMProxy.Timeout = cvt.ZeroWithDefault(c.LLMProxy.Timeout, "30s")
-	c.LLMProxy.KeepAlive = cvt.ZeroWithDefault(c.LLMProxy.KeepAlive, "60s")
-	c.LLMProxy.ClientPoolSize = cvt.ZeroWithDefault(c.LLMProxy.ClientPoolSize, 100)
-	c.LLMProxy.RequestLogPath = cvt.ZeroWithDefault(c.LLMProxy.RequestLogPath, "/app/request/logs")
-
-	return c
 }
