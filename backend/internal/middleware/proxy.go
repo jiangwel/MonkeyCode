@@ -44,7 +44,7 @@ func (p *ProxyMiddleware) Auth() echo.MiddlewareFunc {
 			}
 
 			ctx := c.Request().Context()
-			ctx = context.WithValue(ctx, logger.UserIDKey, key.UserID)
+			ctx = context.WithValue(ctx, logger.UserIDKey{}, key.UserID)
 			c.SetRequest(c.Request().WithContext(ctx))
 			c.Set(ApiContextKey, key)
 			return next(c)

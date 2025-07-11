@@ -5,12 +5,8 @@ import (
 	"log/slog"
 )
 
-type contextKey string
-
-const (
-	RequestIDKey contextKey = "request_id"
-	UserIDKey    contextKey = "user_id"
-)
+type RequestIDKey struct{}
+type UserIDKey struct{}
 
 type ContextLogger struct {
 	slog.Handler
@@ -31,11 +27,11 @@ func (c *ContextLogger) WithGroup(name string) slog.Handler {
 func (c *ContextLogger) Handle(ctx context.Context, r slog.Record) error {
 	newRecord := r.Clone()
 
-	if i, ok := ctx.Value(RequestIDKey).(string); ok {
+	if i, ok := ctx.Value(RequestIDKey{}).(string); ok {
 		newRecord.AddAttrs(slog.String("request_id", i))
 	}
 
-	if i, ok := ctx.Value(UserIDKey).(string); ok {
+	if i, ok := ctx.Value(UserIDKey{}).(string); ok {
 		newRecord.AddAttrs(slog.String("user_id", i))
 	}
 
