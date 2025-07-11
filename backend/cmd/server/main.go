@@ -19,7 +19,7 @@ import (
 // @version 1.0
 // @description MonkeyCode API
 func main() {
-	s, err := newServer("/app/config")
+	s, err := newServer()
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +58,7 @@ func (s *Server) Name() string {
 
 // Start implements service.Servicer.
 func (s *Server) Start() error {
-	return s.web.Run(s.config.Server.Http.Host)
+	return s.web.Run(s.config.Server.Addr)
 }
 
 // Stop implements service.Servicer.
