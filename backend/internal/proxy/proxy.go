@@ -703,6 +703,7 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
 		w.Header().Set("Transfer-Encoding", "chunked")
+		w.Header().Set("X-Accel-Buffering", "no")
 
 		rc := &domain.RecordParam{
 			RequestID: c.RequestID,
@@ -714,8 +715,6 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 			Prompt:    prompt,
 			Role:      consts.ChatRoleAssistant,
 		}
-		buf := bufio.NewWriterSize(w, 32*1024)
-		defer buf.Flush()
 
 		ch := make(chan []byte, 1024)
 		defer close(ch)
@@ -769,10 +768,13 @@ func (p *LLMProxy) handleChatCompletionStream(ctx context.Context, w http.Respon
 
 		err = streamRead(ctx, resp.Body, func(line []byte) error {
 			ch <- line
-			if _, err := buf.Write(line); err != nil {
+			if _, err := w.Write(line); err != nil {
 				return fmt.Errorf("写入响应失败: %w", err)
 			}
-			return buf.Flush()
+			if f, ok := w.(http.Flusher); ok {
+				f.Flush()
+			}
+			return nil
 		})
 		return err
 	})
