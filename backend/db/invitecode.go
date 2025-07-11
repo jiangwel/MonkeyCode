@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/google/uuid"
 )
@@ -22,10 +23,14 @@ type InviteCode struct {
 	AdminID uuid.UUID `json:"admin_id,omitempty"`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
+	// Status holds the value of the "status" field.
+	Status consts.InviteCodeStatus `json:"status,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// ExpiredAt holds the value of the "expired_at" field.
+	ExpiredAt    time.Time `json:"expired_at,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -34,9 +39,9 @@ func (*InviteCode) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case invitecode.FieldCode:
+		case invitecode.FieldCode, invitecode.FieldStatus:
 			values[i] = new(sql.NullString)
-		case invitecode.FieldCreatedAt, invitecode.FieldUpdatedAt:
+		case invitecode.FieldCreatedAt, invitecode.FieldUpdatedAt, invitecode.FieldExpiredAt:
 			values[i] = new(sql.NullTime)
 		case invitecode.FieldID, invitecode.FieldAdminID:
 			values[i] = new(uuid.UUID)
@@ -73,6 +78,12 @@ func (ic *InviteCode) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ic.Code = value.String
 			}
+		case invitecode.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				ic.Status = consts.InviteCodeStatus(value.String)
+			}
 		case invitecode.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -84,6 +95,12 @@ func (ic *InviteCode) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				ic.UpdatedAt = value.Time
+			}
+		case invitecode.FieldExpiredAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field expired_at", values[i])
+			} else if value.Valid {
+				ic.ExpiredAt = value.Time
 			}
 		default:
 			ic.selectValues.Set(columns[i], values[i])
@@ -127,11 +144,17 @@ func (ic *InviteCode) String() string {
 	builder.WriteString("code=")
 	builder.WriteString(ic.Code)
 	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", ic.Status))
+	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(ic.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(ic.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("expired_at=")
+	builder.WriteString(ic.ExpiredAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

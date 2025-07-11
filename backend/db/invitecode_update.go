@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/google/uuid"
@@ -58,6 +59,20 @@ func (icu *InviteCodeUpdate) SetNillableCode(s *string) *InviteCodeUpdate {
 	return icu
 }
 
+// SetStatus sets the "status" field.
+func (icu *InviteCodeUpdate) SetStatus(ccs consts.InviteCodeStatus) *InviteCodeUpdate {
+	icu.mutation.SetStatus(ccs)
+	return icu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (icu *InviteCodeUpdate) SetNillableStatus(ccs *consts.InviteCodeStatus) *InviteCodeUpdate {
+	if ccs != nil {
+		icu.SetStatus(*ccs)
+	}
+	return icu
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (icu *InviteCodeUpdate) SetCreatedAt(t time.Time) *InviteCodeUpdate {
 	icu.mutation.SetCreatedAt(t)
@@ -75,6 +90,20 @@ func (icu *InviteCodeUpdate) SetNillableCreatedAt(t *time.Time) *InviteCodeUpdat
 // SetUpdatedAt sets the "updated_at" field.
 func (icu *InviteCodeUpdate) SetUpdatedAt(t time.Time) *InviteCodeUpdate {
 	icu.mutation.SetUpdatedAt(t)
+	return icu
+}
+
+// SetExpiredAt sets the "expired_at" field.
+func (icu *InviteCodeUpdate) SetExpiredAt(t time.Time) *InviteCodeUpdate {
+	icu.mutation.SetExpiredAt(t)
+	return icu
+}
+
+// SetNillableExpiredAt sets the "expired_at" field if the given value is not nil.
+func (icu *InviteCodeUpdate) SetNillableExpiredAt(t *time.Time) *InviteCodeUpdate {
+	if t != nil {
+		icu.SetExpiredAt(*t)
+	}
 	return icu
 }
 
@@ -140,11 +169,17 @@ func (icu *InviteCodeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := icu.mutation.Code(); ok {
 		_spec.SetField(invitecode.FieldCode, field.TypeString, value)
 	}
+	if value, ok := icu.mutation.Status(); ok {
+		_spec.SetField(invitecode.FieldStatus, field.TypeString, value)
+	}
 	if value, ok := icu.mutation.CreatedAt(); ok {
 		_spec.SetField(invitecode.FieldCreatedAt, field.TypeTime, value)
 	}
 	if value, ok := icu.mutation.UpdatedAt(); ok {
 		_spec.SetField(invitecode.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := icu.mutation.ExpiredAt(); ok {
+		_spec.SetField(invitecode.FieldExpiredAt, field.TypeTime, value)
 	}
 	_spec.AddModifiers(icu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, icu.driver, _spec); err != nil {
@@ -196,6 +231,20 @@ func (icuo *InviteCodeUpdateOne) SetNillableCode(s *string) *InviteCodeUpdateOne
 	return icuo
 }
 
+// SetStatus sets the "status" field.
+func (icuo *InviteCodeUpdateOne) SetStatus(ccs consts.InviteCodeStatus) *InviteCodeUpdateOne {
+	icuo.mutation.SetStatus(ccs)
+	return icuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (icuo *InviteCodeUpdateOne) SetNillableStatus(ccs *consts.InviteCodeStatus) *InviteCodeUpdateOne {
+	if ccs != nil {
+		icuo.SetStatus(*ccs)
+	}
+	return icuo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (icuo *InviteCodeUpdateOne) SetCreatedAt(t time.Time) *InviteCodeUpdateOne {
 	icuo.mutation.SetCreatedAt(t)
@@ -213,6 +262,20 @@ func (icuo *InviteCodeUpdateOne) SetNillableCreatedAt(t *time.Time) *InviteCodeU
 // SetUpdatedAt sets the "updated_at" field.
 func (icuo *InviteCodeUpdateOne) SetUpdatedAt(t time.Time) *InviteCodeUpdateOne {
 	icuo.mutation.SetUpdatedAt(t)
+	return icuo
+}
+
+// SetExpiredAt sets the "expired_at" field.
+func (icuo *InviteCodeUpdateOne) SetExpiredAt(t time.Time) *InviteCodeUpdateOne {
+	icuo.mutation.SetExpiredAt(t)
+	return icuo
+}
+
+// SetNillableExpiredAt sets the "expired_at" field if the given value is not nil.
+func (icuo *InviteCodeUpdateOne) SetNillableExpiredAt(t *time.Time) *InviteCodeUpdateOne {
+	if t != nil {
+		icuo.SetExpiredAt(*t)
+	}
 	return icuo
 }
 
@@ -308,11 +371,17 @@ func (icuo *InviteCodeUpdateOne) sqlSave(ctx context.Context) (_node *InviteCode
 	if value, ok := icuo.mutation.Code(); ok {
 		_spec.SetField(invitecode.FieldCode, field.TypeString, value)
 	}
+	if value, ok := icuo.mutation.Status(); ok {
+		_spec.SetField(invitecode.FieldStatus, field.TypeString, value)
+	}
 	if value, ok := icuo.mutation.CreatedAt(); ok {
 		_spec.SetField(invitecode.FieldCreatedAt, field.TypeTime, value)
 	}
 	if value, ok := icuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(invitecode.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := icuo.mutation.ExpiredAt(); ok {
+		_spec.SetField(invitecode.FieldExpiredAt, field.TypeTime, value)
 	}
 	_spec.AddModifiers(icuo.modifiers...)
 	_node = &InviteCode{config: icuo.config}

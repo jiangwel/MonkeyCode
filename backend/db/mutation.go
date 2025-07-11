@@ -5785,8 +5785,10 @@ type InviteCodeMutation struct {
 	id            *uuid.UUID
 	admin_id      *uuid.UUID
 	code          *string
+	status        *consts.InviteCodeStatus
 	created_at    *time.Time
 	updated_at    *time.Time
+	expired_at    *time.Time
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*InviteCode, error)
@@ -5969,6 +5971,42 @@ func (m *InviteCodeMutation) ResetCode() {
 	m.code = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *InviteCodeMutation) SetStatus(ccs consts.InviteCodeStatus) {
+	m.status = &ccs
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *InviteCodeMutation) Status() (r consts.InviteCodeStatus, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the InviteCode entity.
+// If the InviteCode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InviteCodeMutation) OldStatus(ctx context.Context) (v consts.InviteCodeStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *InviteCodeMutation) ResetStatus() {
+	m.status = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *InviteCodeMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -6041,6 +6079,42 @@ func (m *InviteCodeMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
+// SetExpiredAt sets the "expired_at" field.
+func (m *InviteCodeMutation) SetExpiredAt(t time.Time) {
+	m.expired_at = &t
+}
+
+// ExpiredAt returns the value of the "expired_at" field in the mutation.
+func (m *InviteCodeMutation) ExpiredAt() (r time.Time, exists bool) {
+	v := m.expired_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiredAt returns the old "expired_at" field's value of the InviteCode entity.
+// If the InviteCode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InviteCodeMutation) OldExpiredAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiredAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiredAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiredAt: %w", err)
+	}
+	return oldValue.ExpiredAt, nil
+}
+
+// ResetExpiredAt resets all changes to the "expired_at" field.
+func (m *InviteCodeMutation) ResetExpiredAt() {
+	m.expired_at = nil
+}
+
 // Where appends a list predicates to the InviteCodeMutation builder.
 func (m *InviteCodeMutation) Where(ps ...predicate.InviteCode) {
 	m.predicates = append(m.predicates, ps...)
@@ -6075,18 +6149,24 @@ func (m *InviteCodeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *InviteCodeMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 6)
 	if m.admin_id != nil {
 		fields = append(fields, invitecode.FieldAdminID)
 	}
 	if m.code != nil {
 		fields = append(fields, invitecode.FieldCode)
 	}
+	if m.status != nil {
+		fields = append(fields, invitecode.FieldStatus)
+	}
 	if m.created_at != nil {
 		fields = append(fields, invitecode.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, invitecode.FieldUpdatedAt)
+	}
+	if m.expired_at != nil {
+		fields = append(fields, invitecode.FieldExpiredAt)
 	}
 	return fields
 }
@@ -6100,10 +6180,14 @@ func (m *InviteCodeMutation) Field(name string) (ent.Value, bool) {
 		return m.AdminID()
 	case invitecode.FieldCode:
 		return m.Code()
+	case invitecode.FieldStatus:
+		return m.Status()
 	case invitecode.FieldCreatedAt:
 		return m.CreatedAt()
 	case invitecode.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case invitecode.FieldExpiredAt:
+		return m.ExpiredAt()
 	}
 	return nil, false
 }
@@ -6117,10 +6201,14 @@ func (m *InviteCodeMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldAdminID(ctx)
 	case invitecode.FieldCode:
 		return m.OldCode(ctx)
+	case invitecode.FieldStatus:
+		return m.OldStatus(ctx)
 	case invitecode.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case invitecode.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case invitecode.FieldExpiredAt:
+		return m.OldExpiredAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown InviteCode field %s", name)
 }
@@ -6144,6 +6232,13 @@ func (m *InviteCodeMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCode(v)
 		return nil
+	case invitecode.FieldStatus:
+		v, ok := value.(consts.InviteCodeStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
 	case invitecode.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -6157,6 +6252,13 @@ func (m *InviteCodeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case invitecode.FieldExpiredAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiredAt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown InviteCode field %s", name)
@@ -6213,11 +6315,17 @@ func (m *InviteCodeMutation) ResetField(name string) error {
 	case invitecode.FieldCode:
 		m.ResetCode()
 		return nil
+	case invitecode.FieldStatus:
+		m.ResetStatus()
+		return nil
 	case invitecode.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
 	case invitecode.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case invitecode.FieldExpiredAt:
+		m.ResetExpiredAt()
 		return nil
 	}
 	return fmt.Errorf("unknown InviteCode field %s", name)

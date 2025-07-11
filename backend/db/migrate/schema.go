@@ -159,8 +159,10 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "admin_id", Type: field.TypeUUID},
 		{Name: "code", Type: field.TypeString, Unique: true},
+		{Name: "status", Type: field.TypeString, Default: "pending"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "expired_at", Type: field.TypeTime},
 	}
 	// InviteCodesTable holds the schema information for the "invite_codes" table.
 	InviteCodesTable = &schema.Table{
