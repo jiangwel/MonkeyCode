@@ -15,7 +15,7 @@ func RequestID() echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			ctx := c.Request().Context()
 			requestID := uuid.New().String()
-			ctx = context.WithValue(ctx, logger.RequestIDKey, requestID)
+			ctx = context.WithValue(ctx, logger.RequestIDKey{}, requestID)
 			c.SetRequest(c.Request().WithContext(ctx))
 			return next(c)
 		}

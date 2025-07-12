@@ -49,10 +49,11 @@ type Config struct {
 	} `mapstructure:"redis"`
 
 	LLMProxy struct {
-		Timeout        string `mapstructure:"timeout"`
-		KeepAlive      string `mapstructure:"keep_alive"`
-		ClientPoolSize int    `mapstructure:"client_pool_size"`
-		RequestLogPath string `mapstructure:"request_log_path"`
+		Timeout              string `mapstructure:"timeout"`
+		KeepAlive            string `mapstructure:"keep_alive"`
+		ClientPoolSize       int    `mapstructure:"client_pool_size"`
+		StreamClientPoolSize int    `mapstructure:"stream_client_pool_size"`
+		RequestLogPath       string `mapstructure:"request_log_path"`
 	} `mapstructure:"llm_proxy"`
 
 	InitModel struct {
@@ -92,6 +93,7 @@ func Init() (*Config, error) {
 	v.SetDefault("llm_proxy.timeout", "30s")
 	v.SetDefault("llm_proxy.keep_alive", "60s")
 	v.SetDefault("llm_proxy.client_pool_size", 100)
+	v.SetDefault("llm_proxy.stream_client_pool_size", 5000)
 	v.SetDefault("llm_proxy.request_log_path", "/app/request/logs")
 	v.SetDefault("init_model.name", "qwen2.5-coder-3b-instruct")
 	v.SetDefault("init_model.key", "")
