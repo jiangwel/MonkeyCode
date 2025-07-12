@@ -10,11 +10,12 @@ import (
 )
 
 type ProxyUsecase struct {
-	repo domain.ProxyRepo
+	repo      domain.ProxyRepo
+	modelRepo domain.ModelRepo
 }
 
-func NewProxyUsecase(repo domain.ProxyRepo) domain.ProxyUsecase {
-	return &ProxyUsecase{repo: repo}
+func NewProxyUsecase(repo domain.ProxyRepo, modelRepo domain.ModelRepo) domain.ProxyUsecase {
+	return &ProxyUsecase{repo: repo, modelRepo: modelRepo}
 }
 
 func (p *ProxyUsecase) Record(ctx context.Context, record *domain.RecordParam) error {
@@ -23,7 +24,7 @@ func (p *ProxyUsecase) Record(ctx context.Context, record *domain.RecordParam) e
 
 // SelectModelWithLoadBalancing implements domain.ProxyUsecase.
 func (p *ProxyUsecase) SelectModelWithLoadBalancing(modelName string, modelType consts.ModelType) (*domain.Model, error) {
-	model, err := p.repo.SelectModelWithLoadBalancing(modelName, modelType)
+	model, err := p.modelRepo.GetWithCache(context.Background(), modelType)
 	if err != nil {
 		return nil, err
 	}

@@ -17,14 +17,14 @@ import (
 	v1_4 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/handler/v1"
 	repo6 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/repo"
 	usecase5 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/usecase"
-	repo3 "github.com/chaitin/MonkeyCode/backend/internal/extension/repo"
+	repo4 "github.com/chaitin/MonkeyCode/backend/internal/extension/repo"
 	usecase2 "github.com/chaitin/MonkeyCode/backend/internal/extension/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/middleware"
 	v1_2 "github.com/chaitin/MonkeyCode/backend/internal/model/handler/http/v1"
-	repo4 "github.com/chaitin/MonkeyCode/backend/internal/model/repo"
+	repo2 "github.com/chaitin/MonkeyCode/backend/internal/model/repo"
 	usecase3 "github.com/chaitin/MonkeyCode/backend/internal/model/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/openai/handler/v1"
-	repo2 "github.com/chaitin/MonkeyCode/backend/internal/openai/repo"
+	repo3 "github.com/chaitin/MonkeyCode/backend/internal/openai/repo"
 	"github.com/chaitin/MonkeyCode/backend/internal/openai/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/repo"
@@ -54,17 +54,17 @@ func newServer() (*Server, error) {
 		return nil, err
 	}
 	proxyRepo := repo.NewProxyRepo(client)
-	proxyUsecase := usecase.NewProxyUsecase(proxyRepo)
+	modelRepo := repo2.NewModelRepo(client)
+	proxyUsecase := usecase.NewProxyUsecase(proxyRepo, modelRepo)
 	domainProxy := proxy.NewLLMProxy(proxyUsecase, configConfig, slogLogger)
-	openAIRepo := repo2.NewOpenAIRepo(client)
+	openAIRepo := repo3.NewOpenAIRepo(client)
 	openAIUsecase := openai.NewOpenAIUsecase(configConfig, openAIRepo, slogLogger)
-	extensionRepo := repo3.NewExtensionRepo(client)
+	extensionRepo := repo4.NewExtensionRepo(client)
 	extensionUsecase := usecase2.NewExtensionUsecase(extensionRepo, configConfig, slogLogger)
 	proxyMiddleware := middleware.NewProxyMiddleware(proxyUsecase)
 	redisClient := store.NewRedisCli(configConfig)
 	activeMiddleware := middleware.NewActiveMiddleware(redisClient, slogLogger)
 	v1Handler := v1.NewV1Handler(slogLogger, web, domainProxy, openAIUsecase, extensionUsecase, proxyMiddleware, activeMiddleware, configConfig)
-	modelRepo := repo4.NewModelRepo(client)
 	modelUsecase := usecase3.NewModelUsecase(slogLogger, modelRepo, configConfig)
 	sessionSession := session.NewSession(configConfig)
 	authMiddleware := middleware.NewAuthMiddleware(sessionSession, slogLogger)
