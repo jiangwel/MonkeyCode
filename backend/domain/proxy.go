@@ -10,7 +10,6 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db"
 )
 
-// Proxy LLM API代理接口
 type Proxy interface {
 	AcceptCompletion(ctx context.Context, req *AcceptCompletionReq) error
 	HandleCompletion(ctx context.Context, w http.ResponseWriter, req CompletionRequest)

@@ -20,6 +20,7 @@ type ModelUsecase interface {
 }
 
 type ModelRepo interface {
+	GetWithCache(ctx context.Context, modelType consts.ModelType) (*db.Model, error)
 	List(ctx context.Context) (*AllModelResp, error)
 	Create(ctx context.Context, m *CreateModelReq) (*db.Model, error)
 	Update(ctx context.Context, id string, fn func(tx *db.Tx, old *db.Model, up *db.ModelUpdateOne) error) (*db.Model, error)

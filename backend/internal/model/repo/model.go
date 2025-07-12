@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/patrickmn/go-cache"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
@@ -18,11 +19,30 @@ import (
 )
 
 type ModelRepo struct {
-	db *db.Client
+	db    *db.Client
+	cache *cache.Cache
 }
 
 func NewModelRepo(db *db.Client) domain.ModelRepo {
-	return &ModelRepo{db: db}
+	cache := cache.New(24*time.Hour, 10*time.Minute)
+	return &ModelRepo{db: db, cache: cache}
+}
+
+func (r *ModelRepo) GetWithCache(ctx context.Context, modelType consts.ModelType) (*db.Model, error) {
+	if v, ok := r.cache.Get(string(modelType)); ok {
+		return v.(*db.Model), nil
+	}
+
+	m, err := r.db.Model.Query().
+		Where(model.ModelType(modelType)).
+		Where(model.Status(consts.ModelStatusActive)).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	r.cache.Set(string(modelType), m, 24*time.Hour)
+	return m, nil
 }
 
 func (r *ModelRepo) Create(ctx context.Context, m *domain.CreateModelReq) (*db.Model, error) {
@@ -40,6 +60,7 @@ func (r *ModelRepo) Create(ctx context.Context, m *domain.CreateModelReq) (*db.M
 		status = consts.ModelStatusActive
 	}
 
+	r.cache.Delete(string(m.ModelType))
 	return r.db.Model.Create().
 		SetUserID(uid).
 		SetModelName(m.ModelName).
@@ -62,6 +83,7 @@ func (r *ModelRepo) Update(ctx context.Context, id string, fn func(tx *db.Tx, ol
 		if err != nil {
 			return err
 		}
+		r.cache.Delete(string(old.ModelType))
 
 		up := tx.Model.UpdateOneID(old.ID)
 		if err := fn(tx, old, up); err != nil {
