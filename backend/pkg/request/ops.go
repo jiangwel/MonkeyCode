@@ -12,6 +12,12 @@ func WithDebug() ReqOpt {
 	}
 }
 
+func WithClient(client *http.Client) ReqOpt {
+	return func(c *Client) {
+		c.client = client
+	}
+}
+
 func WithTransport(tr *http.Transport) ReqOpt {
 	return func(c *Client) {
 		c.tr = tr

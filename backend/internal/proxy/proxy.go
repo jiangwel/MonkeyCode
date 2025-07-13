@@ -442,7 +442,12 @@ func (p *LLMProxy) handleCompletion(ctx context.Context, w http.ResponseWriter, 
 
 		startTime := time.Now()
 
-		client := request.NewClient(u.Scheme, u.Host, 30*time.Second)
+		client := request.NewClient(
+			u.Scheme,
+			u.Host,
+			30*time.Second,
+			request.WithClient(p.client),
+		)
 		client.SetDebug(p.cfg.Debug)
 		resp, err := request.Post[openai.CompletionResponse](client, u.Path, req, request.WithHeader(request.Header{
 			"Authorization": "Bearer " + m.APIKey,
@@ -753,7 +758,12 @@ func (p *LLMProxy) handleChatCompletion(ctx context.Context, w http.ResponseWrit
 		mode := req.Metadata["mode"]
 		taskID := req.Metadata["task_id"]
 
-		client := request.NewClient(u.Scheme, u.Host, 30*time.Second)
+		client := request.NewClient(
+			u.Scheme,
+			u.Host,
+			30*time.Second,
+			request.WithClient(p.client),
+		)
 		resp, err := request.Post[openai.ChatCompletionResponse](client, u.Path, req, request.WithHeader(request.Header{
 			"Authorization": "Bearer " + m.APIKey,
 		}))
