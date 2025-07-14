@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import Logo from '@/assets/images/logo.png';
 
@@ -20,14 +20,13 @@ import {
   IconButton,
   CircularProgress,
   Stack,
+  Divider,
 } from '@mui/material';
 import { useRequest } from 'ahooks';
-import {
-  postRegister,
-  getUserOauthSignupOrIn,
-  getGetSetting,
-} from '@/api/User';
+import { postRegister, getUserOauthSignupOrIn } from '@/api/User';
+import { getGetSetting } from '@/api/Admin';
 import { Icon } from '@c-x/ui';
+import { DomainSetting } from '@/api/types';
 
 import DownloadIcon from '@mui/icons-material/Download';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
@@ -91,7 +90,9 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
 const Invite = () => {
   const { id, step } = useParams();
   const [showPassword, setShowPassword] = useState(false);
-  const { data: loginSetting = {} } = useRequest(getGetSetting);
+  const { data: loginSetting = {} as DomainSetting } =
+    useRequest(getGetSetting);
+  const { custom_oauth = {}, dingtalk_oauth = {} } = loginSetting;
   const {
     control,
     handleSubmit,
@@ -134,19 +135,54 @@ const Invite = () => {
     });
   }, []);
 
-  const onDingdingLogin = () => {
+  const onOauthLogin = (platform: 'dingtalk' | 'custom') => {
     getUserOauthSignupOrIn({
-      platform: 'dingtalk',
+      platform,
       redirect_url: `${window.location.origin}/invite/${id}/2`,
+      inviate_code: id,
     }).then((res) => {
-      window.location.href = res.url!;
+      if (res.url) {
+        window.location.href = res.url;
+      }
     });
+  };
+
+  const oauthEnable = useMemo(() => {
+    return (
+      loginSetting.custom_oauth?.enable || loginSetting.dingtalk_oauth?.enable
+    );
+  }, [loginSetting]);
+
+  const oauthLogin = () => {
+    return (
+      <Stack justifyContent='center' gap={2}>
+        <Divider sx={{ my: 2, fontSize: 12, borderColor: 'divider' }}>
+          使用以下方式注册
+        </Divider>
+        {dingtalk_oauth.enable && (
+          <Button
+            sx={{ alignSelf: 'center' }}
+            onClick={() => onOauthLogin('dingtalk')}
+          >
+            <Icon type='icon-dingding' sx={{ fontSize: 30 }} />
+          </Button>
+        )}
+        {custom_oauth.enable && (
+          <IconButton
+            sx={{ alignSelf: 'center' }}
+            onClick={() => onOauthLogin('custom')}
+          >
+            <Icon type='icon-oauth' sx={{ fontSize: 30 }} />
+          </IconButton>
+        )}
+      </Stack>
+    );
   };
 
   const renderStepContent = () => {
     switch (activeStep) {
       case 1:
-        return !loginSetting.enable_dingtalk_oauth ? (
+        return !oauthEnable ? (
           <Box component='form' onSubmit={onRegister}>
             <Grid container spacing={3}>
               <Grid size={12}>
@@ -285,17 +321,7 @@ const Invite = () => {
             </Grid>
           </Box>
         ) : (
-          <Stack>
-            <Button
-              size='large'
-              variant='contained'
-              sx={{ alignSelf: 'center' }}
-              onClick={onDingdingLogin}
-            >
-              <Icon type='icon-dingding' sx={{ fontSize: 20, mr: 1 }} />
-              使用钉钉登录
-            </Button>
-          </Stack>
+          oauthLogin()
         );
 
       case 2:
