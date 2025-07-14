@@ -178,8 +178,10 @@ const AuthPage = () => {
   }, []);
 
   const oauthEnable = useMemo(() => {
-    return custom_oauth.enable || dingtalk_oauth.enable;
-  }, [custom_oauth, dingtalk_oauth]);
+    return (
+      loginSetting.custom_oauth?.enable || loginSetting.dingtalk_oauth?.enable
+    );
+  }, [loginSetting]);
 
   // 渲染用户名输入框
   const renderUsernameField = () => (

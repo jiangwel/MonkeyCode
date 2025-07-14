@@ -148,8 +148,10 @@ const Invite = () => {
   };
 
   const oauthEnable = useMemo(() => {
-    return custom_oauth.enable || dingtalk_oauth.enable;
-  }, [custom_oauth, dingtalk_oauth]);
+    return (
+      loginSetting.custom_oauth?.enable || loginSetting.dingtalk_oauth?.enable
+    );
+  }, [loginSetting]);
 
   const oauthLogin = () => {
     return (
