@@ -81,6 +81,26 @@ func (mu *ModelUpdate) SetNillableModelType(ct *consts.ModelType) *ModelUpdate {
 	return mu
 }
 
+// SetShowName sets the "show_name" field.
+func (mu *ModelUpdate) SetShowName(s string) *ModelUpdate {
+	mu.mutation.SetShowName(s)
+	return mu
+}
+
+// SetNillableShowName sets the "show_name" field if the given value is not nil.
+func (mu *ModelUpdate) SetNillableShowName(s *string) *ModelUpdate {
+	if s != nil {
+		mu.SetShowName(*s)
+	}
+	return mu
+}
+
+// ClearShowName clears the value of the "show_name" field.
+func (mu *ModelUpdate) ClearShowName() *ModelUpdate {
+	mu.mutation.ClearShowName()
+	return mu
+}
+
 // SetAPIBase sets the "api_base" field.
 func (mu *ModelUpdate) SetAPIBase(s string) *ModelUpdate {
 	mu.mutation.SetAPIBase(s)
@@ -129,6 +149,26 @@ func (mu *ModelUpdate) ClearAPIVersion() *ModelUpdate {
 	return mu
 }
 
+// SetAPIHeader sets the "api_header" field.
+func (mu *ModelUpdate) SetAPIHeader(s string) *ModelUpdate {
+	mu.mutation.SetAPIHeader(s)
+	return mu
+}
+
+// SetNillableAPIHeader sets the "api_header" field if the given value is not nil.
+func (mu *ModelUpdate) SetNillableAPIHeader(s *string) *ModelUpdate {
+	if s != nil {
+		mu.SetAPIHeader(*s)
+	}
+	return mu
+}
+
+// ClearAPIHeader clears the value of the "api_header" field.
+func (mu *ModelUpdate) ClearAPIHeader() *ModelUpdate {
+	mu.mutation.ClearAPIHeader()
+	return mu
+}
+
 // SetDescription sets the "description" field.
 func (mu *ModelUpdate) SetDescription(s string) *ModelUpdate {
 	mu.mutation.SetDescription(s)
@@ -150,15 +190,15 @@ func (mu *ModelUpdate) ClearDescription() *ModelUpdate {
 }
 
 // SetProvider sets the "provider" field.
-func (mu *ModelUpdate) SetProvider(s string) *ModelUpdate {
-	mu.mutation.SetProvider(s)
+func (mu *ModelUpdate) SetProvider(cp consts.ModelProvider) *ModelUpdate {
+	mu.mutation.SetProvider(cp)
 	return mu
 }
 
 // SetNillableProvider sets the "provider" field if the given value is not nil.
-func (mu *ModelUpdate) SetNillableProvider(s *string) *ModelUpdate {
-	if s != nil {
-		mu.SetProvider(*s)
+func (mu *ModelUpdate) SetNillableProvider(cp *consts.ModelProvider) *ModelUpdate {
+	if cp != nil {
+		mu.SetProvider(*cp)
 	}
 	return mu
 }
@@ -333,6 +373,12 @@ func (mu *ModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.ModelType(); ok {
 		_spec.SetField(model.FieldModelType, field.TypeString, value)
 	}
+	if value, ok := mu.mutation.ShowName(); ok {
+		_spec.SetField(model.FieldShowName, field.TypeString, value)
+	}
+	if mu.mutation.ShowNameCleared() {
+		_spec.ClearField(model.FieldShowName, field.TypeString)
+	}
 	if value, ok := mu.mutation.APIBase(); ok {
 		_spec.SetField(model.FieldAPIBase, field.TypeString, value)
 	}
@@ -344,6 +390,12 @@ func (mu *ModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if mu.mutation.APIVersionCleared() {
 		_spec.ClearField(model.FieldAPIVersion, field.TypeString)
+	}
+	if value, ok := mu.mutation.APIHeader(); ok {
+		_spec.SetField(model.FieldAPIHeader, field.TypeString, value)
+	}
+	if mu.mutation.APIHeaderCleared() {
+		_spec.ClearField(model.FieldAPIHeader, field.TypeString)
 	}
 	if value, ok := mu.mutation.Description(); ok {
 		_spec.SetField(model.FieldDescription, field.TypeString, value)
@@ -516,6 +568,26 @@ func (muo *ModelUpdateOne) SetNillableModelType(ct *consts.ModelType) *ModelUpda
 	return muo
 }
 
+// SetShowName sets the "show_name" field.
+func (muo *ModelUpdateOne) SetShowName(s string) *ModelUpdateOne {
+	muo.mutation.SetShowName(s)
+	return muo
+}
+
+// SetNillableShowName sets the "show_name" field if the given value is not nil.
+func (muo *ModelUpdateOne) SetNillableShowName(s *string) *ModelUpdateOne {
+	if s != nil {
+		muo.SetShowName(*s)
+	}
+	return muo
+}
+
+// ClearShowName clears the value of the "show_name" field.
+func (muo *ModelUpdateOne) ClearShowName() *ModelUpdateOne {
+	muo.mutation.ClearShowName()
+	return muo
+}
+
 // SetAPIBase sets the "api_base" field.
 func (muo *ModelUpdateOne) SetAPIBase(s string) *ModelUpdateOne {
 	muo.mutation.SetAPIBase(s)
@@ -564,6 +636,26 @@ func (muo *ModelUpdateOne) ClearAPIVersion() *ModelUpdateOne {
 	return muo
 }
 
+// SetAPIHeader sets the "api_header" field.
+func (muo *ModelUpdateOne) SetAPIHeader(s string) *ModelUpdateOne {
+	muo.mutation.SetAPIHeader(s)
+	return muo
+}
+
+// SetNillableAPIHeader sets the "api_header" field if the given value is not nil.
+func (muo *ModelUpdateOne) SetNillableAPIHeader(s *string) *ModelUpdateOne {
+	if s != nil {
+		muo.SetAPIHeader(*s)
+	}
+	return muo
+}
+
+// ClearAPIHeader clears the value of the "api_header" field.
+func (muo *ModelUpdateOne) ClearAPIHeader() *ModelUpdateOne {
+	muo.mutation.ClearAPIHeader()
+	return muo
+}
+
 // SetDescription sets the "description" field.
 func (muo *ModelUpdateOne) SetDescription(s string) *ModelUpdateOne {
 	muo.mutation.SetDescription(s)
@@ -585,15 +677,15 @@ func (muo *ModelUpdateOne) ClearDescription() *ModelUpdateOne {
 }
 
 // SetProvider sets the "provider" field.
-func (muo *ModelUpdateOne) SetProvider(s string) *ModelUpdateOne {
-	muo.mutation.SetProvider(s)
+func (muo *ModelUpdateOne) SetProvider(cp consts.ModelProvider) *ModelUpdateOne {
+	muo.mutation.SetProvider(cp)
 	return muo
 }
 
 // SetNillableProvider sets the "provider" field if the given value is not nil.
-func (muo *ModelUpdateOne) SetNillableProvider(s *string) *ModelUpdateOne {
-	if s != nil {
-		muo.SetProvider(*s)
+func (muo *ModelUpdateOne) SetNillableProvider(cp *consts.ModelProvider) *ModelUpdateOne {
+	if cp != nil {
+		muo.SetProvider(*cp)
 	}
 	return muo
 }
@@ -798,6 +890,12 @@ func (muo *ModelUpdateOne) sqlSave(ctx context.Context) (_node *Model, err error
 	if value, ok := muo.mutation.ModelType(); ok {
 		_spec.SetField(model.FieldModelType, field.TypeString, value)
 	}
+	if value, ok := muo.mutation.ShowName(); ok {
+		_spec.SetField(model.FieldShowName, field.TypeString, value)
+	}
+	if muo.mutation.ShowNameCleared() {
+		_spec.ClearField(model.FieldShowName, field.TypeString)
+	}
 	if value, ok := muo.mutation.APIBase(); ok {
 		_spec.SetField(model.FieldAPIBase, field.TypeString, value)
 	}
@@ -809,6 +907,12 @@ func (muo *ModelUpdateOne) sqlSave(ctx context.Context) (_node *Model, err error
 	}
 	if muo.mutation.APIVersionCleared() {
 		_spec.ClearField(model.FieldAPIVersion, field.TypeString)
+	}
+	if value, ok := muo.mutation.APIHeader(); ok {
+		_spec.SetField(model.FieldAPIHeader, field.TypeString, value)
+	}
+	if muo.mutation.APIHeaderCleared() {
+		_spec.ClearField(model.FieldAPIHeader, field.TypeString)
 	}
 	if value, ok := muo.mutation.Description(); ok {
 		_spec.SetField(model.FieldDescription, field.TypeString, value)

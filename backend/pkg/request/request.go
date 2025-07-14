@@ -185,3 +185,13 @@ func Put[T any](c *Client, path string, body any, opts ...Opt) (*T, error) {
 func Delete[T any](c *Client, path string, opts ...Opt) (*T, error) {
 	return sendRequest[T](c, http.MethodDelete, path, opts...)
 }
+
+func GetHeaderMap(header string) map[string]string {
+	headerMap := make(map[string]string)
+	for _, h := range strings.Split(header, "\n") {
+		if key, value, ok := strings.Cut(h, "="); ok {
+			headerMap[key] = value
+		}
+	}
+	return headerMap
+}
