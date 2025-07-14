@@ -23,6 +23,7 @@ type UserHandler struct {
 	session *session.Session
 	logger  *slog.Logger
 	cfg     *config.Config
+	limitCh chan struct{}
 }
 
 func NewUserHandler(
@@ -40,6 +41,7 @@ func NewUserHandler(
 		logger:  logger,
 		cfg:     cfg,
 		euse:    euse,
+		limitCh: make(chan struct{}, cfg.Extension.Limit),
 	}
 
 	w.GET("/api/v1/static/vsix/:version", web.BaseHandler(u.VSIXDownload))
@@ -94,6 +96,11 @@ func (h *UserHandler) VSCodeAuthInit(c *web.Context, req domain.VSCodeAuthInitRe
 //	@Produce		octet-stream
 //	@Router			/api/v1/static/vsix [get]
 func (h *UserHandler) VSIXDownload(c *web.Context) error {
+	h.limitCh <- struct{}{}
+	defer func() {
+		<-h.limitCh
+	}()
+
 	v, err := h.euse.GetByVersion(c.Request().Context(), c.Param("version"))
 	if err != nil {
 		return err

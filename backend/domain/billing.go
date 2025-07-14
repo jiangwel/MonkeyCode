@@ -126,7 +126,12 @@ func (c *ChatContent) From(e *db.TaskRecord) *ChatContent {
 		return c
 	}
 	c.Role = e.Role
-	c.Content = e.Completion
+	switch e.Role {
+	case consts.ChatRoleUser:
+		c.Content = e.Prompt
+	case consts.ChatRoleAssistant:
+		c.Content = e.Completion
+	}
 	c.CreatedAt = e.CreatedAt.Unix()
 	return c
 }
