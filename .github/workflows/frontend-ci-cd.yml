@@ -3,7 +3,7 @@ name: Frontend CI/CD
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+*"
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
     paths:
       - 'ui/**'
       - '.github/workflows/frontend-ci-cd.yml'
@@ -29,12 +29,12 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.19.0'
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10.12.1
 
       - name: Get version
         id: get_version
