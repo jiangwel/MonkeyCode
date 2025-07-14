@@ -51,7 +51,7 @@ const MainLayout = () => {
       }}
     >
       <Sidebar />
-      <Stack gap={2} sx={{ flex: 1, mr: 2, ml: 0 }}>
+      <Stack gap={2} sx={{ flex: 1, minWidth: 0, mr: 2, ml: 0 }}>
         <Header />
         <Box
           sx={{
