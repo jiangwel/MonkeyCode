@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -390,7 +389,7 @@ func (u *UserUsecase) OAuthSignUpOrIn(ctx context.Context, req *domain.OAuthSign
 		cfg.ClientID = setting.CustomOauth.ClientID
 		cfg.ClientSecret = setting.CustomOauth.ClientSecret
 		cfg.AuthorizeURL = setting.CustomOauth.AuthorizeURL
-		cfg.Scope = strings.Join(setting.CustomOauth.Scopes, " ")
+		cfg.Scopes = setting.CustomOauth.Scopes
 		cfg.TokenURL = setting.CustomOauth.AccessTokenURL
 		cfg.UserInfoURL = setting.CustomOauth.UserInfoURL
 		cfg.IDField = setting.CustomOauth.IDField
@@ -457,8 +456,9 @@ func (u *UserUsecase) FetchUserInfo(ctx context.Context, req *domain.OAuthCallba
 		return nil, err
 	}
 	cfg := domain.OAuthConfig{
-		Debug:    u.cfg.Debug,
-		Platform: session.Platform,
+		Debug:       u.cfg.Debug,
+		Platform:    session.Platform,
+		RedirectURI: fmt.Sprintf("%s/api/v1/user/oauth/callback", u.cfg.BaseUrl),
 	}
 
 	switch session.Platform {
@@ -475,7 +475,7 @@ func (u *UserUsecase) FetchUserInfo(ctx context.Context, req *domain.OAuthCallba
 		cfg.ClientID = setting.CustomOauth.ClientID
 		cfg.ClientSecret = setting.CustomOauth.ClientSecret
 		cfg.AuthorizeURL = setting.CustomOauth.AuthorizeURL
-		cfg.Scope = strings.Join(setting.CustomOauth.Scopes, " ")
+		cfg.Scopes = setting.CustomOauth.Scopes
 		cfg.TokenURL = setting.CustomOauth.AccessTokenURL
 		cfg.UserInfoURL = setting.CustomOauth.UserInfoURL
 		cfg.IDField = setting.CustomOauth.IDField
