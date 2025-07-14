@@ -13,7 +13,7 @@ type OAuthConfig struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURI  string
-	Scope        string
+	Scopes       []string
 	AuthorizeURL string
 	TokenURL     string
 	UserInfoURL  string
