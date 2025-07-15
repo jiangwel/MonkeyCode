@@ -21,12 +21,16 @@ const (
 	FieldModelName = "model_name"
 	// FieldModelType holds the string denoting the model_type field in the database.
 	FieldModelType = "model_type"
+	// FieldShowName holds the string denoting the show_name field in the database.
+	FieldShowName = "show_name"
 	// FieldAPIBase holds the string denoting the api_base field in the database.
 	FieldAPIBase = "api_base"
 	// FieldAPIKey holds the string denoting the api_key field in the database.
 	FieldAPIKey = "api_key"
 	// FieldAPIVersion holds the string denoting the api_version field in the database.
 	FieldAPIVersion = "api_version"
+	// FieldAPIHeader holds the string denoting the api_header field in the database.
+	FieldAPIHeader = "api_header"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 	// FieldProvider holds the string denoting the provider field in the database.
@@ -67,9 +71,11 @@ var Columns = []string{
 	FieldUserID,
 	FieldModelName,
 	FieldModelType,
+	FieldShowName,
 	FieldAPIBase,
 	FieldAPIKey,
 	FieldAPIVersion,
+	FieldAPIHeader,
 	FieldDescription,
 	FieldProvider,
 	FieldStatus,
@@ -122,6 +128,11 @@ func ByModelType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldModelType, opts...).ToFunc()
 }
 
+// ByShowName orders the results by the show_name field.
+func ByShowName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShowName, opts...).ToFunc()
+}
+
 // ByAPIBase orders the results by the api_base field.
 func ByAPIBase(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAPIBase, opts...).ToFunc()
@@ -135,6 +146,11 @@ func ByAPIKey(opts ...sql.OrderTermOption) OrderOption {
 // ByAPIVersion orders the results by the api_version field.
 func ByAPIVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAPIVersion, opts...).ToFunc()
+}
+
+// ByAPIHeader orders the results by the api_header field.
+func ByAPIHeader(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAPIHeader, opts...).ToFunc()
 }
 
 // ByDescription orders the results by the description field.

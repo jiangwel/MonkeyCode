@@ -175,9 +175,11 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "model_name", Type: field.TypeString},
 		{Name: "model_type", Type: field.TypeString},
+		{Name: "show_name", Type: field.TypeString, Nullable: true},
 		{Name: "api_base", Type: field.TypeString},
 		{Name: "api_key", Type: field.TypeString},
 		{Name: "api_version", Type: field.TypeString, Nullable: true},
+		{Name: "api_header", Type: field.TypeString, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "provider", Type: field.TypeString},
 		{Name: "status", Type: field.TypeString, Default: "active"},
@@ -194,7 +196,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "models_users_models",
-				Columns:    []*schema.Column{ModelsColumns[12]},
+				Columns:    []*schema.Column{ModelsColumns[14]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

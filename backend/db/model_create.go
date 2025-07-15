@@ -53,6 +53,20 @@ func (mc *ModelCreate) SetModelType(ct consts.ModelType) *ModelCreate {
 	return mc
 }
 
+// SetShowName sets the "show_name" field.
+func (mc *ModelCreate) SetShowName(s string) *ModelCreate {
+	mc.mutation.SetShowName(s)
+	return mc
+}
+
+// SetNillableShowName sets the "show_name" field if the given value is not nil.
+func (mc *ModelCreate) SetNillableShowName(s *string) *ModelCreate {
+	if s != nil {
+		mc.SetShowName(*s)
+	}
+	return mc
+}
+
 // SetAPIBase sets the "api_base" field.
 func (mc *ModelCreate) SetAPIBase(s string) *ModelCreate {
 	mc.mutation.SetAPIBase(s)
@@ -79,6 +93,20 @@ func (mc *ModelCreate) SetNillableAPIVersion(s *string) *ModelCreate {
 	return mc
 }
 
+// SetAPIHeader sets the "api_header" field.
+func (mc *ModelCreate) SetAPIHeader(s string) *ModelCreate {
+	mc.mutation.SetAPIHeader(s)
+	return mc
+}
+
+// SetNillableAPIHeader sets the "api_header" field if the given value is not nil.
+func (mc *ModelCreate) SetNillableAPIHeader(s *string) *ModelCreate {
+	if s != nil {
+		mc.SetAPIHeader(*s)
+	}
+	return mc
+}
+
 // SetDescription sets the "description" field.
 func (mc *ModelCreate) SetDescription(s string) *ModelCreate {
 	mc.mutation.SetDescription(s)
@@ -94,8 +122,8 @@ func (mc *ModelCreate) SetNillableDescription(s *string) *ModelCreate {
 }
 
 // SetProvider sets the "provider" field.
-func (mc *ModelCreate) SetProvider(s string) *ModelCreate {
-	mc.mutation.SetProvider(s)
+func (mc *ModelCreate) SetProvider(cp consts.ModelProvider) *ModelCreate {
+	mc.mutation.SetProvider(cp)
 	return mc
 }
 
@@ -300,6 +328,10 @@ func (mc *ModelCreate) createSpec() (*Model, *sqlgraph.CreateSpec) {
 		_spec.SetField(model.FieldModelType, field.TypeString, value)
 		_node.ModelType = value
 	}
+	if value, ok := mc.mutation.ShowName(); ok {
+		_spec.SetField(model.FieldShowName, field.TypeString, value)
+		_node.ShowName = value
+	}
 	if value, ok := mc.mutation.APIBase(); ok {
 		_spec.SetField(model.FieldAPIBase, field.TypeString, value)
 		_node.APIBase = value
@@ -311,6 +343,10 @@ func (mc *ModelCreate) createSpec() (*Model, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.APIVersion(); ok {
 		_spec.SetField(model.FieldAPIVersion, field.TypeString, value)
 		_node.APIVersion = value
+	}
+	if value, ok := mc.mutation.APIHeader(); ok {
+		_spec.SetField(model.FieldAPIHeader, field.TypeString, value)
+		_node.APIHeader = value
 	}
 	if value, ok := mc.mutation.Description(); ok {
 		_spec.SetField(model.FieldDescription, field.TypeString, value)
@@ -463,6 +499,24 @@ func (u *ModelUpsert) UpdateModelType() *ModelUpsert {
 	return u
 }
 
+// SetShowName sets the "show_name" field.
+func (u *ModelUpsert) SetShowName(v string) *ModelUpsert {
+	u.Set(model.FieldShowName, v)
+	return u
+}
+
+// UpdateShowName sets the "show_name" field to the value that was provided on create.
+func (u *ModelUpsert) UpdateShowName() *ModelUpsert {
+	u.SetExcluded(model.FieldShowName)
+	return u
+}
+
+// ClearShowName clears the value of the "show_name" field.
+func (u *ModelUpsert) ClearShowName() *ModelUpsert {
+	u.SetNull(model.FieldShowName)
+	return u
+}
+
 // SetAPIBase sets the "api_base" field.
 func (u *ModelUpsert) SetAPIBase(v string) *ModelUpsert {
 	u.Set(model.FieldAPIBase, v)
@@ -505,6 +559,24 @@ func (u *ModelUpsert) ClearAPIVersion() *ModelUpsert {
 	return u
 }
 
+// SetAPIHeader sets the "api_header" field.
+func (u *ModelUpsert) SetAPIHeader(v string) *ModelUpsert {
+	u.Set(model.FieldAPIHeader, v)
+	return u
+}
+
+// UpdateAPIHeader sets the "api_header" field to the value that was provided on create.
+func (u *ModelUpsert) UpdateAPIHeader() *ModelUpsert {
+	u.SetExcluded(model.FieldAPIHeader)
+	return u
+}
+
+// ClearAPIHeader clears the value of the "api_header" field.
+func (u *ModelUpsert) ClearAPIHeader() *ModelUpsert {
+	u.SetNull(model.FieldAPIHeader)
+	return u
+}
+
 // SetDescription sets the "description" field.
 func (u *ModelUpsert) SetDescription(v string) *ModelUpsert {
 	u.Set(model.FieldDescription, v)
@@ -524,7 +596,7 @@ func (u *ModelUpsert) ClearDescription() *ModelUpsert {
 }
 
 // SetProvider sets the "provider" field.
-func (u *ModelUpsert) SetProvider(v string) *ModelUpsert {
+func (u *ModelUpsert) SetProvider(v consts.ModelProvider) *ModelUpsert {
 	u.Set(model.FieldProvider, v)
 	return u
 }
@@ -692,6 +764,27 @@ func (u *ModelUpsertOne) UpdateModelType() *ModelUpsertOne {
 	})
 }
 
+// SetShowName sets the "show_name" field.
+func (u *ModelUpsertOne) SetShowName(v string) *ModelUpsertOne {
+	return u.Update(func(s *ModelUpsert) {
+		s.SetShowName(v)
+	})
+}
+
+// UpdateShowName sets the "show_name" field to the value that was provided on create.
+func (u *ModelUpsertOne) UpdateShowName() *ModelUpsertOne {
+	return u.Update(func(s *ModelUpsert) {
+		s.UpdateShowName()
+	})
+}
+
+// ClearShowName clears the value of the "show_name" field.
+func (u *ModelUpsertOne) ClearShowName() *ModelUpsertOne {
+	return u.Update(func(s *ModelUpsert) {
+		s.ClearShowName()
+	})
+}
+
 // SetAPIBase sets the "api_base" field.
 func (u *ModelUpsertOne) SetAPIBase(v string) *ModelUpsertOne {
 	return u.Update(func(s *ModelUpsert) {
@@ -741,6 +834,27 @@ func (u *ModelUpsertOne) ClearAPIVersion() *ModelUpsertOne {
 	})
 }
 
+// SetAPIHeader sets the "api_header" field.
+func (u *ModelUpsertOne) SetAPIHeader(v string) *ModelUpsertOne {
+	return u.Update(func(s *ModelUpsert) {
+		s.SetAPIHeader(v)
+	})
+}
+
+// UpdateAPIHeader sets the "api_header" field to the value that was provided on create.
+func (u *ModelUpsertOne) UpdateAPIHeader() *ModelUpsertOne {
+	return u.Update(func(s *ModelUpsert) {
+		s.UpdateAPIHeader()
+	})
+}
+
+// ClearAPIHeader clears the value of the "api_header" field.
+func (u *ModelUpsertOne) ClearAPIHeader() *ModelUpsertOne {
+	return u.Update(func(s *ModelUpsert) {
+		s.ClearAPIHeader()
+	})
+}
+
 // SetDescription sets the "description" field.
 func (u *ModelUpsertOne) SetDescription(v string) *ModelUpsertOne {
 	return u.Update(func(s *ModelUpsert) {
@@ -763,7 +877,7 @@ func (u *ModelUpsertOne) ClearDescription() *ModelUpsertOne {
 }
 
 // SetProvider sets the "provider" field.
-func (u *ModelUpsertOne) SetProvider(v string) *ModelUpsertOne {
+func (u *ModelUpsertOne) SetProvider(v consts.ModelProvider) *ModelUpsertOne {
 	return u.Update(func(s *ModelUpsert) {
 		s.SetProvider(v)
 	})
@@ -1110,6 +1224,27 @@ func (u *ModelUpsertBulk) UpdateModelType() *ModelUpsertBulk {
 	})
 }
 
+// SetShowName sets the "show_name" field.
+func (u *ModelUpsertBulk) SetShowName(v string) *ModelUpsertBulk {
+	return u.Update(func(s *ModelUpsert) {
+		s.SetShowName(v)
+	})
+}
+
+// UpdateShowName sets the "show_name" field to the value that was provided on create.
+func (u *ModelUpsertBulk) UpdateShowName() *ModelUpsertBulk {
+	return u.Update(func(s *ModelUpsert) {
+		s.UpdateShowName()
+	})
+}
+
+// ClearShowName clears the value of the "show_name" field.
+func (u *ModelUpsertBulk) ClearShowName() *ModelUpsertBulk {
+	return u.Update(func(s *ModelUpsert) {
+		s.ClearShowName()
+	})
+}
+
 // SetAPIBase sets the "api_base" field.
 func (u *ModelUpsertBulk) SetAPIBase(v string) *ModelUpsertBulk {
 	return u.Update(func(s *ModelUpsert) {
@@ -1159,6 +1294,27 @@ func (u *ModelUpsertBulk) ClearAPIVersion() *ModelUpsertBulk {
 	})
 }
 
+// SetAPIHeader sets the "api_header" field.
+func (u *ModelUpsertBulk) SetAPIHeader(v string) *ModelUpsertBulk {
+	return u.Update(func(s *ModelUpsert) {
+		s.SetAPIHeader(v)
+	})
+}
+
+// UpdateAPIHeader sets the "api_header" field to the value that was provided on create.
+func (u *ModelUpsertBulk) UpdateAPIHeader() *ModelUpsertBulk {
+	return u.Update(func(s *ModelUpsert) {
+		s.UpdateAPIHeader()
+	})
+}
+
+// ClearAPIHeader clears the value of the "api_header" field.
+func (u *ModelUpsertBulk) ClearAPIHeader() *ModelUpsertBulk {
+	return u.Update(func(s *ModelUpsert) {
+		s.ClearAPIHeader()
+	})
+}
+
 // SetDescription sets the "description" field.
 func (u *ModelUpsertBulk) SetDescription(v string) *ModelUpsertBulk {
 	return u.Update(func(s *ModelUpsert) {
@@ -1181,7 +1337,7 @@ func (u *ModelUpsertBulk) ClearDescription() *ModelUpsertBulk {
 }
 
 // SetProvider sets the "provider" field.
-func (u *ModelUpsertBulk) SetProvider(v string) *ModelUpsertBulk {
+func (u *ModelUpsertBulk) SetProvider(v consts.ModelProvider) *ModelUpsertBulk {
 	return u.Update(func(s *ModelUpsert) {
 		s.SetProvider(v)
 	})

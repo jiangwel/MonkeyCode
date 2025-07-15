@@ -63,10 +63,13 @@ func (r *ModelRepo) Create(ctx context.Context, m *domain.CreateModelReq) (*db.M
 	r.cache.Delete(string(m.ModelType))
 	return r.db.Model.Create().
 		SetUserID(uid).
+		SetShowName(m.ShowName).
 		SetModelName(m.ModelName).
 		SetProvider(m.Provider).
 		SetAPIBase(m.APIBase).
 		SetAPIKey(m.APIKey).
+		SetAPIVersion(m.APIVersion).
+		SetAPIHeader(m.APIHeader).
 		SetModelType(m.ModelType).
 		SetStatus(status).
 		Save(ctx)
@@ -201,7 +204,7 @@ func (r *ModelRepo) List(ctx context.Context) (*domain.AllModelResp, error) {
 				Models: cvt.Iter(p.Edges.Models, func(_ int, m *db.ModelProviderModel) domain.ModelBasic {
 					return domain.ModelBasic{
 						Name:     m.Name,
-						Provider: p.Name,
+						Provider: consts.ModelProvider(p.Name),
 						APIBase:  p.APIBase,
 					}
 				}),
@@ -214,7 +217,7 @@ func (r *ModelRepo) List(ctx context.Context) (*domain.AllModelResp, error) {
 func (r *ModelRepo) InitModel(ctx context.Context, modelName, modelKey, modelURL string) error {
 	n, err := r.db.Model.Query().
 		Where(model.ModelName(modelName)).
-		Where(model.Provider("百智云")).
+		Where(model.Provider(consts.ModelProviderBaiZhiCloud)).
 		Count(ctx)
 	if err != nil {
 		return err
@@ -233,7 +236,7 @@ func (r *ModelRepo) InitModel(ctx context.Context, modelName, modelKey, modelURL
 		SetModelName(modelName).
 		SetModelType(consts.ModelTypeCoder).
 		SetAPIBase(modelURL).
-		SetProvider("百智云").
+		SetProvider(consts.ModelProviderBaiZhiCloud).
 		SetStatus(consts.ModelStatusActive).
 		SetUserID(a.ID).
 		Exec(ctx)

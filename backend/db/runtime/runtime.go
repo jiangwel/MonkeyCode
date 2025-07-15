@@ -157,15 +157,15 @@ func init() {
 	modelFields := schema.Model{}.Fields()
 	_ = modelFields
 	// modelDescStatus is the schema descriptor for status field.
-	modelDescStatus := modelFields[9].Descriptor()
+	modelDescStatus := modelFields[11].Descriptor()
 	// model.DefaultStatus holds the default value on creation for the status field.
 	model.DefaultStatus = consts.ModelStatus(modelDescStatus.Default.(string))
 	// modelDescCreatedAt is the schema descriptor for created_at field.
-	modelDescCreatedAt := modelFields[11].Descriptor()
+	modelDescCreatedAt := modelFields[13].Descriptor()
 	// model.DefaultCreatedAt holds the default value on creation for the created_at field.
 	model.DefaultCreatedAt = modelDescCreatedAt.Default.(func() time.Time)
 	// modelDescUpdatedAt is the schema descriptor for updated_at field.
-	modelDescUpdatedAt := modelFields[12].Descriptor()
+	modelDescUpdatedAt := modelFields[14].Descriptor()
 	// model.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	model.DefaultUpdatedAt = modelDescUpdatedAt.Default.(func() time.Time)
 	// model.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

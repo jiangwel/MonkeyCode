@@ -70,3 +70,11 @@ type ConfigResp struct {
 	Type    consts.ConfigType `json:"type"`
 	Content string            `json:"content"`
 }
+type OpenAIResp struct {
+	Object string        `json:"object"`
+	Data   []*OpenAIData `json:"data"`
+}
+
+type OpenAIData struct {
+	ID string `json:"id"`
+}

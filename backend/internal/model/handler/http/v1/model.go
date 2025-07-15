@@ -30,6 +30,7 @@ func NewModelHandler(
 	g.GET("", web.BaseHandler(m.List))
 	g.POST("", web.BindHandler(m.Create))
 	g.PUT("", web.BindHandler(m.Update))
+	g.GET("/provider/supported", web.BindHandler(m.GetProviderModelList))
 	g.GET("/token-usage", web.BindHandler(m.GetTokenUsage))
 	g.GET("/my", web.BindHandler(m.MyModelList))
 
@@ -147,6 +148,25 @@ func (h *ModelHandler) Update(c *web.Context, req domain.UpdateModelReq) error {
 //	@Router			/api/v1/model/token-usage [get]
 func (h *ModelHandler) GetTokenUsage(c *web.Context, req domain.GetTokenUsageReq) error {
 	resp, err := h.usecase.GetTokenUsage(c.Request().Context(), req.ModelType)
+	if err != nil {
+		return err
+	}
+	return c.Success(resp)
+}
+
+// GetProviderModelList 获取供应商支持的模型列表
+//
+//	@Tags			Model
+//	@Summary		获取供应商支持的模型列表
+//	@Description	获取供应商支持的模型列表
+//	@ID				get-provider-model-list
+//	@Accept			json
+//	@Produce		json
+//	@Param			param	query		domain.GetProviderModelListReq	true	"模型类型"
+//	@Success		200		{object}	web.Resp{data=domain.GetProviderModelListResp}
+//	@Router			/api/v1/model/provider/supported [get]
+func (h *ModelHandler) GetProviderModelList(c *web.Context, req domain.GetProviderModelListReq) error {
+	resp, err := h.usecase.GetProviderModelList(c.Request().Context(), &req)
 	if err != nil {
 		return err
 	}

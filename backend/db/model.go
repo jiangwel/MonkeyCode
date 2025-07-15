@@ -26,16 +26,20 @@ type Model struct {
 	ModelName string `json:"model_name,omitempty"`
 	// ModelType holds the value of the "model_type" field.
 	ModelType consts.ModelType `json:"model_type,omitempty"`
+	// ShowName holds the value of the "show_name" field.
+	ShowName string `json:"show_name,omitempty"`
 	// APIBase holds the value of the "api_base" field.
 	APIBase string `json:"api_base,omitempty"`
 	// APIKey holds the value of the "api_key" field.
 	APIKey string `json:"api_key,omitempty"`
 	// APIVersion holds the value of the "api_version" field.
 	APIVersion string `json:"api_version,omitempty"`
+	// APIHeader holds the value of the "api_header" field.
+	APIHeader string `json:"api_header,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// Provider holds the value of the "provider" field.
-	Provider string `json:"provider,omitempty"`
+	Provider consts.ModelProvider `json:"provider,omitempty"`
 	// Status holds the value of the "status" field.
 	Status consts.ModelStatus `json:"status,omitempty"`
 	// ContextLength holds the value of the "context_length" field.
@@ -88,7 +92,7 @@ func (*Model) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case model.FieldContextLength:
 			values[i] = new(sql.NullInt64)
-		case model.FieldModelName, model.FieldModelType, model.FieldAPIBase, model.FieldAPIKey, model.FieldAPIVersion, model.FieldDescription, model.FieldProvider, model.FieldStatus:
+		case model.FieldModelName, model.FieldModelType, model.FieldShowName, model.FieldAPIBase, model.FieldAPIKey, model.FieldAPIVersion, model.FieldAPIHeader, model.FieldDescription, model.FieldProvider, model.FieldStatus:
 			values[i] = new(sql.NullString)
 		case model.FieldCreatedAt, model.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -133,6 +137,12 @@ func (m *Model) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.ModelType = consts.ModelType(value.String)
 			}
+		case model.FieldShowName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field show_name", values[i])
+			} else if value.Valid {
+				m.ShowName = value.String
+			}
 		case model.FieldAPIBase:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field api_base", values[i])
@@ -151,6 +161,12 @@ func (m *Model) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.APIVersion = value.String
 			}
+		case model.FieldAPIHeader:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field api_header", values[i])
+			} else if value.Valid {
+				m.APIHeader = value.String
+			}
 		case model.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
@@ -161,7 +177,7 @@ func (m *Model) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field provider", values[i])
 			} else if value.Valid {
-				m.Provider = value.String
+				m.Provider = consts.ModelProvider(value.String)
 			}
 		case model.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -242,6 +258,9 @@ func (m *Model) String() string {
 	builder.WriteString("model_type=")
 	builder.WriteString(fmt.Sprintf("%v", m.ModelType))
 	builder.WriteString(", ")
+	builder.WriteString("show_name=")
+	builder.WriteString(m.ShowName)
+	builder.WriteString(", ")
 	builder.WriteString("api_base=")
 	builder.WriteString(m.APIBase)
 	builder.WriteString(", ")
@@ -251,11 +270,14 @@ func (m *Model) String() string {
 	builder.WriteString("api_version=")
 	builder.WriteString(m.APIVersion)
 	builder.WriteString(", ")
+	builder.WriteString("api_header=")
+	builder.WriteString(m.APIHeader)
+	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(m.Description)
 	builder.WriteString(", ")
 	builder.WriteString("provider=")
-	builder.WriteString(m.Provider)
+	builder.WriteString(fmt.Sprintf("%v", m.Provider))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", m.Status))

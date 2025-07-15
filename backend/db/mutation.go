@@ -6388,11 +6388,13 @@ type ModelMutation struct {
 	id                *uuid.UUID
 	model_name        *string
 	model_type        *consts.ModelType
+	show_name         *string
 	api_base          *string
 	api_key           *string
 	api_version       *string
+	api_header        *string
 	description       *string
-	provider          *string
+	provider          *consts.ModelProvider
 	status            *consts.ModelStatus
 	context_length    *int
 	addcontext_length *int
@@ -6634,6 +6636,55 @@ func (m *ModelMutation) ResetModelType() {
 	m.model_type = nil
 }
 
+// SetShowName sets the "show_name" field.
+func (m *ModelMutation) SetShowName(s string) {
+	m.show_name = &s
+}
+
+// ShowName returns the value of the "show_name" field in the mutation.
+func (m *ModelMutation) ShowName() (r string, exists bool) {
+	v := m.show_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShowName returns the old "show_name" field's value of the Model entity.
+// If the Model object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelMutation) OldShowName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShowName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShowName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShowName: %w", err)
+	}
+	return oldValue.ShowName, nil
+}
+
+// ClearShowName clears the value of the "show_name" field.
+func (m *ModelMutation) ClearShowName() {
+	m.show_name = nil
+	m.clearedFields[model.FieldShowName] = struct{}{}
+}
+
+// ShowNameCleared returns if the "show_name" field was cleared in this mutation.
+func (m *ModelMutation) ShowNameCleared() bool {
+	_, ok := m.clearedFields[model.FieldShowName]
+	return ok
+}
+
+// ResetShowName resets all changes to the "show_name" field.
+func (m *ModelMutation) ResetShowName() {
+	m.show_name = nil
+	delete(m.clearedFields, model.FieldShowName)
+}
+
 // SetAPIBase sets the "api_base" field.
 func (m *ModelMutation) SetAPIBase(s string) {
 	m.api_base = &s
@@ -6755,6 +6806,55 @@ func (m *ModelMutation) ResetAPIVersion() {
 	delete(m.clearedFields, model.FieldAPIVersion)
 }
 
+// SetAPIHeader sets the "api_header" field.
+func (m *ModelMutation) SetAPIHeader(s string) {
+	m.api_header = &s
+}
+
+// APIHeader returns the value of the "api_header" field in the mutation.
+func (m *ModelMutation) APIHeader() (r string, exists bool) {
+	v := m.api_header
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAPIHeader returns the old "api_header" field's value of the Model entity.
+// If the Model object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelMutation) OldAPIHeader(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAPIHeader is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAPIHeader requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAPIHeader: %w", err)
+	}
+	return oldValue.APIHeader, nil
+}
+
+// ClearAPIHeader clears the value of the "api_header" field.
+func (m *ModelMutation) ClearAPIHeader() {
+	m.api_header = nil
+	m.clearedFields[model.FieldAPIHeader] = struct{}{}
+}
+
+// APIHeaderCleared returns if the "api_header" field was cleared in this mutation.
+func (m *ModelMutation) APIHeaderCleared() bool {
+	_, ok := m.clearedFields[model.FieldAPIHeader]
+	return ok
+}
+
+// ResetAPIHeader resets all changes to the "api_header" field.
+func (m *ModelMutation) ResetAPIHeader() {
+	m.api_header = nil
+	delete(m.clearedFields, model.FieldAPIHeader)
+}
+
 // SetDescription sets the "description" field.
 func (m *ModelMutation) SetDescription(s string) {
 	m.description = &s
@@ -6805,12 +6905,12 @@ func (m *ModelMutation) ResetDescription() {
 }
 
 // SetProvider sets the "provider" field.
-func (m *ModelMutation) SetProvider(s string) {
-	m.provider = &s
+func (m *ModelMutation) SetProvider(cp consts.ModelProvider) {
+	m.provider = &cp
 }
 
 // Provider returns the value of the "provider" field in the mutation.
-func (m *ModelMutation) Provider() (r string, exists bool) {
+func (m *ModelMutation) Provider() (r consts.ModelProvider, exists bool) {
 	v := m.provider
 	if v == nil {
 		return
@@ -6821,7 +6921,7 @@ func (m *ModelMutation) Provider() (r string, exists bool) {
 // OldProvider returns the old "provider" field's value of the Model entity.
 // If the Model object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ModelMutation) OldProvider(ctx context.Context) (v string, err error) {
+func (m *ModelMutation) OldProvider(ctx context.Context) (v consts.ModelProvider, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldProvider is only allowed on UpdateOne operations")
 	}
@@ -7133,7 +7233,7 @@ func (m *ModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ModelMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 14)
 	if m.user != nil {
 		fields = append(fields, model.FieldUserID)
 	}
@@ -7143,6 +7243,9 @@ func (m *ModelMutation) Fields() []string {
 	if m.model_type != nil {
 		fields = append(fields, model.FieldModelType)
 	}
+	if m.show_name != nil {
+		fields = append(fields, model.FieldShowName)
+	}
 	if m.api_base != nil {
 		fields = append(fields, model.FieldAPIBase)
 	}
@@ -7151,6 +7254,9 @@ func (m *ModelMutation) Fields() []string {
 	}
 	if m.api_version != nil {
 		fields = append(fields, model.FieldAPIVersion)
+	}
+	if m.api_header != nil {
+		fields = append(fields, model.FieldAPIHeader)
 	}
 	if m.description != nil {
 		fields = append(fields, model.FieldDescription)
@@ -7184,12 +7290,16 @@ func (m *ModelMutation) Field(name string) (ent.Value, bool) {
 		return m.ModelName()
 	case model.FieldModelType:
 		return m.ModelType()
+	case model.FieldShowName:
+		return m.ShowName()
 	case model.FieldAPIBase:
 		return m.APIBase()
 	case model.FieldAPIKey:
 		return m.APIKey()
 	case model.FieldAPIVersion:
 		return m.APIVersion()
+	case model.FieldAPIHeader:
+		return m.APIHeader()
 	case model.FieldDescription:
 		return m.Description()
 	case model.FieldProvider:
@@ -7217,12 +7327,16 @@ func (m *ModelMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldModelName(ctx)
 	case model.FieldModelType:
 		return m.OldModelType(ctx)
+	case model.FieldShowName:
+		return m.OldShowName(ctx)
 	case model.FieldAPIBase:
 		return m.OldAPIBase(ctx)
 	case model.FieldAPIKey:
 		return m.OldAPIKey(ctx)
 	case model.FieldAPIVersion:
 		return m.OldAPIVersion(ctx)
+	case model.FieldAPIHeader:
+		return m.OldAPIHeader(ctx)
 	case model.FieldDescription:
 		return m.OldDescription(ctx)
 	case model.FieldProvider:
@@ -7265,6 +7379,13 @@ func (m *ModelMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetModelType(v)
 		return nil
+	case model.FieldShowName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShowName(v)
+		return nil
 	case model.FieldAPIBase:
 		v, ok := value.(string)
 		if !ok {
@@ -7286,6 +7407,13 @@ func (m *ModelMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAPIVersion(v)
 		return nil
+	case model.FieldAPIHeader:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAPIHeader(v)
+		return nil
 	case model.FieldDescription:
 		v, ok := value.(string)
 		if !ok {
@@ -7294,7 +7422,7 @@ func (m *ModelMutation) SetField(name string, value ent.Value) error {
 		m.SetDescription(v)
 		return nil
 	case model.FieldProvider:
-		v, ok := value.(string)
+		v, ok := value.(consts.ModelProvider)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -7376,8 +7504,14 @@ func (m *ModelMutation) ClearedFields() []string {
 	if m.FieldCleared(model.FieldUserID) {
 		fields = append(fields, model.FieldUserID)
 	}
+	if m.FieldCleared(model.FieldShowName) {
+		fields = append(fields, model.FieldShowName)
+	}
 	if m.FieldCleared(model.FieldAPIVersion) {
 		fields = append(fields, model.FieldAPIVersion)
+	}
+	if m.FieldCleared(model.FieldAPIHeader) {
+		fields = append(fields, model.FieldAPIHeader)
 	}
 	if m.FieldCleared(model.FieldDescription) {
 		fields = append(fields, model.FieldDescription)
@@ -7402,8 +7536,14 @@ func (m *ModelMutation) ClearField(name string) error {
 	case model.FieldUserID:
 		m.ClearUserID()
 		return nil
+	case model.FieldShowName:
+		m.ClearShowName()
+		return nil
 	case model.FieldAPIVersion:
 		m.ClearAPIVersion()
+		return nil
+	case model.FieldAPIHeader:
+		m.ClearAPIHeader()
 		return nil
 	case model.FieldDescription:
 		m.ClearDescription()
@@ -7428,6 +7568,9 @@ func (m *ModelMutation) ResetField(name string) error {
 	case model.FieldModelType:
 		m.ResetModelType()
 		return nil
+	case model.FieldShowName:
+		m.ResetShowName()
+		return nil
 	case model.FieldAPIBase:
 		m.ResetAPIBase()
 		return nil
@@ -7436,6 +7579,9 @@ func (m *ModelMutation) ResetField(name string) error {
 		return nil
 	case model.FieldAPIVersion:
 		m.ResetAPIVersion()
+		return nil
+	case model.FieldAPIHeader:
+		m.ResetAPIHeader()
 		return nil
 	case model.FieldDescription:
 		m.ResetDescription()

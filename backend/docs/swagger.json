@@ -1223,6 +1223,110 @@
                 }
             }
         },
+        "/api/v1/model/provider/supported": {
+            "get": {
+                "description": "获取供应商支持的模型列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Model"
+                ],
+                "summary": "获取供应商支持的模型列表",
+                "operationId": "get-provider-model-list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "api_header",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "api_key",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "base_url",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "SiliconFlow",
+                            "OpenAI",
+                            "Ollama",
+                            "DeepSeek",
+                            "Moonshot",
+                            "AzureOpenAI",
+                            "BaiZhiCloud",
+                            "Hunyuan",
+                            "BaiLian",
+                            "Volcengine"
+                        ],
+                        "type": "string",
+                        "x-enum-varnames": [
+                            "ModelProviderSiliconFlow",
+                            "ModelProviderOpenAI",
+                            "ModelProviderOllama",
+                            "ModelProviderDeepSeek",
+                            "ModelProviderMoonshot",
+                            "ModelProviderAzureOpenAI",
+                            "ModelProviderBaiZhiCloud",
+                            "ModelProviderHunyuan",
+                            "ModelProviderBaiLian",
+                            "ModelProviderVolcengine"
+                        ],
+                        "name": "provider",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "llm",
+                            "coder",
+                            "embedding",
+                            "audio",
+                            "reranker"
+                        ],
+                        "type": "string",
+                        "x-enum-varnames": [
+                            "ModelTypeLLM",
+                            "ModelTypeCoder",
+                            "ModelTypeEmbedding",
+                            "ModelTypeAudio",
+                            "ModelTypeReranker"
+                        ],
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.GetProviderModelListResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/model/token-usage": {
             "get": {
                 "description": "获取模型token使用情况",
@@ -1923,6 +2027,33 @@
                 "ChatRoleAssistant"
             ]
         },
+        "consts.ModelProvider": {
+            "type": "string",
+            "enum": [
+                "SiliconFlow",
+                "OpenAI",
+                "Ollama",
+                "DeepSeek",
+                "Moonshot",
+                "AzureOpenAI",
+                "BaiZhiCloud",
+                "Hunyuan",
+                "BaiLian",
+                "Volcengine"
+            ],
+            "x-enum-varnames": [
+                "ModelProviderSiliconFlow",
+                "ModelProviderOpenAI",
+                "ModelProviderOllama",
+                "ModelProviderDeepSeek",
+                "ModelProviderMoonshot",
+                "ModelProviderAzureOpenAI",
+                "ModelProviderBaiZhiCloud",
+                "ModelProviderHunyuan",
+                "ModelProviderBaiLian",
+                "ModelProviderVolcengine"
+            ]
+        },
         "consts.ModelStatus": {
             "type": "string",
             "enum": [
@@ -2182,15 +2313,22 @@
                 "api_base",
                 "api_key",
                 "model_name",
-                "provider"
+                "provider",
+                "type"
             ],
             "properties": {
                 "api_base": {
                     "description": "接口地址",
                     "type": "string"
                 },
+                "api_header": {
+                    "type": "string"
+                },
                 "api_key": {
                     "description": "接口密钥",
+                    "type": "string"
+                },
+                "api_version": {
                     "type": "string"
                 },
                 "model_name": {
@@ -2199,7 +2337,24 @@
                 },
                 "provider": {
                     "description": "提供商",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/consts.ModelProvider"
+                        }
+                    ]
+                },
+                "type": {
+                    "enum": [
+                        "llm",
+                        "coder",
+                        "embedding",
+                        "rerank"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/consts.ModelType"
+                        }
+                    ]
                 }
             }
         },
@@ -2272,13 +2427,24 @@
         },
         "domain.CreateModelReq": {
             "type": "object",
+            "required": [
+                "api_base",
+                "model_name",
+                "provider"
+            ],
             "properties": {
                 "api_base": {
                     "description": "接口地址 如：https://api.qwen.com",
                     "type": "string"
                 },
+                "api_header": {
+                    "type": "string"
+                },
                 "api_key": {
                     "description": "接口密钥 如：sk-xxxx",
+                    "type": "string"
+                },
+                "api_version": {
                     "type": "string"
                 },
                 "model_name": {
@@ -2295,6 +2461,26 @@
                 },
                 "provider": {
                     "description": "提供商",
+                    "enum": [
+                        "SiliconFlow",
+                        "OpenAI",
+                        "Ollama",
+                        "DeepSeek",
+                        "Moonshot",
+                        "AzureOpenAI",
+                        "BaiZhiCloud",
+                        "Hunyuan",
+                        "BaiLian",
+                        "Volcengine"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/consts.ModelProvider"
+                        }
+                    ]
+                },
+                "show_name": {
+                    "description": "模型显示名称",
                     "type": "string"
                 }
             }
@@ -2434,6 +2620,17 @@
                 "enable": {
                     "description": "钉钉OAuth开关",
                     "type": "boolean"
+                }
+            }
+        },
+        "domain.GetProviderModelListResp": {
+            "type": "object",
+            "properties": {
+                "models": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ProviderModelListItem"
+                    }
                 }
             }
         },
@@ -2628,8 +2825,16 @@
                     "description": "接口地址 如：https://api.qwen.com",
                     "type": "string"
                 },
+                "api_header": {
+                    "description": "接口头 如：Authorization: Bearer sk-xxxx",
+                    "type": "string"
+                },
                 "api_key": {
                     "description": "接口密钥 如：sk-xxxx",
+                    "type": "string"
+                },
+                "api_version": {
+                    "description": "接口版本 如：2023-05-15",
                     "type": "string"
                 },
                 "created_at": {
@@ -2666,6 +2871,14 @@
                 },
                 "provider": {
                     "description": "提供商",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/consts.ModelProvider"
+                        }
+                    ]
+                },
+                "show_name": {
+                    "description": "模型显示名称",
                     "type": "string"
                 },
                 "status": {
@@ -2684,6 +2897,9 @@
         },
         "domain.ModelBasic": {
             "type": "object",
+            "required": [
+                "provider"
+            ],
             "properties": {
                 "api_base": {
                     "description": "接口地址 如：https://api.qwen.com",
@@ -2695,7 +2911,23 @@
                 },
                 "provider": {
                     "description": "提供商",
-                    "type": "string"
+                    "enum": [
+                        "SiliconFlow",
+                        "OpenAI",
+                        "Ollama",
+                        "DeepSeek",
+                        "Moonshot",
+                        "AzureOpenAI",
+                        "BaiZhiCloud",
+                        "Hunyuan",
+                        "BaiLian",
+                        "Volcengine"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/consts.ModelProvider"
+                        }
+                    ]
                 }
             }
         },
@@ -2805,6 +3037,14 @@
                 },
                 "provider": {
                     "description": "提供商",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ProviderModelListItem": {
+            "type": "object",
+            "properties": {
+                "model": {
                     "type": "string"
                 }
             }
@@ -3023,13 +3263,22 @@
         },
         "domain.UpdateModelReq": {
             "type": "object",
+            "required": [
+                "provider"
+            ],
             "properties": {
                 "api_base": {
                     "description": "接口地址 如：https://api.qwen.com",
                     "type": "string"
                 },
+                "api_header": {
+                    "type": "string"
+                },
                 "api_key": {
                     "description": "接口密钥 如：sk-xxxx",
+                    "type": "string"
+                },
+                "api_version": {
                     "type": "string"
                 },
                 "id": {
@@ -3042,6 +3291,26 @@
                 },
                 "provider": {
                     "description": "提供商",
+                    "enum": [
+                        "SiliconFlow",
+                        "OpenAI",
+                        "Ollama",
+                        "DeepSeek",
+                        "Moonshot",
+                        "AzureOpenAI",
+                        "BaiZhiCloud",
+                        "Hunyuan",
+                        "BaiLian",
+                        "Volcengine"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/consts.ModelProvider"
+                        }
+                    ]
+                },
+                "show_name": {
+                    "description": "模型显示名称",
                     "type": "string"
                 },
                 "status": {
