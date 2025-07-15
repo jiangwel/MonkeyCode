@@ -127,14 +127,6 @@ func (sc *SettingCreate) SetID(u uuid.UUID) *SettingCreate {
 	return sc
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (sc *SettingCreate) SetNillableID(u *uuid.UUID) *SettingCreate {
-	if u != nil {
-		sc.SetID(*u)
-	}
-	return sc
-}
-
 // Mutation returns the SettingMutation object of the builder.
 func (sc *SettingCreate) Mutation() *SettingMutation {
 	return sc.mutation
@@ -193,10 +185,6 @@ func (sc *SettingCreate) defaults() {
 	if _, ok := sc.mutation.UpdatedAt(); !ok {
 		v := setting.DefaultUpdatedAt()
 		sc.mutation.SetUpdatedAt(v)
-	}
-	if _, ok := sc.mutation.ID(); !ok {
-		v := setting.DefaultID()
-		sc.mutation.SetID(v)
 	}
 }
 

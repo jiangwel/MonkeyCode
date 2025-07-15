@@ -246,10 +246,6 @@ func init() {
 	setting.DefaultUpdatedAt = settingDescUpdatedAt.Default.(func() time.Time)
 	// setting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	setting.UpdateDefaultUpdatedAt = settingDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// settingDescID is the schema descriptor for id field.
-	settingDescID := settingFields[0].Descriptor()
-	// setting.DefaultID holds the default value on creation for the id field.
-	setting.DefaultID = settingDescID.Default.(func() uuid.UUID)
 	taskFields := schema.Task{}.Fields()
 	_ = taskFields
 	// taskDescIsAccept is the schema descriptor for is_accept field.
