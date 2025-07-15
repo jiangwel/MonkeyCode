@@ -44,7 +44,7 @@ const Completion = () => {
   const { data: userOptions = { users: [] } } = useRequest(() =>
     getListUser({
       page: 1,
-      size: 10,
+      size: 9999,
     })
   );
 
