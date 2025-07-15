@@ -14,6 +14,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
+	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
 )
 
 type DashboardRepo struct {
@@ -26,6 +27,7 @@ func NewDashboardRepo(db *db.Client) domain.DashboardRepo {
 
 // CategoryStat implements domain.DashboardRepo.
 func (d *DashboardRepo) CategoryStat(ctx context.Context, req domain.StatisticsFilter) (*domain.CategoryStat, error) {
+	ctx = entx.SkipSoftDelete(ctx)
 	var cs []domain.CategoryPoint
 	if err := d.db.Task.Query().
 		Where(task.CreatedAtGTE(req.StartTime())).
@@ -89,6 +91,17 @@ type DateValue struct {
 
 // TimeStat implements domain.DashboardRepo.
 func (d *DashboardRepo) TimeStat(ctx context.Context, req domain.StatisticsFilter) (*domain.TimeStat, error) {
+	udv := make([]DateValue, 0)
+	if err := d.db.Task.Query().
+		Where(task.CreatedAtGTE(req.StartTime())).
+		Aggregate(func(s *sql.Selector) string {
+			return sql.As("COUNT(DISTINCT user_id)", "count")
+		}).
+		Scan(ctx, &udv); err != nil {
+		return nil, err
+	}
+
+	ctx = entx.SkipSoftDelete(ctx)
 	ds := make([]DateValue, 0)
 	if err := d.db.Task.Query().
 		Where(task.CreatedAtGTE(req.StartTime())).
@@ -130,6 +143,10 @@ func (d *DashboardRepo) TimeStat(ctx context.Context, req domain.StatisticsFilte
 		AcceptedPer:    []domain.TimePoint[float64]{},
 	}
 
+	if len(udv) > 0 {
+		ts.TotalUsers = udv[0].Count
+	}
+
 	for _, v := range dsOneHour {
 		ts.RealTimeTokens = append(ts.RealTimeTokens, domain.TimePoint[int64]{
 			Timestamp: v.Date.Unix(),
@@ -138,7 +155,6 @@ func (d *DashboardRepo) TimeStat(ctx context.Context, req domain.StatisticsFilte
 	}
 
 	for _, v := range ds {
-		ts.TotalUsers += v.UserCount
 		ts.TotalChats += v.LlmCount
 		ts.TotalCompletions += v.CodeCount
 		ts.TotalLinesOfCode += v.CodeLines
@@ -176,6 +192,7 @@ type UserCodeRank struct {
 
 // UserCodeRank implements domain.DashboardRepo.
 func (d *DashboardRepo) UserCodeRank(ctx context.Context, req domain.StatisticsFilter) ([]*domain.UserCodeRank, error) {
+	ctx = entx.SkipSoftDelete(ctx)
 	var rs []UserCodeRank
 	if err := d.db.Task.Query().
 		Where(task.CreatedAtGTE(req.StartTime())).
@@ -213,6 +230,7 @@ func (d *DashboardRepo) UserCodeRank(ctx context.Context, req domain.StatisticsF
 
 // UserEvents implements domain.DashboardRepo.
 func (d *DashboardRepo) UserEvents(ctx context.Context, req domain.StatisticsFilter) ([]*domain.UserEvent, error) {
+	ctx = entx.SkipSoftDelete(ctx)
 	id, err := uuid.Parse(req.UserID)
 	if err != nil {
 		return nil, err
@@ -247,6 +265,7 @@ func (d *DashboardRepo) UserEvents(ctx context.Context, req domain.StatisticsFil
 
 // UserStat implements domain.DashboardRepo.
 func (d *DashboardRepo) UserStat(ctx context.Context, req domain.StatisticsFilter) (*domain.UserStat, error) {
+	ctx = entx.SkipSoftDelete(ctx)
 	id, err := uuid.Parse(req.UserID)
 	if err != nil {
 		return nil, err
@@ -343,6 +362,7 @@ func (d *DashboardRepo) UserStat(ctx context.Context, req domain.StatisticsFilte
 }
 
 func (d *DashboardRepo) UserHeatmap(ctx context.Context, userID string) ([]*domain.UserHeatmap, error) {
+	ctx = entx.SkipSoftDelete(ctx)
 	id, err := uuid.Parse(userID)
 	if err != nil {
 		return nil, err
