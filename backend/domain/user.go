@@ -52,6 +52,7 @@ type UserRepo interface {
 	UpdateSetting(ctx context.Context, fn func(*db.Setting, *db.SettingUpdateOne)) (*db.Setting, error)
 	OAuthRegister(ctx context.Context, platform consts.UserPlatform, inviteCode string, req *OAuthUserInfo) (*db.User, error)
 	OAuthLogin(ctx context.Context, platform consts.UserPlatform, req *OAuthUserInfo) (*db.User, error)
+	SignUpOrIn(ctx context.Context, platform consts.UserPlatform, req *OAuthUserInfo) (*db.User, error)
 }
 
 type UpdateUserReq struct {
@@ -256,6 +257,7 @@ type UpdateSettingReq struct {
 	EnableSSO            *bool             `json:"enable_sso"`             // 是否开启SSO
 	ForceTwoFactorAuth   *bool             `json:"force_two_factor_auth"`  // 是否强制两步验证
 	DisablePasswordLogin *bool             `json:"disable_password_login"` // 是否禁用密码登录
+	EnableAutoLogin      *bool             `json:"enable_auto_login"`      // 是否开启自动登录
 	DingtalkOAuth        *DingtalkOAuthReq `json:"dingtalk_oauth"`         // 钉钉OAuth配置
 	CustomOAuth          *CustomOAuthReq   `json:"custom_oauth"`           // 自定义OAuth配置
 }
@@ -334,6 +336,7 @@ type Setting struct {
 	EnableSSO            bool          `json:"enable_sso"`             // 是否开启SSO
 	ForceTwoFactorAuth   bool          `json:"force_two_factor_auth"`  // 是否强制两步验证
 	DisablePasswordLogin bool          `json:"disable_password_login"` // 是否禁用密码登录
+	EnableAutoLogin      bool          `json:"enable_auto_login"`      // 是否开启自动登录
 	DingtalkOAuth        DingtalkOAuth `json:"dingtalk_oauth"`         // 钉钉OAuth接入
 	CustomOAuth          CustomOAuth   `json:"custom_oauth"`           // 自定义OAuth接入
 	CreatedAt            int64         `json:"created_at"`             // 创建时间
@@ -348,6 +351,7 @@ func (s *Setting) From(e *db.Setting) *Setting {
 	s.EnableSSO = e.EnableSSO
 	s.ForceTwoFactorAuth = e.ForceTwoFactorAuth
 	s.DisablePasswordLogin = e.DisablePasswordLogin
+	s.EnableAutoLogin = e.EnableAutoLogin
 	s.DingtalkOAuth = *cvt.From(e.DingtalkOauth, &DingtalkOAuth{})
 	s.CustomOAuth = *cvt.From(e.CustomOauth, &CustomOAuth{})
 	s.CreatedAt = e.CreatedAt.Unix()

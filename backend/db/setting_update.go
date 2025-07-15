@@ -72,6 +72,20 @@ func (su *SettingUpdate) SetNillableDisablePasswordLogin(b *bool) *SettingUpdate
 	return su
 }
 
+// SetEnableAutoLogin sets the "enable_auto_login" field.
+func (su *SettingUpdate) SetEnableAutoLogin(b bool) *SettingUpdate {
+	su.mutation.SetEnableAutoLogin(b)
+	return su
+}
+
+// SetNillableEnableAutoLogin sets the "enable_auto_login" field if the given value is not nil.
+func (su *SettingUpdate) SetNillableEnableAutoLogin(b *bool) *SettingUpdate {
+	if b != nil {
+		su.SetEnableAutoLogin(*b)
+	}
+	return su
+}
+
 // SetDingtalkOauth sets the "dingtalk_oauth" field.
 func (su *SettingUpdate) SetDingtalkOauth(to *types.DingtalkOAuth) *SettingUpdate {
 	su.mutation.SetDingtalkOauth(to)
@@ -181,6 +195,9 @@ func (su *SettingUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.DisablePasswordLogin(); ok {
 		_spec.SetField(setting.FieldDisablePasswordLogin, field.TypeBool, value)
 	}
+	if value, ok := su.mutation.EnableAutoLogin(); ok {
+		_spec.SetField(setting.FieldEnableAutoLogin, field.TypeBool, value)
+	}
 	if value, ok := su.mutation.DingtalkOauth(); ok {
 		_spec.SetField(setting.FieldDingtalkOauth, field.TypeJSON, value)
 	}
@@ -259,6 +276,20 @@ func (suo *SettingUpdateOne) SetDisablePasswordLogin(b bool) *SettingUpdateOne {
 func (suo *SettingUpdateOne) SetNillableDisablePasswordLogin(b *bool) *SettingUpdateOne {
 	if b != nil {
 		suo.SetDisablePasswordLogin(*b)
+	}
+	return suo
+}
+
+// SetEnableAutoLogin sets the "enable_auto_login" field.
+func (suo *SettingUpdateOne) SetEnableAutoLogin(b bool) *SettingUpdateOne {
+	suo.mutation.SetEnableAutoLogin(b)
+	return suo
+}
+
+// SetNillableEnableAutoLogin sets the "enable_auto_login" field if the given value is not nil.
+func (suo *SettingUpdateOne) SetNillableEnableAutoLogin(b *bool) *SettingUpdateOne {
+	if b != nil {
+		suo.SetEnableAutoLogin(*b)
 	}
 	return suo
 }
@@ -401,6 +432,9 @@ func (suo *SettingUpdateOne) sqlSave(ctx context.Context) (_node *Setting, err e
 	}
 	if value, ok := suo.mutation.DisablePasswordLogin(); ok {
 		_spec.SetField(setting.FieldDisablePasswordLogin, field.TypeBool, value)
+	}
+	if value, ok := suo.mutation.EnableAutoLogin(); ok {
+		_spec.SetField(setting.FieldEnableAutoLogin, field.TypeBool, value)
 	}
 	if value, ok := suo.mutation.DingtalkOauth(); ok {
 		_spec.SetField(setting.FieldDingtalkOauth, field.TypeJSON, value)

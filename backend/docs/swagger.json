@@ -2351,7 +2351,76 @@
                 }
             }
         },
+        "domain.CustomOAuthReq": {
+            "type": "object",
+            "properties": {
+                "access_token_url": {
+                    "description": "自定义OAuth访问令牌URL",
+                    "type": "string"
+                },
+                "authorize_url": {
+                    "description": "自定义OAuth授权URL",
+                    "type": "string"
+                },
+                "avatar_field": {
+                    "description": "用户信息回包中的头像URL字段名",
+                    "type": "string"
+                },
+                "client_id": {
+                    "description": "自定义客户端ID",
+                    "type": "string"
+                },
+                "client_secret": {
+                    "description": "自定义客户端密钥",
+                    "type": "string"
+                },
+                "email_field": {
+                    "description": "用户信息回包中的邮箱字段名",
+                    "type": "string"
+                },
+                "enable": {
+                    "description": "自定义OAuth开关",
+                    "type": "boolean"
+                },
+                "id_field": {
+                    "description": "用户信息回包中的ID字段名",
+                    "type": "string"
+                },
+                "name_field": {
+                    "description": "用户信息回包中的用户名字段名",
+                    "type": "string"
+                },
+                "scopes": {
+                    "description": "自定义OAuth Scope列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userinfo_url": {
+                    "description": "自定义OAuth用户信息URL",
+                    "type": "string"
+                }
+            }
+        },
         "domain.DingtalkOAuth": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "description": "钉钉客户端ID",
+                    "type": "string"
+                },
+                "client_secret": {
+                    "description": "钉钉客户端密钥",
+                    "type": "string"
+                },
+                "enable": {
+                    "description": "钉钉OAuth开关",
+                    "type": "boolean"
+                }
+            }
+        },
+        "domain.DingtalkOAuthReq": {
             "type": "object",
             "properties": {
                 "client_id": {
@@ -2794,6 +2863,10 @@
                     "description": "是否禁用密码登录",
                     "type": "boolean"
                 },
+                "enable_auto_login": {
+                    "description": "是否开启自动登录",
+                    "type": "boolean"
+                },
                 "enable_sso": {
                     "description": "是否开启SSO",
                     "type": "boolean"
@@ -2988,7 +3061,7 @@
                     "description": "自定义OAuth配置",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/domain.CustomOAuth"
+                            "$ref": "#/definitions/domain.CustomOAuthReq"
                         }
                     ]
                 },
@@ -2996,12 +3069,16 @@
                     "description": "钉钉OAuth配置",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/domain.DingtalkOAuth"
+                            "$ref": "#/definitions/domain.DingtalkOAuthReq"
                         }
                     ]
                 },
                 "disable_password_login": {
                     "description": "是否禁用密码登录",
+                    "type": "boolean"
+                },
+                "enable_auto_login": {
+                    "description": "是否开启自动登录",
                     "type": "boolean"
                 },
                 "enable_sso": {

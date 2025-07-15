@@ -70,6 +70,11 @@ func DisablePasswordLogin(v bool) predicate.Setting {
 	return predicate.Setting(sql.FieldEQ(FieldDisablePasswordLogin, v))
 }
 
+// EnableAutoLogin applies equality check predicate on the "enable_auto_login" field. It's identical to EnableAutoLoginEQ.
+func EnableAutoLogin(v bool) predicate.Setting {
+	return predicate.Setting(sql.FieldEQ(FieldEnableAutoLogin, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Setting {
 	return predicate.Setting(sql.FieldEQ(FieldCreatedAt, v))
@@ -108,6 +113,16 @@ func DisablePasswordLoginEQ(v bool) predicate.Setting {
 // DisablePasswordLoginNEQ applies the NEQ predicate on the "disable_password_login" field.
 func DisablePasswordLoginNEQ(v bool) predicate.Setting {
 	return predicate.Setting(sql.FieldNEQ(FieldDisablePasswordLogin, v))
+}
+
+// EnableAutoLoginEQ applies the EQ predicate on the "enable_auto_login" field.
+func EnableAutoLoginEQ(v bool) predicate.Setting {
+	return predicate.Setting(sql.FieldEQ(FieldEnableAutoLogin, v))
+}
+
+// EnableAutoLoginNEQ applies the NEQ predicate on the "enable_auto_login" field.
+func EnableAutoLoginNEQ(v bool) predicate.Setting {
+	return predicate.Setting(sql.FieldNEQ(FieldEnableAutoLogin, v))
 }
 
 // DingtalkOauthIsNil applies the IsNil predicate on the "dingtalk_oauth" field.

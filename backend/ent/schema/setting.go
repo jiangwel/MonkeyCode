@@ -33,6 +33,7 @@ func (Setting) Fields() []ent.Field {
 		field.Bool("enable_sso").Default(false),
 		field.Bool("force_two_factor_auth").Default(false),
 		field.Bool("disable_password_login").Default(false),
+		field.Bool("enable_auto_login").Default(false),
 		field.JSON("dingtalk_oauth", &types.DingtalkOAuth{}).Optional(),
 		field.JSON("custom_oauth", &types.CustomOAuth{}).Optional(),
 		field.Time("created_at").Default(time.Now),
