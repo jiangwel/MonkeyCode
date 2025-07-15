@@ -52,6 +52,7 @@ func (c *CustomOAuth) GetUserInfo(code string) (*domain.OAuthUserInfo, error) {
 		ID:        fmt.Sprint(info[c.cfg.IDField]),
 		AvatarURL: fmt.Sprint(info[c.cfg.AvatarField]),
 		Name:      fmt.Sprint(info[c.cfg.NameField]),
+		Email:     fmt.Sprint(info[c.cfg.EmailField]),
 	}, nil
 }
 
