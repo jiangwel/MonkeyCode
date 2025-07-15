@@ -24,6 +24,7 @@ const LoginHistory = () => {
             username={record.user!.username!}
             id={record.user!.id!}
             email={record.user!.email!}
+            avatar={record.user!.avatar_url!}
           />
         );
       },

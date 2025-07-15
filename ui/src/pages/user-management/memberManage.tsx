@@ -257,6 +257,7 @@ const MemberManage = () => {
             id={record.id!}
             username={record.username!}
             email={record.email!}
+            avatar={record.avatar_url}
           />
         );
       },

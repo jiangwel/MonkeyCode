@@ -49,6 +49,7 @@ const Chat = () => {
             id={value.id!}
             username={value.username!}
             email={value.email!}
+            avatar={value.avatar_url!}
           />
         );
       },

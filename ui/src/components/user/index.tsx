@@ -6,10 +6,12 @@ const User = ({
   id,
   username = '',
   email = '',
+  avatar = '',
 }: {
   id?: string;
   username?: string;
   email?: string;
+  avatar?: string;
 }) => {
   return (
     <Stack>
@@ -26,6 +28,7 @@ const User = ({
         <Stack direction={'row'} alignItems={'center'} gap={1}>
           <Avatar
             name={username}
+            src={avatar}
             sx={{ width: 20, height: 20, fontSize: 12 }}
           />
           <Typography sx={{ pt: '2px' }}>{username}</Typography>
