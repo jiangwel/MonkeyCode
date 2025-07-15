@@ -232,16 +232,24 @@ func init() {
 	settingDescDisablePasswordLogin := settingFields[3].Descriptor()
 	// setting.DefaultDisablePasswordLogin holds the default value on creation for the disable_password_login field.
 	setting.DefaultDisablePasswordLogin = settingDescDisablePasswordLogin.Default.(bool)
+	// settingDescEnableAutoLogin is the schema descriptor for enable_auto_login field.
+	settingDescEnableAutoLogin := settingFields[4].Descriptor()
+	// setting.DefaultEnableAutoLogin holds the default value on creation for the enable_auto_login field.
+	setting.DefaultEnableAutoLogin = settingDescEnableAutoLogin.Default.(bool)
 	// settingDescCreatedAt is the schema descriptor for created_at field.
-	settingDescCreatedAt := settingFields[6].Descriptor()
+	settingDescCreatedAt := settingFields[7].Descriptor()
 	// setting.DefaultCreatedAt holds the default value on creation for the created_at field.
 	setting.DefaultCreatedAt = settingDescCreatedAt.Default.(func() time.Time)
 	// settingDescUpdatedAt is the schema descriptor for updated_at field.
-	settingDescUpdatedAt := settingFields[7].Descriptor()
+	settingDescUpdatedAt := settingFields[8].Descriptor()
 	// setting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	setting.DefaultUpdatedAt = settingDescUpdatedAt.Default.(func() time.Time)
 	// setting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	setting.UpdateDefaultUpdatedAt = settingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// settingDescID is the schema descriptor for id field.
+	settingDescID := settingFields[0].Descriptor()
+	// setting.DefaultID holds the default value on creation for the id field.
+	setting.DefaultID = settingDescID.Default.(func() uuid.UUID)
 	taskFields := schema.Task{}.Fields()
 	_ = taskFields
 	// taskDescIsAccept is the schema descriptor for is_accept field.

@@ -26,6 +26,8 @@ type Setting struct {
 	ForceTwoFactorAuth bool `json:"force_two_factor_auth,omitempty"`
 	// DisablePasswordLogin holds the value of the "disable_password_login" field.
 	DisablePasswordLogin bool `json:"disable_password_login,omitempty"`
+	// EnableAutoLogin holds the value of the "enable_auto_login" field.
+	EnableAutoLogin bool `json:"enable_auto_login,omitempty"`
 	// DingtalkOauth holds the value of the "dingtalk_oauth" field.
 	DingtalkOauth *types.DingtalkOAuth `json:"dingtalk_oauth,omitempty"`
 	// CustomOauth holds the value of the "custom_oauth" field.
@@ -44,7 +46,7 @@ func (*Setting) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case setting.FieldDingtalkOauth, setting.FieldCustomOauth:
 			values[i] = new([]byte)
-		case setting.FieldEnableSSO, setting.FieldForceTwoFactorAuth, setting.FieldDisablePasswordLogin:
+		case setting.FieldEnableSSO, setting.FieldForceTwoFactorAuth, setting.FieldDisablePasswordLogin, setting.FieldEnableAutoLogin:
 			values[i] = new(sql.NullBool)
 		case setting.FieldCreatedAt, setting.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -88,6 +90,12 @@ func (s *Setting) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field disable_password_login", values[i])
 			} else if value.Valid {
 				s.DisablePasswordLogin = value.Bool
+			}
+		case setting.FieldEnableAutoLogin:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field enable_auto_login", values[i])
+			} else if value.Valid {
+				s.EnableAutoLogin = value.Bool
 			}
 		case setting.FieldDingtalkOauth:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -161,6 +169,9 @@ func (s *Setting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("disable_password_login=")
 	builder.WriteString(fmt.Sprintf("%v", s.DisablePasswordLogin))
+	builder.WriteString(", ")
+	builder.WriteString("enable_auto_login=")
+	builder.WriteString(fmt.Sprintf("%v", s.EnableAutoLogin))
 	builder.WriteString(", ")
 	builder.WriteString("dingtalk_oauth=")
 	builder.WriteString(fmt.Sprintf("%v", s.DingtalkOauth))

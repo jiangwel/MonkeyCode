@@ -8817,6 +8817,7 @@ type SettingMutation struct {
 	enable_sso             *bool
 	force_two_factor_auth  *bool
 	disable_password_login *bool
+	enable_auto_login      *bool
 	dingtalk_oauth         **types.DingtalkOAuth
 	custom_oauth           **types.CustomOAuth
 	created_at             *time.Time
@@ -9039,6 +9040,42 @@ func (m *SettingMutation) ResetDisablePasswordLogin() {
 	m.disable_password_login = nil
 }
 
+// SetEnableAutoLogin sets the "enable_auto_login" field.
+func (m *SettingMutation) SetEnableAutoLogin(b bool) {
+	m.enable_auto_login = &b
+}
+
+// EnableAutoLogin returns the value of the "enable_auto_login" field in the mutation.
+func (m *SettingMutation) EnableAutoLogin() (r bool, exists bool) {
+	v := m.enable_auto_login
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnableAutoLogin returns the old "enable_auto_login" field's value of the Setting entity.
+// If the Setting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingMutation) OldEnableAutoLogin(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnableAutoLogin is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnableAutoLogin requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnableAutoLogin: %w", err)
+	}
+	return oldValue.EnableAutoLogin, nil
+}
+
+// ResetEnableAutoLogin resets all changes to the "enable_auto_login" field.
+func (m *SettingMutation) ResetEnableAutoLogin() {
+	m.enable_auto_login = nil
+}
+
 // SetDingtalkOauth sets the "dingtalk_oauth" field.
 func (m *SettingMutation) SetDingtalkOauth(to *types.DingtalkOAuth) {
 	m.dingtalk_oauth = &to
@@ -9243,7 +9280,7 @@ func (m *SettingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.enable_sso != nil {
 		fields = append(fields, setting.FieldEnableSSO)
 	}
@@ -9252,6 +9289,9 @@ func (m *SettingMutation) Fields() []string {
 	}
 	if m.disable_password_login != nil {
 		fields = append(fields, setting.FieldDisablePasswordLogin)
+	}
+	if m.enable_auto_login != nil {
+		fields = append(fields, setting.FieldEnableAutoLogin)
 	}
 	if m.dingtalk_oauth != nil {
 		fields = append(fields, setting.FieldDingtalkOauth)
@@ -9279,6 +9319,8 @@ func (m *SettingMutation) Field(name string) (ent.Value, bool) {
 		return m.ForceTwoFactorAuth()
 	case setting.FieldDisablePasswordLogin:
 		return m.DisablePasswordLogin()
+	case setting.FieldEnableAutoLogin:
+		return m.EnableAutoLogin()
 	case setting.FieldDingtalkOauth:
 		return m.DingtalkOauth()
 	case setting.FieldCustomOauth:
@@ -9302,6 +9344,8 @@ func (m *SettingMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldForceTwoFactorAuth(ctx)
 	case setting.FieldDisablePasswordLogin:
 		return m.OldDisablePasswordLogin(ctx)
+	case setting.FieldEnableAutoLogin:
+		return m.OldEnableAutoLogin(ctx)
 	case setting.FieldDingtalkOauth:
 		return m.OldDingtalkOauth(ctx)
 	case setting.FieldCustomOauth:
@@ -9339,6 +9383,13 @@ func (m *SettingMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDisablePasswordLogin(v)
+		return nil
+	case setting.FieldEnableAutoLogin:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnableAutoLogin(v)
 		return nil
 	case setting.FieldDingtalkOauth:
 		v, ok := value.(*types.DingtalkOAuth)
@@ -9440,6 +9491,9 @@ func (m *SettingMutation) ResetField(name string) error {
 		return nil
 	case setting.FieldDisablePasswordLogin:
 		m.ResetDisablePasswordLogin()
+		return nil
+	case setting.FieldEnableAutoLogin:
+		m.ResetEnableAutoLogin()
 		return nil
 	case setting.FieldDingtalkOauth:
 		m.ResetDingtalkOauth()

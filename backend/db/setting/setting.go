@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 const (
@@ -19,6 +20,8 @@ const (
 	FieldForceTwoFactorAuth = "force_two_factor_auth"
 	// FieldDisablePasswordLogin holds the string denoting the disable_password_login field in the database.
 	FieldDisablePasswordLogin = "disable_password_login"
+	// FieldEnableAutoLogin holds the string denoting the enable_auto_login field in the database.
+	FieldEnableAutoLogin = "enable_auto_login"
 	// FieldDingtalkOauth holds the string denoting the dingtalk_oauth field in the database.
 	FieldDingtalkOauth = "dingtalk_oauth"
 	// FieldCustomOauth holds the string denoting the custom_oauth field in the database.
@@ -37,6 +40,7 @@ var Columns = []string{
 	FieldEnableSSO,
 	FieldForceTwoFactorAuth,
 	FieldDisablePasswordLogin,
+	FieldEnableAutoLogin,
 	FieldDingtalkOauth,
 	FieldCustomOauth,
 	FieldCreatedAt,
@@ -60,12 +64,16 @@ var (
 	DefaultForceTwoFactorAuth bool
 	// DefaultDisablePasswordLogin holds the default value on creation for the "disable_password_login" field.
 	DefaultDisablePasswordLogin bool
+	// DefaultEnableAutoLogin holds the default value on creation for the "enable_auto_login" field.
+	DefaultEnableAutoLogin bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
 )
 
 // OrderOption defines the ordering options for the Setting queries.
@@ -89,6 +97,11 @@ func ByForceTwoFactorAuth(opts ...sql.OrderTermOption) OrderOption {
 // ByDisablePasswordLogin orders the results by the disable_password_login field.
 func ByDisablePasswordLogin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDisablePasswordLogin, opts...).ToFunc()
+}
+
+// ByEnableAutoLogin orders the results by the enable_auto_login field.
+func ByEnableAutoLogin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnableAutoLogin, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

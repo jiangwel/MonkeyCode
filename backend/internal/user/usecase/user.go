@@ -13,15 +13,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/GoYoko/web"
-	"github.com/chaitin/MonkeyCode/backend/consts"
-	"github.com/chaitin/MonkeyCode/backend/ent/types"
-	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
-	"github.com/chaitin/MonkeyCode/backend/pkg/oauth"
 
 	"github.com/chaitin/MonkeyCode/backend/config"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/domain"
+	"github.com/chaitin/MonkeyCode/backend/ent/types"
 	"github.com/chaitin/MonkeyCode/backend/errcode"
+	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
+	"github.com/chaitin/MonkeyCode/backend/pkg/oauth"
 )
 
 type UserUsecase struct {
@@ -279,6 +279,9 @@ func (u *UserUsecase) UpdateSetting(ctx context.Context, req *domain.UpdateSetti
 		if req.DisablePasswordLogin != nil {
 			up.SetDisablePasswordLogin(*req.DisablePasswordLogin)
 		}
+		if req.EnableAutoLogin != nil {
+			up.SetEnableAutoLogin(*req.EnableAutoLogin)
+		}
 		if req.DingtalkOAuth != nil {
 			dingtalk := cvt.NilWithDefault(old.DingtalkOauth, &types.DingtalkOAuth{})
 			if req.DingtalkOAuth.Enable != nil {
@@ -442,7 +445,14 @@ func (u *UserUsecase) OAuthCallback(ctx context.Context, req *domain.OAuthCallba
 		})
 
 	case consts.OAuthKindLogin:
+		setting, err := u.repo.GetSetting(ctx)
+		if err != nil {
+			return "", err
+		}
 		return u.WithOAuthCallback(ctx, req, &session, func(ctx context.Context, s *domain.OAuthState, oui *domain.OAuthUserInfo) (*db.User, error) {
+			if setting.EnableAutoLogin {
+				return u.repo.SignUpOrIn(ctx, s.Platform, oui)
+			}
 			return u.repo.OAuthLogin(ctx, s.Platform, oui)
 		})
 	default:

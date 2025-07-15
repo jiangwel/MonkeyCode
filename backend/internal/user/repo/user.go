@@ -238,7 +238,22 @@ func (r *UserRepo) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	return r.db.User.DeleteOneID(uid).Exec(ctx)
+	return entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		user, err := tx.User.Query().
+			WithIdentities().
+			Where(user.ID(uid)).
+			Only(ctx)
+		if err != nil {
+			return err
+		}
+
+		for _, v := range user.Edges.Identities {
+			if _, err := tx.UserIdentity.Delete().Where(useridentity.ID(v.ID)).Exec(ctx); err != nil {
+				return err
+			}
+		}
+		return tx.User.DeleteOneID(uid).Exec(ctx)
+	})
 }
 
 func (r *UserRepo) DeleteAdmin(ctx context.Context, id string) error {
@@ -311,4 +326,46 @@ func (r *UserRepo) OAuthLogin(ctx context.Context, platform consts.UserPlatform,
 		return nil, errcode.ErrNotInvited.Wrap(err)
 	}
 	return ui.Edges.User, nil
+}
+
+func (r *UserRepo) SignUpOrIn(ctx context.Context, platform consts.UserPlatform, req *domain.OAuthUserInfo) (*db.User, error) {
+	var u *db.User
+	err := entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		ui, err := tx.UserIdentity.Query().
+			WithUser().
+			Where(useridentity.Platform(platform), useridentity.IdentityID(req.ID)).
+			First(ctx)
+		if err == nil {
+			u = ui.Edges.User
+			return nil
+		}
+		if !db.IsNotFound(err) {
+			return err
+		}
+		user, err := tx.User.Create().
+			SetUsername(req.Name).
+			SetEmail(req.Email).
+			SetAvatarURL(req.AvatarURL).
+			SetPlatform(platform).
+			SetStatus(consts.UserStatusActive).
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+		_, err = tx.UserIdentity.Create().
+			SetUserID(user.ID).
+			SetPlatform(platform).
+			SetIdentityID(req.ID).
+			SetUnionID(req.UnionID).
+			SetNickname(req.Name).
+			SetAvatarURL(req.AvatarURL).
+			SetEmail(req.Email).
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+		u = user
+		return nil
+	})
+	return u, err
 }

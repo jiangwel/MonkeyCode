@@ -67,6 +67,20 @@ func (sc *SettingCreate) SetNillableDisablePasswordLogin(b *bool) *SettingCreate
 	return sc
 }
 
+// SetEnableAutoLogin sets the "enable_auto_login" field.
+func (sc *SettingCreate) SetEnableAutoLogin(b bool) *SettingCreate {
+	sc.mutation.SetEnableAutoLogin(b)
+	return sc
+}
+
+// SetNillableEnableAutoLogin sets the "enable_auto_login" field if the given value is not nil.
+func (sc *SettingCreate) SetNillableEnableAutoLogin(b *bool) *SettingCreate {
+	if b != nil {
+		sc.SetEnableAutoLogin(*b)
+	}
+	return sc
+}
+
 // SetDingtalkOauth sets the "dingtalk_oauth" field.
 func (sc *SettingCreate) SetDingtalkOauth(to *types.DingtalkOAuth) *SettingCreate {
 	sc.mutation.SetDingtalkOauth(to)
@@ -110,6 +124,14 @@ func (sc *SettingCreate) SetNillableUpdatedAt(t *time.Time) *SettingCreate {
 // SetID sets the "id" field.
 func (sc *SettingCreate) SetID(u uuid.UUID) *SettingCreate {
 	sc.mutation.SetID(u)
+	return sc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (sc *SettingCreate) SetNillableID(u *uuid.UUID) *SettingCreate {
+	if u != nil {
+		sc.SetID(*u)
+	}
 	return sc
 }
 
@@ -160,6 +182,10 @@ func (sc *SettingCreate) defaults() {
 		v := setting.DefaultDisablePasswordLogin
 		sc.mutation.SetDisablePasswordLogin(v)
 	}
+	if _, ok := sc.mutation.EnableAutoLogin(); !ok {
+		v := setting.DefaultEnableAutoLogin
+		sc.mutation.SetEnableAutoLogin(v)
+	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		v := setting.DefaultCreatedAt()
 		sc.mutation.SetCreatedAt(v)
@@ -167,6 +193,10 @@ func (sc *SettingCreate) defaults() {
 	if _, ok := sc.mutation.UpdatedAt(); !ok {
 		v := setting.DefaultUpdatedAt()
 		sc.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := sc.mutation.ID(); !ok {
+		v := setting.DefaultID()
+		sc.mutation.SetID(v)
 	}
 }
 
@@ -180,6 +210,9 @@ func (sc *SettingCreate) check() error {
 	}
 	if _, ok := sc.mutation.DisablePasswordLogin(); !ok {
 		return &ValidationError{Name: "disable_password_login", err: errors.New(`db: missing required field "Setting.disable_password_login"`)}
+	}
+	if _, ok := sc.mutation.EnableAutoLogin(); !ok {
+		return &ValidationError{Name: "enable_auto_login", err: errors.New(`db: missing required field "Setting.enable_auto_login"`)}
 	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`db: missing required field "Setting.created_at"`)}
@@ -234,6 +267,10 @@ func (sc *SettingCreate) createSpec() (*Setting, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.DisablePasswordLogin(); ok {
 		_spec.SetField(setting.FieldDisablePasswordLogin, field.TypeBool, value)
 		_node.DisablePasswordLogin = value
+	}
+	if value, ok := sc.mutation.EnableAutoLogin(); ok {
+		_spec.SetField(setting.FieldEnableAutoLogin, field.TypeBool, value)
+		_node.EnableAutoLogin = value
 	}
 	if value, ok := sc.mutation.DingtalkOauth(); ok {
 		_spec.SetField(setting.FieldDingtalkOauth, field.TypeJSON, value)
@@ -336,6 +373,18 @@ func (u *SettingUpsert) SetDisablePasswordLogin(v bool) *SettingUpsert {
 // UpdateDisablePasswordLogin sets the "disable_password_login" field to the value that was provided on create.
 func (u *SettingUpsert) UpdateDisablePasswordLogin() *SettingUpsert {
 	u.SetExcluded(setting.FieldDisablePasswordLogin)
+	return u
+}
+
+// SetEnableAutoLogin sets the "enable_auto_login" field.
+func (u *SettingUpsert) SetEnableAutoLogin(v bool) *SettingUpsert {
+	u.Set(setting.FieldEnableAutoLogin, v)
+	return u
+}
+
+// UpdateEnableAutoLogin sets the "enable_auto_login" field to the value that was provided on create.
+func (u *SettingUpsert) UpdateEnableAutoLogin() *SettingUpsert {
+	u.SetExcluded(setting.FieldEnableAutoLogin)
 	return u
 }
 
@@ -486,6 +535,20 @@ func (u *SettingUpsertOne) SetDisablePasswordLogin(v bool) *SettingUpsertOne {
 func (u *SettingUpsertOne) UpdateDisablePasswordLogin() *SettingUpsertOne {
 	return u.Update(func(s *SettingUpsert) {
 		s.UpdateDisablePasswordLogin()
+	})
+}
+
+// SetEnableAutoLogin sets the "enable_auto_login" field.
+func (u *SettingUpsertOne) SetEnableAutoLogin(v bool) *SettingUpsertOne {
+	return u.Update(func(s *SettingUpsert) {
+		s.SetEnableAutoLogin(v)
+	})
+}
+
+// UpdateEnableAutoLogin sets the "enable_auto_login" field to the value that was provided on create.
+func (u *SettingUpsertOne) UpdateEnableAutoLogin() *SettingUpsertOne {
+	return u.Update(func(s *SettingUpsert) {
+		s.UpdateEnableAutoLogin()
 	})
 }
 
@@ -813,6 +876,20 @@ func (u *SettingUpsertBulk) SetDisablePasswordLogin(v bool) *SettingUpsertBulk {
 func (u *SettingUpsertBulk) UpdateDisablePasswordLogin() *SettingUpsertBulk {
 	return u.Update(func(s *SettingUpsert) {
 		s.UpdateDisablePasswordLogin()
+	})
+}
+
+// SetEnableAutoLogin sets the "enable_auto_login" field.
+func (u *SettingUpsertBulk) SetEnableAutoLogin(v bool) *SettingUpsertBulk {
+	return u.Update(func(s *SettingUpsert) {
+		s.SetEnableAutoLogin(v)
+	})
+}
+
+// UpdateEnableAutoLogin sets the "enable_auto_login" field to the value that was provided on create.
+func (u *SettingUpsertBulk) UpdateEnableAutoLogin() *SettingUpsertBulk {
+	return u.Update(func(s *SettingUpsert) {
+		s.UpdateEnableAutoLogin()
 	})
 }
 
