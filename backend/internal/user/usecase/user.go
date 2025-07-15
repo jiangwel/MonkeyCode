@@ -367,18 +367,14 @@ func (u *UserUsecase) DeleteAdmin(ctx context.Context, id string) error {
 	return u.repo.DeleteAdmin(ctx, id)
 }
 
-func (u *UserUsecase) OAuthSignUpOrIn(ctx context.Context, req *domain.OAuthSignUpOrInReq) (*domain.OAuthURLResp, error) {
-	setting, err := u.repo.GetSetting(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (u *UserUsecase) getOAuthConfig(setting *db.Setting, platform consts.UserPlatform) (*domain.OAuthConfig, error) {
 	cfg := domain.OAuthConfig{
 		Debug:       u.cfg.Debug,
-		Platform:    req.Platform,
+		Platform:    platform,
 		RedirectURI: fmt.Sprintf("%s/api/v1/user/oauth/callback", u.cfg.BaseUrl),
 	}
 
-	switch req.Platform {
+	switch platform {
 	case consts.UserPlatformDingTalk:
 		if setting.DingtalkOauth == nil || !setting.DingtalkOauth.Enable {
 			return nil, errcode.ErrDingtalkNotEnabled
@@ -398,11 +394,25 @@ func (u *UserUsecase) OAuthSignUpOrIn(ctx context.Context, req *domain.OAuthSign
 		cfg.IDField = setting.CustomOauth.IDField
 		cfg.NameField = setting.CustomOauth.NameField
 		cfg.AvatarField = setting.CustomOauth.AvatarField
+		cfg.EmailField = setting.CustomOauth.EmailField
 	default:
 		return nil, errcode.ErrUnsupportedPlatform
 	}
 
-	oauth, err := oauth.NewOAuther(cfg)
+	return &cfg, nil
+}
+
+func (u *UserUsecase) OAuthSignUpOrIn(ctx context.Context, req *domain.OAuthSignUpOrInReq) (*domain.OAuthURLResp, error) {
+	setting, err := u.repo.GetSetting(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cfg, err := u.getOAuthConfig(setting, req.Platform)
+	if err != nil {
+		return nil, err
+	}
+
+	oauth, err := oauth.NewOAuther(*cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -465,37 +475,13 @@ func (u *UserUsecase) FetchUserInfo(ctx context.Context, req *domain.OAuthCallba
 	if err != nil {
 		return nil, err
 	}
-	cfg := domain.OAuthConfig{
-		Debug:       u.cfg.Debug,
-		Platform:    session.Platform,
-		RedirectURI: fmt.Sprintf("%s/api/v1/user/oauth/callback", u.cfg.BaseUrl),
+
+	cfg, err := u.getOAuthConfig(setting, session.Platform)
+	if err != nil {
+		return nil, err
 	}
 
-	switch session.Platform {
-	case consts.UserPlatformDingTalk:
-		if setting.DingtalkOauth == nil || !setting.DingtalkOauth.Enable {
-			return nil, errcode.ErrDingtalkNotEnabled
-		}
-		cfg.ClientID = setting.DingtalkOauth.ClientID
-		cfg.ClientSecret = setting.DingtalkOauth.ClientSecret
-	case consts.UserPlatformCustom:
-		if setting.CustomOauth == nil || !setting.CustomOauth.Enable {
-			return nil, errcode.ErrCustomNotEnabled
-		}
-		cfg.ClientID = setting.CustomOauth.ClientID
-		cfg.ClientSecret = setting.CustomOauth.ClientSecret
-		cfg.AuthorizeURL = setting.CustomOauth.AuthorizeURL
-		cfg.Scopes = setting.CustomOauth.Scopes
-		cfg.TokenURL = setting.CustomOauth.AccessTokenURL
-		cfg.UserInfoURL = setting.CustomOauth.UserInfoURL
-		cfg.IDField = setting.CustomOauth.IDField
-		cfg.NameField = setting.CustomOauth.NameField
-		cfg.AvatarField = setting.CustomOauth.AvatarField
-	default:
-		return nil, errcode.ErrUnsupportedPlatform
-	}
-
-	oauth, err := oauth.NewOAuther(cfg)
+	oauth, err := oauth.NewOAuther(*cfg)
 	if err != nil {
 		return nil, err
 	}

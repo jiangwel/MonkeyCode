@@ -20,6 +20,7 @@ type OAuthConfig struct {
 	IDField      string
 	NameField    string
 	AvatarField  string
+	EmailField   string
 }
 
 type OAuthUserInfo struct {
