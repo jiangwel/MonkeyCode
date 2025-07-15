@@ -110,6 +110,15 @@ const User = () => {
                 配置
               </Button>
             </StyledCard>
+            <StyledCard>
+              <StyledLabel>允许成员自主注册</StyledLabel>
+              <Switch
+                checked={data?.enable_auto_login}
+                onChange={(e) =>
+                  updateSetting({ enable_auto_login: e.target.checked })
+                }
+              />
+            </StyledCard>
             <LoginHistory />
           </Stack>
         </Grid>

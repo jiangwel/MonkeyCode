@@ -190,7 +190,7 @@ export interface DomainCustomOAuth {
   access_token_url?: string;
   /** 自定义OAuth授权URL */
   authorize_url?: string;
-  /** 用户信息回包中的头像URL字段名` */
+  /** 用户信息回包中的头像URL字段名 */
   avatar_field?: string;
   /** 自定义客户端ID */
   client_id?: string;
@@ -202,7 +202,32 @@ export interface DomainCustomOAuth {
   enable?: boolean;
   /** 用户信息回包中的ID字段名 */
   id_field?: string;
-  /** 用户信息回包中的用户名字段名` */
+  /** 用户信息回包中的用户名字段名 */
+  name_field?: string;
+  /** 自定义OAuth Scope列表 */
+  scopes?: string[];
+  /** 自定义OAuth用户信息URL */
+  userinfo_url?: string;
+}
+
+export interface DomainCustomOAuthReq {
+  /** 自定义OAuth访问令牌URL */
+  access_token_url?: string;
+  /** 自定义OAuth授权URL */
+  authorize_url?: string;
+  /** 用户信息回包中的头像URL字段名 */
+  avatar_field?: string;
+  /** 自定义客户端ID */
+  client_id?: string;
+  /** 自定义客户端密钥 */
+  client_secret?: string;
+  /** 用户信息回包中的邮箱字段名 */
+  email_field?: string;
+  /** 自定义OAuth开关 */
+  enable?: boolean;
+  /** 用户信息回包中的ID字段名 */
+  id_field?: string;
+  /** 用户信息回包中的用户名字段名 */
   name_field?: string;
   /** 自定义OAuth Scope列表 */
   scopes?: string[];
@@ -211,6 +236,15 @@ export interface DomainCustomOAuth {
 }
 
 export interface DomainDingtalkOAuth {
+  /** 钉钉客户端ID */
+  client_id?: string;
+  /** 钉钉客户端密钥 */
+  client_secret?: string;
+  /** 钉钉OAuth开关 */
+  enable?: boolean;
+}
+
+export interface DomainDingtalkOAuthReq {
   /** 钉钉客户端ID */
   client_id?: string;
   /** 钉钉客户端密钥 */
@@ -397,6 +431,8 @@ export interface DomainSetting {
   dingtalk_oauth?: DomainDingtalkOAuth;
   /** 是否禁用密码登录 */
   disable_password_login?: boolean;
+  /** 是否开启自动登录 */
+  enable_auto_login?: boolean;
   /** 是否开启SSO */
   enable_sso?: boolean;
   /** 是否强制两步验证 */
@@ -484,11 +520,13 @@ export interface DomainUpdateModelReq {
 
 export interface DomainUpdateSettingReq {
   /** 自定义OAuth配置 */
-  custom_oauth?: DomainCustomOAuth;
+  custom_oauth?: DomainCustomOAuthReq;
   /** 钉钉OAuth配置 */
-  dingtalk_oauth?: DomainDingtalkOAuth;
+  dingtalk_oauth?: DomainDingtalkOAuthReq;
   /** 是否禁用密码登录 */
   disable_password_login?: boolean;
+  /** 是否开启自动登录 */
+  enable_auto_login?: boolean;
   /** 是否开启SSO */
   enable_sso?: boolean;
   /** 是否强制两步验证 */
