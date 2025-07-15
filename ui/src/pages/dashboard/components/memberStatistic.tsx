@@ -124,8 +124,7 @@ const MemberStatistic = ({
       container
       spacing={2}
       sx={{
-        height: '100%',
-        overflow: 'auto',
+        overflowY: 'auto',
         borderRadius: '10px',
       }}
     >
