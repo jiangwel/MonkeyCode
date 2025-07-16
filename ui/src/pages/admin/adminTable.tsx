@@ -189,8 +189,11 @@ const AdminTable = () => {
     {
       title: '最近活跃时间',
       dataIndex: 'last_active_at',
-      render: (text) => {
-        return text === 0 ? '从未使用' : dayjs.unix(text).fromNow();
+      render: (text, record) => {
+        return <Stack direction='column'>
+            <Box sx={{ color: 'text.secondary' }}>{record.created_at ? dayjs.unix(record.created_at).fromNow() + '加入' : '加入时间未知'}</Box>
+            <Box sx={{ color: 'text.secondary' }}>{record.last_active_at ? dayjs.unix(record.last_active_at).fromNow() + '活跃' : '活跃时间未知'}</Box>
+          </Stack>
       },
     },
     {
@@ -212,14 +215,14 @@ const AdminTable = () => {
     },
   ];
   return (
-    <Card>
+    <Card sx={{ height: '100%' }}>
       <Stack
         direction='row'
         justifyContent='space-between'
         alignItems='center'
         sx={{ mb: 2 }}
       >
-        <Box sx={{ fontWeight: 700 }}>管理员</Box>
+        <Box sx={{ fontWeight: 700, lineHeight: '36px' }}>管理员</Box>
         <Button
           variant='contained'
           color='primary'

@@ -380,6 +380,8 @@ export interface DomainModel {
   input?: number;
   /** 是否启用 */
   is_active?: boolean;
+  /** 是否内部模型 */
+  is_internal?: boolean;
   /** 模型名称 如: deepseek-v3 */
   model_name?: string;
   /** 模型类型 llm:对话模型 coder:代码模型 */

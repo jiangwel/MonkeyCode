@@ -34,7 +34,7 @@ const PieCharts: React.FC<IPieChartsProps> = ({ title, data, extra }) => {
         },
       },
       dataset: {
-        source: data.slice(0, 6),
+        source: data.slice(0, 5),
       },
       series: [
         {

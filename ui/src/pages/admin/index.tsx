@@ -1,14 +1,18 @@
 import React from 'react';
 import LoginHistory from './loginHistory';
 import AdminTable from './adminTable';
-import { Stack } from '@mui/material';
+import { Grid2 as Grid, Stack } from '@mui/material';
 
 const Admin = () => {
   return (
-    <Stack gap={2} sx={{ height: '100%' }}>
-      <AdminTable />
-      <LoginHistory />
-    </Stack>
+    <Grid container  spacing={2} sx={{ height: '100%' }}>
+        <Grid size={6}>
+          <AdminTable />
+        </Grid>
+        <Grid size={6}>
+          <LoginHistory />
+        </Grid>
+    </Grid>
   );
 };
 
