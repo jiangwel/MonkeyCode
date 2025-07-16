@@ -1,10 +1,14 @@
 package v1
 
 import (
+	"bytes"
 	"context"
+	"crypto/md5"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/GoYoko/web"
 
@@ -17,13 +21,21 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/pkg/vsix"
 )
 
+// CacheEntry 缓存条目
+type CacheEntry struct {
+	data      []byte
+	createdAt time.Time
+}
+
 type UserHandler struct {
-	usecase domain.UserUsecase
-	euse    domain.ExtensionUsecase
-	session *session.Session
-	logger  *slog.Logger
-	cfg     *config.Config
-	limitCh chan struct{}
+	usecase   domain.UserUsecase
+	euse      domain.ExtensionUsecase
+	session   *session.Session
+	logger    *slog.Logger
+	cfg       *config.Config
+	limitCh   chan struct{}
+	vsixCache map[string]*CacheEntry // 缓存处理后的vsix文件
+	cacheMu   sync.RWMutex           // 缓存读写锁
 }
 
 func NewUserHandler(
@@ -36,12 +48,13 @@ func NewUserHandler(
 	cfg *config.Config,
 ) *UserHandler {
 	u := &UserHandler{
-		usecase: usecase,
-		session: session,
-		logger:  logger,
-		cfg:     cfg,
-		euse:    euse,
-		limitCh: make(chan struct{}, cfg.Extension.Limit),
+		usecase:   usecase,
+		session:   session,
+		logger:    logger,
+		cfg:       cfg,
+		euse:      euse,
+		limitCh:   make(chan struct{}, cfg.Extension.Limit),
+		vsixCache: make(map[string]*CacheEntry),
 	}
 
 	w.GET("/api/v1/static/vsix/:version", web.BaseHandler(u.VSIXDownload))
@@ -86,6 +99,26 @@ func (h *UserHandler) VSCodeAuthInit(c *web.Context, req domain.VSCodeAuthInitRe
 	return c.JSON(http.StatusOK, resp)
 }
 
+// generateCacheKey 生成缓存键
+func (h *UserHandler) generateCacheKey(version, baseUrl string) string {
+	hash := md5.Sum([]byte(version + ":" + baseUrl))
+	return fmt.Sprintf("%x", hash)
+}
+
+// cleanExpiredCache 清理过期缓存
+func (h *UserHandler) cleanExpiredCache() {
+	h.cacheMu.Lock()
+	defer h.cacheMu.Unlock()
+
+	now := time.Now()
+	for key, entry := range h.vsixCache {
+		// 缓存1小时后过期
+		if now.Sub(entry.createdAt) > time.Hour {
+			delete(h.vsixCache, key)
+		}
+	}
+}
+
 // VSIXDownload 下载VSCode插件
 //
 //	@Tags			User
@@ -105,13 +138,57 @@ func (h *UserHandler) VSIXDownload(c *web.Context) error {
 	if err != nil {
 		return err
 	}
+
+	// 生成缓存键
+	cacheKey := h.generateCacheKey(v.Version, h.cfg.BaseUrl)
+
+	// 先检查缓存
+	h.cacheMu.RLock()
+	if entry, exists := h.vsixCache[cacheKey]; exists {
+		// 检查缓存是否过期（1小时）
+		if time.Since(entry.createdAt) < time.Hour {
+			h.cacheMu.RUnlock()
+
+			// 从缓存返回数据
+			disposition := fmt.Sprintf("attachment; filename=monkeycode-%s.vsix", v.Version)
+			c.Response().Header().Set("Content-Type", "application/octet-stream")
+			c.Response().Header().Set("Content-Disposition", disposition)
+			c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", len(entry.data)))
+
+			_, err := c.Response().Writer.Write(entry.data)
+			return err
+		}
+	}
+	h.cacheMu.RUnlock()
+
+	// 缓存未命中或已过期，需要重新生成
+
+	// 使用buffer来捕获生成的数据
+	var buf bytes.Buffer
+	if err := vsix.ChangeVsixEndpoint(v.Path, "extension/package.json", h.cfg.BaseUrl, &buf); err != nil {
+		return err
+	}
+
+	// 将结果存入缓存
+	data := buf.Bytes()
+	h.cacheMu.Lock()
+	h.vsixCache[cacheKey] = &CacheEntry{
+		data:      data,
+		createdAt: time.Now(),
+	}
+	h.cacheMu.Unlock()
+
+	// 异步清理过期缓存
+	go h.cleanExpiredCache()
+
+	// 返回数据给客户端
 	disposition := fmt.Sprintf("attachment; filename=monkeycode-%s.vsix", v.Version)
 	c.Response().Header().Set("Content-Type", "application/octet-stream")
 	c.Response().Header().Set("Content-Disposition", disposition)
-	if err := vsix.ChangeVsixEndpoint(v.Path, "extension/package.json", h.cfg.BaseUrl, c.Response().Writer); err != nil {
-		return err
-	}
-	return nil
+	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", len(data)))
+
+	_, err = c.Response().Writer.Write(data)
+	return err
 }
 
 // Login 用户登录
