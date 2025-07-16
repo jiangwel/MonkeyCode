@@ -33,6 +33,8 @@ const (
 	FieldAPIHeader = "api_header"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldIsInternal holds the string denoting the is_internal field in the database.
+	FieldIsInternal = "is_internal"
 	// FieldProvider holds the string denoting the provider field in the database.
 	FieldProvider = "provider"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -77,6 +79,7 @@ var Columns = []string{
 	FieldAPIVersion,
 	FieldAPIHeader,
 	FieldDescription,
+	FieldIsInternal,
 	FieldProvider,
 	FieldStatus,
 	FieldContextLength,
@@ -95,6 +98,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultIsInternal holds the default value on creation for the "is_internal" field.
+	DefaultIsInternal bool
 	// DefaultStatus holds the default value on creation for the "status" field.
 	DefaultStatus consts.ModelStatus
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -156,6 +161,11 @@ func ByAPIHeader(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByIsInternal orders the results by the is_internal field.
+func ByIsInternal(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsInternal, opts...).ToFunc()
 }
 
 // ByProvider orders the results by the provider field.

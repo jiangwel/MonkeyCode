@@ -38,6 +38,8 @@ type Model struct {
 	APIHeader string `json:"api_header,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// IsInternal holds the value of the "is_internal" field.
+	IsInternal bool `json:"is_internal,omitempty"`
 	// Provider holds the value of the "provider" field.
 	Provider consts.ModelProvider `json:"provider,omitempty"`
 	// Status holds the value of the "status" field.
@@ -90,6 +92,8 @@ func (*Model) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case model.FieldIsInternal:
+			values[i] = new(sql.NullBool)
 		case model.FieldContextLength:
 			values[i] = new(sql.NullInt64)
 		case model.FieldModelName, model.FieldModelType, model.FieldShowName, model.FieldAPIBase, model.FieldAPIKey, model.FieldAPIVersion, model.FieldAPIHeader, model.FieldDescription, model.FieldProvider, model.FieldStatus:
@@ -172,6 +176,12 @@ func (m *Model) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				m.Description = value.String
+			}
+		case model.FieldIsInternal:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_internal", values[i])
+			} else if value.Valid {
+				m.IsInternal = value.Bool
 			}
 		case model.FieldProvider:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -275,6 +285,9 @@ func (m *Model) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(m.Description)
+	builder.WriteString(", ")
+	builder.WriteString("is_internal=")
+	builder.WriteString(fmt.Sprintf("%v", m.IsInternal))
 	builder.WriteString(", ")
 	builder.WriteString("provider=")
 	builder.WriteString(fmt.Sprintf("%v", m.Provider))

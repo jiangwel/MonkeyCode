@@ -39,6 +39,7 @@ func (Model) Fields() []ent.Field {
 		field.String("api_version").Optional(),
 		field.String("api_header").Optional(),
 		field.String("description").Optional(),
+		field.Bool("is_internal").Default(false),
 		field.String("provider").GoType(consts.ModelProvider("")),
 		field.String("status").GoType(consts.ModelStatus("")).Default(string(consts.ModelStatusActive)),
 		field.Int("context_length").Optional(),

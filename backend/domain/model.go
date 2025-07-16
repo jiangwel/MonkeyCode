@@ -174,6 +174,7 @@ type Model struct {
 	IsActive   bool                 `json:"is_active"`   // 是否启用
 	Input      int64                `json:"input"`       // 输入token数
 	Output     int64                `json:"output"`      // 输出token数
+	IsInternal bool                 `json:"is_internal"` // 是否内部模型
 	CreatedAt  int64                `json:"created_at"`  // 创建时间
 	UpdatedAt  int64                `json:"updated_at"`  // 更新时间
 }
@@ -193,6 +194,7 @@ func (m *Model) From(e *db.Model) *Model {
 	m.APIHeader = e.APIHeader
 	m.ModelType = e.ModelType
 	m.Status = e.Status
+	m.IsInternal = e.IsInternal
 	m.IsActive = e.Status == consts.ModelStatusActive
 	m.CreatedAt = e.CreatedAt.Unix()
 	m.UpdatedAt = e.UpdatedAt.Unix()

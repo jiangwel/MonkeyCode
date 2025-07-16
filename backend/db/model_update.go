@@ -189,6 +189,20 @@ func (mu *ModelUpdate) ClearDescription() *ModelUpdate {
 	return mu
 }
 
+// SetIsInternal sets the "is_internal" field.
+func (mu *ModelUpdate) SetIsInternal(b bool) *ModelUpdate {
+	mu.mutation.SetIsInternal(b)
+	return mu
+}
+
+// SetNillableIsInternal sets the "is_internal" field if the given value is not nil.
+func (mu *ModelUpdate) SetNillableIsInternal(b *bool) *ModelUpdate {
+	if b != nil {
+		mu.SetIsInternal(*b)
+	}
+	return mu
+}
+
 // SetProvider sets the "provider" field.
 func (mu *ModelUpdate) SetProvider(cp consts.ModelProvider) *ModelUpdate {
 	mu.mutation.SetProvider(cp)
@@ -402,6 +416,9 @@ func (mu *ModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if mu.mutation.DescriptionCleared() {
 		_spec.ClearField(model.FieldDescription, field.TypeString)
+	}
+	if value, ok := mu.mutation.IsInternal(); ok {
+		_spec.SetField(model.FieldIsInternal, field.TypeBool, value)
 	}
 	if value, ok := mu.mutation.Provider(); ok {
 		_spec.SetField(model.FieldProvider, field.TypeString, value)
@@ -676,6 +693,20 @@ func (muo *ModelUpdateOne) ClearDescription() *ModelUpdateOne {
 	return muo
 }
 
+// SetIsInternal sets the "is_internal" field.
+func (muo *ModelUpdateOne) SetIsInternal(b bool) *ModelUpdateOne {
+	muo.mutation.SetIsInternal(b)
+	return muo
+}
+
+// SetNillableIsInternal sets the "is_internal" field if the given value is not nil.
+func (muo *ModelUpdateOne) SetNillableIsInternal(b *bool) *ModelUpdateOne {
+	if b != nil {
+		muo.SetIsInternal(*b)
+	}
+	return muo
+}
+
 // SetProvider sets the "provider" field.
 func (muo *ModelUpdateOne) SetProvider(cp consts.ModelProvider) *ModelUpdateOne {
 	muo.mutation.SetProvider(cp)
@@ -919,6 +950,9 @@ func (muo *ModelUpdateOne) sqlSave(ctx context.Context) (_node *Model, err error
 	}
 	if muo.mutation.DescriptionCleared() {
 		_spec.ClearField(model.FieldDescription, field.TypeString)
+	}
+	if value, ok := muo.mutation.IsInternal(); ok {
+		_spec.SetField(model.FieldIsInternal, field.TypeBool, value)
 	}
 	if value, ok := muo.mutation.Provider(); ok {
 		_spec.SetField(model.FieldProvider, field.TypeString, value)

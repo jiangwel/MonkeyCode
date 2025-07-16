@@ -181,6 +181,7 @@ var (
 		{Name: "api_version", Type: field.TypeString, Nullable: true},
 		{Name: "api_header", Type: field.TypeString, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "is_internal", Type: field.TypeBool, Default: false},
 		{Name: "provider", Type: field.TypeString},
 		{Name: "status", Type: field.TypeString, Default: "active"},
 		{Name: "context_length", Type: field.TypeInt, Nullable: true},
@@ -196,7 +197,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "models_users_models",
-				Columns:    []*schema.Column{ModelsColumns[14]},
+				Columns:    []*schema.Column{ModelsColumns[15]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

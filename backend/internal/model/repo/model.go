@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -87,6 +88,9 @@ func (r *ModelRepo) Update(ctx context.Context, id string, fn func(tx *db.Tx, ol
 			return err
 		}
 		r.cache.Delete(string(old.ModelType))
+		if old.IsInternal {
+			return fmt.Errorf("internal model cannot be updated")
+		}
 
 		up := tx.Model.UpdateOneID(old.ID)
 		if err := fn(tx, old, up); err != nil {
@@ -218,6 +222,7 @@ func (r *ModelRepo) InitModel(ctx context.Context, modelName, modelKey, modelURL
 	n, err := r.db.Model.Query().
 		Where(model.ModelName(modelName)).
 		Where(model.Provider(consts.ModelProviderBaiZhiCloud)).
+		Where(model.IsInternal(true)).
 		Count(ctx)
 	if err != nil {
 		return err
@@ -233,11 +238,13 @@ func (r *ModelRepo) InitModel(ctx context.Context, modelName, modelKey, modelURL
 
 	return r.db.Model.Create().
 		SetAPIKey(modelKey).
+		SetShowName("内置慢速补全模型").
 		SetModelName(modelName).
 		SetModelType(consts.ModelTypeCoder).
 		SetAPIBase(modelURL).
 		SetProvider(consts.ModelProviderBaiZhiCloud).
 		SetStatus(consts.ModelStatusActive).
 		SetUserID(a.ID).
+		SetIsInternal(true).
 		Exec(ctx)
 }

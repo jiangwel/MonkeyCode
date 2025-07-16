@@ -6394,6 +6394,7 @@ type ModelMutation struct {
 	api_version       *string
 	api_header        *string
 	description       *string
+	is_internal       *bool
 	provider          *consts.ModelProvider
 	status            *consts.ModelStatus
 	context_length    *int
@@ -6904,6 +6905,42 @@ func (m *ModelMutation) ResetDescription() {
 	delete(m.clearedFields, model.FieldDescription)
 }
 
+// SetIsInternal sets the "is_internal" field.
+func (m *ModelMutation) SetIsInternal(b bool) {
+	m.is_internal = &b
+}
+
+// IsInternal returns the value of the "is_internal" field in the mutation.
+func (m *ModelMutation) IsInternal() (r bool, exists bool) {
+	v := m.is_internal
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsInternal returns the old "is_internal" field's value of the Model entity.
+// If the Model object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelMutation) OldIsInternal(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsInternal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsInternal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsInternal: %w", err)
+	}
+	return oldValue.IsInternal, nil
+}
+
+// ResetIsInternal resets all changes to the "is_internal" field.
+func (m *ModelMutation) ResetIsInternal() {
+	m.is_internal = nil
+}
+
 // SetProvider sets the "provider" field.
 func (m *ModelMutation) SetProvider(cp consts.ModelProvider) {
 	m.provider = &cp
@@ -7233,7 +7270,7 @@ func (m *ModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ModelMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.user != nil {
 		fields = append(fields, model.FieldUserID)
 	}
@@ -7260,6 +7297,9 @@ func (m *ModelMutation) Fields() []string {
 	}
 	if m.description != nil {
 		fields = append(fields, model.FieldDescription)
+	}
+	if m.is_internal != nil {
+		fields = append(fields, model.FieldIsInternal)
 	}
 	if m.provider != nil {
 		fields = append(fields, model.FieldProvider)
@@ -7302,6 +7342,8 @@ func (m *ModelMutation) Field(name string) (ent.Value, bool) {
 		return m.APIHeader()
 	case model.FieldDescription:
 		return m.Description()
+	case model.FieldIsInternal:
+		return m.IsInternal()
 	case model.FieldProvider:
 		return m.Provider()
 	case model.FieldStatus:
@@ -7339,6 +7381,8 @@ func (m *ModelMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldAPIHeader(ctx)
 	case model.FieldDescription:
 		return m.OldDescription(ctx)
+	case model.FieldIsInternal:
+		return m.OldIsInternal(ctx)
 	case model.FieldProvider:
 		return m.OldProvider(ctx)
 	case model.FieldStatus:
@@ -7420,6 +7464,13 @@ func (m *ModelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case model.FieldIsInternal:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsInternal(v)
 		return nil
 	case model.FieldProvider:
 		v, ok := value.(consts.ModelProvider)
@@ -7585,6 +7636,9 @@ func (m *ModelMutation) ResetField(name string) error {
 		return nil
 	case model.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case model.FieldIsInternal:
+		m.ResetIsInternal()
 		return nil
 	case model.FieldProvider:
 		m.ResetProvider()
