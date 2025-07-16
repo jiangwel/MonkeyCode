@@ -36,6 +36,7 @@ interface AddModelForm {
   api_header_key: string;
   api_header_value: string;
   type: ConstsModelType;
+  show_name: string;
 }
 
 const titleMap = {
@@ -74,6 +75,7 @@ const ModelAdd = ({
       api_key: '',
       api_header_key: '',
       api_header_value: '',
+      show_name: '',
     },
   });
 
@@ -168,6 +170,7 @@ const ModelAdd = ({
             api_version: value.api_version,
             id: data.id,
             provider: value.provider as Exclude<typeof value.provider, 'Other'>,
+            show_name: value.show_name,
           })
             .then(() => {
               message.success('修改成功');
@@ -184,6 +187,7 @@ const ModelAdd = ({
             model_name: value.model,
             api_header: header,
             provider: value.provider as Exclude<typeof value.provider, 'Other'>,
+            show_name: value.show_name,
           })
             .then(() => {
               message.success('添加成功');
@@ -211,6 +215,7 @@ const ModelAdd = ({
         api_header_key: value.api_header?.split('=')[0] || '',
         api_header_value: value.api_header?.split('=')[1] || '',
         type,
+        show_name: value.show_name || '',
       });
     }
     reset({
@@ -222,6 +227,7 @@ const ModelAdd = ({
       api_version: value.api_version || '',
       api_header_key: value.api_header?.split('=')[0] || '',
       api_header_value: value.api_header?.split('=')[1] || '',
+      show_name: value.show_name || '',
     });
   };
 
@@ -240,6 +246,7 @@ const ModelAdd = ({
           api_version: '',
           api_header_key: '',
           api_header_value: '',
+          show_name: '',
         });
       }
     }
@@ -314,6 +321,7 @@ const ModelAdd = ({
                     api_key: '',
                     api_header_key: '',
                     api_header_value: '',
+                    show_name: '',
                   });
                 }
               }}
@@ -418,6 +426,36 @@ const ModelAdd = ({
               />
             )}
           />
+          {(modelUserList.length !== 0 || providerBrand === 'Other') && (
+            <>
+              <Box sx={{ fontSize: 14, lineHeight: '32px', mt: 2 }}>
+                模型备注
+                <Box component={'span'} sx={{ color: 'red' }}>
+                  *
+                </Box>
+              </Box>
+              <Controller
+                control={control}
+                name='show_name'
+                rules={{
+                  required: {
+                    value: true,
+                    message: '模型备注不能为空',
+                  },
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    size='small'
+                    placeholder=''
+                    error={!!errors.show_name}
+                    helperText={errors.show_name?.message}
+                  />
+                )}
+              />
+            </>
+          )}
           {providerBrand === 'AzureOpenAI' && (
             <>
               <Box sx={{ fontSize: 14, lineHeight: '32px', mt: 2 }}>

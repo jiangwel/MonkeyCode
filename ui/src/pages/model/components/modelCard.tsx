@@ -116,7 +116,14 @@ const ModelItem = ({
             }
             sx={{ fontSize: 24 }}
           />
-          <Box sx={{ fontWeight: 700 }}>{data.model_name}</Box>
+          <Stack direction='row' alignItems='center' gap={1}>
+            {data.show_name && (
+              <Box sx={{ fontSize: 14, color: 'text.tertiary' }}>
+                {data.show_name} /
+              </Box>
+            )}
+            <Box sx={{ fontWeight: 700 }}>{data.model_name}</Box>
+          </Stack>
         </Stack>
 
         {data.is_active && <StyledLabel color='success'>正在使用</StyledLabel>}
