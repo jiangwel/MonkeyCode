@@ -25,7 +25,7 @@ const StyledCard = styled(Card)({
 
 const StyledLabel = styled('div')(({ theme }) => ({
   fontWeight: 700,
-  fontSize: 14,
+  fontSize: 16,
   color: theme.vars.palette.text.primary,
 }));
 
@@ -70,7 +70,7 @@ const User = () => {
         <Grid size={6} container sx={{ height: '100%' }}>
           <Stack gap={2} sx={{ height: '100%' }}>
             <StyledCard>
-              <StyledLabel>强制成员启用两步认证</StyledLabel>
+              <StyledLabel>强制启用两步认证</StyledLabel>
               <Switch
                 checked={data?.force_two_factor_auth}
                 onChange={(e) => {
@@ -79,11 +79,20 @@ const User = () => {
               />
             </StyledCard>
             <StyledCard>
-              <StyledLabel>禁止成员使用密码登录</StyledLabel>
+              <StyledLabel>禁止使用密码登录</StyledLabel>
               <Switch
                 checked={data?.disable_password_login}
                 onChange={(e) =>
                   updateSetting({ disable_password_login: e.target.checked })
+                }
+              />
+            </StyledCard>
+            <StyledCard>
+              <StyledLabel>开放自主注册（无需邀请）</StyledLabel>
+              <Switch
+                checked={data?.enable_auto_login}
+                onChange={(e) =>
+                  updateSetting({ enable_auto_login: e.target.checked })
                 }
               />
             </StyledCard>
@@ -109,15 +118,6 @@ const User = () => {
               >
                 配置
               </Button>
-            </StyledCard>
-            <StyledCard>
-              <StyledLabel>允许成员自主注册</StyledLabel>
-              <Switch
-                checked={data?.enable_auto_login}
-                onChange={(e) =>
-                  updateSetting({ enable_auto_login: e.target.checked })
-                }
-              />
             </StyledCard>
             <LoginHistory />
           </Stack>
