@@ -48,6 +48,7 @@ func (o OAuthSignUpOrInReq) OAuthKind() consts.OAuthKind {
 type OAuthCallbackReq struct {
 	State string `json:"state" query:"state" validate:"required"`
 	Code  string `json:"code" query:"code" validate:"required"`
+	IP    string `json:"-"`
 }
 
 type OAuthURLResp struct {

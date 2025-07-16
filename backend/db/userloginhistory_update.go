@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
@@ -42,6 +43,12 @@ func (ulhu *UserLoginHistoryUpdate) SetNillableUserID(u *uuid.UUID) *UserLoginHi
 	if u != nil {
 		ulhu.SetUserID(*u)
 	}
+	return ulhu
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (ulhu *UserLoginHistoryUpdate) ClearUserID() *UserLoginHistoryUpdate {
+	ulhu.mutation.ClearUserID()
 	return ulhu
 }
 
@@ -115,6 +122,12 @@ func (ulhu *UserLoginHistoryUpdate) SetNillableIsp(s *string) *UserLoginHistoryU
 	return ulhu
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (ulhu *UserLoginHistoryUpdate) ClearIsp() *UserLoginHistoryUpdate {
+	ulhu.mutation.ClearIsp()
+	return ulhu
+}
+
 // SetAsn sets the "asn" field.
 func (ulhu *UserLoginHistoryUpdate) SetAsn(s string) *UserLoginHistoryUpdate {
 	ulhu.mutation.SetAsn(s)
@@ -126,6 +139,12 @@ func (ulhu *UserLoginHistoryUpdate) SetNillableAsn(s *string) *UserLoginHistoryU
 	if s != nil {
 		ulhu.SetAsn(*s)
 	}
+	return ulhu
+}
+
+// ClearAsn clears the value of the "asn" field.
+func (ulhu *UserLoginHistoryUpdate) ClearAsn() *UserLoginHistoryUpdate {
+	ulhu.mutation.ClearAsn()
 	return ulhu
 }
 
@@ -143,17 +162,69 @@ func (ulhu *UserLoginHistoryUpdate) SetNillableClientVersion(s *string) *UserLog
 	return ulhu
 }
 
-// SetDevice sets the "device" field.
-func (ulhu *UserLoginHistoryUpdate) SetDevice(s string) *UserLoginHistoryUpdate {
-	ulhu.mutation.SetDevice(s)
+// ClearClientVersion clears the value of the "client_version" field.
+func (ulhu *UserLoginHistoryUpdate) ClearClientVersion() *UserLoginHistoryUpdate {
+	ulhu.mutation.ClearClientVersion()
 	return ulhu
 }
 
-// SetNillableDevice sets the "device" field if the given value is not nil.
-func (ulhu *UserLoginHistoryUpdate) SetNillableDevice(s *string) *UserLoginHistoryUpdate {
-	if s != nil {
-		ulhu.SetDevice(*s)
+// SetOsType sets the "os_type" field.
+func (ulhu *UserLoginHistoryUpdate) SetOsType(ct consts.OSType) *UserLoginHistoryUpdate {
+	ulhu.mutation.SetOsType(ct)
+	return ulhu
+}
+
+// SetNillableOsType sets the "os_type" field if the given value is not nil.
+func (ulhu *UserLoginHistoryUpdate) SetNillableOsType(ct *consts.OSType) *UserLoginHistoryUpdate {
+	if ct != nil {
+		ulhu.SetOsType(*ct)
 	}
+	return ulhu
+}
+
+// ClearOsType clears the value of the "os_type" field.
+func (ulhu *UserLoginHistoryUpdate) ClearOsType() *UserLoginHistoryUpdate {
+	ulhu.mutation.ClearOsType()
+	return ulhu
+}
+
+// SetOsRelease sets the "os_release" field.
+func (ulhu *UserLoginHistoryUpdate) SetOsRelease(cr consts.OSRelease) *UserLoginHistoryUpdate {
+	ulhu.mutation.SetOsRelease(cr)
+	return ulhu
+}
+
+// SetNillableOsRelease sets the "os_release" field if the given value is not nil.
+func (ulhu *UserLoginHistoryUpdate) SetNillableOsRelease(cr *consts.OSRelease) *UserLoginHistoryUpdate {
+	if cr != nil {
+		ulhu.SetOsRelease(*cr)
+	}
+	return ulhu
+}
+
+// ClearOsRelease clears the value of the "os_release" field.
+func (ulhu *UserLoginHistoryUpdate) ClearOsRelease() *UserLoginHistoryUpdate {
+	ulhu.mutation.ClearOsRelease()
+	return ulhu
+}
+
+// SetHostname sets the "hostname" field.
+func (ulhu *UserLoginHistoryUpdate) SetHostname(s string) *UserLoginHistoryUpdate {
+	ulhu.mutation.SetHostname(s)
+	return ulhu
+}
+
+// SetNillableHostname sets the "hostname" field if the given value is not nil.
+func (ulhu *UserLoginHistoryUpdate) SetNillableHostname(s *string) *UserLoginHistoryUpdate {
+	if s != nil {
+		ulhu.SetHostname(*s)
+	}
+	return ulhu
+}
+
+// ClearHostname clears the value of the "hostname" field.
+func (ulhu *UserLoginHistoryUpdate) ClearHostname() *UserLoginHistoryUpdate {
+	ulhu.mutation.ClearHostname()
 	return ulhu
 }
 
@@ -243,9 +314,6 @@ func (ulhu *UserLoginHistoryUpdate) sqlSave(ctx context.Context) (n int, err err
 			}
 		}
 	}
-	if value, ok := ulhu.mutation.UserID(); ok {
-		_spec.SetField(userloginhistory.FieldUserID, field.TypeUUID, value)
-	}
 	if value, ok := ulhu.mutation.IP(); ok {
 		_spec.SetField(userloginhistory.FieldIP, field.TypeString, value)
 	}
@@ -261,14 +329,38 @@ func (ulhu *UserLoginHistoryUpdate) sqlSave(ctx context.Context) (n int, err err
 	if value, ok := ulhu.mutation.Isp(); ok {
 		_spec.SetField(userloginhistory.FieldIsp, field.TypeString, value)
 	}
+	if ulhu.mutation.IspCleared() {
+		_spec.ClearField(userloginhistory.FieldIsp, field.TypeString)
+	}
 	if value, ok := ulhu.mutation.Asn(); ok {
 		_spec.SetField(userloginhistory.FieldAsn, field.TypeString, value)
+	}
+	if ulhu.mutation.AsnCleared() {
+		_spec.ClearField(userloginhistory.FieldAsn, field.TypeString)
 	}
 	if value, ok := ulhu.mutation.ClientVersion(); ok {
 		_spec.SetField(userloginhistory.FieldClientVersion, field.TypeString, value)
 	}
-	if value, ok := ulhu.mutation.Device(); ok {
-		_spec.SetField(userloginhistory.FieldDevice, field.TypeString, value)
+	if ulhu.mutation.ClientVersionCleared() {
+		_spec.ClearField(userloginhistory.FieldClientVersion, field.TypeString)
+	}
+	if value, ok := ulhu.mutation.OsType(); ok {
+		_spec.SetField(userloginhistory.FieldOsType, field.TypeString, value)
+	}
+	if ulhu.mutation.OsTypeCleared() {
+		_spec.ClearField(userloginhistory.FieldOsType, field.TypeString)
+	}
+	if value, ok := ulhu.mutation.OsRelease(); ok {
+		_spec.SetField(userloginhistory.FieldOsRelease, field.TypeString, value)
+	}
+	if ulhu.mutation.OsReleaseCleared() {
+		_spec.ClearField(userloginhistory.FieldOsRelease, field.TypeString)
+	}
+	if value, ok := ulhu.mutation.Hostname(); ok {
+		_spec.SetField(userloginhistory.FieldHostname, field.TypeString, value)
+	}
+	if ulhu.mutation.HostnameCleared() {
+		_spec.ClearField(userloginhistory.FieldHostname, field.TypeString)
 	}
 	if value, ok := ulhu.mutation.CreatedAt(); ok {
 		_spec.SetField(userloginhistory.FieldCreatedAt, field.TypeTime, value)
@@ -335,6 +427,12 @@ func (ulhuo *UserLoginHistoryUpdateOne) SetNillableUserID(u *uuid.UUID) *UserLog
 	if u != nil {
 		ulhuo.SetUserID(*u)
 	}
+	return ulhuo
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (ulhuo *UserLoginHistoryUpdateOne) ClearUserID() *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.ClearUserID()
 	return ulhuo
 }
 
@@ -408,6 +506,12 @@ func (ulhuo *UserLoginHistoryUpdateOne) SetNillableIsp(s *string) *UserLoginHist
 	return ulhuo
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (ulhuo *UserLoginHistoryUpdateOne) ClearIsp() *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.ClearIsp()
+	return ulhuo
+}
+
 // SetAsn sets the "asn" field.
 func (ulhuo *UserLoginHistoryUpdateOne) SetAsn(s string) *UserLoginHistoryUpdateOne {
 	ulhuo.mutation.SetAsn(s)
@@ -419,6 +523,12 @@ func (ulhuo *UserLoginHistoryUpdateOne) SetNillableAsn(s *string) *UserLoginHist
 	if s != nil {
 		ulhuo.SetAsn(*s)
 	}
+	return ulhuo
+}
+
+// ClearAsn clears the value of the "asn" field.
+func (ulhuo *UserLoginHistoryUpdateOne) ClearAsn() *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.ClearAsn()
 	return ulhuo
 }
 
@@ -436,17 +546,69 @@ func (ulhuo *UserLoginHistoryUpdateOne) SetNillableClientVersion(s *string) *Use
 	return ulhuo
 }
 
-// SetDevice sets the "device" field.
-func (ulhuo *UserLoginHistoryUpdateOne) SetDevice(s string) *UserLoginHistoryUpdateOne {
-	ulhuo.mutation.SetDevice(s)
+// ClearClientVersion clears the value of the "client_version" field.
+func (ulhuo *UserLoginHistoryUpdateOne) ClearClientVersion() *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.ClearClientVersion()
 	return ulhuo
 }
 
-// SetNillableDevice sets the "device" field if the given value is not nil.
-func (ulhuo *UserLoginHistoryUpdateOne) SetNillableDevice(s *string) *UserLoginHistoryUpdateOne {
-	if s != nil {
-		ulhuo.SetDevice(*s)
+// SetOsType sets the "os_type" field.
+func (ulhuo *UserLoginHistoryUpdateOne) SetOsType(ct consts.OSType) *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.SetOsType(ct)
+	return ulhuo
+}
+
+// SetNillableOsType sets the "os_type" field if the given value is not nil.
+func (ulhuo *UserLoginHistoryUpdateOne) SetNillableOsType(ct *consts.OSType) *UserLoginHistoryUpdateOne {
+	if ct != nil {
+		ulhuo.SetOsType(*ct)
 	}
+	return ulhuo
+}
+
+// ClearOsType clears the value of the "os_type" field.
+func (ulhuo *UserLoginHistoryUpdateOne) ClearOsType() *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.ClearOsType()
+	return ulhuo
+}
+
+// SetOsRelease sets the "os_release" field.
+func (ulhuo *UserLoginHistoryUpdateOne) SetOsRelease(cr consts.OSRelease) *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.SetOsRelease(cr)
+	return ulhuo
+}
+
+// SetNillableOsRelease sets the "os_release" field if the given value is not nil.
+func (ulhuo *UserLoginHistoryUpdateOne) SetNillableOsRelease(cr *consts.OSRelease) *UserLoginHistoryUpdateOne {
+	if cr != nil {
+		ulhuo.SetOsRelease(*cr)
+	}
+	return ulhuo
+}
+
+// ClearOsRelease clears the value of the "os_release" field.
+func (ulhuo *UserLoginHistoryUpdateOne) ClearOsRelease() *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.ClearOsRelease()
+	return ulhuo
+}
+
+// SetHostname sets the "hostname" field.
+func (ulhuo *UserLoginHistoryUpdateOne) SetHostname(s string) *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.SetHostname(s)
+	return ulhuo
+}
+
+// SetNillableHostname sets the "hostname" field if the given value is not nil.
+func (ulhuo *UserLoginHistoryUpdateOne) SetNillableHostname(s *string) *UserLoginHistoryUpdateOne {
+	if s != nil {
+		ulhuo.SetHostname(*s)
+	}
+	return ulhuo
+}
+
+// ClearHostname clears the value of the "hostname" field.
+func (ulhuo *UserLoginHistoryUpdateOne) ClearHostname() *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.ClearHostname()
 	return ulhuo
 }
 
@@ -566,9 +728,6 @@ func (ulhuo *UserLoginHistoryUpdateOne) sqlSave(ctx context.Context) (_node *Use
 			}
 		}
 	}
-	if value, ok := ulhuo.mutation.UserID(); ok {
-		_spec.SetField(userloginhistory.FieldUserID, field.TypeUUID, value)
-	}
 	if value, ok := ulhuo.mutation.IP(); ok {
 		_spec.SetField(userloginhistory.FieldIP, field.TypeString, value)
 	}
@@ -584,14 +743,38 @@ func (ulhuo *UserLoginHistoryUpdateOne) sqlSave(ctx context.Context) (_node *Use
 	if value, ok := ulhuo.mutation.Isp(); ok {
 		_spec.SetField(userloginhistory.FieldIsp, field.TypeString, value)
 	}
+	if ulhuo.mutation.IspCleared() {
+		_spec.ClearField(userloginhistory.FieldIsp, field.TypeString)
+	}
 	if value, ok := ulhuo.mutation.Asn(); ok {
 		_spec.SetField(userloginhistory.FieldAsn, field.TypeString, value)
+	}
+	if ulhuo.mutation.AsnCleared() {
+		_spec.ClearField(userloginhistory.FieldAsn, field.TypeString)
 	}
 	if value, ok := ulhuo.mutation.ClientVersion(); ok {
 		_spec.SetField(userloginhistory.FieldClientVersion, field.TypeString, value)
 	}
-	if value, ok := ulhuo.mutation.Device(); ok {
-		_spec.SetField(userloginhistory.FieldDevice, field.TypeString, value)
+	if ulhuo.mutation.ClientVersionCleared() {
+		_spec.ClearField(userloginhistory.FieldClientVersion, field.TypeString)
+	}
+	if value, ok := ulhuo.mutation.OsType(); ok {
+		_spec.SetField(userloginhistory.FieldOsType, field.TypeString, value)
+	}
+	if ulhuo.mutation.OsTypeCleared() {
+		_spec.ClearField(userloginhistory.FieldOsType, field.TypeString)
+	}
+	if value, ok := ulhuo.mutation.OsRelease(); ok {
+		_spec.SetField(userloginhistory.FieldOsRelease, field.TypeString, value)
+	}
+	if ulhuo.mutation.OsReleaseCleared() {
+		_spec.ClearField(userloginhistory.FieldOsRelease, field.TypeString)
+	}
+	if value, ok := ulhuo.mutation.Hostname(); ok {
+		_spec.SetField(userloginhistory.FieldHostname, field.TypeString, value)
+	}
+	if ulhuo.mutation.HostnameCleared() {
+		_spec.ClearField(userloginhistory.FieldHostname, field.TypeString)
 	}
 	if value, ok := ulhuo.mutation.CreatedAt(); ok {
 		_spec.SetField(userloginhistory.FieldCreatedAt, field.TypeTime, value)

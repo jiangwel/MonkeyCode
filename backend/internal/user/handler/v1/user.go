@@ -203,6 +203,7 @@ func (h *UserHandler) VSIXDownload(c *web.Context) error {
 //	@Success		200		{object}	web.Resp{data=domain.LoginResp}
 //	@Router			/api/v1/user/login [post]
 func (h *UserHandler) Login(c *web.Context, req domain.LoginReq) error {
+	req.IP = c.RealIP()
 	resp, err := h.usecase.Login(c.Request().Context(), &req)
 	if err != nil {
 		return err
@@ -279,6 +280,7 @@ func (h *UserHandler) DeleteAdmin(c *web.Context) error {
 //	@Success		200		{object}	web.Resp{data=domain.AdminUser}
 //	@Router			/api/v1/admin/login [post]
 func (h *UserHandler) AdminLogin(c *web.Context, req domain.LoginReq) error {
+	req.IP = c.RealIP()
 	resp, err := h.usecase.AdminLogin(c.Request().Context(), &req)
 	if err != nil {
 		return err
@@ -497,6 +499,7 @@ func (h *UserHandler) OAuthSignUpOrIn(ctx *web.Context, req domain.OAuthSignUpOr
 //	@Success		200	{object}	web.Resp{data=string}
 //	@Router			/api/v1/user/oauth/callback [get]
 func (h *UserHandler) OAuthCallback(ctx *web.Context, req domain.OAuthCallbackReq) error {
+	req.IP = ctx.RealIP()
 	resp, err := h.usecase.OAuthCallback(ctx.Request().Context(), &req)
 	if err != nil {
 		return err

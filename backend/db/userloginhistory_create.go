@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 	"github.com/google/uuid"
@@ -28,6 +29,14 @@ type UserLoginHistoryCreate struct {
 // SetUserID sets the "user_id" field.
 func (ulhc *UserLoginHistoryCreate) SetUserID(u uuid.UUID) *UserLoginHistoryCreate {
 	ulhc.mutation.SetUserID(u)
+	return ulhc
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (ulhc *UserLoginHistoryCreate) SetNillableUserID(u *uuid.UUID) *UserLoginHistoryCreate {
+	if u != nil {
+		ulhc.SetUserID(*u)
+	}
 	return ulhc
 }
 
@@ -61,9 +70,25 @@ func (ulhc *UserLoginHistoryCreate) SetIsp(s string) *UserLoginHistoryCreate {
 	return ulhc
 }
 
+// SetNillableIsp sets the "isp" field if the given value is not nil.
+func (ulhc *UserLoginHistoryCreate) SetNillableIsp(s *string) *UserLoginHistoryCreate {
+	if s != nil {
+		ulhc.SetIsp(*s)
+	}
+	return ulhc
+}
+
 // SetAsn sets the "asn" field.
 func (ulhc *UserLoginHistoryCreate) SetAsn(s string) *UserLoginHistoryCreate {
 	ulhc.mutation.SetAsn(s)
+	return ulhc
+}
+
+// SetNillableAsn sets the "asn" field if the given value is not nil.
+func (ulhc *UserLoginHistoryCreate) SetNillableAsn(s *string) *UserLoginHistoryCreate {
+	if s != nil {
+		ulhc.SetAsn(*s)
+	}
 	return ulhc
 }
 
@@ -73,9 +98,53 @@ func (ulhc *UserLoginHistoryCreate) SetClientVersion(s string) *UserLoginHistory
 	return ulhc
 }
 
-// SetDevice sets the "device" field.
-func (ulhc *UserLoginHistoryCreate) SetDevice(s string) *UserLoginHistoryCreate {
-	ulhc.mutation.SetDevice(s)
+// SetNillableClientVersion sets the "client_version" field if the given value is not nil.
+func (ulhc *UserLoginHistoryCreate) SetNillableClientVersion(s *string) *UserLoginHistoryCreate {
+	if s != nil {
+		ulhc.SetClientVersion(*s)
+	}
+	return ulhc
+}
+
+// SetOsType sets the "os_type" field.
+func (ulhc *UserLoginHistoryCreate) SetOsType(ct consts.OSType) *UserLoginHistoryCreate {
+	ulhc.mutation.SetOsType(ct)
+	return ulhc
+}
+
+// SetNillableOsType sets the "os_type" field if the given value is not nil.
+func (ulhc *UserLoginHistoryCreate) SetNillableOsType(ct *consts.OSType) *UserLoginHistoryCreate {
+	if ct != nil {
+		ulhc.SetOsType(*ct)
+	}
+	return ulhc
+}
+
+// SetOsRelease sets the "os_release" field.
+func (ulhc *UserLoginHistoryCreate) SetOsRelease(cr consts.OSRelease) *UserLoginHistoryCreate {
+	ulhc.mutation.SetOsRelease(cr)
+	return ulhc
+}
+
+// SetNillableOsRelease sets the "os_release" field if the given value is not nil.
+func (ulhc *UserLoginHistoryCreate) SetNillableOsRelease(cr *consts.OSRelease) *UserLoginHistoryCreate {
+	if cr != nil {
+		ulhc.SetOsRelease(*cr)
+	}
+	return ulhc
+}
+
+// SetHostname sets the "hostname" field.
+func (ulhc *UserLoginHistoryCreate) SetHostname(s string) *UserLoginHistoryCreate {
+	ulhc.mutation.SetHostname(s)
+	return ulhc
+}
+
+// SetNillableHostname sets the "hostname" field if the given value is not nil.
+func (ulhc *UserLoginHistoryCreate) SetNillableHostname(s *string) *UserLoginHistoryCreate {
+	if s != nil {
+		ulhc.SetHostname(*s)
+	}
 	return ulhc
 }
 
@@ -161,9 +230,6 @@ func (ulhc *UserLoginHistoryCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ulhc *UserLoginHistoryCreate) check() error {
-	if _, ok := ulhc.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user_id", err: errors.New(`db: missing required field "UserLoginHistory.user_id"`)}
-	}
 	if _, ok := ulhc.mutation.IP(); !ok {
 		return &ValidationError{Name: "ip", err: errors.New(`db: missing required field "UserLoginHistory.ip"`)}
 	}
@@ -175,18 +241,6 @@ func (ulhc *UserLoginHistoryCreate) check() error {
 	}
 	if _, ok := ulhc.mutation.City(); !ok {
 		return &ValidationError{Name: "city", err: errors.New(`db: missing required field "UserLoginHistory.city"`)}
-	}
-	if _, ok := ulhc.mutation.Isp(); !ok {
-		return &ValidationError{Name: "isp", err: errors.New(`db: missing required field "UserLoginHistory.isp"`)}
-	}
-	if _, ok := ulhc.mutation.Asn(); !ok {
-		return &ValidationError{Name: "asn", err: errors.New(`db: missing required field "UserLoginHistory.asn"`)}
-	}
-	if _, ok := ulhc.mutation.ClientVersion(); !ok {
-		return &ValidationError{Name: "client_version", err: errors.New(`db: missing required field "UserLoginHistory.client_version"`)}
-	}
-	if _, ok := ulhc.mutation.Device(); !ok {
-		return &ValidationError{Name: "device", err: errors.New(`db: missing required field "UserLoginHistory.device"`)}
 	}
 	if _, ok := ulhc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`db: missing required field "UserLoginHistory.created_at"`)}
@@ -227,10 +281,6 @@ func (ulhc *UserLoginHistoryCreate) createSpec() (*UserLoginHistory, *sqlgraph.C
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := ulhc.mutation.UserID(); ok {
-		_spec.SetField(userloginhistory.FieldUserID, field.TypeUUID, value)
-		_node.UserID = value
-	}
 	if value, ok := ulhc.mutation.IP(); ok {
 		_spec.SetField(userloginhistory.FieldIP, field.TypeString, value)
 		_node.IP = value
@@ -259,9 +309,17 @@ func (ulhc *UserLoginHistoryCreate) createSpec() (*UserLoginHistory, *sqlgraph.C
 		_spec.SetField(userloginhistory.FieldClientVersion, field.TypeString, value)
 		_node.ClientVersion = value
 	}
-	if value, ok := ulhc.mutation.Device(); ok {
-		_spec.SetField(userloginhistory.FieldDevice, field.TypeString, value)
-		_node.Device = value
+	if value, ok := ulhc.mutation.OsType(); ok {
+		_spec.SetField(userloginhistory.FieldOsType, field.TypeString, value)
+		_node.OsType = value
+	}
+	if value, ok := ulhc.mutation.OsRelease(); ok {
+		_spec.SetField(userloginhistory.FieldOsRelease, field.TypeString, value)
+		_node.OsRelease = value
+	}
+	if value, ok := ulhc.mutation.Hostname(); ok {
+		_spec.SetField(userloginhistory.FieldHostname, field.TypeString, value)
+		_node.Hostname = value
 	}
 	if value, ok := ulhc.mutation.CreatedAt(); ok {
 		_spec.SetField(userloginhistory.FieldCreatedAt, field.TypeTime, value)
@@ -281,7 +339,7 @@ func (ulhc *UserLoginHistoryCreate) createSpec() (*UserLoginHistory, *sqlgraph.C
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_login_histories = &nodes[0]
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -348,6 +406,12 @@ func (u *UserLoginHistoryUpsert) UpdateUserID() *UserLoginHistoryUpsert {
 	return u
 }
 
+// ClearUserID clears the value of the "user_id" field.
+func (u *UserLoginHistoryUpsert) ClearUserID() *UserLoginHistoryUpsert {
+	u.SetNull(userloginhistory.FieldUserID)
+	return u
+}
+
 // SetIP sets the "ip" field.
 func (u *UserLoginHistoryUpsert) SetIP(v string) *UserLoginHistoryUpsert {
 	u.Set(userloginhistory.FieldIP, v)
@@ -408,6 +472,12 @@ func (u *UserLoginHistoryUpsert) UpdateIsp() *UserLoginHistoryUpsert {
 	return u
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (u *UserLoginHistoryUpsert) ClearIsp() *UserLoginHistoryUpsert {
+	u.SetNull(userloginhistory.FieldIsp)
+	return u
+}
+
 // SetAsn sets the "asn" field.
 func (u *UserLoginHistoryUpsert) SetAsn(v string) *UserLoginHistoryUpsert {
 	u.Set(userloginhistory.FieldAsn, v)
@@ -417,6 +487,12 @@ func (u *UserLoginHistoryUpsert) SetAsn(v string) *UserLoginHistoryUpsert {
 // UpdateAsn sets the "asn" field to the value that was provided on create.
 func (u *UserLoginHistoryUpsert) UpdateAsn() *UserLoginHistoryUpsert {
 	u.SetExcluded(userloginhistory.FieldAsn)
+	return u
+}
+
+// ClearAsn clears the value of the "asn" field.
+func (u *UserLoginHistoryUpsert) ClearAsn() *UserLoginHistoryUpsert {
+	u.SetNull(userloginhistory.FieldAsn)
 	return u
 }
 
@@ -432,15 +508,63 @@ func (u *UserLoginHistoryUpsert) UpdateClientVersion() *UserLoginHistoryUpsert {
 	return u
 }
 
-// SetDevice sets the "device" field.
-func (u *UserLoginHistoryUpsert) SetDevice(v string) *UserLoginHistoryUpsert {
-	u.Set(userloginhistory.FieldDevice, v)
+// ClearClientVersion clears the value of the "client_version" field.
+func (u *UserLoginHistoryUpsert) ClearClientVersion() *UserLoginHistoryUpsert {
+	u.SetNull(userloginhistory.FieldClientVersion)
 	return u
 }
 
-// UpdateDevice sets the "device" field to the value that was provided on create.
-func (u *UserLoginHistoryUpsert) UpdateDevice() *UserLoginHistoryUpsert {
-	u.SetExcluded(userloginhistory.FieldDevice)
+// SetOsType sets the "os_type" field.
+func (u *UserLoginHistoryUpsert) SetOsType(v consts.OSType) *UserLoginHistoryUpsert {
+	u.Set(userloginhistory.FieldOsType, v)
+	return u
+}
+
+// UpdateOsType sets the "os_type" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsert) UpdateOsType() *UserLoginHistoryUpsert {
+	u.SetExcluded(userloginhistory.FieldOsType)
+	return u
+}
+
+// ClearOsType clears the value of the "os_type" field.
+func (u *UserLoginHistoryUpsert) ClearOsType() *UserLoginHistoryUpsert {
+	u.SetNull(userloginhistory.FieldOsType)
+	return u
+}
+
+// SetOsRelease sets the "os_release" field.
+func (u *UserLoginHistoryUpsert) SetOsRelease(v consts.OSRelease) *UserLoginHistoryUpsert {
+	u.Set(userloginhistory.FieldOsRelease, v)
+	return u
+}
+
+// UpdateOsRelease sets the "os_release" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsert) UpdateOsRelease() *UserLoginHistoryUpsert {
+	u.SetExcluded(userloginhistory.FieldOsRelease)
+	return u
+}
+
+// ClearOsRelease clears the value of the "os_release" field.
+func (u *UserLoginHistoryUpsert) ClearOsRelease() *UserLoginHistoryUpsert {
+	u.SetNull(userloginhistory.FieldOsRelease)
+	return u
+}
+
+// SetHostname sets the "hostname" field.
+func (u *UserLoginHistoryUpsert) SetHostname(v string) *UserLoginHistoryUpsert {
+	u.Set(userloginhistory.FieldHostname, v)
+	return u
+}
+
+// UpdateHostname sets the "hostname" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsert) UpdateHostname() *UserLoginHistoryUpsert {
+	u.SetExcluded(userloginhistory.FieldHostname)
+	return u
+}
+
+// ClearHostname clears the value of the "hostname" field.
+func (u *UserLoginHistoryUpsert) ClearHostname() *UserLoginHistoryUpsert {
+	u.SetNull(userloginhistory.FieldHostname)
 	return u
 }
 
@@ -518,6 +642,13 @@ func (u *UserLoginHistoryUpsertOne) UpdateUserID() *UserLoginHistoryUpsertOne {
 	})
 }
 
+// ClearUserID clears the value of the "user_id" field.
+func (u *UserLoginHistoryUpsertOne) ClearUserID() *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearUserID()
+	})
+}
+
 // SetIP sets the "ip" field.
 func (u *UserLoginHistoryUpsertOne) SetIP(v string) *UserLoginHistoryUpsertOne {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
@@ -588,6 +719,13 @@ func (u *UserLoginHistoryUpsertOne) UpdateIsp() *UserLoginHistoryUpsertOne {
 	})
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (u *UserLoginHistoryUpsertOne) ClearIsp() *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearIsp()
+	})
+}
+
 // SetAsn sets the "asn" field.
 func (u *UserLoginHistoryUpsertOne) SetAsn(v string) *UserLoginHistoryUpsertOne {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
@@ -599,6 +737,13 @@ func (u *UserLoginHistoryUpsertOne) SetAsn(v string) *UserLoginHistoryUpsertOne 
 func (u *UserLoginHistoryUpsertOne) UpdateAsn() *UserLoginHistoryUpsertOne {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
 		s.UpdateAsn()
+	})
+}
+
+// ClearAsn clears the value of the "asn" field.
+func (u *UserLoginHistoryUpsertOne) ClearAsn() *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearAsn()
 	})
 }
 
@@ -616,17 +761,73 @@ func (u *UserLoginHistoryUpsertOne) UpdateClientVersion() *UserLoginHistoryUpser
 	})
 }
 
-// SetDevice sets the "device" field.
-func (u *UserLoginHistoryUpsertOne) SetDevice(v string) *UserLoginHistoryUpsertOne {
+// ClearClientVersion clears the value of the "client_version" field.
+func (u *UserLoginHistoryUpsertOne) ClearClientVersion() *UserLoginHistoryUpsertOne {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
-		s.SetDevice(v)
+		s.ClearClientVersion()
 	})
 }
 
-// UpdateDevice sets the "device" field to the value that was provided on create.
-func (u *UserLoginHistoryUpsertOne) UpdateDevice() *UserLoginHistoryUpsertOne {
+// SetOsType sets the "os_type" field.
+func (u *UserLoginHistoryUpsertOne) SetOsType(v consts.OSType) *UserLoginHistoryUpsertOne {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
-		s.UpdateDevice()
+		s.SetOsType(v)
+	})
+}
+
+// UpdateOsType sets the "os_type" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsertOne) UpdateOsType() *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.UpdateOsType()
+	})
+}
+
+// ClearOsType clears the value of the "os_type" field.
+func (u *UserLoginHistoryUpsertOne) ClearOsType() *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearOsType()
+	})
+}
+
+// SetOsRelease sets the "os_release" field.
+func (u *UserLoginHistoryUpsertOne) SetOsRelease(v consts.OSRelease) *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.SetOsRelease(v)
+	})
+}
+
+// UpdateOsRelease sets the "os_release" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsertOne) UpdateOsRelease() *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.UpdateOsRelease()
+	})
+}
+
+// ClearOsRelease clears the value of the "os_release" field.
+func (u *UserLoginHistoryUpsertOne) ClearOsRelease() *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearOsRelease()
+	})
+}
+
+// SetHostname sets the "hostname" field.
+func (u *UserLoginHistoryUpsertOne) SetHostname(v string) *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.SetHostname(v)
+	})
+}
+
+// UpdateHostname sets the "hostname" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsertOne) UpdateHostname() *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.UpdateHostname()
+	})
+}
+
+// ClearHostname clears the value of the "hostname" field.
+func (u *UserLoginHistoryUpsertOne) ClearHostname() *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearHostname()
 	})
 }
 
@@ -873,6 +1074,13 @@ func (u *UserLoginHistoryUpsertBulk) UpdateUserID() *UserLoginHistoryUpsertBulk 
 	})
 }
 
+// ClearUserID clears the value of the "user_id" field.
+func (u *UserLoginHistoryUpsertBulk) ClearUserID() *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearUserID()
+	})
+}
+
 // SetIP sets the "ip" field.
 func (u *UserLoginHistoryUpsertBulk) SetIP(v string) *UserLoginHistoryUpsertBulk {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
@@ -943,6 +1151,13 @@ func (u *UserLoginHistoryUpsertBulk) UpdateIsp() *UserLoginHistoryUpsertBulk {
 	})
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (u *UserLoginHistoryUpsertBulk) ClearIsp() *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearIsp()
+	})
+}
+
 // SetAsn sets the "asn" field.
 func (u *UserLoginHistoryUpsertBulk) SetAsn(v string) *UserLoginHistoryUpsertBulk {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
@@ -954,6 +1169,13 @@ func (u *UserLoginHistoryUpsertBulk) SetAsn(v string) *UserLoginHistoryUpsertBul
 func (u *UserLoginHistoryUpsertBulk) UpdateAsn() *UserLoginHistoryUpsertBulk {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
 		s.UpdateAsn()
+	})
+}
+
+// ClearAsn clears the value of the "asn" field.
+func (u *UserLoginHistoryUpsertBulk) ClearAsn() *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearAsn()
 	})
 }
 
@@ -971,17 +1193,73 @@ func (u *UserLoginHistoryUpsertBulk) UpdateClientVersion() *UserLoginHistoryUpse
 	})
 }
 
-// SetDevice sets the "device" field.
-func (u *UserLoginHistoryUpsertBulk) SetDevice(v string) *UserLoginHistoryUpsertBulk {
+// ClearClientVersion clears the value of the "client_version" field.
+func (u *UserLoginHistoryUpsertBulk) ClearClientVersion() *UserLoginHistoryUpsertBulk {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
-		s.SetDevice(v)
+		s.ClearClientVersion()
 	})
 }
 
-// UpdateDevice sets the "device" field to the value that was provided on create.
-func (u *UserLoginHistoryUpsertBulk) UpdateDevice() *UserLoginHistoryUpsertBulk {
+// SetOsType sets the "os_type" field.
+func (u *UserLoginHistoryUpsertBulk) SetOsType(v consts.OSType) *UserLoginHistoryUpsertBulk {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
-		s.UpdateDevice()
+		s.SetOsType(v)
+	})
+}
+
+// UpdateOsType sets the "os_type" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsertBulk) UpdateOsType() *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.UpdateOsType()
+	})
+}
+
+// ClearOsType clears the value of the "os_type" field.
+func (u *UserLoginHistoryUpsertBulk) ClearOsType() *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearOsType()
+	})
+}
+
+// SetOsRelease sets the "os_release" field.
+func (u *UserLoginHistoryUpsertBulk) SetOsRelease(v consts.OSRelease) *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.SetOsRelease(v)
+	})
+}
+
+// UpdateOsRelease sets the "os_release" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsertBulk) UpdateOsRelease() *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.UpdateOsRelease()
+	})
+}
+
+// ClearOsRelease clears the value of the "os_release" field.
+func (u *UserLoginHistoryUpsertBulk) ClearOsRelease() *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearOsRelease()
+	})
+}
+
+// SetHostname sets the "hostname" field.
+func (u *UserLoginHistoryUpsertBulk) SetHostname(v string) *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.SetHostname(v)
+	})
+}
+
+// UpdateHostname sets the "hostname" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsertBulk) UpdateHostname() *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.UpdateHostname()
+	})
+}
+
+// ClearHostname clears the value of the "hostname" field.
+func (u *UserLoginHistoryUpsertBulk) ClearHostname() *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearHostname()
 	})
 }
 

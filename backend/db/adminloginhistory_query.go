@@ -26,7 +26,6 @@ type AdminLoginHistoryQuery struct {
 	inters     []Interceptor
 	predicates []predicate.AdminLoginHistory
 	withOwner  *AdminQuery
-	withFKs    bool
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -374,18 +373,11 @@ func (alhq *AdminLoginHistoryQuery) prepareQuery(ctx context.Context) error {
 func (alhq *AdminLoginHistoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*AdminLoginHistory, error) {
 	var (
 		nodes       = []*AdminLoginHistory{}
-		withFKs     = alhq.withFKs
 		_spec       = alhq.querySpec()
 		loadedTypes = [1]bool{
 			alhq.withOwner != nil,
 		}
 	)
-	if alhq.withOwner != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, adminloginhistory.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*AdminLoginHistory).scanValues(nil, columns)
 	}
@@ -420,10 +412,7 @@ func (alhq *AdminLoginHistoryQuery) loadOwner(ctx context.Context, query *AdminQ
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*AdminLoginHistory)
 	for i := range nodes {
-		if nodes[i].admin_login_histories == nil {
-			continue
-		}
-		fk := *nodes[i].admin_login_histories
+		fk := nodes[i].AdminID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -440,7 +429,7 @@ func (alhq *AdminLoginHistoryQuery) loadOwner(ctx context.Context, query *AdminQ
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "admin_login_histories" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "admin_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -476,6 +465,9 @@ func (alhq *AdminLoginHistoryQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != adminloginhistory.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if alhq.withOwner != nil {
+			_spec.Node.AddColumnOnce(adminloginhistory.FieldAdminID)
 		}
 	}
 	if ps := alhq.predicates; len(ps) > 0 {

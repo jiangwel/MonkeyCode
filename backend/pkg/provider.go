@@ -11,6 +11,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/errcode"
 	mid "github.com/chaitin/MonkeyCode/backend/internal/middleware"
+	"github.com/chaitin/MonkeyCode/backend/pkg/ipdb"
 	"github.com/chaitin/MonkeyCode/backend/pkg/logger"
 	"github.com/chaitin/MonkeyCode/backend/pkg/session"
 	"github.com/chaitin/MonkeyCode/backend/pkg/store"
@@ -22,6 +23,7 @@ var Provider = wire.NewSet(
 	store.NewEntDB,
 	store.NewRedisCli,
 	session.NewSession,
+	ipdb.NewIPDB,
 )
 
 func NewWeb(cfg *config.Config) *web.Web {

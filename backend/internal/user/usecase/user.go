@@ -116,7 +116,7 @@ func (u *UserUsecase) AdminLoginHistory(ctx context.Context, page *web.Paginatio
 	return &domain.ListAdminLoginHistoryResp{
 		PageInfo: p,
 		LoginHistories: cvt.Iter(histories, func(_ int, e *db.AdminLoginHistory) *domain.AdminLoginHistory {
-			return cvt.From(e, &domain.AdminLoginHistory{}).From(e)
+			return cvt.From(e, &domain.AdminLoginHistory{})
 		}),
 	}, nil
 }
@@ -187,26 +187,30 @@ func (u *UserUsecase) Login(ctx context.Context, req *domain.LoginReq) (*domain.
 		return nil, err
 	}
 
-	r, err := u.getVSCodeURL(ctx, req.SessionID, apiKey.Key, user.Username)
+	r, session, err := u.getVSCodeURL(ctx, req.SessionID, apiKey.Key, user.Username)
 	if err != nil {
 		return nil, err
+	}
+
+	if err := u.repo.SaveUserLoginHistory(ctx, user.ID.String(), req.IP, session); err != nil {
+		u.logger.With("error", err).Error("save user login history")
 	}
 	return &domain.LoginResp{
 		RedirectURL: r,
 	}, nil
 }
 
-func (u *UserUsecase) getVSCodeURL(ctx context.Context, sessionID, apiKey, username string) (string, error) {
+func (u *UserUsecase) getVSCodeURL(ctx context.Context, sessionID, apiKey, username string) (string, *domain.VSCodeSession, error) {
 	s, err := u.redis.Get(ctx, fmt.Sprintf("vscode:session:%s", sessionID)).Result()
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 	session := &domain.VSCodeSession{}
 	if err := json.Unmarshal([]byte(s), session); err != nil {
-		return "", err
+		return "", nil, err
 	}
 	r := fmt.Sprintf("%s?state=%s&api_key=%s&expires_in=3600&username=%s", session.RedirectURI, session.State, apiKey, username)
-	return r, nil
+	return r, session, nil
 }
 
 func (u *UserUsecase) AdminLogin(ctx context.Context, req *domain.LoginReq) (*domain.AdminUser, error) {
@@ -217,6 +221,10 @@ func (u *UserUsecase) AdminLogin(ctx context.Context, req *domain.LoginReq) (*do
 	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(req.Password)); err != nil {
 		return nil, errcode.ErrPassword.Wrap(err)
 	}
+
+	if err := u.repo.SaveAdminLoginHistory(ctx, admin.ID.String(), req.IP); err != nil {
+		return nil, err
+	}
 	return cvt.From(admin, &domain.AdminUser{}), nil
 }
 
@@ -226,6 +234,10 @@ func (u *UserUsecase) VSCodeAuthInit(ctx context.Context, req *domain.VSCodeAuth
 		ID:          i,
 		State:       req.State,
 		RedirectURI: req.RedirectURI,
+		Version:     req.Version,
+		OSType:      req.OSType,
+		OSRelease:   req.OSRelease,
+		Hostname:    req.Hostname,
 	}
 
 	b, err := json.Marshal(session)
@@ -513,11 +525,14 @@ func (u *UserUsecase) WithOAuthCallback(ctx context.Context, req *domain.OAuthCa
 	redirect := session.RedirectURL
 
 	if session.SessionID != "" {
-		r, err := u.getVSCodeURL(ctx, session.SessionID, apiKey.Key, user.Username)
+		r, vsess, err := u.getVSCodeURL(ctx, session.SessionID, apiKey.Key, user.Username)
 		if err != nil {
 			return "", err
 		}
 		redirect = fmt.Sprintf("%s?redirect_url=%s", redirect, url.QueryEscape(r))
+		if err := u.repo.SaveUserLoginHistory(ctx, user.ID.String(), req.IP, vsess); err != nil {
+			u.logger.With("error", err).Error("save user login history")
+		}
 	}
 
 	u.logger.Debug("oauth callback", "redirect", redirect)

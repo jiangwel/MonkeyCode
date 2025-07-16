@@ -45,6 +45,12 @@ func (alhu *AdminLoginHistoryUpdate) SetNillableAdminID(u *uuid.UUID) *AdminLogi
 	return alhu
 }
 
+// ClearAdminID clears the value of the "admin_id" field.
+func (alhu *AdminLoginHistoryUpdate) ClearAdminID() *AdminLoginHistoryUpdate {
+	alhu.mutation.ClearAdminID()
+	return alhu
+}
+
 // SetIP sets the "ip" field.
 func (alhu *AdminLoginHistoryUpdate) SetIP(s string) *AdminLoginHistoryUpdate {
 	alhu.mutation.SetIP(s)
@@ -115,6 +121,12 @@ func (alhu *AdminLoginHistoryUpdate) SetNillableIsp(s *string) *AdminLoginHistor
 	return alhu
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (alhu *AdminLoginHistoryUpdate) ClearIsp() *AdminLoginHistoryUpdate {
+	alhu.mutation.ClearIsp()
+	return alhu
+}
+
 // SetAsn sets the "asn" field.
 func (alhu *AdminLoginHistoryUpdate) SetAsn(s string) *AdminLoginHistoryUpdate {
 	alhu.mutation.SetAsn(s)
@@ -126,6 +138,12 @@ func (alhu *AdminLoginHistoryUpdate) SetNillableAsn(s *string) *AdminLoginHistor
 	if s != nil {
 		alhu.SetAsn(*s)
 	}
+	return alhu
+}
+
+// ClearAsn clears the value of the "asn" field.
+func (alhu *AdminLoginHistoryUpdate) ClearAsn() *AdminLoginHistoryUpdate {
+	alhu.mutation.ClearAsn()
 	return alhu
 }
 
@@ -143,6 +161,12 @@ func (alhu *AdminLoginHistoryUpdate) SetNillableClientVersion(s *string) *AdminL
 	return alhu
 }
 
+// ClearClientVersion clears the value of the "client_version" field.
+func (alhu *AdminLoginHistoryUpdate) ClearClientVersion() *AdminLoginHistoryUpdate {
+	alhu.mutation.ClearClientVersion()
+	return alhu
+}
+
 // SetDevice sets the "device" field.
 func (alhu *AdminLoginHistoryUpdate) SetDevice(s string) *AdminLoginHistoryUpdate {
 	alhu.mutation.SetDevice(s)
@@ -154,6 +178,12 @@ func (alhu *AdminLoginHistoryUpdate) SetNillableDevice(s *string) *AdminLoginHis
 	if s != nil {
 		alhu.SetDevice(*s)
 	}
+	return alhu
+}
+
+// ClearDevice clears the value of the "device" field.
+func (alhu *AdminLoginHistoryUpdate) ClearDevice() *AdminLoginHistoryUpdate {
+	alhu.mutation.ClearDevice()
 	return alhu
 }
 
@@ -243,9 +273,6 @@ func (alhu *AdminLoginHistoryUpdate) sqlSave(ctx context.Context) (n int, err er
 			}
 		}
 	}
-	if value, ok := alhu.mutation.AdminID(); ok {
-		_spec.SetField(adminloginhistory.FieldAdminID, field.TypeUUID, value)
-	}
 	if value, ok := alhu.mutation.IP(); ok {
 		_spec.SetField(adminloginhistory.FieldIP, field.TypeString, value)
 	}
@@ -261,14 +288,26 @@ func (alhu *AdminLoginHistoryUpdate) sqlSave(ctx context.Context) (n int, err er
 	if value, ok := alhu.mutation.Isp(); ok {
 		_spec.SetField(adminloginhistory.FieldIsp, field.TypeString, value)
 	}
+	if alhu.mutation.IspCleared() {
+		_spec.ClearField(adminloginhistory.FieldIsp, field.TypeString)
+	}
 	if value, ok := alhu.mutation.Asn(); ok {
 		_spec.SetField(adminloginhistory.FieldAsn, field.TypeString, value)
+	}
+	if alhu.mutation.AsnCleared() {
+		_spec.ClearField(adminloginhistory.FieldAsn, field.TypeString)
 	}
 	if value, ok := alhu.mutation.ClientVersion(); ok {
 		_spec.SetField(adminloginhistory.FieldClientVersion, field.TypeString, value)
 	}
+	if alhu.mutation.ClientVersionCleared() {
+		_spec.ClearField(adminloginhistory.FieldClientVersion, field.TypeString)
+	}
 	if value, ok := alhu.mutation.Device(); ok {
 		_spec.SetField(adminloginhistory.FieldDevice, field.TypeString, value)
+	}
+	if alhu.mutation.DeviceCleared() {
+		_spec.ClearField(adminloginhistory.FieldDevice, field.TypeString)
 	}
 	if value, ok := alhu.mutation.CreatedAt(); ok {
 		_spec.SetField(adminloginhistory.FieldCreatedAt, field.TypeTime, value)
@@ -335,6 +374,12 @@ func (alhuo *AdminLoginHistoryUpdateOne) SetNillableAdminID(u *uuid.UUID) *Admin
 	if u != nil {
 		alhuo.SetAdminID(*u)
 	}
+	return alhuo
+}
+
+// ClearAdminID clears the value of the "admin_id" field.
+func (alhuo *AdminLoginHistoryUpdateOne) ClearAdminID() *AdminLoginHistoryUpdateOne {
+	alhuo.mutation.ClearAdminID()
 	return alhuo
 }
 
@@ -408,6 +453,12 @@ func (alhuo *AdminLoginHistoryUpdateOne) SetNillableIsp(s *string) *AdminLoginHi
 	return alhuo
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (alhuo *AdminLoginHistoryUpdateOne) ClearIsp() *AdminLoginHistoryUpdateOne {
+	alhuo.mutation.ClearIsp()
+	return alhuo
+}
+
 // SetAsn sets the "asn" field.
 func (alhuo *AdminLoginHistoryUpdateOne) SetAsn(s string) *AdminLoginHistoryUpdateOne {
 	alhuo.mutation.SetAsn(s)
@@ -419,6 +470,12 @@ func (alhuo *AdminLoginHistoryUpdateOne) SetNillableAsn(s *string) *AdminLoginHi
 	if s != nil {
 		alhuo.SetAsn(*s)
 	}
+	return alhuo
+}
+
+// ClearAsn clears the value of the "asn" field.
+func (alhuo *AdminLoginHistoryUpdateOne) ClearAsn() *AdminLoginHistoryUpdateOne {
+	alhuo.mutation.ClearAsn()
 	return alhuo
 }
 
@@ -436,6 +493,12 @@ func (alhuo *AdminLoginHistoryUpdateOne) SetNillableClientVersion(s *string) *Ad
 	return alhuo
 }
 
+// ClearClientVersion clears the value of the "client_version" field.
+func (alhuo *AdminLoginHistoryUpdateOne) ClearClientVersion() *AdminLoginHistoryUpdateOne {
+	alhuo.mutation.ClearClientVersion()
+	return alhuo
+}
+
 // SetDevice sets the "device" field.
 func (alhuo *AdminLoginHistoryUpdateOne) SetDevice(s string) *AdminLoginHistoryUpdateOne {
 	alhuo.mutation.SetDevice(s)
@@ -447,6 +510,12 @@ func (alhuo *AdminLoginHistoryUpdateOne) SetNillableDevice(s *string) *AdminLogi
 	if s != nil {
 		alhuo.SetDevice(*s)
 	}
+	return alhuo
+}
+
+// ClearDevice clears the value of the "device" field.
+func (alhuo *AdminLoginHistoryUpdateOne) ClearDevice() *AdminLoginHistoryUpdateOne {
+	alhuo.mutation.ClearDevice()
 	return alhuo
 }
 
@@ -566,9 +635,6 @@ func (alhuo *AdminLoginHistoryUpdateOne) sqlSave(ctx context.Context) (_node *Ad
 			}
 		}
 	}
-	if value, ok := alhuo.mutation.AdminID(); ok {
-		_spec.SetField(adminloginhistory.FieldAdminID, field.TypeUUID, value)
-	}
 	if value, ok := alhuo.mutation.IP(); ok {
 		_spec.SetField(adminloginhistory.FieldIP, field.TypeString, value)
 	}
@@ -584,14 +650,26 @@ func (alhuo *AdminLoginHistoryUpdateOne) sqlSave(ctx context.Context) (_node *Ad
 	if value, ok := alhuo.mutation.Isp(); ok {
 		_spec.SetField(adminloginhistory.FieldIsp, field.TypeString, value)
 	}
+	if alhuo.mutation.IspCleared() {
+		_spec.ClearField(adminloginhistory.FieldIsp, field.TypeString)
+	}
 	if value, ok := alhuo.mutation.Asn(); ok {
 		_spec.SetField(adminloginhistory.FieldAsn, field.TypeString, value)
+	}
+	if alhuo.mutation.AsnCleared() {
+		_spec.ClearField(adminloginhistory.FieldAsn, field.TypeString)
 	}
 	if value, ok := alhuo.mutation.ClientVersion(); ok {
 		_spec.SetField(adminloginhistory.FieldClientVersion, field.TypeString, value)
 	}
+	if alhuo.mutation.ClientVersionCleared() {
+		_spec.ClearField(adminloginhistory.FieldClientVersion, field.TypeString)
+	}
 	if value, ok := alhuo.mutation.Device(); ok {
 		_spec.SetField(adminloginhistory.FieldDevice, field.TypeString, value)
+	}
+	if alhuo.mutation.DeviceCleared() {
+		_spec.ClearField(adminloginhistory.FieldDevice, field.TypeString)
 	}
 	if value, ok := alhuo.mutation.CreatedAt(); ok {
 		_spec.SetField(adminloginhistory.FieldCreatedAt, field.TypeTime, value)

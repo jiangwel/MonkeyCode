@@ -41,9 +41,8 @@ type AdminLoginHistory struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AdminLoginHistoryQuery when eager-loading is set.
-	Edges                 AdminLoginHistoryEdges `json:"edges"`
-	admin_login_histories *uuid.UUID
-	selectValues          sql.SelectValues
+	Edges        AdminLoginHistoryEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // AdminLoginHistoryEdges holds the relations/edges for other nodes in the graph.
@@ -77,8 +76,6 @@ func (*AdminLoginHistory) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case adminloginhistory.FieldID, adminloginhistory.FieldAdminID:
 			values[i] = new(uuid.UUID)
-		case adminloginhistory.ForeignKeys[0]: // admin_login_histories
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -159,13 +156,6 @@ func (alh *AdminLoginHistory) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				alh.CreatedAt = value.Time
-			}
-		case adminloginhistory.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field admin_login_histories", values[i])
-			} else if value.Valid {
-				alh.admin_login_histories = new(uuid.UUID)
-				*alh.admin_login_histories = *value.S.(*uuid.UUID)
 			}
 		default:
 			alh.selectValues.Set(columns[i], values[i])

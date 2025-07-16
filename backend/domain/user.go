@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/GoYoko/web"
 
@@ -53,6 +54,8 @@ type UserRepo interface {
 	OAuthRegister(ctx context.Context, platform consts.UserPlatform, inviteCode string, req *OAuthUserInfo) (*db.User, error)
 	OAuthLogin(ctx context.Context, platform consts.UserPlatform, req *OAuthUserInfo) (*db.User, error)
 	SignUpOrIn(ctx context.Context, platform consts.UserPlatform, req *OAuthUserInfo) (*db.User, error)
+	SaveAdminLoginHistory(ctx context.Context, adminID, ip string) error
+	SaveUserLoginHistory(ctx context.Context, userID, ip string, session *VSCodeSession) error
 }
 
 type UpdateUserReq struct {
@@ -67,9 +70,13 @@ type CreateAdminReq struct {
 }
 
 type VSCodeAuthInitReq struct {
-	ClientID    string `json:"client_id" validate:"required"`    // 客户端ID
-	RedirectURI string `json:"redirect_uri" validate:"required"` // 重定向URI
-	State       string `json:"state" validate:"required"`        // 状态
+	ClientID    string           `json:"client_id" validate:"required"`    // 客户端ID
+	RedirectURI string           `json:"redirect_uri" validate:"required"` // 重定向URI
+	State       string           `json:"state" validate:"required"`        // 状态
+	Version     string           `json:"version"`                          // 版本
+	OSType      consts.OSType    `json:"os_type"`                          // 操作系统类型
+	OSRelease   consts.OSRelease `json:"os_release"`                       // 操作系统版本
+	Hostname    string           `json:"hostname"`                         // 主机名
 }
 
 type VSCodeAuthInitResp struct {
@@ -80,6 +87,7 @@ type LoginReq struct {
 	SessionID string `json:"session_id"` // 会话Id
 	Username  string `json:"username"`   // 用户名
 	Password  string `json:"password"`   // 密码
+	IP        string `json:"-"`          // IP地址
 }
 
 type AdminLoginReq struct {
@@ -152,7 +160,10 @@ func (l *UserLoginHistory) From(e *db.UserLoginHistory) *UserLoginHistory {
 		ASN:      e.Asn,
 	}
 	l.ClientVersion = e.ClientVersion
-	l.Device = e.Device
+	l.Device = e.OsType.Name()
+	if e.Hostname != "" {
+		l.Device += fmt.Sprintf(" (%s)", e.Hostname)
+	}
 	l.CreatedAt = e.CreatedAt.Unix()
 
 	return l
@@ -248,9 +259,13 @@ func (a *AdminUser) From(e *db.Admin) *AdminUser {
 }
 
 type VSCodeSession struct {
-	ID          string `json:"id"`           // 会话ID
-	State       string `json:"state"`        // 状态
-	RedirectURI string `json:"redirect_uri"` // 重定向URI
+	ID          string           `json:"id"`           // 会话ID
+	State       string           `json:"state"`        // 状态
+	RedirectURI string           `json:"redirect_uri"` // 重定向URI
+	Version     string           `json:"version"`      // 版本
+	OSType      consts.OSType    `json:"os_type"`      // 操作系统类型
+	OSRelease   consts.OSRelease `json:"os_release"`   // 操作系统版本
+	Hostname    string           `json:"hostname"`     // 主机名
 }
 
 type UpdateSettingReq struct {

@@ -7,6 +7,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/google/uuid"
 )
@@ -96,9 +97,21 @@ func ClientVersion(v string) predicate.UserLoginHistory {
 	return predicate.UserLoginHistory(sql.FieldEQ(FieldClientVersion, v))
 }
 
-// Device applies equality check predicate on the "device" field. It's identical to DeviceEQ.
-func Device(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldEQ(FieldDevice, v))
+// OsType applies equality check predicate on the "os_type" field. It's identical to OsTypeEQ.
+func OsType(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldEQ(FieldOsType, vc))
+}
+
+// OsRelease applies equality check predicate on the "os_release" field. It's identical to OsReleaseEQ.
+func OsRelease(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldEQ(FieldOsRelease, vc))
+}
+
+// Hostname applies equality check predicate on the "hostname" field. It's identical to HostnameEQ.
+func Hostname(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldEQ(FieldHostname, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -126,24 +139,14 @@ func UserIDNotIn(vs ...uuid.UUID) predicate.UserLoginHistory {
 	return predicate.UserLoginHistory(sql.FieldNotIn(FieldUserID, vs...))
 }
 
-// UserIDGT applies the GT predicate on the "user_id" field.
-func UserIDGT(v uuid.UUID) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldGT(FieldUserID, v))
+// UserIDIsNil applies the IsNil predicate on the "user_id" field.
+func UserIDIsNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldIsNull(FieldUserID))
 }
 
-// UserIDGTE applies the GTE predicate on the "user_id" field.
-func UserIDGTE(v uuid.UUID) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldGTE(FieldUserID, v))
-}
-
-// UserIDLT applies the LT predicate on the "user_id" field.
-func UserIDLT(v uuid.UUID) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldLT(FieldUserID, v))
-}
-
-// UserIDLTE applies the LTE predicate on the "user_id" field.
-func UserIDLTE(v uuid.UUID) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldLTE(FieldUserID, v))
+// UserIDNotNil applies the NotNil predicate on the "user_id" field.
+func UserIDNotNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNotNull(FieldUserID))
 }
 
 // IPEQ applies the EQ predicate on the "ip" field.
@@ -461,6 +464,16 @@ func IspHasSuffix(v string) predicate.UserLoginHistory {
 	return predicate.UserLoginHistory(sql.FieldHasSuffix(FieldIsp, v))
 }
 
+// IspIsNil applies the IsNil predicate on the "isp" field.
+func IspIsNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldIsNull(FieldIsp))
+}
+
+// IspNotNil applies the NotNil predicate on the "isp" field.
+func IspNotNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNotNull(FieldIsp))
+}
+
 // IspEqualFold applies the EqualFold predicate on the "isp" field.
 func IspEqualFold(v string) predicate.UserLoginHistory {
 	return predicate.UserLoginHistory(sql.FieldEqualFold(FieldIsp, v))
@@ -524,6 +537,16 @@ func AsnHasPrefix(v string) predicate.UserLoginHistory {
 // AsnHasSuffix applies the HasSuffix predicate on the "asn" field.
 func AsnHasSuffix(v string) predicate.UserLoginHistory {
 	return predicate.UserLoginHistory(sql.FieldHasSuffix(FieldAsn, v))
+}
+
+// AsnIsNil applies the IsNil predicate on the "asn" field.
+func AsnIsNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldIsNull(FieldAsn))
+}
+
+// AsnNotNil applies the NotNil predicate on the "asn" field.
+func AsnNotNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNotNull(FieldAsn))
 }
 
 // AsnEqualFold applies the EqualFold predicate on the "asn" field.
@@ -591,6 +614,16 @@ func ClientVersionHasSuffix(v string) predicate.UserLoginHistory {
 	return predicate.UserLoginHistory(sql.FieldHasSuffix(FieldClientVersion, v))
 }
 
+// ClientVersionIsNil applies the IsNil predicate on the "client_version" field.
+func ClientVersionIsNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldIsNull(FieldClientVersion))
+}
+
+// ClientVersionNotNil applies the NotNil predicate on the "client_version" field.
+func ClientVersionNotNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNotNull(FieldClientVersion))
+}
+
 // ClientVersionEqualFold applies the EqualFold predicate on the "client_version" field.
 func ClientVersionEqualFold(v string) predicate.UserLoginHistory {
 	return predicate.UserLoginHistory(sql.FieldEqualFold(FieldClientVersion, v))
@@ -601,69 +634,267 @@ func ClientVersionContainsFold(v string) predicate.UserLoginHistory {
 	return predicate.UserLoginHistory(sql.FieldContainsFold(FieldClientVersion, v))
 }
 
-// DeviceEQ applies the EQ predicate on the "device" field.
-func DeviceEQ(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldEQ(FieldDevice, v))
+// OsTypeEQ applies the EQ predicate on the "os_type" field.
+func OsTypeEQ(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldEQ(FieldOsType, vc))
 }
 
-// DeviceNEQ applies the NEQ predicate on the "device" field.
-func DeviceNEQ(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldNEQ(FieldDevice, v))
+// OsTypeNEQ applies the NEQ predicate on the "os_type" field.
+func OsTypeNEQ(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldNEQ(FieldOsType, vc))
 }
 
-// DeviceIn applies the In predicate on the "device" field.
-func DeviceIn(vs ...string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldIn(FieldDevice, vs...))
+// OsTypeIn applies the In predicate on the "os_type" field.
+func OsTypeIn(vs ...consts.OSType) predicate.UserLoginHistory {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.UserLoginHistory(sql.FieldIn(FieldOsType, v...))
 }
 
-// DeviceNotIn applies the NotIn predicate on the "device" field.
-func DeviceNotIn(vs ...string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldNotIn(FieldDevice, vs...))
+// OsTypeNotIn applies the NotIn predicate on the "os_type" field.
+func OsTypeNotIn(vs ...consts.OSType) predicate.UserLoginHistory {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.UserLoginHistory(sql.FieldNotIn(FieldOsType, v...))
 }
 
-// DeviceGT applies the GT predicate on the "device" field.
-func DeviceGT(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldGT(FieldDevice, v))
+// OsTypeGT applies the GT predicate on the "os_type" field.
+func OsTypeGT(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldGT(FieldOsType, vc))
 }
 
-// DeviceGTE applies the GTE predicate on the "device" field.
-func DeviceGTE(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldGTE(FieldDevice, v))
+// OsTypeGTE applies the GTE predicate on the "os_type" field.
+func OsTypeGTE(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldGTE(FieldOsType, vc))
 }
 
-// DeviceLT applies the LT predicate on the "device" field.
-func DeviceLT(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldLT(FieldDevice, v))
+// OsTypeLT applies the LT predicate on the "os_type" field.
+func OsTypeLT(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldLT(FieldOsType, vc))
 }
 
-// DeviceLTE applies the LTE predicate on the "device" field.
-func DeviceLTE(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldLTE(FieldDevice, v))
+// OsTypeLTE applies the LTE predicate on the "os_type" field.
+func OsTypeLTE(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldLTE(FieldOsType, vc))
 }
 
-// DeviceContains applies the Contains predicate on the "device" field.
-func DeviceContains(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldContains(FieldDevice, v))
+// OsTypeContains applies the Contains predicate on the "os_type" field.
+func OsTypeContains(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldContains(FieldOsType, vc))
 }
 
-// DeviceHasPrefix applies the HasPrefix predicate on the "device" field.
-func DeviceHasPrefix(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldHasPrefix(FieldDevice, v))
+// OsTypeHasPrefix applies the HasPrefix predicate on the "os_type" field.
+func OsTypeHasPrefix(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldHasPrefix(FieldOsType, vc))
 }
 
-// DeviceHasSuffix applies the HasSuffix predicate on the "device" field.
-func DeviceHasSuffix(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldHasSuffix(FieldDevice, v))
+// OsTypeHasSuffix applies the HasSuffix predicate on the "os_type" field.
+func OsTypeHasSuffix(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldHasSuffix(FieldOsType, vc))
 }
 
-// DeviceEqualFold applies the EqualFold predicate on the "device" field.
-func DeviceEqualFold(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldEqualFold(FieldDevice, v))
+// OsTypeIsNil applies the IsNil predicate on the "os_type" field.
+func OsTypeIsNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldIsNull(FieldOsType))
 }
 
-// DeviceContainsFold applies the ContainsFold predicate on the "device" field.
-func DeviceContainsFold(v string) predicate.UserLoginHistory {
-	return predicate.UserLoginHistory(sql.FieldContainsFold(FieldDevice, v))
+// OsTypeNotNil applies the NotNil predicate on the "os_type" field.
+func OsTypeNotNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNotNull(FieldOsType))
+}
+
+// OsTypeEqualFold applies the EqualFold predicate on the "os_type" field.
+func OsTypeEqualFold(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldEqualFold(FieldOsType, vc))
+}
+
+// OsTypeContainsFold applies the ContainsFold predicate on the "os_type" field.
+func OsTypeContainsFold(v consts.OSType) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldContainsFold(FieldOsType, vc))
+}
+
+// OsReleaseEQ applies the EQ predicate on the "os_release" field.
+func OsReleaseEQ(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldEQ(FieldOsRelease, vc))
+}
+
+// OsReleaseNEQ applies the NEQ predicate on the "os_release" field.
+func OsReleaseNEQ(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldNEQ(FieldOsRelease, vc))
+}
+
+// OsReleaseIn applies the In predicate on the "os_release" field.
+func OsReleaseIn(vs ...consts.OSRelease) predicate.UserLoginHistory {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.UserLoginHistory(sql.FieldIn(FieldOsRelease, v...))
+}
+
+// OsReleaseNotIn applies the NotIn predicate on the "os_release" field.
+func OsReleaseNotIn(vs ...consts.OSRelease) predicate.UserLoginHistory {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.UserLoginHistory(sql.FieldNotIn(FieldOsRelease, v...))
+}
+
+// OsReleaseGT applies the GT predicate on the "os_release" field.
+func OsReleaseGT(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldGT(FieldOsRelease, vc))
+}
+
+// OsReleaseGTE applies the GTE predicate on the "os_release" field.
+func OsReleaseGTE(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldGTE(FieldOsRelease, vc))
+}
+
+// OsReleaseLT applies the LT predicate on the "os_release" field.
+func OsReleaseLT(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldLT(FieldOsRelease, vc))
+}
+
+// OsReleaseLTE applies the LTE predicate on the "os_release" field.
+func OsReleaseLTE(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldLTE(FieldOsRelease, vc))
+}
+
+// OsReleaseContains applies the Contains predicate on the "os_release" field.
+func OsReleaseContains(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldContains(FieldOsRelease, vc))
+}
+
+// OsReleaseHasPrefix applies the HasPrefix predicate on the "os_release" field.
+func OsReleaseHasPrefix(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldHasPrefix(FieldOsRelease, vc))
+}
+
+// OsReleaseHasSuffix applies the HasSuffix predicate on the "os_release" field.
+func OsReleaseHasSuffix(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldHasSuffix(FieldOsRelease, vc))
+}
+
+// OsReleaseIsNil applies the IsNil predicate on the "os_release" field.
+func OsReleaseIsNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldIsNull(FieldOsRelease))
+}
+
+// OsReleaseNotNil applies the NotNil predicate on the "os_release" field.
+func OsReleaseNotNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNotNull(FieldOsRelease))
+}
+
+// OsReleaseEqualFold applies the EqualFold predicate on the "os_release" field.
+func OsReleaseEqualFold(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldEqualFold(FieldOsRelease, vc))
+}
+
+// OsReleaseContainsFold applies the ContainsFold predicate on the "os_release" field.
+func OsReleaseContainsFold(v consts.OSRelease) predicate.UserLoginHistory {
+	vc := string(v)
+	return predicate.UserLoginHistory(sql.FieldContainsFold(FieldOsRelease, vc))
+}
+
+// HostnameEQ applies the EQ predicate on the "hostname" field.
+func HostnameEQ(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldEQ(FieldHostname, v))
+}
+
+// HostnameNEQ applies the NEQ predicate on the "hostname" field.
+func HostnameNEQ(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNEQ(FieldHostname, v))
+}
+
+// HostnameIn applies the In predicate on the "hostname" field.
+func HostnameIn(vs ...string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldIn(FieldHostname, vs...))
+}
+
+// HostnameNotIn applies the NotIn predicate on the "hostname" field.
+func HostnameNotIn(vs ...string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNotIn(FieldHostname, vs...))
+}
+
+// HostnameGT applies the GT predicate on the "hostname" field.
+func HostnameGT(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldGT(FieldHostname, v))
+}
+
+// HostnameGTE applies the GTE predicate on the "hostname" field.
+func HostnameGTE(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldGTE(FieldHostname, v))
+}
+
+// HostnameLT applies the LT predicate on the "hostname" field.
+func HostnameLT(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldLT(FieldHostname, v))
+}
+
+// HostnameLTE applies the LTE predicate on the "hostname" field.
+func HostnameLTE(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldLTE(FieldHostname, v))
+}
+
+// HostnameContains applies the Contains predicate on the "hostname" field.
+func HostnameContains(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldContains(FieldHostname, v))
+}
+
+// HostnameHasPrefix applies the HasPrefix predicate on the "hostname" field.
+func HostnameHasPrefix(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldHasPrefix(FieldHostname, v))
+}
+
+// HostnameHasSuffix applies the HasSuffix predicate on the "hostname" field.
+func HostnameHasSuffix(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldHasSuffix(FieldHostname, v))
+}
+
+// HostnameIsNil applies the IsNil predicate on the "hostname" field.
+func HostnameIsNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldIsNull(FieldHostname))
+}
+
+// HostnameNotNil applies the NotNil predicate on the "hostname" field.
+func HostnameNotNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNotNull(FieldHostname))
+}
+
+// HostnameEqualFold applies the EqualFold predicate on the "hostname" field.
+func HostnameEqualFold(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldEqualFold(FieldHostname, v))
+}
+
+// HostnameContainsFold applies the ContainsFold predicate on the "hostname" field.
+func HostnameContainsFold(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldContainsFold(FieldHostname, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

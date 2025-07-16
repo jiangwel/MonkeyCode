@@ -12,6 +12,7 @@ require (
 	github.com/google/wire v0.6.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/lib/pq v1.10.9
+	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20250630080345-f9402614f6ba
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/redis/go-redis/v9 v9.7.3
 	github.com/rokku-c/go-openai v1.35.7-fix2

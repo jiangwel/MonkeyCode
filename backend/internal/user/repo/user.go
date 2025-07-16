@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 
 	"github.com/GoYoko/web"
@@ -13,21 +14,25 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
+	"github.com/chaitin/MonkeyCode/backend/db/adminloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
+	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/errcode"
 	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
+	"github.com/chaitin/MonkeyCode/backend/pkg/ipdb"
 )
 
 type UserRepo struct {
-	db *db.Client
+	db   *db.Client
+	ipdb *ipdb.IPDB
 }
 
-func NewUserRepo(db *db.Client) domain.UserRepo {
-	return &UserRepo{db: db}
+func NewUserRepo(db *db.Client, ipdb *ipdb.IPDB) domain.UserRepo {
+	return &UserRepo{db: db, ipdb: ipdb}
 }
 
 func (r *UserRepo) InitAdmin(ctx context.Context, username, password string) error {
@@ -115,12 +120,12 @@ func (r *UserRepo) CreateUser(ctx context.Context, user *db.User) (*db.User, err
 }
 
 func (r *UserRepo) UserLoginHistory(ctx context.Context, page *web.Pagination) ([]*db.UserLoginHistory, *db.PageInfo, error) {
-	q := r.db.UserLoginHistory.Query()
+	q := r.db.UserLoginHistory.Query().WithOwner().Order(userloginhistory.ByCreatedAt(sql.OrderDesc()))
 	return q.Page(ctx, page.Page, page.Size)
 }
 
 func (r *UserRepo) AdminLoginHistory(ctx context.Context, page *web.Pagination) ([]*db.AdminLoginHistory, *db.PageInfo, error) {
-	q := r.db.AdminLoginHistory.Query()
+	q := r.db.AdminLoginHistory.Query().WithOwner().Order(adminloginhistory.ByCreatedAt(sql.OrderDesc()))
 	return q.Page(ctx, page.Page, page.Size)
 }
 
@@ -368,4 +373,46 @@ func (r *UserRepo) SignUpOrIn(ctx context.Context, platform consts.UserPlatform,
 		return nil
 	})
 	return u, err
+}
+
+func (r *UserRepo) SaveAdminLoginHistory(ctx context.Context, adminID string, ip string) error {
+	uid, err := uuid.Parse(adminID)
+	if err != nil {
+		return err
+	}
+	addr, err := r.ipdb.Lookup(ip)
+	if err != nil {
+		return err
+	}
+	_, err = r.db.AdminLoginHistory.Create().
+		SetAdminID(uid).
+		SetIP(ip).
+		SetCity(addr.City).
+		SetCountry(addr.Country).
+		SetProvince(addr.Province).
+		Save(ctx)
+	return err
+}
+
+func (r *UserRepo) SaveUserLoginHistory(ctx context.Context, userID string, ip string, session *domain.VSCodeSession) error {
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		return err
+	}
+	addr, err := r.ipdb.Lookup(ip)
+	if err != nil {
+		return err
+	}
+	_, err = r.db.UserLoginHistory.Create().
+		SetUserID(uid).
+		SetIP(ip).
+		SetCity(addr.City).
+		SetCountry(addr.Country).
+		SetProvince(addr.Province).
+		SetClientVersion(session.Version).
+		SetOsType(session.OSType).
+		SetOsRelease(session.OSRelease).
+		SetHostname(session.Hostname).
+		Save(ctx)
+	return err
 }

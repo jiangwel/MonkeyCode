@@ -28,17 +28,16 @@ var (
 	// AdminLoginHistoriesColumns holds the columns for the "admin_login_histories" table.
 	AdminLoginHistoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "admin_id", Type: field.TypeUUID},
 		{Name: "ip", Type: field.TypeString},
 		{Name: "country", Type: field.TypeString},
 		{Name: "province", Type: field.TypeString},
 		{Name: "city", Type: field.TypeString},
-		{Name: "isp", Type: field.TypeString},
-		{Name: "asn", Type: field.TypeString},
-		{Name: "client_version", Type: field.TypeString},
-		{Name: "device", Type: field.TypeString},
+		{Name: "isp", Type: field.TypeString, Nullable: true},
+		{Name: "asn", Type: field.TypeString, Nullable: true},
+		{Name: "client_version", Type: field.TypeString, Nullable: true},
+		{Name: "device", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "admin_login_histories", Type: field.TypeUUID, Nullable: true},
+		{Name: "admin_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// AdminLoginHistoriesTable holds the schema information for the "admin_login_histories" table.
 	AdminLoginHistoriesTable = &schema.Table{
@@ -48,7 +47,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "admin_login_histories_admins_login_histories",
-				Columns:    []*schema.Column{AdminLoginHistoriesColumns[11]},
+				Columns:    []*schema.Column{AdminLoginHistoriesColumns[10]},
 				RefColumns: []*schema.Column{AdminsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -370,17 +369,18 @@ var (
 	// UserLoginHistoriesColumns holds the columns for the "user_login_histories" table.
 	UserLoginHistoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "user_id", Type: field.TypeUUID},
 		{Name: "ip", Type: field.TypeString},
 		{Name: "country", Type: field.TypeString},
 		{Name: "province", Type: field.TypeString},
 		{Name: "city", Type: field.TypeString},
-		{Name: "isp", Type: field.TypeString},
-		{Name: "asn", Type: field.TypeString},
-		{Name: "client_version", Type: field.TypeString},
-		{Name: "device", Type: field.TypeString},
+		{Name: "isp", Type: field.TypeString, Nullable: true},
+		{Name: "asn", Type: field.TypeString, Nullable: true},
+		{Name: "client_version", Type: field.TypeString, Nullable: true},
+		{Name: "os_type", Type: field.TypeString, Nullable: true},
+		{Name: "os_release", Type: field.TypeString, Nullable: true},
+		{Name: "hostname", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "user_login_histories", Type: field.TypeUUID, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// UserLoginHistoriesTable holds the schema information for the "user_login_histories" table.
 	UserLoginHistoriesTable = &schema.Table{
@@ -390,7 +390,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_login_histories_users_login_histories",
-				Columns:    []*schema.Column{UserLoginHistoriesColumns[11]},
+				Columns:    []*schema.Column{UserLoginHistoriesColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
