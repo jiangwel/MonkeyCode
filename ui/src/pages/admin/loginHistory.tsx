@@ -23,17 +23,15 @@ const LoginHistory = () => {
       },
     },
     {
-      title: 'IP 地址',
+      title: '源 IP 地址',
       dataIndex: 'ip',
       render: (ip, record) => {
-        let address = '';
-        if (record?.ip_info) {
-          address = `${record?.ip_info?.country}-${record?.ip_info?.city}`;
-        }
         return (
-          <Stack direction='row'>
-            <Box>{ip}</Box>
-            <Box sx={{ color: 'text.secondary' }}>（{address}）</Box>
+          <Stack direction='column'>
+            <Box>{record?.ip_info?.ip}</Box>
+            <Box sx={{ color: 'text.secondary' }}>
+              {record?.ip_info?.country === '中国' ? ('' + record?.ip_info?.province + '-' + record?.ip_info?.city) : (record?.ip_info?.country || '未知')}
+            </Box>
           </Stack>
         );
       },
@@ -47,14 +45,14 @@ const LoginHistory = () => {
     },
   ];
   return (
-    <Card>
+    <Card sx={{ height: '100%' }}>
       <Stack
         direction='row'
         justifyContent='space-between'
         alignItems='center'
         sx={{ mb: 2 }}
       >
-        <Box sx={{ fontWeight: 700 }}>登录记录</Box>
+        <Box sx={{ fontWeight: 700, lineHeight: '36px' }}>登录记录</Box>
       </Stack>
       <Table
         columns={columns}
