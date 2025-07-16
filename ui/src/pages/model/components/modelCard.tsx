@@ -116,17 +116,15 @@ const ModelItem = ({
             }
             sx={{ fontSize: 24 }}
           />
-          <Stack direction='row' alignItems='center' gap={1}>
-            {data.show_name && (
-              <Box sx={{ fontSize: 14, color: 'text.tertiary' }}>
-                {data.show_name} /
-              </Box>
-            )}
-            <Box sx={{ fontWeight: 700 }}>{data.model_name}</Box>
+          <Stack direction='row' alignItems='center' gap={1} sx={{ fontSize: 14, minWidth: 0 }}>
+            <Box sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {data.show_name || '未命名'}
+            </Box>
+            <Box sx={{ color: 'text.tertiary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              / {data.model_name}
+            </Box>
           </Stack>
         </Stack>
-
-        {data.is_active && <StyledLabel color='success'>正在使用</StyledLabel>}
       </Stack>
       <Stack
         gap={1}
@@ -157,18 +155,21 @@ const ModelItem = ({
         </Stack>
       </Stack>
       <Stack
-        direction='row-reverse'
+        direction='row'
         justifyContent='space-between'
+        alignItems='center'
         gap={2}
         sx={{ mt: 2 }}
       >
+        <Stack direction='row' alignItems='center'>
+          {data.is_active && <StyledLabel color='success'>正在使用</StyledLabel>}
+        </Stack>
         <Stack
           direction='row'
-          justifySelf='flex-end'
           sx={{ button: { minWidth: 0 } }}
           gap={2}
         >
-          <ButtonBase
+          {!data.is_internal && <ButtonBase
             disableRipple
             sx={{
               color: 'info.main',
@@ -176,7 +177,7 @@ const ModelItem = ({
             onClick={() => onEdit(data)}
           >
             编辑
-          </ButtonBase>
+          </ButtonBase>}
           {!data.is_active && (
             <ButtonBase
               disableRipple
@@ -244,7 +245,10 @@ const ModelCard: React.FC<IModelCardProps> = ({ title, modelType }) => {
       {modelList?.length > 0 ? (
         <Grid container spacing={2} sx={{ mt: 2 }}>
           {modelList.map((item) => (
-            <Grid size={4} key={item.id}>
+            <Grid
+              size={{ xs: 12, sm: 12, md: 12, lg: 6, xl: 4 }}
+              key={item.id}
+            >
               <ModelItem data={item} onEdit={onEdit} refresh={refresh} />
             </Grid>
           ))}
