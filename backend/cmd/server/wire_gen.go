@@ -10,7 +10,6 @@ import (
 	"github.com/GoYoko/web"
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db"
-	"github.com/chaitin/MonkeyCode/backend/domain"
 	v1_5 "github.com/chaitin/MonkeyCode/backend/internal/billing/handler/http/v1"
 	repo7 "github.com/chaitin/MonkeyCode/backend/internal/billing/repo"
 	usecase6 "github.com/chaitin/MonkeyCode/backend/internal/billing/usecase"
@@ -56,7 +55,7 @@ func newServer() (*Server, error) {
 	proxyRepo := repo.NewProxyRepo(client)
 	modelRepo := repo2.NewModelRepo(client)
 	proxyUsecase := usecase.NewProxyUsecase(proxyRepo, modelRepo)
-	domainProxy := proxy.NewLLMProxy(proxyUsecase, configConfig, slogLogger)
+	llmProxy := proxy.NewLLMProxy(slogLogger, configConfig, proxyUsecase)
 	openAIRepo := repo3.NewOpenAIRepo(client)
 	openAIUsecase := openai.NewOpenAIUsecase(configConfig, openAIRepo, slogLogger)
 	extensionRepo := repo4.NewExtensionRepo(client)
@@ -64,7 +63,7 @@ func newServer() (*Server, error) {
 	proxyMiddleware := middleware.NewProxyMiddleware(proxyUsecase)
 	redisClient := store.NewRedisCli(configConfig)
 	activeMiddleware := middleware.NewActiveMiddleware(redisClient, slogLogger)
-	v1Handler := v1.NewV1Handler(slogLogger, web, domainProxy, openAIUsecase, extensionUsecase, proxyMiddleware, activeMiddleware, configConfig)
+	v1Handler := v1.NewV1Handler(slogLogger, web, llmProxy, proxyUsecase, openAIUsecase, extensionUsecase, proxyMiddleware, activeMiddleware, configConfig)
 	modelUsecase := usecase3.NewModelUsecase(slogLogger, modelRepo, configConfig)
 	sessionSession := session.NewSession(configConfig)
 	authMiddleware := middleware.NewAuthMiddleware(sessionSession, slogLogger)
@@ -83,7 +82,6 @@ func newServer() (*Server, error) {
 		web:         web,
 		ent:         client,
 		logger:      slogLogger,
-		proxy:       domainProxy,
 		openaiV1:    v1Handler,
 		modelV1:     modelHandler,
 		userV1:      userHandler,
@@ -100,7 +98,6 @@ type Server struct {
 	web         *web.Web
 	ent         *db.Client
 	logger      *slog.Logger
-	proxy       domain.Proxy
 	openaiV1    *v1.V1Handler
 	modelV1     *v1_2.ModelHandler
 	userV1      *v1_3.UserHandler

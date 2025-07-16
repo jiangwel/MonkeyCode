@@ -3,10 +3,9 @@ package domain
 import (
 	"context"
 
-	"github.com/rokku-c/go-openai"
-
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
+	"github.com/rokku-c/go-openai"
 )
 
 type OpenAIUsecase interface {
@@ -21,7 +20,6 @@ type OpenAIRepo interface {
 
 type CompletionRequest struct {
 	openai.CompletionRequest
-
 	Metadata map[string]string `json:"metadata"`
 }
 

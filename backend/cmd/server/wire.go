@@ -12,7 +12,6 @@ import (
 
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db"
-	"github.com/chaitin/MonkeyCode/backend/domain"
 	billingv1 "github.com/chaitin/MonkeyCode/backend/internal/billing/handler/http/v1"
 	dashv1 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/handler/v1"
 	v1 "github.com/chaitin/MonkeyCode/backend/internal/model/handler/http/v1"
@@ -25,7 +24,6 @@ type Server struct {
 	web         *web.Web
 	ent         *db.Client
 	logger      *slog.Logger
-	proxy       domain.Proxy
 	openaiV1    *openaiV1.V1Handler
 	modelV1     *v1.ModelHandler
 	userV1      *userV1.UserHandler

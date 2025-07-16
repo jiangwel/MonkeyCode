@@ -6,27 +6,29 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/rokku-c/go-openai"
 
 	"github.com/GoYoko/web"
 
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/internal/middleware"
+	"github.com/chaitin/MonkeyCode/backend/internal/proxy"
 )
 
 type V1Handler struct {
-	logger  *slog.Logger
-	proxy   domain.Proxy
-	usecase domain.OpenAIUsecase
-	euse    domain.ExtensionUsecase
-	config  *config.Config
+	logger   *slog.Logger
+	proxy    *proxy.LLMProxy
+	proxyUse domain.ProxyUsecase
+	usecase  domain.OpenAIUsecase
+	euse     domain.ExtensionUsecase
+	config   *config.Config
 }
 
 func NewV1Handler(
 	logger *slog.Logger,
 	w *web.Web,
-	proxy domain.Proxy,
+	proxy *proxy.LLMProxy,
+	proxyUse domain.ProxyUsecase,
 	usecase domain.OpenAIUsecase,
 	euse domain.ExtensionUsecase,
 	middleware *middleware.ProxyMiddleware,
@@ -34,21 +36,23 @@ func NewV1Handler(
 	config *config.Config,
 ) *V1Handler {
 	h := &V1Handler{
-		logger:  logger.With(slog.String("handler", "openai")),
-		proxy:   proxy,
-		usecase: usecase,
-		euse:    euse,
-		config:  config,
+		logger:   logger.With(slog.String("handler", "openai")),
+		proxy:    proxy,
+		proxyUse: proxyUse,
+		usecase:  usecase,
+		euse:     euse,
+		config:   config,
 	}
+
 	w.GET("/api/config", web.BindHandler(h.GetConfig), middleware.Auth())
 	w.GET("/v1/version", web.BaseHandler(h.Version), middleware.Auth())
 
 	g := w.Group("/v1", middleware.Auth())
 	g.GET("/models", web.BaseHandler(h.ModelList))
 	g.POST("/completion/accept", web.BindHandler(h.AcceptCompletion), active.Active())
-	g.POST("/chat/completions", web.BindHandler(h.ChatCompletion), active.Active())
-	g.POST("/completions", web.BindHandler(h.Completions), active.Active())
-	g.POST("/embeddings", web.BindHandler(h.Embeddings), active.Active())
+	g.POST("/chat/completions", web.BaseHandler(h.ChatCompletion), active.Active())
+	g.POST("/completions", web.BaseHandler(h.Completions), active.Active())
+	g.POST("/embeddings", web.BaseHandler(h.Embeddings), active.Active())
 	return h
 }
 
@@ -86,7 +90,7 @@ func (h *V1Handler) Version(c *web.Context) error {
 //	@Success		200		{object}	web.Resp{}
 //	@Router			/v1/completion/accept [post]
 func (h *V1Handler) AcceptCompletion(c *web.Context, req domain.AcceptCompletionReq) error {
-	if err := h.proxy.AcceptCompletion(c.Request().Context(), &req); err != nil {
+	if err := h.proxyUse.AcceptCompletion(c.Request().Context(), &req); err != nil {
 		return BadRequest(c, err.Error())
 	}
 	return nil
@@ -120,19 +124,8 @@ func (h *V1Handler) ModelList(c *web.Context) error {
 //	@Produce		json
 //	@Success		200	{object}	web.Resp{}
 //	@Router			/v1/chat/completions [post]
-func (h *V1Handler) ChatCompletion(c *web.Context, req openai.ChatCompletionRequest) error {
-	// TODO: 记录请求到文件
-	if req.Model == "" {
-		return BadRequest(c, "模型不能为空")
-	}
-
-	// if len(req.Tools) > 0 && req.Model != "qwen-max" {
-	// 	if h.toolsCall(c, req, req.Stream, req.Model) {
-	// 		return nil
-	// 	}
-	// }
-
-	h.proxy.HandleChatCompletion(c.Request().Context(), c.Response(), &req)
+func (h *V1Handler) ChatCompletion(c *web.Context) error {
+	h.proxy.ServeHTTP(c.Response(), c.Request())
 	return nil
 }
 
@@ -146,13 +139,8 @@ func (h *V1Handler) ChatCompletion(c *web.Context, req openai.ChatCompletionRequ
 //	@Produce		json
 //	@Success		200	{object}	web.Resp{}
 //	@Router			/v1/completions [post]
-func (h *V1Handler) Completions(c *web.Context, req domain.CompletionRequest) error {
-	// TODO: 记录请求到文件
-	if req.Model == "" {
-		return BadRequest(c, "模型不能为空")
-	}
-	h.logger.With("request", req).DebugContext(c.Request().Context(), "处理文本补全请求")
-	h.proxy.HandleCompletion(c.Request().Context(), c.Response(), req)
+func (h *V1Handler) Completions(c *web.Context) error {
+	h.proxy.ServeHTTP(c.Response(), c.Request())
 	return nil
 }
 
@@ -166,12 +154,8 @@ func (h *V1Handler) Completions(c *web.Context, req domain.CompletionRequest) er
 //	@Produce		json
 //	@Success		200	{object}	web.Resp{}
 //	@Router			/v1/embeddings [post]
-func (h *V1Handler) Embeddings(c *web.Context, req openai.EmbeddingRequest) error {
-	if req.Model == "" {
-		return BadRequest(c, "模型不能为空")
-	}
-
-	h.proxy.HandleEmbeddings(c.Request().Context(), c.Response(), &req)
+func (h *V1Handler) Embeddings(c *web.Context) error {
+	h.proxy.ServeHTTP(c.Response(), c.Request())
 	return nil
 }
 

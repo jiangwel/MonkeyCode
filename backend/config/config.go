@@ -64,6 +64,7 @@ type Config struct {
 
 	Extension struct {
 		Baseurl string `mapstructure:"baseurl"`
+		Limit   int    `mapstructure:"limit"`
 	} `mapstructure:"extension"`
 }
 
@@ -99,6 +100,7 @@ func Init() (*Config, error) {
 	v.SetDefault("init_model.key", "")
 	v.SetDefault("init_model.url", "https://model-square.app.baizhi.cloud/v1")
 	v.SetDefault("extension.baseurl", "https://release.baizhi.cloud")
+	v.SetDefault("extension.limit", 10)
 
 	c := Config{}
 	if err := v.Unmarshal(&c); err != nil {
