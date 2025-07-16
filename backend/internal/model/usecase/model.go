@@ -225,6 +225,9 @@ func (m *ModelUsecase) Update(ctx context.Context, req *domain.UpdateModelReq) (
 		if req.APIHeader != nil {
 			up.SetAPIHeader(*req.APIHeader)
 		}
+		if req.ShowName != nil {
+			up.SetShowName(*req.ShowName)
+		}
 		if req.Status != nil {
 			if *req.Status == consts.ModelStatusActive {
 				if err := tx.Model.Update().
