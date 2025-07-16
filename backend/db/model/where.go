@@ -103,6 +103,11 @@ func Description(v string) predicate.Model {
 	return predicate.Model(sql.FieldEQ(FieldDescription, v))
 }
 
+// IsInternal applies equality check predicate on the "is_internal" field. It's identical to IsInternalEQ.
+func IsInternal(v bool) predicate.Model {
+	return predicate.Model(sql.FieldEQ(FieldIsInternal, v))
+}
+
 // Provider applies equality check predicate on the "provider" field. It's identical to ProviderEQ.
 func Provider(v consts.ModelProvider) predicate.Model {
 	vc := string(v)
@@ -737,6 +742,16 @@ func DescriptionEqualFold(v string) predicate.Model {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.Model {
 	return predicate.Model(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// IsInternalEQ applies the EQ predicate on the "is_internal" field.
+func IsInternalEQ(v bool) predicate.Model {
+	return predicate.Model(sql.FieldEQ(FieldIsInternal, v))
+}
+
+// IsInternalNEQ applies the NEQ predicate on the "is_internal" field.
+func IsInternalNEQ(v bool) predicate.Model {
+	return predicate.Model(sql.FieldNEQ(FieldIsInternal, v))
 }
 
 // ProviderEQ applies the EQ predicate on the "provider" field.

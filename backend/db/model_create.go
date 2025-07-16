@@ -121,6 +121,20 @@ func (mc *ModelCreate) SetNillableDescription(s *string) *ModelCreate {
 	return mc
 }
 
+// SetIsInternal sets the "is_internal" field.
+func (mc *ModelCreate) SetIsInternal(b bool) *ModelCreate {
+	mc.mutation.SetIsInternal(b)
+	return mc
+}
+
+// SetNillableIsInternal sets the "is_internal" field if the given value is not nil.
+func (mc *ModelCreate) SetNillableIsInternal(b *bool) *ModelCreate {
+	if b != nil {
+		mc.SetIsInternal(*b)
+	}
+	return mc
+}
+
 // SetProvider sets the "provider" field.
 func (mc *ModelCreate) SetProvider(cp consts.ModelProvider) *ModelCreate {
 	mc.mutation.SetProvider(cp)
@@ -244,6 +258,10 @@ func (mc *ModelCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (mc *ModelCreate) defaults() {
+	if _, ok := mc.mutation.IsInternal(); !ok {
+		v := model.DefaultIsInternal
+		mc.mutation.SetIsInternal(v)
+	}
 	if _, ok := mc.mutation.Status(); !ok {
 		v := model.DefaultStatus
 		mc.mutation.SetStatus(v)
@@ -271,6 +289,9 @@ func (mc *ModelCreate) check() error {
 	}
 	if _, ok := mc.mutation.APIKey(); !ok {
 		return &ValidationError{Name: "api_key", err: errors.New(`db: missing required field "Model.api_key"`)}
+	}
+	if _, ok := mc.mutation.IsInternal(); !ok {
+		return &ValidationError{Name: "is_internal", err: errors.New(`db: missing required field "Model.is_internal"`)}
 	}
 	if _, ok := mc.mutation.Provider(); !ok {
 		return &ValidationError{Name: "provider", err: errors.New(`db: missing required field "Model.provider"`)}
@@ -351,6 +372,10 @@ func (mc *ModelCreate) createSpec() (*Model, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.Description(); ok {
 		_spec.SetField(model.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := mc.mutation.IsInternal(); ok {
+		_spec.SetField(model.FieldIsInternal, field.TypeBool, value)
+		_node.IsInternal = value
 	}
 	if value, ok := mc.mutation.Provider(); ok {
 		_spec.SetField(model.FieldProvider, field.TypeString, value)
@@ -592,6 +617,18 @@ func (u *ModelUpsert) UpdateDescription() *ModelUpsert {
 // ClearDescription clears the value of the "description" field.
 func (u *ModelUpsert) ClearDescription() *ModelUpsert {
 	u.SetNull(model.FieldDescription)
+	return u
+}
+
+// SetIsInternal sets the "is_internal" field.
+func (u *ModelUpsert) SetIsInternal(v bool) *ModelUpsert {
+	u.Set(model.FieldIsInternal, v)
+	return u
+}
+
+// UpdateIsInternal sets the "is_internal" field to the value that was provided on create.
+func (u *ModelUpsert) UpdateIsInternal() *ModelUpsert {
+	u.SetExcluded(model.FieldIsInternal)
 	return u
 }
 
@@ -873,6 +910,20 @@ func (u *ModelUpsertOne) UpdateDescription() *ModelUpsertOne {
 func (u *ModelUpsertOne) ClearDescription() *ModelUpsertOne {
 	return u.Update(func(s *ModelUpsert) {
 		s.ClearDescription()
+	})
+}
+
+// SetIsInternal sets the "is_internal" field.
+func (u *ModelUpsertOne) SetIsInternal(v bool) *ModelUpsertOne {
+	return u.Update(func(s *ModelUpsert) {
+		s.SetIsInternal(v)
+	})
+}
+
+// UpdateIsInternal sets the "is_internal" field to the value that was provided on create.
+func (u *ModelUpsertOne) UpdateIsInternal() *ModelUpsertOne {
+	return u.Update(func(s *ModelUpsert) {
+		s.UpdateIsInternal()
 	})
 }
 
@@ -1333,6 +1384,20 @@ func (u *ModelUpsertBulk) UpdateDescription() *ModelUpsertBulk {
 func (u *ModelUpsertBulk) ClearDescription() *ModelUpsertBulk {
 	return u.Update(func(s *ModelUpsert) {
 		s.ClearDescription()
+	})
+}
+
+// SetIsInternal sets the "is_internal" field.
+func (u *ModelUpsertBulk) SetIsInternal(v bool) *ModelUpsertBulk {
+	return u.Update(func(s *ModelUpsert) {
+		s.SetIsInternal(v)
+	})
+}
+
+// UpdateIsInternal sets the "is_internal" field to the value that was provided on create.
+func (u *ModelUpsertBulk) UpdateIsInternal() *ModelUpsertBulk {
+	return u.Update(func(s *ModelUpsert) {
+		s.UpdateIsInternal()
 	})
 }
 
