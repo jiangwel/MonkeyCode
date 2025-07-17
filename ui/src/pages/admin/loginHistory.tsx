@@ -40,7 +40,12 @@ const LoginHistory = () => {
       title: '登录时间',
       dataIndex: 'created_at',
       render: (text) => {
-        return dayjs.unix(text).format('YYYY-MM-DD HH:mm:ss');
+        return (
+          <Stack direction='column'>
+            <Box>{dayjs.unix(text).format('YYYY-MM-DD')}</Box>
+            <Box>{dayjs.unix(text).format('HH:mm:ss')}</Box>
+          </Stack>
+        )
       },
     },
   ];
@@ -52,7 +57,7 @@ const LoginHistory = () => {
         alignItems='center'
         sx={{ mb: 2 }}
       >
-        <Box sx={{ fontWeight: 700, lineHeight: '36px' }}>登录记录</Box>
+        <Box sx={{ fontWeight: 700, lineHeight: '36px' }}>管理员登录记录</Box>
       </Stack>
       <Table
         columns={columns}

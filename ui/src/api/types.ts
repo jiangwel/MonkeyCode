@@ -629,6 +629,8 @@ export interface DomainUser {
   two_step_auth?: boolean;
   /** 用户名 */
   username?: string;
+  /** 是否被删除 */
+  is_deleted?: boolean;
 }
 
 export interface DomainUserCodeRank {
@@ -658,10 +660,14 @@ export interface DomainUserHeatmapResp {
 export interface DomainUserLoginHistory {
   /** 客户端版本 */
   client_version?: string;
+  /** 客户端类型 */
+  client_id?: string;
   /** 登录时间 */
   created_at?: number;
   /** 设备信息 */
   device?: string;
+  /** 主机名 */
+  hostname?: string;
   /** IP信息 */
   ip_info?: DomainIPInfo;
   /** 用户信息 */

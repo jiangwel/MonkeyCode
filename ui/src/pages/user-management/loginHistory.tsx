@@ -20,35 +20,62 @@ const LoginHistory = () => {
       dataIndex: 'user',
       render: (user, record) => {
         return (
-          <User
-            username={record.user!.username!}
-            id={record.user!.id!}
-            email={record.user!.email!}
-            avatar={record.user!.avatar_url!}
-          />
+          <Box sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <User
+              username={record.user!.username!}
+              id={record.user!.id!}
+              email={record.user!.email!}
+              avatar={record.user!.avatar_url!}
+              deleted={record.user!.is_deleted!}
+            />
+          </Box>
         );
       },
     },
     {
       title: '设备',
       dataIndex: 'device',
+      render: (ip, record) => {
+        return (
+          <Stack direction='column'>
+            <Box sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {record?.device}
+            </Box>
+            <Box sx={{ color: 'text.secondary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {record?.hostname}
+            </Box>
+          </Stack>
+        );
+      },
     },
     {
-      title: '客户端版本',
-      dataIndex: 'client_version',
+      title: '客户端',
+      dataIndex: 'client',
+      render: (ip, record) => {
+        return (
+          <Stack direction='column'>
+            <Box sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {record?.client_id}
+            </Box>
+            <Box sx={{ color: 'text.secondary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {record?.client_version}
+            </Box>
+          </Stack>
+        );
+      },
     },
     {
-      title: 'IP 地址',
+      title: '源 IP 地址',
       dataIndex: 'ip',
       render: (ip, record) => {
-        let address = '';
-        if (record?.ip_info) {
-          address = `${record?.ip_info?.country}-${record?.ip_info?.city}`;
-        }
         return (
-          <Stack direction='row'>
-            <Box>{ip}</Box>
-            <Box sx={{ color: 'text.secondary' }}>（{address}）</Box>
+          <Stack direction='column'>
+            <Box sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {record?.ip_info?.ip}
+            </Box>
+            <Box sx={{ color: 'text.secondary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {record?.ip_info?.country === '中国' ? ('' + record?.ip_info?.province + '-' + record?.ip_info?.city) : (record?.ip_info?.country || '未知')}
+            </Box>
           </Stack>
         );
       },
@@ -57,7 +84,16 @@ const LoginHistory = () => {
       title: '登录时间',
       dataIndex: 'created_at',
       render: (text) => {
-        return dayjs.unix(text).format('YYYY-MM-DD HH:mm:ss');
+        return (
+          <Stack direction='column'>
+            <Box sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {dayjs.unix(text).format('YYYY-MM-DD')}
+            </Box>
+            <Box sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {dayjs.unix(text).format('HH:mm:ss')}
+            </Box>
+          </Stack>
+        )
       },
     },
   ];
@@ -69,7 +105,7 @@ const LoginHistory = () => {
         alignItems='center'
         sx={{ mb: 2 }}
       >
-        <Box sx={{ fontWeight: 700 }}>登录历史</Box>
+        <Box sx={{ fontWeight: 700 }}>成员登录记录</Box>
       </Stack>
       <Table
         height='calc(100% - 40px)'
