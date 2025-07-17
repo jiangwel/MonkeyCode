@@ -3441,6 +3441,10 @@
                     "description": "用户ID",
                     "type": "string"
                 },
+                "is_deleted": {
+                    "description": "是否删除",
+                    "type": "boolean"
+                },
                 "last_active_at": {
                     "description": "最后活跃时间",
                     "type": "integer"
@@ -3517,6 +3521,10 @@
         "domain.UserLoginHistory": {
             "type": "object",
             "properties": {
+                "client_id": {
+                    "description": "插件ID vscode",
+                    "type": "string"
+                },
                 "client_version": {
                     "description": "客户端版本",
                     "type": "string"
@@ -3527,6 +3535,10 @@
                 },
                 "device": {
                     "description": "设备信息",
+                    "type": "string"
+                },
+                "hostname": {
+                    "description": "主机名",
                     "type": "string"
                 },
                 "ip_info": {

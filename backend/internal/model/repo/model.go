@@ -249,5 +249,15 @@ func (r *ModelRepo) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+	model, err := r.db.Model.Get(ctx, uuidID)
+	if err != nil {
+		return err
+	}
+	if model.IsInternal {
+		return fmt.Errorf("internal model can not be deleted")
+	}
+	if model.Status == consts.ModelStatusActive {
+		return fmt.Errorf("active model can not be deleted")
+	}
 	return r.db.Model.DeleteOneID(uuidID).Exec(ctx)
 }
