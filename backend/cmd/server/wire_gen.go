@@ -53,7 +53,8 @@ func newServer() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	proxyRepo := repo.NewProxyRepo(client)
+	redisClient := store.NewRedisCli(configConfig)
+	proxyRepo := repo.NewProxyRepo(client, redisClient)
 	modelRepo := repo2.NewModelRepo(client)
 	proxyUsecase := usecase.NewProxyUsecase(proxyRepo, modelRepo)
 	llmProxy := proxy.NewLLMProxy(slogLogger, configConfig, proxyUsecase)
@@ -62,7 +63,6 @@ func newServer() (*Server, error) {
 	extensionRepo := repo4.NewExtensionRepo(client)
 	extensionUsecase := usecase2.NewExtensionUsecase(extensionRepo, configConfig, slogLogger)
 	proxyMiddleware := middleware.NewProxyMiddleware(proxyUsecase)
-	redisClient := store.NewRedisCli(configConfig)
 	activeMiddleware := middleware.NewActiveMiddleware(redisClient, slogLogger)
 	v1Handler := v1.NewV1Handler(slogLogger, web, llmProxy, proxyUsecase, openAIUsecase, extensionUsecase, proxyMiddleware, activeMiddleware, configConfig)
 	modelUsecase := usecase3.NewModelUsecase(slogLogger, modelRepo, configConfig)

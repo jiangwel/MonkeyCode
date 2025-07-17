@@ -251,6 +251,9 @@ func (r *UserRepo) Delete(ctx context.Context, id string) error {
 		if err != nil {
 			return err
 		}
+		if _, err := tx.ApiKey.Delete().Where(apikey.UserID(user.ID)).Exec(ctx); err != nil {
+			return err
+		}
 
 		for _, v := range user.Edges.Identities {
 			if _, err := tx.UserIdentity.Delete().Where(useridentity.ID(v.ID)).Exec(ctx); err != nil {

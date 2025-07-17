@@ -2,8 +2,12 @@ package repo
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
@@ -16,11 +20,12 @@ import (
 )
 
 type ProxyRepo struct {
-	db *db.Client
+	db    *db.Client
+	redis *redis.Client
 }
 
-func NewProxyRepo(db *db.Client) domain.ProxyRepo {
-	return &ProxyRepo{db: db}
+func NewProxyRepo(db *db.Client, redis *redis.Client) domain.ProxyRepo {
+	return &ProxyRepo{db: db, redis: redis}
 }
 
 func (r *ProxyRepo) SelectModelWithLoadBalancing(modelName string, modelType consts.ModelType) (*db.Model, error) {
@@ -35,12 +40,36 @@ func (r *ProxyRepo) SelectModelWithLoadBalancing(modelName string, modelType con
 }
 
 func (r *ProxyRepo) ValidateApiKey(ctx context.Context, key string) (*db.ApiKey, error) {
+	rkey := "sk-" + key
+	data, err := r.redis.Get(ctx, rkey).Result()
+	if err == nil {
+		key := db.ApiKey{}
+		if err := json.Unmarshal([]byte(data), &key); err != nil {
+			return nil, err
+		}
+		return &key, nil
+	}
+
+	if !errors.Is(err, redis.Nil) {
+		return nil, err
+	}
+
 	a, err := r.db.ApiKey.Query().
 		Where(apikey.Key(key), apikey.Status(consts.ApiKeyStatusActive)).
 		Only(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	b, err := json.Marshal(a)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := r.redis.Set(ctx, rkey, string(b), 24*time.Hour).Err(); err != nil {
+		return nil, err
+	}
+
 	return a, nil
 }
 
