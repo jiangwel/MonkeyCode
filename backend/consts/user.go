@@ -1,7 +1,8 @@
 package consts
 
 const (
-	UserActiveKeyFmt = "user:active:%s"
+	UserActiveKeyFmt  = "user:active:%s"
+	AdminActiveKeyFmt = "admin:active:%s"
 )
 
 type UserStatus string

@@ -43,6 +43,7 @@ func NewUserHandler(
 	usecase domain.UserUsecase,
 	euse domain.ExtensionUsecase,
 	auth *middleware.AuthMiddleware,
+	active *middleware.ActiveMiddleware,
 	session *session.Session,
 	logger *slog.Logger,
 	cfg *config.Config,
@@ -66,7 +67,7 @@ func NewUserHandler(
 	admin.POST("/login", web.BindHandler(u.AdminLogin))
 	admin.GET("/setting", web.BaseHandler(u.GetSetting))
 
-	admin.Use(auth.Auth())
+	admin.Use(auth.Auth(), active.Active("admin"))
 	admin.PUT("/setting", web.BindHandler(u.UpdateSetting))
 	admin.POST("/create", web.BindHandler(u.CreateAdmin))
 	admin.GET("/list", web.BaseHandler(u.AdminList, web.WithPage()))
@@ -80,7 +81,7 @@ func NewUserHandler(
 	g.POST("/register", web.BindHandler(u.Register))
 	g.POST("/login", web.BindHandler(u.Login))
 
-	g.Use(auth.Auth())
+	g.Use(auth.Auth(), active.Active("admin"))
 
 	g.PUT("/update", web.BindHandler(u.Update))
 	g.DELETE("/delete", web.BaseHandler(u.Delete))

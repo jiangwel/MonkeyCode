@@ -68,20 +68,20 @@ func newServer() (*Server, error) {
 	modelUsecase := usecase3.NewModelUsecase(slogLogger, modelRepo, configConfig)
 	sessionSession := session.NewSession(configConfig)
 	authMiddleware := middleware.NewAuthMiddleware(sessionSession, slogLogger)
-	modelHandler := v1_2.NewModelHandler(web, modelUsecase, authMiddleware, slogLogger)
+	modelHandler := v1_2.NewModelHandler(web, modelUsecase, authMiddleware, activeMiddleware, slogLogger)
 	ipdbIPDB, err := ipdb.NewIPDB(slogLogger)
 	if err != nil {
 		return nil, err
 	}
-	userRepo := repo5.NewUserRepo(client, ipdbIPDB)
+	userRepo := repo5.NewUserRepo(client, ipdbIPDB, redisClient)
 	userUsecase := usecase4.NewUserUsecase(configConfig, redisClient, userRepo, slogLogger)
-	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, authMiddleware, sessionSession, slogLogger, configConfig)
+	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, authMiddleware, activeMiddleware, sessionSession, slogLogger, configConfig)
 	dashboardRepo := repo6.NewDashboardRepo(client)
 	dashboardUsecase := usecase5.NewDashboardUsecase(dashboardRepo)
-	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware)
+	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware, activeMiddleware)
 	billingRepo := repo7.NewBillingRepo(client)
 	billingUsecase := usecase6.NewBillingUsecase(billingRepo)
-	billingHandler := v1_5.NewBillingHandler(web, billingUsecase, authMiddleware)
+	billingHandler := v1_5.NewBillingHandler(web, billingUsecase, authMiddleware, activeMiddleware)
 	server := &Server{
 		config:      configConfig,
 		web:         web,

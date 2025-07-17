@@ -107,12 +107,7 @@ func (r *ModelRepo) Update(ctx context.Context, id string, fn func(tx *db.Tx, ol
 }
 
 func (r *ModelRepo) MyModelList(ctx context.Context, req *domain.MyModelListReq) ([]*db.Model, error) {
-	userID, err := uuid.Parse(req.UserID)
-	if err != nil {
-		return nil, err
-	}
 	q := r.db.Model.Query().
-		Where(model.UserID(userID)).
 		Where(model.ModelType(req.ModelType)).
 		Order(model.ByCreatedAt(sql.OrderAsc()))
 	return q.All(ctx)
