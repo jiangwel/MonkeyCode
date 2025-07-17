@@ -420,7 +420,9 @@ func (aq *AdminQuery) loadLoginHistories(ctx context.Context, query *AdminLoginH
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(adminloginhistory.FieldAdminID)
+	}
 	query.Where(predicate.AdminLoginHistory(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(admin.LoginHistoriesColumn), fks...))
 	}))
@@ -429,13 +431,10 @@ func (aq *AdminQuery) loadLoginHistories(ctx context.Context, query *AdminLoginH
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.admin_login_histories
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "admin_login_histories" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.AdminID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "admin_login_histories" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "admin_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -765,7 +765,6 @@ type AdminLoginHistoryMutation struct {
 	op             Op
 	typ            string
 	id             *uuid.UUID
-	admin_id       *uuid.UUID
 	ip             *string
 	country        *string
 	province       *string
@@ -889,12 +888,12 @@ func (m *AdminLoginHistoryMutation) IDs(ctx context.Context) ([]uuid.UUID, error
 
 // SetAdminID sets the "admin_id" field.
 func (m *AdminLoginHistoryMutation) SetAdminID(u uuid.UUID) {
-	m.admin_id = &u
+	m.owner = &u
 }
 
 // AdminID returns the value of the "admin_id" field in the mutation.
 func (m *AdminLoginHistoryMutation) AdminID() (r uuid.UUID, exists bool) {
-	v := m.admin_id
+	v := m.owner
 	if v == nil {
 		return
 	}
@@ -918,9 +917,22 @@ func (m *AdminLoginHistoryMutation) OldAdminID(ctx context.Context) (v uuid.UUID
 	return oldValue.AdminID, nil
 }
 
+// ClearAdminID clears the value of the "admin_id" field.
+func (m *AdminLoginHistoryMutation) ClearAdminID() {
+	m.owner = nil
+	m.clearedFields[adminloginhistory.FieldAdminID] = struct{}{}
+}
+
+// AdminIDCleared returns if the "admin_id" field was cleared in this mutation.
+func (m *AdminLoginHistoryMutation) AdminIDCleared() bool {
+	_, ok := m.clearedFields[adminloginhistory.FieldAdminID]
+	return ok
+}
+
 // ResetAdminID resets all changes to the "admin_id" field.
 func (m *AdminLoginHistoryMutation) ResetAdminID() {
-	m.admin_id = nil
+	m.owner = nil
+	delete(m.clearedFields, adminloginhistory.FieldAdminID)
 }
 
 // SetIP sets the "ip" field.
@@ -1098,9 +1110,22 @@ func (m *AdminLoginHistoryMutation) OldIsp(ctx context.Context) (v string, err e
 	return oldValue.Isp, nil
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (m *AdminLoginHistoryMutation) ClearIsp() {
+	m.isp = nil
+	m.clearedFields[adminloginhistory.FieldIsp] = struct{}{}
+}
+
+// IspCleared returns if the "isp" field was cleared in this mutation.
+func (m *AdminLoginHistoryMutation) IspCleared() bool {
+	_, ok := m.clearedFields[adminloginhistory.FieldIsp]
+	return ok
+}
+
 // ResetIsp resets all changes to the "isp" field.
 func (m *AdminLoginHistoryMutation) ResetIsp() {
 	m.isp = nil
+	delete(m.clearedFields, adminloginhistory.FieldIsp)
 }
 
 // SetAsn sets the "asn" field.
@@ -1134,9 +1159,22 @@ func (m *AdminLoginHistoryMutation) OldAsn(ctx context.Context) (v string, err e
 	return oldValue.Asn, nil
 }
 
+// ClearAsn clears the value of the "asn" field.
+func (m *AdminLoginHistoryMutation) ClearAsn() {
+	m.asn = nil
+	m.clearedFields[adminloginhistory.FieldAsn] = struct{}{}
+}
+
+// AsnCleared returns if the "asn" field was cleared in this mutation.
+func (m *AdminLoginHistoryMutation) AsnCleared() bool {
+	_, ok := m.clearedFields[adminloginhistory.FieldAsn]
+	return ok
+}
+
 // ResetAsn resets all changes to the "asn" field.
 func (m *AdminLoginHistoryMutation) ResetAsn() {
 	m.asn = nil
+	delete(m.clearedFields, adminloginhistory.FieldAsn)
 }
 
 // SetClientVersion sets the "client_version" field.
@@ -1170,9 +1208,22 @@ func (m *AdminLoginHistoryMutation) OldClientVersion(ctx context.Context) (v str
 	return oldValue.ClientVersion, nil
 }
 
+// ClearClientVersion clears the value of the "client_version" field.
+func (m *AdminLoginHistoryMutation) ClearClientVersion() {
+	m.client_version = nil
+	m.clearedFields[adminloginhistory.FieldClientVersion] = struct{}{}
+}
+
+// ClientVersionCleared returns if the "client_version" field was cleared in this mutation.
+func (m *AdminLoginHistoryMutation) ClientVersionCleared() bool {
+	_, ok := m.clearedFields[adminloginhistory.FieldClientVersion]
+	return ok
+}
+
 // ResetClientVersion resets all changes to the "client_version" field.
 func (m *AdminLoginHistoryMutation) ResetClientVersion() {
 	m.client_version = nil
+	delete(m.clearedFields, adminloginhistory.FieldClientVersion)
 }
 
 // SetDevice sets the "device" field.
@@ -1206,9 +1257,22 @@ func (m *AdminLoginHistoryMutation) OldDevice(ctx context.Context) (v string, er
 	return oldValue.Device, nil
 }
 
+// ClearDevice clears the value of the "device" field.
+func (m *AdminLoginHistoryMutation) ClearDevice() {
+	m.device = nil
+	m.clearedFields[adminloginhistory.FieldDevice] = struct{}{}
+}
+
+// DeviceCleared returns if the "device" field was cleared in this mutation.
+func (m *AdminLoginHistoryMutation) DeviceCleared() bool {
+	_, ok := m.clearedFields[adminloginhistory.FieldDevice]
+	return ok
+}
+
 // ResetDevice resets all changes to the "device" field.
 func (m *AdminLoginHistoryMutation) ResetDevice() {
 	m.device = nil
+	delete(m.clearedFields, adminloginhistory.FieldDevice)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1255,11 +1319,12 @@ func (m *AdminLoginHistoryMutation) SetOwnerID(id uuid.UUID) {
 // ClearOwner clears the "owner" edge to the Admin entity.
 func (m *AdminLoginHistoryMutation) ClearOwner() {
 	m.clearedowner = true
+	m.clearedFields[adminloginhistory.FieldAdminID] = struct{}{}
 }
 
 // OwnerCleared reports if the "owner" edge to the Admin entity was cleared.
 func (m *AdminLoginHistoryMutation) OwnerCleared() bool {
-	return m.clearedowner
+	return m.AdminIDCleared() || m.clearedowner
 }
 
 // OwnerID returns the "owner" edge ID in the mutation.
@@ -1321,7 +1386,7 @@ func (m *AdminLoginHistoryMutation) Type() string {
 // AddedFields().
 func (m *AdminLoginHistoryMutation) Fields() []string {
 	fields := make([]string, 0, 10)
-	if m.admin_id != nil {
+	if m.owner != nil {
 		fields = append(fields, adminloginhistory.FieldAdminID)
 	}
 	if m.ip != nil {
@@ -1516,7 +1581,23 @@ func (m *AdminLoginHistoryMutation) AddField(name string, value ent.Value) error
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *AdminLoginHistoryMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(adminloginhistory.FieldAdminID) {
+		fields = append(fields, adminloginhistory.FieldAdminID)
+	}
+	if m.FieldCleared(adminloginhistory.FieldIsp) {
+		fields = append(fields, adminloginhistory.FieldIsp)
+	}
+	if m.FieldCleared(adminloginhistory.FieldAsn) {
+		fields = append(fields, adminloginhistory.FieldAsn)
+	}
+	if m.FieldCleared(adminloginhistory.FieldClientVersion) {
+		fields = append(fields, adminloginhistory.FieldClientVersion)
+	}
+	if m.FieldCleared(adminloginhistory.FieldDevice) {
+		fields = append(fields, adminloginhistory.FieldDevice)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1529,6 +1610,23 @@ func (m *AdminLoginHistoryMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *AdminLoginHistoryMutation) ClearField(name string) error {
+	switch name {
+	case adminloginhistory.FieldAdminID:
+		m.ClearAdminID()
+		return nil
+	case adminloginhistory.FieldIsp:
+		m.ClearIsp()
+		return nil
+	case adminloginhistory.FieldAsn:
+		m.ClearAsn()
+		return nil
+	case adminloginhistory.FieldClientVersion:
+		m.ClearClientVersion()
+		return nil
+	case adminloginhistory.FieldDevice:
+		m.ClearDevice()
+		return nil
+	}
 	return fmt.Errorf("unknown AdminLoginHistory nullable field %s", name)
 }
 
@@ -14189,7 +14287,6 @@ type UserLoginHistoryMutation struct {
 	op             Op
 	typ            string
 	id             *uuid.UUID
-	user_id        *uuid.UUID
 	ip             *string
 	country        *string
 	province       *string
@@ -14197,7 +14294,9 @@ type UserLoginHistoryMutation struct {
 	isp            *string
 	asn            *string
 	client_version *string
-	device         *string
+	os_type        *consts.OSType
+	os_release     *consts.OSRelease
+	hostname       *string
 	created_at     *time.Time
 	clearedFields  map[string]struct{}
 	owner          *uuid.UUID
@@ -14313,12 +14412,12 @@ func (m *UserLoginHistoryMutation) IDs(ctx context.Context) ([]uuid.UUID, error)
 
 // SetUserID sets the "user_id" field.
 func (m *UserLoginHistoryMutation) SetUserID(u uuid.UUID) {
-	m.user_id = &u
+	m.owner = &u
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
 func (m *UserLoginHistoryMutation) UserID() (r uuid.UUID, exists bool) {
-	v := m.user_id
+	v := m.owner
 	if v == nil {
 		return
 	}
@@ -14342,9 +14441,22 @@ func (m *UserLoginHistoryMutation) OldUserID(ctx context.Context) (v uuid.UUID, 
 	return oldValue.UserID, nil
 }
 
+// ClearUserID clears the value of the "user_id" field.
+func (m *UserLoginHistoryMutation) ClearUserID() {
+	m.owner = nil
+	m.clearedFields[userloginhistory.FieldUserID] = struct{}{}
+}
+
+// UserIDCleared returns if the "user_id" field was cleared in this mutation.
+func (m *UserLoginHistoryMutation) UserIDCleared() bool {
+	_, ok := m.clearedFields[userloginhistory.FieldUserID]
+	return ok
+}
+
 // ResetUserID resets all changes to the "user_id" field.
 func (m *UserLoginHistoryMutation) ResetUserID() {
-	m.user_id = nil
+	m.owner = nil
+	delete(m.clearedFields, userloginhistory.FieldUserID)
 }
 
 // SetIP sets the "ip" field.
@@ -14522,9 +14634,22 @@ func (m *UserLoginHistoryMutation) OldIsp(ctx context.Context) (v string, err er
 	return oldValue.Isp, nil
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (m *UserLoginHistoryMutation) ClearIsp() {
+	m.isp = nil
+	m.clearedFields[userloginhistory.FieldIsp] = struct{}{}
+}
+
+// IspCleared returns if the "isp" field was cleared in this mutation.
+func (m *UserLoginHistoryMutation) IspCleared() bool {
+	_, ok := m.clearedFields[userloginhistory.FieldIsp]
+	return ok
+}
+
 // ResetIsp resets all changes to the "isp" field.
 func (m *UserLoginHistoryMutation) ResetIsp() {
 	m.isp = nil
+	delete(m.clearedFields, userloginhistory.FieldIsp)
 }
 
 // SetAsn sets the "asn" field.
@@ -14558,9 +14683,22 @@ func (m *UserLoginHistoryMutation) OldAsn(ctx context.Context) (v string, err er
 	return oldValue.Asn, nil
 }
 
+// ClearAsn clears the value of the "asn" field.
+func (m *UserLoginHistoryMutation) ClearAsn() {
+	m.asn = nil
+	m.clearedFields[userloginhistory.FieldAsn] = struct{}{}
+}
+
+// AsnCleared returns if the "asn" field was cleared in this mutation.
+func (m *UserLoginHistoryMutation) AsnCleared() bool {
+	_, ok := m.clearedFields[userloginhistory.FieldAsn]
+	return ok
+}
+
 // ResetAsn resets all changes to the "asn" field.
 func (m *UserLoginHistoryMutation) ResetAsn() {
 	m.asn = nil
+	delete(m.clearedFields, userloginhistory.FieldAsn)
 }
 
 // SetClientVersion sets the "client_version" field.
@@ -14594,45 +14732,169 @@ func (m *UserLoginHistoryMutation) OldClientVersion(ctx context.Context) (v stri
 	return oldValue.ClientVersion, nil
 }
 
+// ClearClientVersion clears the value of the "client_version" field.
+func (m *UserLoginHistoryMutation) ClearClientVersion() {
+	m.client_version = nil
+	m.clearedFields[userloginhistory.FieldClientVersion] = struct{}{}
+}
+
+// ClientVersionCleared returns if the "client_version" field was cleared in this mutation.
+func (m *UserLoginHistoryMutation) ClientVersionCleared() bool {
+	_, ok := m.clearedFields[userloginhistory.FieldClientVersion]
+	return ok
+}
+
 // ResetClientVersion resets all changes to the "client_version" field.
 func (m *UserLoginHistoryMutation) ResetClientVersion() {
 	m.client_version = nil
+	delete(m.clearedFields, userloginhistory.FieldClientVersion)
 }
 
-// SetDevice sets the "device" field.
-func (m *UserLoginHistoryMutation) SetDevice(s string) {
-	m.device = &s
+// SetOsType sets the "os_type" field.
+func (m *UserLoginHistoryMutation) SetOsType(ct consts.OSType) {
+	m.os_type = &ct
 }
 
-// Device returns the value of the "device" field in the mutation.
-func (m *UserLoginHistoryMutation) Device() (r string, exists bool) {
-	v := m.device
+// OsType returns the value of the "os_type" field in the mutation.
+func (m *UserLoginHistoryMutation) OsType() (r consts.OSType, exists bool) {
+	v := m.os_type
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldDevice returns the old "device" field's value of the UserLoginHistory entity.
+// OldOsType returns the old "os_type" field's value of the UserLoginHistory entity.
 // If the UserLoginHistory object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserLoginHistoryMutation) OldDevice(ctx context.Context) (v string, err error) {
+func (m *UserLoginHistoryMutation) OldOsType(ctx context.Context) (v consts.OSType, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDevice is only allowed on UpdateOne operations")
+		return v, errors.New("OldOsType is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDevice requires an ID field in the mutation")
+		return v, errors.New("OldOsType requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDevice: %w", err)
+		return v, fmt.Errorf("querying old value for OldOsType: %w", err)
 	}
-	return oldValue.Device, nil
+	return oldValue.OsType, nil
 }
 
-// ResetDevice resets all changes to the "device" field.
-func (m *UserLoginHistoryMutation) ResetDevice() {
-	m.device = nil
+// ClearOsType clears the value of the "os_type" field.
+func (m *UserLoginHistoryMutation) ClearOsType() {
+	m.os_type = nil
+	m.clearedFields[userloginhistory.FieldOsType] = struct{}{}
+}
+
+// OsTypeCleared returns if the "os_type" field was cleared in this mutation.
+func (m *UserLoginHistoryMutation) OsTypeCleared() bool {
+	_, ok := m.clearedFields[userloginhistory.FieldOsType]
+	return ok
+}
+
+// ResetOsType resets all changes to the "os_type" field.
+func (m *UserLoginHistoryMutation) ResetOsType() {
+	m.os_type = nil
+	delete(m.clearedFields, userloginhistory.FieldOsType)
+}
+
+// SetOsRelease sets the "os_release" field.
+func (m *UserLoginHistoryMutation) SetOsRelease(cr consts.OSRelease) {
+	m.os_release = &cr
+}
+
+// OsRelease returns the value of the "os_release" field in the mutation.
+func (m *UserLoginHistoryMutation) OsRelease() (r consts.OSRelease, exists bool) {
+	v := m.os_release
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOsRelease returns the old "os_release" field's value of the UserLoginHistory entity.
+// If the UserLoginHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserLoginHistoryMutation) OldOsRelease(ctx context.Context) (v consts.OSRelease, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOsRelease is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOsRelease requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOsRelease: %w", err)
+	}
+	return oldValue.OsRelease, nil
+}
+
+// ClearOsRelease clears the value of the "os_release" field.
+func (m *UserLoginHistoryMutation) ClearOsRelease() {
+	m.os_release = nil
+	m.clearedFields[userloginhistory.FieldOsRelease] = struct{}{}
+}
+
+// OsReleaseCleared returns if the "os_release" field was cleared in this mutation.
+func (m *UserLoginHistoryMutation) OsReleaseCleared() bool {
+	_, ok := m.clearedFields[userloginhistory.FieldOsRelease]
+	return ok
+}
+
+// ResetOsRelease resets all changes to the "os_release" field.
+func (m *UserLoginHistoryMutation) ResetOsRelease() {
+	m.os_release = nil
+	delete(m.clearedFields, userloginhistory.FieldOsRelease)
+}
+
+// SetHostname sets the "hostname" field.
+func (m *UserLoginHistoryMutation) SetHostname(s string) {
+	m.hostname = &s
+}
+
+// Hostname returns the value of the "hostname" field in the mutation.
+func (m *UserLoginHistoryMutation) Hostname() (r string, exists bool) {
+	v := m.hostname
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHostname returns the old "hostname" field's value of the UserLoginHistory entity.
+// If the UserLoginHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserLoginHistoryMutation) OldHostname(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHostname is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHostname requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHostname: %w", err)
+	}
+	return oldValue.Hostname, nil
+}
+
+// ClearHostname clears the value of the "hostname" field.
+func (m *UserLoginHistoryMutation) ClearHostname() {
+	m.hostname = nil
+	m.clearedFields[userloginhistory.FieldHostname] = struct{}{}
+}
+
+// HostnameCleared returns if the "hostname" field was cleared in this mutation.
+func (m *UserLoginHistoryMutation) HostnameCleared() bool {
+	_, ok := m.clearedFields[userloginhistory.FieldHostname]
+	return ok
+}
+
+// ResetHostname resets all changes to the "hostname" field.
+func (m *UserLoginHistoryMutation) ResetHostname() {
+	m.hostname = nil
+	delete(m.clearedFields, userloginhistory.FieldHostname)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -14679,11 +14941,12 @@ func (m *UserLoginHistoryMutation) SetOwnerID(id uuid.UUID) {
 // ClearOwner clears the "owner" edge to the User entity.
 func (m *UserLoginHistoryMutation) ClearOwner() {
 	m.clearedowner = true
+	m.clearedFields[userloginhistory.FieldUserID] = struct{}{}
 }
 
 // OwnerCleared reports if the "owner" edge to the User entity was cleared.
 func (m *UserLoginHistoryMutation) OwnerCleared() bool {
-	return m.clearedowner
+	return m.UserIDCleared() || m.clearedowner
 }
 
 // OwnerID returns the "owner" edge ID in the mutation.
@@ -14744,8 +15007,8 @@ func (m *UserLoginHistoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserLoginHistoryMutation) Fields() []string {
-	fields := make([]string, 0, 10)
-	if m.user_id != nil {
+	fields := make([]string, 0, 12)
+	if m.owner != nil {
 		fields = append(fields, userloginhistory.FieldUserID)
 	}
 	if m.ip != nil {
@@ -14769,8 +15032,14 @@ func (m *UserLoginHistoryMutation) Fields() []string {
 	if m.client_version != nil {
 		fields = append(fields, userloginhistory.FieldClientVersion)
 	}
-	if m.device != nil {
-		fields = append(fields, userloginhistory.FieldDevice)
+	if m.os_type != nil {
+		fields = append(fields, userloginhistory.FieldOsType)
+	}
+	if m.os_release != nil {
+		fields = append(fields, userloginhistory.FieldOsRelease)
+	}
+	if m.hostname != nil {
+		fields = append(fields, userloginhistory.FieldHostname)
 	}
 	if m.created_at != nil {
 		fields = append(fields, userloginhistory.FieldCreatedAt)
@@ -14799,8 +15068,12 @@ func (m *UserLoginHistoryMutation) Field(name string) (ent.Value, bool) {
 		return m.Asn()
 	case userloginhistory.FieldClientVersion:
 		return m.ClientVersion()
-	case userloginhistory.FieldDevice:
-		return m.Device()
+	case userloginhistory.FieldOsType:
+		return m.OsType()
+	case userloginhistory.FieldOsRelease:
+		return m.OsRelease()
+	case userloginhistory.FieldHostname:
+		return m.Hostname()
 	case userloginhistory.FieldCreatedAt:
 		return m.CreatedAt()
 	}
@@ -14828,8 +15101,12 @@ func (m *UserLoginHistoryMutation) OldField(ctx context.Context, name string) (e
 		return m.OldAsn(ctx)
 	case userloginhistory.FieldClientVersion:
 		return m.OldClientVersion(ctx)
-	case userloginhistory.FieldDevice:
-		return m.OldDevice(ctx)
+	case userloginhistory.FieldOsType:
+		return m.OldOsType(ctx)
+	case userloginhistory.FieldOsRelease:
+		return m.OldOsRelease(ctx)
+	case userloginhistory.FieldHostname:
+		return m.OldHostname(ctx)
 	case userloginhistory.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	}
@@ -14897,12 +15174,26 @@ func (m *UserLoginHistoryMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetClientVersion(v)
 		return nil
-	case userloginhistory.FieldDevice:
+	case userloginhistory.FieldOsType:
+		v, ok := value.(consts.OSType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOsType(v)
+		return nil
+	case userloginhistory.FieldOsRelease:
+		v, ok := value.(consts.OSRelease)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOsRelease(v)
+		return nil
+	case userloginhistory.FieldHostname:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetDevice(v)
+		m.SetHostname(v)
 		return nil
 	case userloginhistory.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -14940,7 +15231,29 @@ func (m *UserLoginHistoryMutation) AddField(name string, value ent.Value) error 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserLoginHistoryMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(userloginhistory.FieldUserID) {
+		fields = append(fields, userloginhistory.FieldUserID)
+	}
+	if m.FieldCleared(userloginhistory.FieldIsp) {
+		fields = append(fields, userloginhistory.FieldIsp)
+	}
+	if m.FieldCleared(userloginhistory.FieldAsn) {
+		fields = append(fields, userloginhistory.FieldAsn)
+	}
+	if m.FieldCleared(userloginhistory.FieldClientVersion) {
+		fields = append(fields, userloginhistory.FieldClientVersion)
+	}
+	if m.FieldCleared(userloginhistory.FieldOsType) {
+		fields = append(fields, userloginhistory.FieldOsType)
+	}
+	if m.FieldCleared(userloginhistory.FieldOsRelease) {
+		fields = append(fields, userloginhistory.FieldOsRelease)
+	}
+	if m.FieldCleared(userloginhistory.FieldHostname) {
+		fields = append(fields, userloginhistory.FieldHostname)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -14953,6 +15266,29 @@ func (m *UserLoginHistoryMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserLoginHistoryMutation) ClearField(name string) error {
+	switch name {
+	case userloginhistory.FieldUserID:
+		m.ClearUserID()
+		return nil
+	case userloginhistory.FieldIsp:
+		m.ClearIsp()
+		return nil
+	case userloginhistory.FieldAsn:
+		m.ClearAsn()
+		return nil
+	case userloginhistory.FieldClientVersion:
+		m.ClearClientVersion()
+		return nil
+	case userloginhistory.FieldOsType:
+		m.ClearOsType()
+		return nil
+	case userloginhistory.FieldOsRelease:
+		m.ClearOsRelease()
+		return nil
+	case userloginhistory.FieldHostname:
+		m.ClearHostname()
+		return nil
+	}
 	return fmt.Errorf("unknown UserLoginHistory nullable field %s", name)
 }
 
@@ -14984,8 +15320,14 @@ func (m *UserLoginHistoryMutation) ResetField(name string) error {
 	case userloginhistory.FieldClientVersion:
 		m.ResetClientVersion()
 		return nil
-	case userloginhistory.FieldDevice:
-		m.ResetDevice()
+	case userloginhistory.FieldOsType:
+		m.ResetOsType()
+		return nil
+	case userloginhistory.FieldOsRelease:
+		m.ResetOsRelease()
+		return nil
+	case userloginhistory.FieldHostname:
+		m.ResetHostname()
 		return nil
 	case userloginhistory.FieldCreatedAt:
 		m.ResetCreatedAt()

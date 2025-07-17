@@ -36,7 +36,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "adminloginhistory" package.
 	LoginHistoriesInverseTable = "admin_login_histories"
 	// LoginHistoriesColumn is the table column denoting the login_histories relation/edge.
-	LoginHistoriesColumn = "admin_login_histories"
+	LoginHistoriesColumn = "admin_id"
 )
 
 // Columns holds all SQL columns for admin fields.

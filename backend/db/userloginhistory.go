@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
 	"github.com/google/uuid"
@@ -35,15 +36,18 @@ type UserLoginHistory struct {
 	Asn string `json:"asn,omitempty"`
 	// ClientVersion holds the value of the "client_version" field.
 	ClientVersion string `json:"client_version,omitempty"`
-	// Device holds the value of the "device" field.
-	Device string `json:"device,omitempty"`
+	// OsType holds the value of the "os_type" field.
+	OsType consts.OSType `json:"os_type,omitempty"`
+	// OsRelease holds the value of the "os_release" field.
+	OsRelease consts.OSRelease `json:"os_release,omitempty"`
+	// Hostname holds the value of the "hostname" field.
+	Hostname string `json:"hostname,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserLoginHistoryQuery when eager-loading is set.
-	Edges                UserLoginHistoryEdges `json:"edges"`
-	user_login_histories *uuid.UUID
-	selectValues         sql.SelectValues
+	Edges        UserLoginHistoryEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // UserLoginHistoryEdges holds the relations/edges for other nodes in the graph.
@@ -71,14 +75,12 @@ func (*UserLoginHistory) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case userloginhistory.FieldIP, userloginhistory.FieldCountry, userloginhistory.FieldProvince, userloginhistory.FieldCity, userloginhistory.FieldIsp, userloginhistory.FieldAsn, userloginhistory.FieldClientVersion, userloginhistory.FieldDevice:
+		case userloginhistory.FieldIP, userloginhistory.FieldCountry, userloginhistory.FieldProvince, userloginhistory.FieldCity, userloginhistory.FieldIsp, userloginhistory.FieldAsn, userloginhistory.FieldClientVersion, userloginhistory.FieldOsType, userloginhistory.FieldOsRelease, userloginhistory.FieldHostname:
 			values[i] = new(sql.NullString)
 		case userloginhistory.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		case userloginhistory.FieldID, userloginhistory.FieldUserID:
 			values[i] = new(uuid.UUID)
-		case userloginhistory.ForeignKeys[0]: // user_login_histories
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -148,24 +150,29 @@ func (ulh *UserLoginHistory) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				ulh.ClientVersion = value.String
 			}
-		case userloginhistory.FieldDevice:
+		case userloginhistory.FieldOsType:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field device", values[i])
+				return fmt.Errorf("unexpected type %T for field os_type", values[i])
 			} else if value.Valid {
-				ulh.Device = value.String
+				ulh.OsType = consts.OSType(value.String)
+			}
+		case userloginhistory.FieldOsRelease:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field os_release", values[i])
+			} else if value.Valid {
+				ulh.OsRelease = consts.OSRelease(value.String)
+			}
+		case userloginhistory.FieldHostname:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field hostname", values[i])
+			} else if value.Valid {
+				ulh.Hostname = value.String
 			}
 		case userloginhistory.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				ulh.CreatedAt = value.Time
-			}
-		case userloginhistory.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_login_histories", values[i])
-			} else if value.Valid {
-				ulh.user_login_histories = new(uuid.UUID)
-				*ulh.user_login_histories = *value.S.(*uuid.UUID)
 			}
 		default:
 			ulh.selectValues.Set(columns[i], values[i])
@@ -232,8 +239,14 @@ func (ulh *UserLoginHistory) String() string {
 	builder.WriteString("client_version=")
 	builder.WriteString(ulh.ClientVersion)
 	builder.WriteString(", ")
-	builder.WriteString("device=")
-	builder.WriteString(ulh.Device)
+	builder.WriteString("os_type=")
+	builder.WriteString(fmt.Sprintf("%v", ulh.OsType))
+	builder.WriteString(", ")
+	builder.WriteString("os_release=")
+	builder.WriteString(fmt.Sprintf("%v", ulh.OsRelease))
+	builder.WriteString(", ")
+	builder.WriteString("hostname=")
+	builder.WriteString(ulh.Hostname)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(ulh.CreatedAt.Format(time.ANSIC))

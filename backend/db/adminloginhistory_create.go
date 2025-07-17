@@ -31,6 +31,14 @@ func (alhc *AdminLoginHistoryCreate) SetAdminID(u uuid.UUID) *AdminLoginHistoryC
 	return alhc
 }
 
+// SetNillableAdminID sets the "admin_id" field if the given value is not nil.
+func (alhc *AdminLoginHistoryCreate) SetNillableAdminID(u *uuid.UUID) *AdminLoginHistoryCreate {
+	if u != nil {
+		alhc.SetAdminID(*u)
+	}
+	return alhc
+}
+
 // SetIP sets the "ip" field.
 func (alhc *AdminLoginHistoryCreate) SetIP(s string) *AdminLoginHistoryCreate {
 	alhc.mutation.SetIP(s)
@@ -61,9 +69,25 @@ func (alhc *AdminLoginHistoryCreate) SetIsp(s string) *AdminLoginHistoryCreate {
 	return alhc
 }
 
+// SetNillableIsp sets the "isp" field if the given value is not nil.
+func (alhc *AdminLoginHistoryCreate) SetNillableIsp(s *string) *AdminLoginHistoryCreate {
+	if s != nil {
+		alhc.SetIsp(*s)
+	}
+	return alhc
+}
+
 // SetAsn sets the "asn" field.
 func (alhc *AdminLoginHistoryCreate) SetAsn(s string) *AdminLoginHistoryCreate {
 	alhc.mutation.SetAsn(s)
+	return alhc
+}
+
+// SetNillableAsn sets the "asn" field if the given value is not nil.
+func (alhc *AdminLoginHistoryCreate) SetNillableAsn(s *string) *AdminLoginHistoryCreate {
+	if s != nil {
+		alhc.SetAsn(*s)
+	}
 	return alhc
 }
 
@@ -73,9 +97,25 @@ func (alhc *AdminLoginHistoryCreate) SetClientVersion(s string) *AdminLoginHisto
 	return alhc
 }
 
+// SetNillableClientVersion sets the "client_version" field if the given value is not nil.
+func (alhc *AdminLoginHistoryCreate) SetNillableClientVersion(s *string) *AdminLoginHistoryCreate {
+	if s != nil {
+		alhc.SetClientVersion(*s)
+	}
+	return alhc
+}
+
 // SetDevice sets the "device" field.
 func (alhc *AdminLoginHistoryCreate) SetDevice(s string) *AdminLoginHistoryCreate {
 	alhc.mutation.SetDevice(s)
+	return alhc
+}
+
+// SetNillableDevice sets the "device" field if the given value is not nil.
+func (alhc *AdminLoginHistoryCreate) SetNillableDevice(s *string) *AdminLoginHistoryCreate {
+	if s != nil {
+		alhc.SetDevice(*s)
+	}
 	return alhc
 }
 
@@ -161,9 +201,6 @@ func (alhc *AdminLoginHistoryCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (alhc *AdminLoginHistoryCreate) check() error {
-	if _, ok := alhc.mutation.AdminID(); !ok {
-		return &ValidationError{Name: "admin_id", err: errors.New(`db: missing required field "AdminLoginHistory.admin_id"`)}
-	}
 	if _, ok := alhc.mutation.IP(); !ok {
 		return &ValidationError{Name: "ip", err: errors.New(`db: missing required field "AdminLoginHistory.ip"`)}
 	}
@@ -175,18 +212,6 @@ func (alhc *AdminLoginHistoryCreate) check() error {
 	}
 	if _, ok := alhc.mutation.City(); !ok {
 		return &ValidationError{Name: "city", err: errors.New(`db: missing required field "AdminLoginHistory.city"`)}
-	}
-	if _, ok := alhc.mutation.Isp(); !ok {
-		return &ValidationError{Name: "isp", err: errors.New(`db: missing required field "AdminLoginHistory.isp"`)}
-	}
-	if _, ok := alhc.mutation.Asn(); !ok {
-		return &ValidationError{Name: "asn", err: errors.New(`db: missing required field "AdminLoginHistory.asn"`)}
-	}
-	if _, ok := alhc.mutation.ClientVersion(); !ok {
-		return &ValidationError{Name: "client_version", err: errors.New(`db: missing required field "AdminLoginHistory.client_version"`)}
-	}
-	if _, ok := alhc.mutation.Device(); !ok {
-		return &ValidationError{Name: "device", err: errors.New(`db: missing required field "AdminLoginHistory.device"`)}
 	}
 	if _, ok := alhc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`db: missing required field "AdminLoginHistory.created_at"`)}
@@ -226,10 +251,6 @@ func (alhc *AdminLoginHistoryCreate) createSpec() (*AdminLoginHistory, *sqlgraph
 	if id, ok := alhc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
-	}
-	if value, ok := alhc.mutation.AdminID(); ok {
-		_spec.SetField(adminloginhistory.FieldAdminID, field.TypeUUID, value)
-		_node.AdminID = value
 	}
 	if value, ok := alhc.mutation.IP(); ok {
 		_spec.SetField(adminloginhistory.FieldIP, field.TypeString, value)
@@ -281,7 +302,7 @@ func (alhc *AdminLoginHistoryCreate) createSpec() (*AdminLoginHistory, *sqlgraph
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.admin_login_histories = &nodes[0]
+		_node.AdminID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -348,6 +369,12 @@ func (u *AdminLoginHistoryUpsert) UpdateAdminID() *AdminLoginHistoryUpsert {
 	return u
 }
 
+// ClearAdminID clears the value of the "admin_id" field.
+func (u *AdminLoginHistoryUpsert) ClearAdminID() *AdminLoginHistoryUpsert {
+	u.SetNull(adminloginhistory.FieldAdminID)
+	return u
+}
+
 // SetIP sets the "ip" field.
 func (u *AdminLoginHistoryUpsert) SetIP(v string) *AdminLoginHistoryUpsert {
 	u.Set(adminloginhistory.FieldIP, v)
@@ -408,6 +435,12 @@ func (u *AdminLoginHistoryUpsert) UpdateIsp() *AdminLoginHistoryUpsert {
 	return u
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (u *AdminLoginHistoryUpsert) ClearIsp() *AdminLoginHistoryUpsert {
+	u.SetNull(adminloginhistory.FieldIsp)
+	return u
+}
+
 // SetAsn sets the "asn" field.
 func (u *AdminLoginHistoryUpsert) SetAsn(v string) *AdminLoginHistoryUpsert {
 	u.Set(adminloginhistory.FieldAsn, v)
@@ -417,6 +450,12 @@ func (u *AdminLoginHistoryUpsert) SetAsn(v string) *AdminLoginHistoryUpsert {
 // UpdateAsn sets the "asn" field to the value that was provided on create.
 func (u *AdminLoginHistoryUpsert) UpdateAsn() *AdminLoginHistoryUpsert {
 	u.SetExcluded(adminloginhistory.FieldAsn)
+	return u
+}
+
+// ClearAsn clears the value of the "asn" field.
+func (u *AdminLoginHistoryUpsert) ClearAsn() *AdminLoginHistoryUpsert {
+	u.SetNull(adminloginhistory.FieldAsn)
 	return u
 }
 
@@ -432,6 +471,12 @@ func (u *AdminLoginHistoryUpsert) UpdateClientVersion() *AdminLoginHistoryUpsert
 	return u
 }
 
+// ClearClientVersion clears the value of the "client_version" field.
+func (u *AdminLoginHistoryUpsert) ClearClientVersion() *AdminLoginHistoryUpsert {
+	u.SetNull(adminloginhistory.FieldClientVersion)
+	return u
+}
+
 // SetDevice sets the "device" field.
 func (u *AdminLoginHistoryUpsert) SetDevice(v string) *AdminLoginHistoryUpsert {
 	u.Set(adminloginhistory.FieldDevice, v)
@@ -441,6 +486,12 @@ func (u *AdminLoginHistoryUpsert) SetDevice(v string) *AdminLoginHistoryUpsert {
 // UpdateDevice sets the "device" field to the value that was provided on create.
 func (u *AdminLoginHistoryUpsert) UpdateDevice() *AdminLoginHistoryUpsert {
 	u.SetExcluded(adminloginhistory.FieldDevice)
+	return u
+}
+
+// ClearDevice clears the value of the "device" field.
+func (u *AdminLoginHistoryUpsert) ClearDevice() *AdminLoginHistoryUpsert {
+	u.SetNull(adminloginhistory.FieldDevice)
 	return u
 }
 
@@ -518,6 +569,13 @@ func (u *AdminLoginHistoryUpsertOne) UpdateAdminID() *AdminLoginHistoryUpsertOne
 	})
 }
 
+// ClearAdminID clears the value of the "admin_id" field.
+func (u *AdminLoginHistoryUpsertOne) ClearAdminID() *AdminLoginHistoryUpsertOne {
+	return u.Update(func(s *AdminLoginHistoryUpsert) {
+		s.ClearAdminID()
+	})
+}
+
 // SetIP sets the "ip" field.
 func (u *AdminLoginHistoryUpsertOne) SetIP(v string) *AdminLoginHistoryUpsertOne {
 	return u.Update(func(s *AdminLoginHistoryUpsert) {
@@ -588,6 +646,13 @@ func (u *AdminLoginHistoryUpsertOne) UpdateIsp() *AdminLoginHistoryUpsertOne {
 	})
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (u *AdminLoginHistoryUpsertOne) ClearIsp() *AdminLoginHistoryUpsertOne {
+	return u.Update(func(s *AdminLoginHistoryUpsert) {
+		s.ClearIsp()
+	})
+}
+
 // SetAsn sets the "asn" field.
 func (u *AdminLoginHistoryUpsertOne) SetAsn(v string) *AdminLoginHistoryUpsertOne {
 	return u.Update(func(s *AdminLoginHistoryUpsert) {
@@ -599,6 +664,13 @@ func (u *AdminLoginHistoryUpsertOne) SetAsn(v string) *AdminLoginHistoryUpsertOn
 func (u *AdminLoginHistoryUpsertOne) UpdateAsn() *AdminLoginHistoryUpsertOne {
 	return u.Update(func(s *AdminLoginHistoryUpsert) {
 		s.UpdateAsn()
+	})
+}
+
+// ClearAsn clears the value of the "asn" field.
+func (u *AdminLoginHistoryUpsertOne) ClearAsn() *AdminLoginHistoryUpsertOne {
+	return u.Update(func(s *AdminLoginHistoryUpsert) {
+		s.ClearAsn()
 	})
 }
 
@@ -616,6 +688,13 @@ func (u *AdminLoginHistoryUpsertOne) UpdateClientVersion() *AdminLoginHistoryUps
 	})
 }
 
+// ClearClientVersion clears the value of the "client_version" field.
+func (u *AdminLoginHistoryUpsertOne) ClearClientVersion() *AdminLoginHistoryUpsertOne {
+	return u.Update(func(s *AdminLoginHistoryUpsert) {
+		s.ClearClientVersion()
+	})
+}
+
 // SetDevice sets the "device" field.
 func (u *AdminLoginHistoryUpsertOne) SetDevice(v string) *AdminLoginHistoryUpsertOne {
 	return u.Update(func(s *AdminLoginHistoryUpsert) {
@@ -627,6 +706,13 @@ func (u *AdminLoginHistoryUpsertOne) SetDevice(v string) *AdminLoginHistoryUpser
 func (u *AdminLoginHistoryUpsertOne) UpdateDevice() *AdminLoginHistoryUpsertOne {
 	return u.Update(func(s *AdminLoginHistoryUpsert) {
 		s.UpdateDevice()
+	})
+}
+
+// ClearDevice clears the value of the "device" field.
+func (u *AdminLoginHistoryUpsertOne) ClearDevice() *AdminLoginHistoryUpsertOne {
+	return u.Update(func(s *AdminLoginHistoryUpsert) {
+		s.ClearDevice()
 	})
 }
 
@@ -873,6 +959,13 @@ func (u *AdminLoginHistoryUpsertBulk) UpdateAdminID() *AdminLoginHistoryUpsertBu
 	})
 }
 
+// ClearAdminID clears the value of the "admin_id" field.
+func (u *AdminLoginHistoryUpsertBulk) ClearAdminID() *AdminLoginHistoryUpsertBulk {
+	return u.Update(func(s *AdminLoginHistoryUpsert) {
+		s.ClearAdminID()
+	})
+}
+
 // SetIP sets the "ip" field.
 func (u *AdminLoginHistoryUpsertBulk) SetIP(v string) *AdminLoginHistoryUpsertBulk {
 	return u.Update(func(s *AdminLoginHistoryUpsert) {
@@ -943,6 +1036,13 @@ func (u *AdminLoginHistoryUpsertBulk) UpdateIsp() *AdminLoginHistoryUpsertBulk {
 	})
 }
 
+// ClearIsp clears the value of the "isp" field.
+func (u *AdminLoginHistoryUpsertBulk) ClearIsp() *AdminLoginHistoryUpsertBulk {
+	return u.Update(func(s *AdminLoginHistoryUpsert) {
+		s.ClearIsp()
+	})
+}
+
 // SetAsn sets the "asn" field.
 func (u *AdminLoginHistoryUpsertBulk) SetAsn(v string) *AdminLoginHistoryUpsertBulk {
 	return u.Update(func(s *AdminLoginHistoryUpsert) {
@@ -954,6 +1054,13 @@ func (u *AdminLoginHistoryUpsertBulk) SetAsn(v string) *AdminLoginHistoryUpsertB
 func (u *AdminLoginHistoryUpsertBulk) UpdateAsn() *AdminLoginHistoryUpsertBulk {
 	return u.Update(func(s *AdminLoginHistoryUpsert) {
 		s.UpdateAsn()
+	})
+}
+
+// ClearAsn clears the value of the "asn" field.
+func (u *AdminLoginHistoryUpsertBulk) ClearAsn() *AdminLoginHistoryUpsertBulk {
+	return u.Update(func(s *AdminLoginHistoryUpsert) {
+		s.ClearAsn()
 	})
 }
 
@@ -971,6 +1078,13 @@ func (u *AdminLoginHistoryUpsertBulk) UpdateClientVersion() *AdminLoginHistoryUp
 	})
 }
 
+// ClearClientVersion clears the value of the "client_version" field.
+func (u *AdminLoginHistoryUpsertBulk) ClearClientVersion() *AdminLoginHistoryUpsertBulk {
+	return u.Update(func(s *AdminLoginHistoryUpsert) {
+		s.ClearClientVersion()
+	})
+}
+
 // SetDevice sets the "device" field.
 func (u *AdminLoginHistoryUpsertBulk) SetDevice(v string) *AdminLoginHistoryUpsertBulk {
 	return u.Update(func(s *AdminLoginHistoryUpsert) {
@@ -982,6 +1096,13 @@ func (u *AdminLoginHistoryUpsertBulk) SetDevice(v string) *AdminLoginHistoryUpse
 func (u *AdminLoginHistoryUpsertBulk) UpdateDevice() *AdminLoginHistoryUpsertBulk {
 	return u.Update(func(s *AdminLoginHistoryUpsert) {
 		s.UpdateDevice()
+	})
+}
+
+// ClearDevice clears the value of the "device" field.
+func (u *AdminLoginHistoryUpsertBulk) ClearDevice() *AdminLoginHistoryUpsertBulk {
+	return u.Update(func(s *AdminLoginHistoryUpsert) {
+		s.ClearDevice()
 	})
 }
 

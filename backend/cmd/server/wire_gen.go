@@ -32,6 +32,7 @@ import (
 	repo5 "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
 	usecase4 "github.com/chaitin/MonkeyCode/backend/internal/user/usecase"
 	"github.com/chaitin/MonkeyCode/backend/pkg"
+	"github.com/chaitin/MonkeyCode/backend/pkg/ipdb"
 	"github.com/chaitin/MonkeyCode/backend/pkg/logger"
 	"github.com/chaitin/MonkeyCode/backend/pkg/session"
 	"github.com/chaitin/MonkeyCode/backend/pkg/store"
@@ -68,7 +69,11 @@ func newServer() (*Server, error) {
 	sessionSession := session.NewSession(configConfig)
 	authMiddleware := middleware.NewAuthMiddleware(sessionSession, slogLogger)
 	modelHandler := v1_2.NewModelHandler(web, modelUsecase, authMiddleware, slogLogger)
-	userRepo := repo5.NewUserRepo(client)
+	ipdbIPDB, err := ipdb.NewIPDB(slogLogger)
+	if err != nil {
+		return nil, err
+	}
+	userRepo := repo5.NewUserRepo(client, ipdbIPDB)
 	userUsecase := usecase4.NewUserUsecase(configConfig, redisClient, userRepo, slogLogger)
 	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, authMiddleware, sessionSession, slogLogger, configConfig)
 	dashboardRepo := repo6.NewDashboardRepo(client)

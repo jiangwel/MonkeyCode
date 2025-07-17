@@ -26,7 +26,6 @@ type UserLoginHistoryQuery struct {
 	inters     []Interceptor
 	predicates []predicate.UserLoginHistory
 	withOwner  *UserQuery
-	withFKs    bool
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -374,18 +373,11 @@ func (ulhq *UserLoginHistoryQuery) prepareQuery(ctx context.Context) error {
 func (ulhq *UserLoginHistoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*UserLoginHistory, error) {
 	var (
 		nodes       = []*UserLoginHistory{}
-		withFKs     = ulhq.withFKs
 		_spec       = ulhq.querySpec()
 		loadedTypes = [1]bool{
 			ulhq.withOwner != nil,
 		}
 	)
-	if ulhq.withOwner != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, userloginhistory.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*UserLoginHistory).scanValues(nil, columns)
 	}
@@ -420,10 +412,7 @@ func (ulhq *UserLoginHistoryQuery) loadOwner(ctx context.Context, query *UserQue
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*UserLoginHistory)
 	for i := range nodes {
-		if nodes[i].user_login_histories == nil {
-			continue
-		}
-		fk := *nodes[i].user_login_histories
+		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -440,7 +429,7 @@ func (ulhq *UserLoginHistoryQuery) loadOwner(ctx context.Context, query *UserQue
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_login_histories" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -476,6 +465,9 @@ func (ulhq *UserLoginHistoryQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != userloginhistory.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if ulhq.withOwner != nil {
+			_spec.Node.AddColumnOnce(userloginhistory.FieldUserID)
 		}
 	}
 	if ps := ulhq.predicates; len(ps) > 0 {

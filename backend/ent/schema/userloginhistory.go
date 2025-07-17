@@ -9,6 +9,8 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+
+	"github.com/chaitin/MonkeyCode/backend/consts"
 )
 
 // UserLoginHistory holds the schema definition for the UserLoginHistory entity.
@@ -28,15 +30,17 @@ func (UserLoginHistory) Annotations() []schema.Annotation {
 func (UserLoginHistory) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}),
-		field.UUID("user_id", uuid.UUID{}),
+		field.UUID("user_id", uuid.UUID{}).Optional(),
 		field.String("ip"),
 		field.String("country"),
 		field.String("province"),
 		field.String("city"),
-		field.String("isp"),
-		field.String("asn"),
-		field.String("client_version"),
-		field.String("device"),
+		field.String("isp").Optional(),
+		field.String("asn").Optional(),
+		field.String("client_version").Optional(),
+		field.String("os_type").GoType(consts.OSType("")).Optional(),
+		field.String("os_release").GoType(consts.OSRelease("")).Optional(),
+		field.String("hostname").Optional(),
 		field.Time("created_at").Default(time.Now),
 	}
 }
@@ -44,6 +48,6 @@ func (UserLoginHistory) Fields() []ent.Field {
 // Edges of the UserLoginHistory.
 func (UserLoginHistory) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("owner", User.Type).Ref("login_histories").Unique(),
+		edge.From("owner", User.Type).Field("user_id").Ref("login_histories").Unique(),
 	}
 }

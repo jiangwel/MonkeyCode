@@ -552,7 +552,9 @@ func (uq *UserQuery) loadLoginHistories(ctx context.Context, query *UserLoginHis
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(userloginhistory.FieldUserID)
+	}
 	query.Where(predicate.UserLoginHistory(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.LoginHistoriesColumn), fks...))
 	}))
@@ -561,13 +563,10 @@ func (uq *UserQuery) loadLoginHistories(ctx context.Context, query *UserLoginHis
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_login_histories
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_login_histories" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.UserID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_login_histories" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

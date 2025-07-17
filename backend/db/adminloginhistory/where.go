@@ -126,24 +126,14 @@ func AdminIDNotIn(vs ...uuid.UUID) predicate.AdminLoginHistory {
 	return predicate.AdminLoginHistory(sql.FieldNotIn(FieldAdminID, vs...))
 }
 
-// AdminIDGT applies the GT predicate on the "admin_id" field.
-func AdminIDGT(v uuid.UUID) predicate.AdminLoginHistory {
-	return predicate.AdminLoginHistory(sql.FieldGT(FieldAdminID, v))
+// AdminIDIsNil applies the IsNil predicate on the "admin_id" field.
+func AdminIDIsNil() predicate.AdminLoginHistory {
+	return predicate.AdminLoginHistory(sql.FieldIsNull(FieldAdminID))
 }
 
-// AdminIDGTE applies the GTE predicate on the "admin_id" field.
-func AdminIDGTE(v uuid.UUID) predicate.AdminLoginHistory {
-	return predicate.AdminLoginHistory(sql.FieldGTE(FieldAdminID, v))
-}
-
-// AdminIDLT applies the LT predicate on the "admin_id" field.
-func AdminIDLT(v uuid.UUID) predicate.AdminLoginHistory {
-	return predicate.AdminLoginHistory(sql.FieldLT(FieldAdminID, v))
-}
-
-// AdminIDLTE applies the LTE predicate on the "admin_id" field.
-func AdminIDLTE(v uuid.UUID) predicate.AdminLoginHistory {
-	return predicate.AdminLoginHistory(sql.FieldLTE(FieldAdminID, v))
+// AdminIDNotNil applies the NotNil predicate on the "admin_id" field.
+func AdminIDNotNil() predicate.AdminLoginHistory {
+	return predicate.AdminLoginHistory(sql.FieldNotNull(FieldAdminID))
 }
 
 // IPEQ applies the EQ predicate on the "ip" field.
@@ -461,6 +451,16 @@ func IspHasSuffix(v string) predicate.AdminLoginHistory {
 	return predicate.AdminLoginHistory(sql.FieldHasSuffix(FieldIsp, v))
 }
 
+// IspIsNil applies the IsNil predicate on the "isp" field.
+func IspIsNil() predicate.AdminLoginHistory {
+	return predicate.AdminLoginHistory(sql.FieldIsNull(FieldIsp))
+}
+
+// IspNotNil applies the NotNil predicate on the "isp" field.
+func IspNotNil() predicate.AdminLoginHistory {
+	return predicate.AdminLoginHistory(sql.FieldNotNull(FieldIsp))
+}
+
 // IspEqualFold applies the EqualFold predicate on the "isp" field.
 func IspEqualFold(v string) predicate.AdminLoginHistory {
 	return predicate.AdminLoginHistory(sql.FieldEqualFold(FieldIsp, v))
@@ -524,6 +524,16 @@ func AsnHasPrefix(v string) predicate.AdminLoginHistory {
 // AsnHasSuffix applies the HasSuffix predicate on the "asn" field.
 func AsnHasSuffix(v string) predicate.AdminLoginHistory {
 	return predicate.AdminLoginHistory(sql.FieldHasSuffix(FieldAsn, v))
+}
+
+// AsnIsNil applies the IsNil predicate on the "asn" field.
+func AsnIsNil() predicate.AdminLoginHistory {
+	return predicate.AdminLoginHistory(sql.FieldIsNull(FieldAsn))
+}
+
+// AsnNotNil applies the NotNil predicate on the "asn" field.
+func AsnNotNil() predicate.AdminLoginHistory {
+	return predicate.AdminLoginHistory(sql.FieldNotNull(FieldAsn))
 }
 
 // AsnEqualFold applies the EqualFold predicate on the "asn" field.
@@ -591,6 +601,16 @@ func ClientVersionHasSuffix(v string) predicate.AdminLoginHistory {
 	return predicate.AdminLoginHistory(sql.FieldHasSuffix(FieldClientVersion, v))
 }
 
+// ClientVersionIsNil applies the IsNil predicate on the "client_version" field.
+func ClientVersionIsNil() predicate.AdminLoginHistory {
+	return predicate.AdminLoginHistory(sql.FieldIsNull(FieldClientVersion))
+}
+
+// ClientVersionNotNil applies the NotNil predicate on the "client_version" field.
+func ClientVersionNotNil() predicate.AdminLoginHistory {
+	return predicate.AdminLoginHistory(sql.FieldNotNull(FieldClientVersion))
+}
+
 // ClientVersionEqualFold applies the EqualFold predicate on the "client_version" field.
 func ClientVersionEqualFold(v string) predicate.AdminLoginHistory {
 	return predicate.AdminLoginHistory(sql.FieldEqualFold(FieldClientVersion, v))
@@ -654,6 +674,16 @@ func DeviceHasPrefix(v string) predicate.AdminLoginHistory {
 // DeviceHasSuffix applies the HasSuffix predicate on the "device" field.
 func DeviceHasSuffix(v string) predicate.AdminLoginHistory {
 	return predicate.AdminLoginHistory(sql.FieldHasSuffix(FieldDevice, v))
+}
+
+// DeviceIsNil applies the IsNil predicate on the "device" field.
+func DeviceIsNil() predicate.AdminLoginHistory {
+	return predicate.AdminLoginHistory(sql.FieldIsNull(FieldDevice))
+}
+
+// DeviceNotNil applies the NotNil predicate on the "device" field.
+func DeviceNotNil() predicate.AdminLoginHistory {
+	return predicate.AdminLoginHistory(sql.FieldNotNull(FieldDevice))
 }
 
 // DeviceEqualFold applies the EqualFold predicate on the "device" field.

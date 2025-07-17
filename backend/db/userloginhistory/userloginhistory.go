@@ -30,8 +30,12 @@ const (
 	FieldAsn = "asn"
 	// FieldClientVersion holds the string denoting the client_version field in the database.
 	FieldClientVersion = "client_version"
-	// FieldDevice holds the string denoting the device field in the database.
-	FieldDevice = "device"
+	// FieldOsType holds the string denoting the os_type field in the database.
+	FieldOsType = "os_type"
+	// FieldOsRelease holds the string denoting the os_release field in the database.
+	FieldOsRelease = "os_release"
+	// FieldHostname holds the string denoting the hostname field in the database.
+	FieldHostname = "hostname"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
@@ -44,7 +48,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	OwnerInverseTable = "users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
-	OwnerColumn = "user_login_histories"
+	OwnerColumn = "user_id"
 )
 
 // Columns holds all SQL columns for userloginhistory fields.
@@ -58,25 +62,16 @@ var Columns = []string{
 	FieldIsp,
 	FieldAsn,
 	FieldClientVersion,
-	FieldDevice,
+	FieldOsType,
+	FieldOsRelease,
+	FieldHostname,
 	FieldCreatedAt,
-}
-
-// ForeignKeys holds the SQL foreign-keys that are owned by the "user_login_histories"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"user_login_histories",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -136,9 +131,19 @@ func ByClientVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldClientVersion, opts...).ToFunc()
 }
 
-// ByDevice orders the results by the device field.
-func ByDevice(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDevice, opts...).ToFunc()
+// ByOsType orders the results by the os_type field.
+func ByOsType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOsType, opts...).ToFunc()
+}
+
+// ByOsRelease orders the results by the os_release field.
+func ByOsRelease(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOsRelease, opts...).ToFunc()
+}
+
+// ByHostname orders the results by the hostname field.
+func ByHostname(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHostname, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

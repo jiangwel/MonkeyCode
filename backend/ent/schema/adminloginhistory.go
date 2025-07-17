@@ -28,15 +28,15 @@ func (AdminLoginHistory) Annotations() []schema.Annotation {
 func (AdminLoginHistory) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}),
-		field.UUID("admin_id", uuid.UUID{}),
+		field.UUID("admin_id", uuid.UUID{}).Optional(),
 		field.String("ip"),
 		field.String("country"),
 		field.String("province"),
 		field.String("city"),
-		field.String("isp"),
-		field.String("asn"),
-		field.String("client_version"),
-		field.String("device"),
+		field.String("isp").Optional(),
+		field.String("asn").Optional(),
+		field.String("client_version").Optional(),
+		field.String("device").Optional(),
 		field.Time("created_at").Default(time.Now),
 	}
 }
@@ -44,6 +44,6 @@ func (AdminLoginHistory) Fields() []ent.Field {
 // Edges of the AdminLoginHistory.
 func (AdminLoginHistory) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("owner", Admin.Type).Ref("login_histories").Unique(),
+		edge.From("owner", Admin.Type).Field("admin_id").Ref("login_histories").Unique(),
 	}
 }
