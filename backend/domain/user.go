@@ -2,7 +2,6 @@ package domain
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/GoYoko/web"
 
@@ -142,6 +141,8 @@ type UserLoginHistory struct {
 	IPInfo        *IPInfo `json:"ip_info"`        // IP信息
 	ClientVersion string  `json:"client_version"` // 客户端版本
 	Device        string  `json:"device"`         // 设备信息
+	Hostname      string  `json:"hostname"`       // 主机名
+	ClientID      string  `json:"client_id"`      // 插件ID vscode
 	CreatedAt     int64   `json:"created_at"`     // 登录时间
 }
 
@@ -161,9 +162,8 @@ func (l *UserLoginHistory) From(e *db.UserLoginHistory) *UserLoginHistory {
 	}
 	l.ClientVersion = e.ClientVersion
 	l.Device = e.OsType.Name()
-	if e.Hostname != "" {
-		l.Device += fmt.Sprintf(" (%s)", e.Hostname)
-	}
+	l.Hostname = e.Hostname
+	l.ClientID = e.ClientID
 	l.CreatedAt = e.CreatedAt.Unix()
 
 	return l
@@ -218,6 +218,7 @@ type User struct {
 	Status       consts.UserStatus `json:"status"`         // 用户状态 active: 正常 locked: 锁定 inactive: 禁用
 	AvatarURL    string            `json:"avatar_url"`     // 头像URL
 	CreatedAt    int64             `json:"created_at"`     // 创建时间
+	IsDeleted    bool              `json:"is_deleted"`     // 是否删除
 	LastActiveAt int64             `json:"last_active_at"` // 最后活跃时间
 }
 
@@ -231,6 +232,7 @@ func (u *User) From(e *db.User) *User {
 	u.Email = e.Email
 	u.Status = e.Status
 	u.AvatarURL = e.AvatarURL
+	u.IsDeleted = !e.DeletedAt.IsZero()
 	u.CreatedAt = e.CreatedAt.Unix()
 
 	return u
@@ -259,6 +261,7 @@ func (a *AdminUser) From(e *db.Admin) *AdminUser {
 
 type VSCodeSession struct {
 	ID          string           `json:"id"`           // 会话ID
+	ClientID    string           `json:"client_id"`    // 客户端ID
 	State       string           `json:"state"`        // 状态
 	RedirectURI string           `json:"redirect_uri"` // 重定向URI
 	Version     string           `json:"version"`      // 版本

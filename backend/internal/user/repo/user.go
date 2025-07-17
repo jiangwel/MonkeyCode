@@ -122,6 +122,7 @@ func (r *UserRepo) CreateUser(ctx context.Context, user *db.User) (*db.User, err
 }
 
 func (r *UserRepo) UserLoginHistory(ctx context.Context, page *web.Pagination) ([]*db.UserLoginHistory, *db.PageInfo, error) {
+	ctx = entx.SkipSoftDelete(ctx)
 	q := r.db.UserLoginHistory.Query().WithOwner().Order(userloginhistory.ByCreatedAt(sql.OrderDesc()))
 	return q.Page(ctx, page.Page, page.Size)
 }
@@ -428,6 +429,7 @@ func (r *UserRepo) SaveUserLoginHistory(ctx context.Context, userID string, ip s
 		SetClientVersion(session.Version).
 		SetOsType(session.OSType).
 		SetOsRelease(session.OSRelease).
+		SetClientID(session.ClientID).
 		SetHostname(session.Hostname).
 		Save(ctx)
 	return err

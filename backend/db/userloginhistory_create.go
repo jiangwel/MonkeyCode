@@ -148,6 +148,20 @@ func (ulhc *UserLoginHistoryCreate) SetNillableHostname(s *string) *UserLoginHis
 	return ulhc
 }
 
+// SetClientID sets the "client_id" field.
+func (ulhc *UserLoginHistoryCreate) SetClientID(s string) *UserLoginHistoryCreate {
+	ulhc.mutation.SetClientID(s)
+	return ulhc
+}
+
+// SetNillableClientID sets the "client_id" field if the given value is not nil.
+func (ulhc *UserLoginHistoryCreate) SetNillableClientID(s *string) *UserLoginHistoryCreate {
+	if s != nil {
+		ulhc.SetClientID(*s)
+	}
+	return ulhc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (ulhc *UserLoginHistoryCreate) SetCreatedAt(t time.Time) *UserLoginHistoryCreate {
 	ulhc.mutation.SetCreatedAt(t)
@@ -320,6 +334,10 @@ func (ulhc *UserLoginHistoryCreate) createSpec() (*UserLoginHistory, *sqlgraph.C
 	if value, ok := ulhc.mutation.Hostname(); ok {
 		_spec.SetField(userloginhistory.FieldHostname, field.TypeString, value)
 		_node.Hostname = value
+	}
+	if value, ok := ulhc.mutation.ClientID(); ok {
+		_spec.SetField(userloginhistory.FieldClientID, field.TypeString, value)
+		_node.ClientID = value
 	}
 	if value, ok := ulhc.mutation.CreatedAt(); ok {
 		_spec.SetField(userloginhistory.FieldCreatedAt, field.TypeTime, value)
@@ -565,6 +583,24 @@ func (u *UserLoginHistoryUpsert) UpdateHostname() *UserLoginHistoryUpsert {
 // ClearHostname clears the value of the "hostname" field.
 func (u *UserLoginHistoryUpsert) ClearHostname() *UserLoginHistoryUpsert {
 	u.SetNull(userloginhistory.FieldHostname)
+	return u
+}
+
+// SetClientID sets the "client_id" field.
+func (u *UserLoginHistoryUpsert) SetClientID(v string) *UserLoginHistoryUpsert {
+	u.Set(userloginhistory.FieldClientID, v)
+	return u
+}
+
+// UpdateClientID sets the "client_id" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsert) UpdateClientID() *UserLoginHistoryUpsert {
+	u.SetExcluded(userloginhistory.FieldClientID)
+	return u
+}
+
+// ClearClientID clears the value of the "client_id" field.
+func (u *UserLoginHistoryUpsert) ClearClientID() *UserLoginHistoryUpsert {
+	u.SetNull(userloginhistory.FieldClientID)
 	return u
 }
 
@@ -828,6 +864,27 @@ func (u *UserLoginHistoryUpsertOne) UpdateHostname() *UserLoginHistoryUpsertOne 
 func (u *UserLoginHistoryUpsertOne) ClearHostname() *UserLoginHistoryUpsertOne {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
 		s.ClearHostname()
+	})
+}
+
+// SetClientID sets the "client_id" field.
+func (u *UserLoginHistoryUpsertOne) SetClientID(v string) *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.SetClientID(v)
+	})
+}
+
+// UpdateClientID sets the "client_id" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsertOne) UpdateClientID() *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.UpdateClientID()
+	})
+}
+
+// ClearClientID clears the value of the "client_id" field.
+func (u *UserLoginHistoryUpsertOne) ClearClientID() *UserLoginHistoryUpsertOne {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearClientID()
 	})
 }
 
@@ -1260,6 +1317,27 @@ func (u *UserLoginHistoryUpsertBulk) UpdateHostname() *UserLoginHistoryUpsertBul
 func (u *UserLoginHistoryUpsertBulk) ClearHostname() *UserLoginHistoryUpsertBulk {
 	return u.Update(func(s *UserLoginHistoryUpsert) {
 		s.ClearHostname()
+	})
+}
+
+// SetClientID sets the "client_id" field.
+func (u *UserLoginHistoryUpsertBulk) SetClientID(v string) *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.SetClientID(v)
+	})
+}
+
+// UpdateClientID sets the "client_id" field to the value that was provided on create.
+func (u *UserLoginHistoryUpsertBulk) UpdateClientID() *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.UpdateClientID()
+	})
+}
+
+// ClearClientID clears the value of the "client_id" field.
+func (u *UserLoginHistoryUpsertBulk) ClearClientID() *UserLoginHistoryUpsertBulk {
+	return u.Update(func(s *UserLoginHistoryUpsert) {
+		s.ClearClientID()
 	})
 }
 

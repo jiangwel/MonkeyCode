@@ -36,6 +36,8 @@ const (
 	FieldOsRelease = "os_release"
 	// FieldHostname holds the string denoting the hostname field in the database.
 	FieldHostname = "hostname"
+	// FieldClientID holds the string denoting the client_id field in the database.
+	FieldClientID = "client_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
@@ -65,6 +67,7 @@ var Columns = []string{
 	FieldOsType,
 	FieldOsRelease,
 	FieldHostname,
+	FieldClientID,
 	FieldCreatedAt,
 }
 
@@ -144,6 +147,11 @@ func ByOsRelease(opts ...sql.OrderTermOption) OrderOption {
 // ByHostname orders the results by the hostname field.
 func ByHostname(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHostname, opts...).ToFunc()
+}
+
+// ByClientID orders the results by the client_id field.
+func ByClientID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClientID, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

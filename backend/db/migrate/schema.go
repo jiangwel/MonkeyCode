@@ -379,6 +379,7 @@ var (
 		{Name: "os_type", Type: field.TypeString, Nullable: true},
 		{Name: "os_release", Type: field.TypeString, Nullable: true},
 		{Name: "hostname", Type: field.TypeString, Nullable: true},
+		{Name: "client_id", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeUUID, Nullable: true},
 	}
@@ -390,7 +391,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_login_histories_users_login_histories",
-				Columns:    []*schema.Column{UserLoginHistoriesColumns[12]},
+				Columns:    []*schema.Column{UserLoginHistoriesColumns[13]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
