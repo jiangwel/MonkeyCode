@@ -95,6 +95,7 @@ const Completion = () => {
             username={value.username!}
             email={value.email!}
             avatar={value.avatar_url!}
+            deleted={value.is_deleted!}
           />
         );
       },

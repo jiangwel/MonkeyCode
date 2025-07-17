@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Card from '@/components/card';
 import { useRequest } from 'ahooks';
-import { getMyModelList, putUpdateModel } from '@/api/Model';
+import { deleteDeleteModel, getMyModelList, putUpdateModel } from '@/api/Model';
 import { DomainModel, ConstsModelStatus, ConstsModelType } from '@/api/types';
 import { Stack, Box, Button, Grid2 as Grid, ButtonBase } from '@mui/material';
 import StyledLabel from '@/components/label';
@@ -43,6 +43,31 @@ const ModelItem = ({
           provider: data.provider!,
         }).then(() => {
           message.success('停用成功');
+          refresh();
+        });
+      },
+    });
+  };
+  
+  const onRemoveModel = () => {
+    Modal.confirm({
+      title: '删除模型',
+      content: (
+        <>
+          确定要删除{' '}
+          <Box component='span' sx={{ fontWeight: 700, color: 'text.primary' }}>
+            {data.model_name}
+          </Box>{' '}
+          模型吗？
+        </>
+      ),
+      okText: '删除',
+      okButtonProps: {
+        color: 'error',
+      },
+      onOk: () => {
+        deleteDeleteModel({ id: data.id! }).then(() => {
+          message.success('删除成功');
           refresh();
         });
       },
@@ -169,15 +194,6 @@ const ModelItem = ({
           sx={{ button: { minWidth: 0 } }}
           gap={2}
         >
-          {!data.is_internal && <ButtonBase
-            disableRipple
-            sx={{
-              color: 'info.main',
-            }}
-            onClick={() => onEdit(data)}
-          >
-            编辑
-          </ButtonBase>}
           {!data.is_active && (
             <ButtonBase
               disableRipple
@@ -190,6 +206,16 @@ const ModelItem = ({
             </ButtonBase>
           )}
 
+          {!data.is_internal && <ButtonBase
+            disableRipple
+            sx={{
+              color: 'info.main',
+            }}
+            onClick={() => onEdit(data)}
+          >
+            编辑
+          </ButtonBase>}
+
           {data.is_active && (
             <ButtonBase
               disableRipple
@@ -201,9 +227,18 @@ const ModelItem = ({
               停用
             </ButtonBase>
           )}
-          {/* <Button color='error' size='small'>
-            删除
-          </Button> */}
+
+          {data.is_internal === false && data.is_active === false && (
+            <ButtonBase
+              disableRipple
+              sx={{
+                color: 'error.main',
+              }}
+              onClick={onRemoveModel}
+            >
+              删除
+            </ButtonBase>
+          )}
         </Stack>
       </Stack>
     </Card>

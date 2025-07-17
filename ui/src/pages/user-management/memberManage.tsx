@@ -258,6 +258,7 @@ const MemberManage = () => {
             username={record.username!}
             email={record.email!}
             avatar={record.avatar_url}
+            deleted={record.is_deleted!}
           />
         );
       },

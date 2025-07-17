@@ -12,6 +12,7 @@
 
 import request, { ContentType, RequestParams } from "./httpClient";
 import {
+  DeleteDeleteModelParams,
   DomainAllModelResp,
   DomainCheckModelReq,
   DomainCreateModelReq,
@@ -106,6 +107,29 @@ export const postCreateModel = (
     path: `/api/v1/model`,
     method: "POST",
     body: model,
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
+ * @description 删除模型
+ *
+ * @tags Model
+ * @name DeleteDeleteModel
+ * @summary 删除模型
+ * @request DELETE:/api/v1/model
+ * @response `200` `WebResp` OK
+ */
+
+export const deleteDeleteModel = (
+  query: DeleteDeleteModelParams,
+  params: RequestParams = {},
+) =>
+  request<WebResp>({
+    path: `/api/v1/model`,
+    method: "DELETE",
+    query: query,
     type: ContentType.Json,
     format: "json",
     ...params,

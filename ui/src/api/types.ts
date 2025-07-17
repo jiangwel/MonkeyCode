@@ -210,7 +210,8 @@ export interface DomainCreateModelReq {
     | "BaiZhiCloud"
     | "Hunyuan"
     | "BaiLian"
-    | "Volcengine";
+    | "Volcengine"
+    | "Other";
   /** 模型显示名称 */
   show_name?: string;
 }
@@ -414,7 +415,8 @@ export interface DomainModelBasic {
     | "BaiZhiCloud"
     | "Hunyuan"
     | "BaiLian"
-    | "Volcengine";
+    | "Volcengine"
+    | "Other";
 }
 
 export interface DomainModelData {
@@ -581,7 +583,8 @@ export interface DomainUpdateModelReq {
     | "BaiZhiCloud"
     | "Hunyuan"
     | "BaiLian"
-    | "Volcengine";
+    | "Volcengine"
+    | "Other";
   /** 模型显示名称 */
   show_name?: string;
   /** 状态 active:启用 inactive:禁用 */
@@ -621,6 +624,8 @@ export interface DomainUser {
   email?: string;
   /** 用户ID */
   id?: string;
+  /** 是否删除 */
+  is_deleted?: boolean;
   /** 最后活跃时间 */
   last_active_at?: number;
   /** 用户状态 active: 正常 locked: 锁定 inactive: 禁用 */
@@ -656,12 +661,16 @@ export interface DomainUserHeatmapResp {
 }
 
 export interface DomainUserLoginHistory {
+  /** 插件ID vscode */
+  client_id?: string;
   /** 客户端版本 */
   client_version?: string;
   /** 登录时间 */
   created_at?: number;
   /** 设备信息 */
   device?: string;
+  /** 主机名 */
+  hostname?: string;
   /** IP信息 */
   ip_info?: DomainIPInfo;
   /** 用户信息 */
@@ -868,6 +877,11 @@ export interface GetUserStatDashboardParams {
   precision: "hour" | "day";
   /** 用户ID，可选参数 */
   user_id?: string;
+}
+
+export interface DeleteDeleteModelParams {
+  /** 模型ID */
+  id: string;
 }
 
 export interface GetMyModelListParams {
