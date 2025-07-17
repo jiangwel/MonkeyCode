@@ -243,3 +243,11 @@ func (r *ModelRepo) InitModel(ctx context.Context, modelName, modelKey, modelURL
 		SetIsInternal(true).
 		Exec(ctx)
 }
+
+func (r *ModelRepo) Delete(ctx context.Context, id string) error {
+	uuidID, err := uuid.Parse(id)
+	if err != nil {
+		return err
+	}
+	return r.db.Model.DeleteOneID(uuidID).Exec(ctx)
+}
