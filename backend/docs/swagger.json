@@ -1113,6 +1113,37 @@
                         }
                     }
                 }
+            },
+            "delete": {
+                "description": "删除模型",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Model"
+                ],
+                "summary": "删除模型",
+                "operationId": "delete-model",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "模型ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
+                        }
+                    }
+                }
             }
         },
         "/api/v1/model/check": {
@@ -2471,7 +2502,8 @@
                         "BaiZhiCloud",
                         "Hunyuan",
                         "BaiLian",
-                        "Volcengine"
+                        "Volcengine",
+                        "Other"
                     ],
                     "allOf": [
                         {
@@ -2853,6 +2885,10 @@
                     "description": "是否启用",
                     "type": "boolean"
                 },
+                "is_internal": {
+                    "description": "是否内部模型",
+                    "type": "boolean"
+                },
                 "model_name": {
                     "description": "模型名称 如: deepseek-v3",
                     "type": "string"
@@ -2921,7 +2957,8 @@
                         "BaiZhiCloud",
                         "Hunyuan",
                         "BaiLian",
-                        "Volcengine"
+                        "Volcengine",
+                        "Other"
                     ],
                     "allOf": [
                         {
@@ -3301,7 +3338,8 @@
                         "BaiZhiCloud",
                         "Hunyuan",
                         "BaiLian",
-                        "Volcengine"
+                        "Volcengine",
+                        "Other"
                     ],
                     "allOf": [
                         {

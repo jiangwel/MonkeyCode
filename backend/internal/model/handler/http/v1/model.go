@@ -27,13 +27,14 @@ func NewModelHandler(
 	g := w.Group("/api/v1/model")
 	g.Use(auth.Auth(), active.Active("admin"))
 
-	g.POST("/check", web.BindHandler(m.Check))
 	g.GET("", web.BaseHandler(m.List))
-	g.POST("", web.BindHandler(m.Create))
-	g.PUT("", web.BindHandler(m.Update))
 	g.GET("/provider/supported", web.BindHandler(m.GetProviderModelList))
 	g.GET("/token-usage", web.BindHandler(m.GetTokenUsage))
 	g.GET("/my", web.BindHandler(m.MyModelList))
+	g.POST("", web.BindHandler(m.Create))
+	g.POST("/check", web.BindHandler(m.Check))
+	g.PUT("", web.BindHandler(m.Update))
+	g.DELETE("", web.BaseHandler(m.Delete))
 
 	return m
 }
@@ -172,6 +173,24 @@ func (h *ModelHandler) GetProviderModelList(c *web.Context, req domain.GetProvid
 		return err
 	}
 	return c.Success(resp)
+}
+
+// Delete 删除模型
+//
+//	@Tags			Model
+//	@Summary		删除模型
+//	@Description	删除模型
+//	@ID				delete-model
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	query		string	true	"模型ID"
+//	@Success		200	{object}	web.Resp{}
+//	@Router			/api/v1/model [delete]
+func (h *ModelHandler) Delete(c *web.Context) error {
+	if err := h.usecase.Delete(c.Request().Context(), c.QueryParam("id")); err != nil {
+		return err
+	}
+	return c.Success(nil)
 }
 
 func (h *ModelHandler) InitModel() error {

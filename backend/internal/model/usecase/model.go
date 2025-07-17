@@ -356,3 +356,7 @@ func (m *ModelUsecase) GetProviderModelList(ctx context.Context, req *domain.Get
 		return nil, fmt.Errorf("invalid provider: %s", req.Provider)
 	}
 }
+
+func (m *ModelUsecase) Delete(ctx context.Context, id string) error {
+	return m.repo.Delete(ctx, id)
+}
