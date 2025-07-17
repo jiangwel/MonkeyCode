@@ -251,7 +251,6 @@ func (a *AdminUser) From(e *db.Admin) *AdminUser {
 
 	a.ID = e.ID.String()
 	a.Username = e.Username
-	a.LastActiveAt = e.LastActiveAt.Unix()
 	a.Status = e.Status
 	a.CreatedAt = e.CreatedAt.Unix()
 

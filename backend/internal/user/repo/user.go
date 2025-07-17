@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/GoYoko/web"
 
@@ -27,12 +28,13 @@ import (
 )
 
 type UserRepo struct {
-	db   *db.Client
-	ipdb *ipdb.IPDB
+	db    *db.Client
+	ipdb  *ipdb.IPDB
+	redis *redis.Client
 }
 
-func NewUserRepo(db *db.Client, ipdb *ipdb.IPDB) domain.UserRepo {
-	return &UserRepo{db: db, ipdb: ipdb}
+func NewUserRepo(db *db.Client, ipdb *ipdb.IPDB, redis *redis.Client) domain.UserRepo {
+	return &UserRepo{db: db, ipdb: ipdb, redis: redis}
 }
 
 func (r *UserRepo) InitAdmin(ctx context.Context, username, password string) error {
@@ -250,6 +252,20 @@ func (r *UserRepo) Delete(ctx context.Context, id string) error {
 			Only(ctx)
 		if err != nil {
 			return err
+		}
+
+		keys, err := tx.ApiKey.Query().Where(apikey.UserID(user.ID)).All(ctx)
+		if err != nil {
+			return err
+		}
+
+		for _, v := range keys {
+			if _, err := tx.ApiKey.Delete().Where(apikey.ID(v.ID)).Exec(ctx); err != nil {
+				return err
+			}
+			if err := r.redis.Del(ctx, fmt.Sprintf("sk-%s", v.Key)).Err(); err != nil {
+				return err
+			}
 		}
 
 		for _, v := range user.Edges.Identities {

@@ -49,10 +49,10 @@ func NewV1Handler(
 
 	g := w.Group("/v1", middleware.Auth())
 	g.GET("/models", web.BaseHandler(h.ModelList))
-	g.POST("/completion/accept", web.BindHandler(h.AcceptCompletion), active.Active())
-	g.POST("/chat/completions", web.BaseHandler(h.ChatCompletion), active.Active())
-	g.POST("/completions", web.BaseHandler(h.Completions), active.Active())
-	g.POST("/embeddings", web.BaseHandler(h.Embeddings), active.Active())
+	g.POST("/completion/accept", web.BindHandler(h.AcceptCompletion), active.Active("user"))
+	g.POST("/chat/completions", web.BaseHandler(h.ChatCompletion), active.Active("user"))
+	g.POST("/completions", web.BaseHandler(h.Completions), active.Active("user"))
+	g.POST("/embeddings", web.BaseHandler(h.Embeddings), active.Active("user"))
 	return h
 }
 

@@ -15,11 +15,12 @@ func NewDashboardHandler(
 	w *web.Web,
 	usecase domain.DashboardUsecase,
 	auth *middleware.AuthMiddleware,
+	active *middleware.ActiveMiddleware,
 ) *DashboardHandler {
 	h := &DashboardHandler{usecase: usecase}
 
 	g := w.Group("/api/v1/dashboard")
-	g.Use(auth.Auth())
+	g.Use(auth.Auth(), active.Active("admin"))
 	g.GET("/statistics", web.BaseHandler(h.Statistics))
 	g.GET("/category-stat", web.BindHandler(h.CategoryStat))
 	g.GET("/time-stat", web.BindHandler(h.TimeStat))

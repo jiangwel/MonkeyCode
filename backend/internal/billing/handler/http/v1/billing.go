@@ -15,13 +15,14 @@ func NewBillingHandler(
 	w *web.Web,
 	usecase domain.BillingUsecase,
 	auth *middleware.AuthMiddleware,
+	active *middleware.ActiveMiddleware,
 ) *BillingHandler {
 	b := &BillingHandler{
 		usecase: usecase,
 	}
 
 	g := w.Group("/api/v1/billing")
-	g.Use(auth.Auth())
+	g.Use(auth.Auth(), active.Active("admin"))
 
 	g.GET("/chat/record", web.BindHandler(b.ListChatRecord, web.WithPage()))
 	g.GET("/completion/record", web.BindHandler(b.ListCompletionRecord, web.WithPage()))

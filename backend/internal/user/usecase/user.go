@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/url"
@@ -81,7 +82,7 @@ func (u *UserUsecase) getUserActive(ctx context.Context, ids []string) (map[stri
 	m := make(map[string]int64)
 	for _, id := range ids {
 		key := fmt.Sprintf(consts.UserActiveKeyFmt, id)
-		if t, err := u.redis.Get(ctx, key).Int64(); err != nil {
+		if t, err := u.redis.Get(ctx, key).Int64(); err != nil && !errors.Is(err, redis.Nil) {
 			u.logger.With("key", key).With("error", err).Warn("get user active time failed")
 		} else {
 			m[id] = t
@@ -98,12 +99,34 @@ func (u *UserUsecase) AdminList(ctx context.Context, page *web.Pagination) (*dom
 		return nil, err
 	}
 
+	ids := cvt.Iter(admins, func(_ int, u *db.Admin) string { return u.ID.String() })
+	m, err := u.getAdminActive(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
 	return &domain.ListAdminUserResp{
 		PageInfo: p,
 		Users: cvt.Iter(admins, func(_ int, e *db.Admin) *domain.AdminUser {
-			return cvt.From(e, &domain.AdminUser{}).From(e)
+			return cvt.From(e, &domain.AdminUser{
+				LastActiveAt: m[e.ID.String()],
+			})
 		}),
 	}, nil
+}
+
+func (u *UserUsecase) getAdminActive(ctx context.Context, ids []string) (map[string]int64, error) {
+	m := make(map[string]int64)
+	for _, id := range ids {
+		key := fmt.Sprintf(consts.AdminActiveKeyFmt, id)
+		if t, err := u.redis.Get(ctx, key).Int64(); err != nil && !errors.Is(err, redis.Nil) {
+			u.logger.With("key", key).With("error", err).Warn("get admin active time failed")
+		} else {
+			m[id] = t
+		}
+	}
+
+	return m, nil
 }
 
 // AdminLoginHistory implements domain.UserUsecase.
