@@ -114,6 +114,11 @@ func Hostname(v string) predicate.UserLoginHistory {
 	return predicate.UserLoginHistory(sql.FieldEQ(FieldHostname, v))
 }
 
+// ClientID applies equality check predicate on the "client_id" field. It's identical to ClientIDEQ.
+func ClientID(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldEQ(FieldClientID, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.UserLoginHistory {
 	return predicate.UserLoginHistory(sql.FieldEQ(FieldCreatedAt, v))
@@ -895,6 +900,81 @@ func HostnameEqualFold(v string) predicate.UserLoginHistory {
 // HostnameContainsFold applies the ContainsFold predicate on the "hostname" field.
 func HostnameContainsFold(v string) predicate.UserLoginHistory {
 	return predicate.UserLoginHistory(sql.FieldContainsFold(FieldHostname, v))
+}
+
+// ClientIDEQ applies the EQ predicate on the "client_id" field.
+func ClientIDEQ(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldEQ(FieldClientID, v))
+}
+
+// ClientIDNEQ applies the NEQ predicate on the "client_id" field.
+func ClientIDNEQ(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNEQ(FieldClientID, v))
+}
+
+// ClientIDIn applies the In predicate on the "client_id" field.
+func ClientIDIn(vs ...string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldIn(FieldClientID, vs...))
+}
+
+// ClientIDNotIn applies the NotIn predicate on the "client_id" field.
+func ClientIDNotIn(vs ...string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNotIn(FieldClientID, vs...))
+}
+
+// ClientIDGT applies the GT predicate on the "client_id" field.
+func ClientIDGT(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldGT(FieldClientID, v))
+}
+
+// ClientIDGTE applies the GTE predicate on the "client_id" field.
+func ClientIDGTE(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldGTE(FieldClientID, v))
+}
+
+// ClientIDLT applies the LT predicate on the "client_id" field.
+func ClientIDLT(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldLT(FieldClientID, v))
+}
+
+// ClientIDLTE applies the LTE predicate on the "client_id" field.
+func ClientIDLTE(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldLTE(FieldClientID, v))
+}
+
+// ClientIDContains applies the Contains predicate on the "client_id" field.
+func ClientIDContains(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldContains(FieldClientID, v))
+}
+
+// ClientIDHasPrefix applies the HasPrefix predicate on the "client_id" field.
+func ClientIDHasPrefix(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldHasPrefix(FieldClientID, v))
+}
+
+// ClientIDHasSuffix applies the HasSuffix predicate on the "client_id" field.
+func ClientIDHasSuffix(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldHasSuffix(FieldClientID, v))
+}
+
+// ClientIDIsNil applies the IsNil predicate on the "client_id" field.
+func ClientIDIsNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldIsNull(FieldClientID))
+}
+
+// ClientIDNotNil applies the NotNil predicate on the "client_id" field.
+func ClientIDNotNil() predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldNotNull(FieldClientID))
+}
+
+// ClientIDEqualFold applies the EqualFold predicate on the "client_id" field.
+func ClientIDEqualFold(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldEqualFold(FieldClientID, v))
+}
+
+// ClientIDContainsFold applies the ContainsFold predicate on the "client_id" field.
+func ClientIDContainsFold(v string) predicate.UserLoginHistory {
+	return predicate.UserLoginHistory(sql.FieldContainsFold(FieldClientID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

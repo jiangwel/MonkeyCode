@@ -319,7 +319,7 @@ func init() {
 	userloginhistoryFields := schema.UserLoginHistory{}.Fields()
 	_ = userloginhistoryFields
 	// userloginhistoryDescCreatedAt is the schema descriptor for created_at field.
-	userloginhistoryDescCreatedAt := userloginhistoryFields[12].Descriptor()
+	userloginhistoryDescCreatedAt := userloginhistoryFields[13].Descriptor()
 	// userloginhistory.DefaultCreatedAt holds the default value on creation for the created_at field.
 	userloginhistory.DefaultCreatedAt = userloginhistoryDescCreatedAt.Default.(func() time.Time)
 }

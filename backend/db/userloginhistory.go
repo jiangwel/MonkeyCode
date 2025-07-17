@@ -42,6 +42,8 @@ type UserLoginHistory struct {
 	OsRelease consts.OSRelease `json:"os_release,omitempty"`
 	// Hostname holds the value of the "hostname" field.
 	Hostname string `json:"hostname,omitempty"`
+	// ClientID holds the value of the "client_id" field.
+	ClientID string `json:"client_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -75,7 +77,7 @@ func (*UserLoginHistory) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case userloginhistory.FieldIP, userloginhistory.FieldCountry, userloginhistory.FieldProvince, userloginhistory.FieldCity, userloginhistory.FieldIsp, userloginhistory.FieldAsn, userloginhistory.FieldClientVersion, userloginhistory.FieldOsType, userloginhistory.FieldOsRelease, userloginhistory.FieldHostname:
+		case userloginhistory.FieldIP, userloginhistory.FieldCountry, userloginhistory.FieldProvince, userloginhistory.FieldCity, userloginhistory.FieldIsp, userloginhistory.FieldAsn, userloginhistory.FieldClientVersion, userloginhistory.FieldOsType, userloginhistory.FieldOsRelease, userloginhistory.FieldHostname, userloginhistory.FieldClientID:
 			values[i] = new(sql.NullString)
 		case userloginhistory.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -168,6 +170,12 @@ func (ulh *UserLoginHistory) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				ulh.Hostname = value.String
 			}
+		case userloginhistory.FieldClientID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field client_id", values[i])
+			} else if value.Valid {
+				ulh.ClientID = value.String
+			}
 		case userloginhistory.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -247,6 +255,9 @@ func (ulh *UserLoginHistory) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("hostname=")
 	builder.WriteString(ulh.Hostname)
+	builder.WriteString(", ")
+	builder.WriteString("client_id=")
+	builder.WriteString(ulh.ClientID)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(ulh.CreatedAt.Format(time.ANSIC))

@@ -255,6 +255,7 @@ func (u *UserUsecase) VSCodeAuthInit(ctx context.Context, req *domain.VSCodeAuth
 	i := uuid.NewString()
 	session := &domain.VSCodeSession{
 		ID:          i,
+		ClientID:    req.ClientID,
 		State:       req.State,
 		RedirectURI: req.RedirectURI,
 		Version:     req.Version,

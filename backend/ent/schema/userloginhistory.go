@@ -41,6 +41,7 @@ func (UserLoginHistory) Fields() []ent.Field {
 		field.String("os_type").GoType(consts.OSType("")).Optional(),
 		field.String("os_release").GoType(consts.OSRelease("")).Optional(),
 		field.String("hostname").Optional(),
+		field.String("client_id").Optional(),
 		field.Time("created_at").Default(time.Now),
 	}
 }

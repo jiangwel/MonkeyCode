@@ -228,6 +228,26 @@ func (ulhu *UserLoginHistoryUpdate) ClearHostname() *UserLoginHistoryUpdate {
 	return ulhu
 }
 
+// SetClientID sets the "client_id" field.
+func (ulhu *UserLoginHistoryUpdate) SetClientID(s string) *UserLoginHistoryUpdate {
+	ulhu.mutation.SetClientID(s)
+	return ulhu
+}
+
+// SetNillableClientID sets the "client_id" field if the given value is not nil.
+func (ulhu *UserLoginHistoryUpdate) SetNillableClientID(s *string) *UserLoginHistoryUpdate {
+	if s != nil {
+		ulhu.SetClientID(*s)
+	}
+	return ulhu
+}
+
+// ClearClientID clears the value of the "client_id" field.
+func (ulhu *UserLoginHistoryUpdate) ClearClientID() *UserLoginHistoryUpdate {
+	ulhu.mutation.ClearClientID()
+	return ulhu
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (ulhu *UserLoginHistoryUpdate) SetCreatedAt(t time.Time) *UserLoginHistoryUpdate {
 	ulhu.mutation.SetCreatedAt(t)
@@ -361,6 +381,12 @@ func (ulhu *UserLoginHistoryUpdate) sqlSave(ctx context.Context) (n int, err err
 	}
 	if ulhu.mutation.HostnameCleared() {
 		_spec.ClearField(userloginhistory.FieldHostname, field.TypeString)
+	}
+	if value, ok := ulhu.mutation.ClientID(); ok {
+		_spec.SetField(userloginhistory.FieldClientID, field.TypeString, value)
+	}
+	if ulhu.mutation.ClientIDCleared() {
+		_spec.ClearField(userloginhistory.FieldClientID, field.TypeString)
 	}
 	if value, ok := ulhu.mutation.CreatedAt(); ok {
 		_spec.SetField(userloginhistory.FieldCreatedAt, field.TypeTime, value)
@@ -612,6 +638,26 @@ func (ulhuo *UserLoginHistoryUpdateOne) ClearHostname() *UserLoginHistoryUpdateO
 	return ulhuo
 }
 
+// SetClientID sets the "client_id" field.
+func (ulhuo *UserLoginHistoryUpdateOne) SetClientID(s string) *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.SetClientID(s)
+	return ulhuo
+}
+
+// SetNillableClientID sets the "client_id" field if the given value is not nil.
+func (ulhuo *UserLoginHistoryUpdateOne) SetNillableClientID(s *string) *UserLoginHistoryUpdateOne {
+	if s != nil {
+		ulhuo.SetClientID(*s)
+	}
+	return ulhuo
+}
+
+// ClearClientID clears the value of the "client_id" field.
+func (ulhuo *UserLoginHistoryUpdateOne) ClearClientID() *UserLoginHistoryUpdateOne {
+	ulhuo.mutation.ClearClientID()
+	return ulhuo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (ulhuo *UserLoginHistoryUpdateOne) SetCreatedAt(t time.Time) *UserLoginHistoryUpdateOne {
 	ulhuo.mutation.SetCreatedAt(t)
@@ -775,6 +821,12 @@ func (ulhuo *UserLoginHistoryUpdateOne) sqlSave(ctx context.Context) (_node *Use
 	}
 	if ulhuo.mutation.HostnameCleared() {
 		_spec.ClearField(userloginhistory.FieldHostname, field.TypeString)
+	}
+	if value, ok := ulhuo.mutation.ClientID(); ok {
+		_spec.SetField(userloginhistory.FieldClientID, field.TypeString, value)
+	}
+	if ulhuo.mutation.ClientIDCleared() {
+		_spec.ClearField(userloginhistory.FieldClientID, field.TypeString)
 	}
 	if value, ok := ulhuo.mutation.CreatedAt(); ok {
 		_spec.SetField(userloginhistory.FieldCreatedAt, field.TypeTime, value)
