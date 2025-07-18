@@ -233,25 +233,25 @@ func (r *ProxyRepo) Report(ctx context.Context, req *domain.ReportReq) error {
 }
 
 func (r *ProxyRepo) handleFileWritten(ctx context.Context, tx *db.Tx, rc *db.Task, req *domain.ReportReq) error {
-	lines := 0
+	lineCount := 0
 	switch req.Tool {
 	case "appliedDiff", "editedExistingFile", "insertContent":
 		if strings.Contains(req.Content, "<<<<<<<") {
 			lines := diff.ParseConflictsAndCountLines(req.Content)
 			for _, line := range lines {
-				rc.CodeLines += int64(line)
+				lineCount += line
 			}
 		} else {
-			rc.CodeLines = int64(strings.Count(req.Content, "\n"))
+			lineCount = strings.Count(req.Content, "\n")
 		}
 	case "newFileCreated":
-		rc.CodeLines = int64(strings.Count(req.Content, "\n"))
+		lineCount = strings.Count(req.Content, "\n")
 	}
 
-	if lines > 0 {
+	if lineCount > 0 {
 		if err := tx.Task.
 			UpdateOneID(rc.ID).
-			AddCodeLines(int64(lines)).
+			AddCodeLines(int64(lineCount)).
 			SetIsAccept(true).
 			Exec(ctx); err != nil {
 			return err
@@ -264,7 +264,7 @@ func (r *ProxyRepo) handleFileWritten(ctx context.Context, tx *db.Tx, rc *db.Tas
 			SetRole(consts.ChatRoleSystem).
 			SetPrompt("写入文件").
 			SetCompletion("").
-			SetCodeLines(int64(lines)).
+			SetCodeLines(int64(lineCount)).
 			SetCode(req.Content).
 			SetOutputTokens(0).
 			Save(ctx); err != nil {
