@@ -28,6 +28,7 @@ type ListRecordReq struct {
 	*web.Pagination
 	Author   string `json:"author" query:"author"`       // 作者
 	Language string `json:"language" query:"language"`   // 语言
+	WorkMode string `json:"work_mode" query:"work_mode"` // 工作模式
 	IsAccept *bool  `json:"is_accept" query:"is_accept"` // 是否接受筛选
 }
 

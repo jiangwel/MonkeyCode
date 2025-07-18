@@ -434,6 +434,12 @@
                         "description": "每页多少条记录",
                         "name": "size",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "工作模式",
+                        "name": "work_mode",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -552,6 +558,12 @@
                         "type": "integer",
                         "description": "每页多少条记录",
                         "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "工作模式",
+                        "name": "work_mode",
                         "in": "query"
                     }
                 ],
