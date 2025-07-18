@@ -69,7 +69,7 @@ func (m *ModelUsecase) Check(ctx context.Context, req *domain.CheckModelReq) (*d
 					"MonkeyCode 是一个基于大模型的代码生成器，它可以根据用户的需求生成代码。",
 					"MonkeyCode 是一个基于大模型的代码生成器，它可以根据用户的需求生成代码。",
 				},
-				"query": "PandaWiki",
+				"query": "MonkeyCode",
 			}
 			url = req.APIBase + "/rerank"
 		}
