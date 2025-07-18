@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { styled, Stack, Box, Button } from '@mui/material';
+import { useState } from 'react';
+import { styled, Stack, Box } from '@mui/material';
 import { Empty } from '@c-x/ui';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ import {
   DomainUserCodeRank,
   DomainUserEvent,
 } from '@/api/types';
+import Avatar from '@/components/avatar';
 
 const StyledCardLabel = styled('div')(({ theme }) => ({
   fontSize: '14px',
@@ -122,26 +123,19 @@ export const ContributionCard = ({
                 gap={1.5}
                 sx={{
                   flex: 1,
-                  minWidth: 0,
-                  // cursor: 'pointer',
-                  // '&:hover': {
-                  //   '.active-user-name': {
-                  //     color: 'primary.main',
-                  //   },
-                  // },
+                  minWidth: 0
                 }}
-                // onClick={() => {
-                //   navigate(`/`)
-                //   // window.open(`/discussion/user/${item.id}`);
-                // }}
               >
-                {/* <Avatar size={24} src={item.avatar} /> */}
-                <StyledText className='active-user-name'>
-                  {item.username}
+                <Avatar
+                  name={item.user?.username}
+                  src={item.user?.avatar_url}
+                  sx={{ width: 20, height: 20, fontSize: 12 }}
+                />
+                <StyledText className='active-user-name'>{item.username}
                 </StyledText>
               </Stack>
             </StyledItem>
-            <Box sx={{ fontSize: 14 }}>{item.lines}</Box>
+            <Box sx={{ fontSize: 14 }}>{item.lines} 行</Box>
           </Stack>
         ))}
       </Box>

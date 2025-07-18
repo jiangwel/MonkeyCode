@@ -14,6 +14,7 @@ import request, { ContentType, RequestParams } from "./httpClient";
 import {
   DomainAcceptCompletionReq,
   DomainModelListResp,
+  DomainReportReq,
   WebResp,
 } from "./types";
 
@@ -118,6 +119,29 @@ export const getModelList = (params: RequestParams = {}) =>
   >({
     path: `/v1/models`,
     method: "GET",
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
+ * @description 报告
+ *
+ * @tags OpenAIV1
+ * @name PostReport
+ * @summary 报告
+ * @request POST:/v1/report
+ * @response `200` `WebResp` OK
+ */
+
+export const postReport = (
+  param: DomainReportReq,
+  params: RequestParams = {},
+) =>
+  request<WebResp>({
+    path: `/v1/report`,
+    method: "POST",
+    body: param,
     type: ContentType.Json,
     format: "json",
     ...params,

@@ -22,6 +22,12 @@ export enum ConstsUserPlatform {
   UserPlatformCustom = "custom",
 }
 
+export enum ConstsReportAction {
+  ReportActionAccept = "accept",
+  ReportActionSuggest = "suggest",
+  ReportActionFileWritten = "file_written",
+}
+
 export enum ConstsModelType {
   ModelTypeLLM = "llm",
   ModelTypeCoder = "coder",
@@ -51,6 +57,7 @@ export enum ConstsModelProvider {
 export enum ConstsChatRole {
   ChatRoleUser = "user",
   ChatRoleAssistant = "assistant",
+  ChatRoleSystem = "system",
 }
 
 export enum ConstsAdminStatus {
@@ -480,6 +487,16 @@ export interface DomainRegisterReq {
   username: string;
 }
 
+export interface DomainReportReq {
+  action?: ConstsReportAction;
+  /** 内容 */
+  content?: string;
+  /** task_id or resp_id */
+  id?: string;
+  /** 工具 */
+  tool?: string;
+}
+
 export interface DomainSetting {
   /** 创建时间 */
   created_at?: number;
@@ -639,6 +656,8 @@ export interface DomainUser {
 export interface DomainUserCodeRank {
   /** 代码行数 */
   lines?: number;
+  /** 用户信息 */
+  user?: DomainUser;
   /** 用户名 */
   username?: string;
 }
