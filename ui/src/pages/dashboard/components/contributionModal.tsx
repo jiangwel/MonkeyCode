@@ -1,8 +1,9 @@
 import { Box, Stack } from '@mui/material';
 import { DomainUserCodeRank } from '@/api/types';
 import { Modal } from '@c-x/ui';
-import { StyledItem, StyledSerialNumber } from './statisticCard';
+import { StyledItem, StyledSerialNumber, StyledText } from './statisticCard';
 import User from '@/components/user';
+import Avatar from '@/components/avatar';
 
 const ContributionModal = ({
   open,
@@ -48,12 +49,14 @@ const ContributionModal = ({
                   minWidth: 0,
                 }}
               >
-                <User
-                  id={item.user?.id}
-                  username={item.user?.username}
-                  email={item.user?.email}
-                  avatar={item.user?.avatar_url}
-                  deleted={item.user?.is_deleted} />
+                
+                <Avatar
+                  name={item.user?.username}
+                  src={item.user?.avatar_url}
+                  sx={{ width: 20, height: 20, fontSize: 12 }}
+                />
+                <StyledText className='active-user-name'>{item.username}
+                </StyledText>
               </Stack>
             </StyledItem>
             <Box sx={{ fontSize: 14 }}>{item.lines} 行</Box>
