@@ -63,8 +63,9 @@ type Config struct {
 	} `mapstructure:"init_model"`
 
 	Extension struct {
-		Baseurl string `mapstructure:"baseurl"`
-		Limit   int    `mapstructure:"limit"`
+		Baseurl     string `mapstructure:"baseurl"`
+		LimitSecond int    `mapstructure:"limit_second"`
+		Limit       int    `mapstructure:"limit"`
 	} `mapstructure:"extension"`
 }
 
@@ -100,7 +101,8 @@ func Init() (*Config, error) {
 	v.SetDefault("init_model.key", "")
 	v.SetDefault("init_model.url", "https://model-square.app.baizhi.cloud/v1")
 	v.SetDefault("extension.baseurl", "https://release.baizhi.cloud")
-	v.SetDefault("extension.limit", 10)
+	v.SetDefault("extension.limit", 1)
+	v.SetDefault("extension.limit_second", 10)
 
 	c := Config{}
 	if err := v.Unmarshal(&c); err != nil {
