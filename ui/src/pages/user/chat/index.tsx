@@ -34,6 +34,7 @@ const Chat = () => {
   };
 
   useEffect(() => {
+    setPage(1); // 筛选变化时重置页码
     fetchData();
     // eslint-disable-next-line
   }, [page, size]);

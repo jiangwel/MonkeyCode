@@ -4,7 +4,7 @@ import { getListChatRecord } from '@/api/Billing';
 import dayjs from 'dayjs';
 
 import Card from '@/components/card';
-import { Box } from '@mui/material';
+import { Autocomplete, Box, FormControl, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
 import StyledLabel from '@/components/label';
 
 import ChatDetailModal from './chatDetailModal';
@@ -12,6 +12,9 @@ import { ColumnsType } from '@c-x/ui/dist/Table';
 import { DomainChatRecord, DomainUser } from '@/api/types';
 import { addCommasToNumber } from '@/utils';
 import User from '@/components/user';
+import { useRequest } from 'ahooks';
+import { getListUser } from '@/api/User';
+import { set } from 'react-hook-form';
 
 const Chat = () => {
   const [page, setPage] = useState(1);
@@ -22,11 +25,25 @@ const Chat = () => {
   const [chatDetailModal, setChatDetailModal] = useState<
     DomainChatRecord | undefined
   >();
+  const [filterUser, setFilterUser] = useState('');
+  const [filterMode, setfilterMode] = useState<
+    'code' | 'architect' | 'ask' | 'debug' | 'orchestrator'
+  >();
+
+  const { data: userOptions = { users: [] } } = useRequest(() =>
+    getListUser({
+      page: 1,
+      size: 9999,
+    })
+  );
+
   const fetchData = async () => {
     setLoading(true);
     const res = await getListChatRecord({
       page: page,
       size: size,
+      work_mode: filterMode,
+      author: filterUser,
     });
     setLoading(false);
     setTotal(res?.total_count || 0);
@@ -34,9 +51,10 @@ const Chat = () => {
   };
 
   useEffect(() => {
+    setPage(1);
     fetchData();
     // eslint-disable-next-line
-  }, [page, size]);
+  }, [page, size, filterMode, filterUser]);
 
   const columns: ColumnsType<DomainChatRecord> = [
     {
@@ -137,6 +155,43 @@ const Chat = () => {
   ];
   return (
     <Card sx={{ flex: 1, height: '100%' }}>
+      <Stack direction='row' spacing={2} sx={{ mb: 2 }}>
+        <Autocomplete
+          size='small'
+          sx={{ minWidth: 220 }}
+          options={userOptions.users || []}
+          getOptionLabel={(option) => option.username || ''}
+          value={
+            userOptions.users?.find((item) => item.username === filterUser) ||
+            null
+          }
+          onChange={(_, newValue) =>
+            setFilterUser(newValue ? newValue.username! : '')
+          }
+          isOptionEqualToValue={(option, value) =>
+            option.username === value.username
+          }
+          renderInput={(params) => <TextField {...params} label='成员' />}
+          clearOnEscape
+        />
+        <FormControl size='small' sx={{ minWidth: 180 }}>
+          <InputLabel>工作模式</InputLabel>
+          <Select
+            label='工作模式'
+            value={filterMode}
+            onChange={(e) =>
+              setfilterMode(e.target.value as 'code' | 'ask' | 'architect' | 'debug' | 'orchestrator')
+            }
+          >
+            <MenuItem value=''>全部</MenuItem>
+            <MenuItem value='code'>编程模式</MenuItem>
+            <MenuItem value='ask'>问答模式</MenuItem>
+            <MenuItem value='architect'>架构模式</MenuItem>
+            <MenuItem value='debug'>调试模式</MenuItem>
+            <MenuItem value='orchestrator'>编排模式</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
       <Table
         height='100%'
         sx={{ mx: -2 }}

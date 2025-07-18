@@ -767,6 +767,8 @@ export interface GetListChatRecordParams {
   page?: number;
   /** 每页多少条记录 */
   size?: number;
+  /** 工作模式 */
+  work_mode?: string;
 }
 
 export interface GetCompletionInfoParams {
@@ -787,6 +789,8 @@ export interface GetListCompletionRecordParams {
   page?: number;
   /** 每页多少条记录 */
   size?: number;
+  /** 工作模式 */
+  work_mode?: string;
 }
 
 export interface GetCategoryStatDashboardParams {
