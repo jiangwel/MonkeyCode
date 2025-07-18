@@ -98,6 +98,10 @@ func filterTask(q *db.TaskQuery, req domain.ListRecordReq) {
 			)
 		})
 	}
+
+	if req.WorkMode != "" {
+		q.Where(task.WorkMode(req.WorkMode))
+	}
 }
 
 // ListCompletionRecord implements domain.BillingRepo.
