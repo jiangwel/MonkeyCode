@@ -24,6 +24,10 @@ const (
 	FieldCompletion = "completion"
 	// FieldOutputTokens holds the string denoting the output_tokens field in the database.
 	FieldOutputTokens = "output_tokens"
+	// FieldCodeLines holds the string denoting the code_lines field in the database.
+	FieldCodeLines = "code_lines"
+	// FieldCode holds the string denoting the code field in the database.
+	FieldCode = "code"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -49,6 +53,8 @@ var Columns = []string{
 	FieldRole,
 	FieldCompletion,
 	FieldOutputTokens,
+	FieldCodeLines,
+	FieldCode,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -103,6 +109,16 @@ func ByCompletion(opts ...sql.OrderTermOption) OrderOption {
 // ByOutputTokens orders the results by the output_tokens field.
 func ByOutputTokens(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOutputTokens, opts...).ToFunc()
+}
+
+// ByCodeLines orders the results by the code_lines field.
+func ByCodeLines(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCodeLines, opts...).ToFunc()
+}
+
+// ByCode orders the results by the code field.
+func ByCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCode, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

@@ -42,3 +42,7 @@ func (p *ProxyUsecase) ValidateApiKey(ctx context.Context, key string) (*domain.
 func (p *ProxyUsecase) AcceptCompletion(ctx context.Context, req *domain.AcceptCompletionReq) error {
 	return p.repo.AcceptCompletion(ctx, req)
 }
+
+func (p *ProxyUsecase) Report(ctx context.Context, req *domain.ReportReq) error {
+	return p.repo.Report(ctx, req)
+}

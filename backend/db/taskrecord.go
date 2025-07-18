@@ -30,6 +30,10 @@ type TaskRecord struct {
 	Completion string `json:"completion,omitempty"`
 	// OutputTokens holds the value of the "output_tokens" field.
 	OutputTokens int64 `json:"output_tokens,omitempty"`
+	// CodeLines holds the value of the "code_lines" field.
+	CodeLines int64 `json:"code_lines,omitempty"`
+	// Code holds the value of the "code" field.
+	Code string `json:"code,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -65,9 +69,9 @@ func (*TaskRecord) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case taskrecord.FieldOutputTokens:
+		case taskrecord.FieldOutputTokens, taskrecord.FieldCodeLines:
 			values[i] = new(sql.NullInt64)
-		case taskrecord.FieldPrompt, taskrecord.FieldRole, taskrecord.FieldCompletion:
+		case taskrecord.FieldPrompt, taskrecord.FieldRole, taskrecord.FieldCompletion, taskrecord.FieldCode:
 			values[i] = new(sql.NullString)
 		case taskrecord.FieldCreatedAt, taskrecord.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -123,6 +127,18 @@ func (tr *TaskRecord) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field output_tokens", values[i])
 			} else if value.Valid {
 				tr.OutputTokens = value.Int64
+			}
+		case taskrecord.FieldCodeLines:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field code_lines", values[i])
+			} else if value.Valid {
+				tr.CodeLines = value.Int64
+			}
+		case taskrecord.FieldCode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field code", values[i])
+			} else if value.Valid {
+				tr.Code = value.String
 			}
 		case taskrecord.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -191,6 +207,12 @@ func (tr *TaskRecord) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("output_tokens=")
 	builder.WriteString(fmt.Sprintf("%v", tr.OutputTokens))
+	builder.WriteString(", ")
+	builder.WriteString("code_lines=")
+	builder.WriteString(fmt.Sprintf("%v", tr.CodeLines))
+	builder.WriteString(", ")
+	builder.WriteString("code=")
+	builder.WriteString(tr.Code)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(tr.CreatedAt.Format(time.ANSIC))

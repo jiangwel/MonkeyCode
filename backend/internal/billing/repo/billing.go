@@ -28,6 +28,7 @@ func (b *BillingRepo) ChatInfo(ctx context.Context, id string) (*domain.ChatInfo
 	record, err := b.db.Task.Query().
 		WithTaskRecords(func(trq *db.TaskRecordQuery) {
 			trq.Order(taskrecord.ByCreatedAt(sql.OrderAsc()))
+			trq.Where(taskrecord.RoleNEQ(consts.ChatRoleSystem))
 		}).
 		Where(task.TaskID(id)).
 		First(ctx)
@@ -114,6 +115,7 @@ func (b *BillingRepo) ListCompletionRecord(ctx context.Context, req domain.ListR
 			trq.Order(taskrecord.ByCreatedAt(sql.OrderAsc()))
 		}).
 		Where(task.ModelType(consts.ModelTypeCoder)).
+		Where(task.IsSuggested(true)).
 		Order(task.ByCreatedAt(sql.OrderDesc()))
 
 	filterTask(q, req)

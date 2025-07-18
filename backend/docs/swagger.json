@@ -2045,6 +2045,41 @@
                     }
                 }
             }
+        },
+        "/v1/report": {
+            "post": {
+                "description": "报告",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OpenAIV1"
+                ],
+                "summary": "报告",
+                "operationId": "report",
+                "parameters": [
+                    {
+                        "description": "报告请求",
+                        "name": "param",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.ReportReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -2063,11 +2098,13 @@
             "type": "string",
             "enum": [
                 "user",
-                "assistant"
+                "assistant",
+                "system"
             ],
             "x-enum-varnames": [
                 "ChatRoleUser",
-                "ChatRoleAssistant"
+                "ChatRoleAssistant",
+                "ChatRoleSystem"
             ]
         },
         "consts.ModelProvider": {
@@ -2123,6 +2160,19 @@
                 "ModelTypeEmbedding",
                 "ModelTypeAudio",
                 "ModelTypeReranker"
+            ]
+        },
+        "consts.ReportAction": {
+            "type": "string",
+            "enum": [
+                "accept",
+                "suggest",
+                "file_written"
+            ],
+            "x-enum-varnames": [
+                "ReportActionAccept",
+                "ReportActionSuggest",
+                "ReportActionFileWritten"
             ]
         },
         "consts.UserPlatform": {
@@ -3125,6 +3175,26 @@
                 }
             }
         },
+        "domain.ReportReq": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "$ref": "#/definitions/consts.ReportAction"
+                },
+                "content": {
+                    "description": "内容",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "task_id or resp_id",
+                    "type": "string"
+                },
+                "tool": {
+                    "description": "工具",
+                    "type": "string"
+                }
+            }
+        },
         "domain.Setting": {
             "type": "object",
             "properties": {
@@ -3485,6 +3555,14 @@
                 "lines": {
                     "description": "代码行数",
                     "type": "integer"
+                },
+                "user": {
+                    "description": "用户信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.User"
+                        }
+                    ]
                 },
                 "username": {
                     "description": "用户名",

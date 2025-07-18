@@ -180,6 +180,20 @@ func (tc *TaskCreate) SetNillableOutputTokens(i *int64) *TaskCreate {
 	return tc
 }
 
+// SetIsSuggested sets the "is_suggested" field.
+func (tc *TaskCreate) SetIsSuggested(b bool) *TaskCreate {
+	tc.mutation.SetIsSuggested(b)
+	return tc
+}
+
+// SetNillableIsSuggested sets the "is_suggested" field if the given value is not nil.
+func (tc *TaskCreate) SetNillableIsSuggested(b *bool) *TaskCreate {
+	if b != nil {
+		tc.SetIsSuggested(*b)
+	}
+	return tc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (tc *TaskCreate) SetCreatedAt(t time.Time) *TaskCreate {
 	tc.mutation.SetCreatedAt(t)
@@ -278,6 +292,10 @@ func (tc *TaskCreate) defaults() {
 		v := task.DefaultIsAccept
 		tc.mutation.SetIsAccept(v)
 	}
+	if _, ok := tc.mutation.IsSuggested(); !ok {
+		v := task.DefaultIsSuggested
+		tc.mutation.SetIsSuggested(v)
+	}
 	if _, ok := tc.mutation.CreatedAt(); !ok {
 		v := task.DefaultCreatedAt()
 		tc.mutation.SetCreatedAt(v)
@@ -298,6 +316,9 @@ func (tc *TaskCreate) check() error {
 	}
 	if _, ok := tc.mutation.IsAccept(); !ok {
 		return &ValidationError{Name: "is_accept", err: errors.New(`db: missing required field "Task.is_accept"`)}
+	}
+	if _, ok := tc.mutation.IsSuggested(); !ok {
+		return &ValidationError{Name: "is_suggested", err: errors.New(`db: missing required field "Task.is_suggested"`)}
 	}
 	if _, ok := tc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`db: missing required field "Task.created_at"`)}
@@ -380,6 +401,10 @@ func (tc *TaskCreate) createSpec() (*Task, *sqlgraph.CreateSpec) {
 	if value, ok := tc.mutation.OutputTokens(); ok {
 		_spec.SetField(task.FieldOutputTokens, field.TypeInt64, value)
 		_node.OutputTokens = value
+	}
+	if value, ok := tc.mutation.IsSuggested(); ok {
+		_spec.SetField(task.FieldIsSuggested, field.TypeBool, value)
+		_node.IsSuggested = value
 	}
 	if value, ok := tc.mutation.CreatedAt(); ok {
 		_spec.SetField(task.FieldCreatedAt, field.TypeTime, value)
@@ -707,6 +732,18 @@ func (u *TaskUpsert) ClearOutputTokens() *TaskUpsert {
 	return u
 }
 
+// SetIsSuggested sets the "is_suggested" field.
+func (u *TaskUpsert) SetIsSuggested(v bool) *TaskUpsert {
+	u.Set(task.FieldIsSuggested, v)
+	return u
+}
+
+// UpdateIsSuggested sets the "is_suggested" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateIsSuggested() *TaskUpsert {
+	u.SetExcluded(task.FieldIsSuggested)
+	return u
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (u *TaskUpsert) SetCreatedAt(v time.Time) *TaskUpsert {
 	u.Set(task.FieldCreatedAt, v)
@@ -1028,6 +1065,20 @@ func (u *TaskUpsertOne) UpdateOutputTokens() *TaskUpsertOne {
 func (u *TaskUpsertOne) ClearOutputTokens() *TaskUpsertOne {
 	return u.Update(func(s *TaskUpsert) {
 		s.ClearOutputTokens()
+	})
+}
+
+// SetIsSuggested sets the "is_suggested" field.
+func (u *TaskUpsertOne) SetIsSuggested(v bool) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetIsSuggested(v)
+	})
+}
+
+// UpdateIsSuggested sets the "is_suggested" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateIsSuggested() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateIsSuggested()
 	})
 }
 
@@ -1523,6 +1574,20 @@ func (u *TaskUpsertBulk) UpdateOutputTokens() *TaskUpsertBulk {
 func (u *TaskUpsertBulk) ClearOutputTokens() *TaskUpsertBulk {
 	return u.Update(func(s *TaskUpsert) {
 		s.ClearOutputTokens()
+	})
+}
+
+// SetIsSuggested sets the "is_suggested" field.
+func (u *TaskUpsertBulk) SetIsSuggested(v bool) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetIsSuggested(v)
+	})
+}
+
+// UpdateIsSuggested sets the "is_suggested" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateIsSuggested() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateIsSuggested()
 	})
 }
 

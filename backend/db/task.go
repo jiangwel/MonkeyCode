@@ -45,6 +45,8 @@ type Task struct {
 	InputTokens int64 `json:"input_tokens,omitempty"`
 	// OutputTokens holds the value of the "output_tokens" field.
 	OutputTokens int64 `json:"output_tokens,omitempty"`
+	// IsSuggested holds the value of the "is_suggested" field.
+	IsSuggested bool `json:"is_suggested,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -104,7 +106,7 @@ func (*Task) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case task.FieldIsAccept:
+		case task.FieldIsAccept, task.FieldIsSuggested:
 			values[i] = new(sql.NullBool)
 		case task.FieldCodeLines, task.FieldInputTokens, task.FieldOutputTokens:
 			values[i] = new(sql.NullInt64)
@@ -207,6 +209,12 @@ func (t *Task) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.OutputTokens = value.Int64
 			}
+		case task.FieldIsSuggested:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_suggested", values[i])
+			} else if value.Valid {
+				t.IsSuggested = value.Bool
+			}
 		case task.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -305,6 +313,9 @@ func (t *Task) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("output_tokens=")
 	builder.WriteString(fmt.Sprintf("%v", t.OutputTokens))
+	builder.WriteString(", ")
+	builder.WriteString("is_suggested=")
+	builder.WriteString(fmt.Sprintf("%v", t.IsSuggested))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(t.CreatedAt.Format(time.ANSIC))

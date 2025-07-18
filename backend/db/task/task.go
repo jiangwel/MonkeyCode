@@ -38,6 +38,8 @@ const (
 	FieldInputTokens = "input_tokens"
 	// FieldOutputTokens holds the string denoting the output_tokens field in the database.
 	FieldOutputTokens = "output_tokens"
+	// FieldIsSuggested holds the string denoting the is_suggested field in the database.
+	FieldIsSuggested = "is_suggested"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -88,6 +90,7 @@ var Columns = []string{
 	FieldCodeLines,
 	FieldInputTokens,
 	FieldOutputTokens,
+	FieldIsSuggested,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -105,6 +108,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultIsAccept holds the default value on creation for the "is_accept" field.
 	DefaultIsAccept bool
+	// DefaultIsSuggested holds the default value on creation for the "is_suggested" field.
+	DefaultIsSuggested bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -179,6 +184,11 @@ func ByInputTokens(opts ...sql.OrderTermOption) OrderOption {
 // ByOutputTokens orders the results by the output_tokens field.
 func ByOutputTokens(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOutputTokens, opts...).ToFunc()
+}
+
+// ByIsSuggested orders the results by the is_suggested field.
+func ByIsSuggested(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsSuggested, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

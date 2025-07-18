@@ -72,6 +72,26 @@ func (trc *TaskRecordCreate) SetOutputTokens(i int64) *TaskRecordCreate {
 	return trc
 }
 
+// SetCodeLines sets the "code_lines" field.
+func (trc *TaskRecordCreate) SetCodeLines(i int64) *TaskRecordCreate {
+	trc.mutation.SetCodeLines(i)
+	return trc
+}
+
+// SetCode sets the "code" field.
+func (trc *TaskRecordCreate) SetCode(s string) *TaskRecordCreate {
+	trc.mutation.SetCode(s)
+	return trc
+}
+
+// SetNillableCode sets the "code" field if the given value is not nil.
+func (trc *TaskRecordCreate) SetNillableCode(s *string) *TaskRecordCreate {
+	if s != nil {
+		trc.SetCode(*s)
+	}
+	return trc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (trc *TaskRecordCreate) SetCreatedAt(t time.Time) *TaskRecordCreate {
 	trc.mutation.SetCreatedAt(t)
@@ -167,6 +187,9 @@ func (trc *TaskRecordCreate) check() error {
 	if _, ok := trc.mutation.OutputTokens(); !ok {
 		return &ValidationError{Name: "output_tokens", err: errors.New(`db: missing required field "TaskRecord.output_tokens"`)}
 	}
+	if _, ok := trc.mutation.CodeLines(); !ok {
+		return &ValidationError{Name: "code_lines", err: errors.New(`db: missing required field "TaskRecord.code_lines"`)}
+	}
 	if _, ok := trc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`db: missing required field "TaskRecord.created_at"`)}
 	}
@@ -224,6 +247,14 @@ func (trc *TaskRecordCreate) createSpec() (*TaskRecord, *sqlgraph.CreateSpec) {
 	if value, ok := trc.mutation.OutputTokens(); ok {
 		_spec.SetField(taskrecord.FieldOutputTokens, field.TypeInt64, value)
 		_node.OutputTokens = value
+	}
+	if value, ok := trc.mutation.CodeLines(); ok {
+		_spec.SetField(taskrecord.FieldCodeLines, field.TypeInt64, value)
+		_node.CodeLines = value
+	}
+	if value, ok := trc.mutation.Code(); ok {
+		_spec.SetField(taskrecord.FieldCode, field.TypeString, value)
+		_node.Code = value
 	}
 	if value, ok := trc.mutation.CreatedAt(); ok {
 		_spec.SetField(taskrecord.FieldCreatedAt, field.TypeTime, value)
@@ -377,6 +408,42 @@ func (u *TaskRecordUpsert) UpdateOutputTokens() *TaskRecordUpsert {
 // AddOutputTokens adds v to the "output_tokens" field.
 func (u *TaskRecordUpsert) AddOutputTokens(v int64) *TaskRecordUpsert {
 	u.Add(taskrecord.FieldOutputTokens, v)
+	return u
+}
+
+// SetCodeLines sets the "code_lines" field.
+func (u *TaskRecordUpsert) SetCodeLines(v int64) *TaskRecordUpsert {
+	u.Set(taskrecord.FieldCodeLines, v)
+	return u
+}
+
+// UpdateCodeLines sets the "code_lines" field to the value that was provided on create.
+func (u *TaskRecordUpsert) UpdateCodeLines() *TaskRecordUpsert {
+	u.SetExcluded(taskrecord.FieldCodeLines)
+	return u
+}
+
+// AddCodeLines adds v to the "code_lines" field.
+func (u *TaskRecordUpsert) AddCodeLines(v int64) *TaskRecordUpsert {
+	u.Add(taskrecord.FieldCodeLines, v)
+	return u
+}
+
+// SetCode sets the "code" field.
+func (u *TaskRecordUpsert) SetCode(v string) *TaskRecordUpsert {
+	u.Set(taskrecord.FieldCode, v)
+	return u
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *TaskRecordUpsert) UpdateCode() *TaskRecordUpsert {
+	u.SetExcluded(taskrecord.FieldCode)
+	return u
+}
+
+// ClearCode clears the value of the "code" field.
+func (u *TaskRecordUpsert) ClearCode() *TaskRecordUpsert {
+	u.SetNull(taskrecord.FieldCode)
 	return u
 }
 
@@ -540,6 +607,48 @@ func (u *TaskRecordUpsertOne) AddOutputTokens(v int64) *TaskRecordUpsertOne {
 func (u *TaskRecordUpsertOne) UpdateOutputTokens() *TaskRecordUpsertOne {
 	return u.Update(func(s *TaskRecordUpsert) {
 		s.UpdateOutputTokens()
+	})
+}
+
+// SetCodeLines sets the "code_lines" field.
+func (u *TaskRecordUpsertOne) SetCodeLines(v int64) *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.SetCodeLines(v)
+	})
+}
+
+// AddCodeLines adds v to the "code_lines" field.
+func (u *TaskRecordUpsertOne) AddCodeLines(v int64) *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.AddCodeLines(v)
+	})
+}
+
+// UpdateCodeLines sets the "code_lines" field to the value that was provided on create.
+func (u *TaskRecordUpsertOne) UpdateCodeLines() *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.UpdateCodeLines()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *TaskRecordUpsertOne) SetCode(v string) *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *TaskRecordUpsertOne) UpdateCode() *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// ClearCode clears the value of the "code" field.
+func (u *TaskRecordUpsertOne) ClearCode() *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.ClearCode()
 	})
 }
 
@@ -874,6 +983,48 @@ func (u *TaskRecordUpsertBulk) AddOutputTokens(v int64) *TaskRecordUpsertBulk {
 func (u *TaskRecordUpsertBulk) UpdateOutputTokens() *TaskRecordUpsertBulk {
 	return u.Update(func(s *TaskRecordUpsert) {
 		s.UpdateOutputTokens()
+	})
+}
+
+// SetCodeLines sets the "code_lines" field.
+func (u *TaskRecordUpsertBulk) SetCodeLines(v int64) *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.SetCodeLines(v)
+	})
+}
+
+// AddCodeLines adds v to the "code_lines" field.
+func (u *TaskRecordUpsertBulk) AddCodeLines(v int64) *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.AddCodeLines(v)
+	})
+}
+
+// UpdateCodeLines sets the "code_lines" field to the value that was provided on create.
+func (u *TaskRecordUpsertBulk) UpdateCodeLines() *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.UpdateCodeLines()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *TaskRecordUpsertBulk) SetCode(v string) *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *TaskRecordUpsertBulk) UpdateCode() *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// ClearCode clears the value of the "code" field.
+func (u *TaskRecordUpsertBulk) ClearCode() *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.ClearCode()
 	})
 }
 

@@ -277,6 +277,20 @@ func (tu *TaskUpdate) ClearOutputTokens() *TaskUpdate {
 	return tu
 }
 
+// SetIsSuggested sets the "is_suggested" field.
+func (tu *TaskUpdate) SetIsSuggested(b bool) *TaskUpdate {
+	tu.mutation.SetIsSuggested(b)
+	return tu
+}
+
+// SetNillableIsSuggested sets the "is_suggested" field if the given value is not nil.
+func (tu *TaskUpdate) SetNillableIsSuggested(b *bool) *TaskUpdate {
+	if b != nil {
+		tu.SetIsSuggested(*b)
+	}
+	return tu
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (tu *TaskUpdate) SetCreatedAt(t time.Time) *TaskUpdate {
 	tu.mutation.SetCreatedAt(t)
@@ -470,6 +484,9 @@ func (tu *TaskUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if tu.mutation.OutputTokensCleared() {
 		_spec.ClearField(task.FieldOutputTokens, field.TypeInt64)
+	}
+	if value, ok := tu.mutation.IsSuggested(); ok {
+		_spec.SetField(task.FieldIsSuggested, field.TypeBool, value)
 	}
 	if value, ok := tu.mutation.CreatedAt(); ok {
 		_spec.SetField(task.FieldCreatedAt, field.TypeTime, value)
@@ -845,6 +862,20 @@ func (tuo *TaskUpdateOne) ClearOutputTokens() *TaskUpdateOne {
 	return tuo
 }
 
+// SetIsSuggested sets the "is_suggested" field.
+func (tuo *TaskUpdateOne) SetIsSuggested(b bool) *TaskUpdateOne {
+	tuo.mutation.SetIsSuggested(b)
+	return tuo
+}
+
+// SetNillableIsSuggested sets the "is_suggested" field if the given value is not nil.
+func (tuo *TaskUpdateOne) SetNillableIsSuggested(b *bool) *TaskUpdateOne {
+	if b != nil {
+		tuo.SetIsSuggested(*b)
+	}
+	return tuo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (tuo *TaskUpdateOne) SetCreatedAt(t time.Time) *TaskUpdateOne {
 	tuo.mutation.SetCreatedAt(t)
@@ -1068,6 +1099,9 @@ func (tuo *TaskUpdateOne) sqlSave(ctx context.Context) (_node *Task, err error) 
 	}
 	if tuo.mutation.OutputTokensCleared() {
 		_spec.ClearField(task.FieldOutputTokens, field.TypeInt64)
+	}
+	if value, ok := tuo.mutation.IsSuggested(); ok {
+		_spec.SetField(task.FieldIsSuggested, field.TypeBool, value)
 	}
 	if value, ok := tuo.mutation.CreatedAt(); ok {
 		_spec.SetField(task.FieldCreatedAt, field.TypeTime, value)

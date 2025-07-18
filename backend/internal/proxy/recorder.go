@@ -16,6 +16,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/domain"
+	"github.com/chaitin/MonkeyCode/backend/pkg/diff"
 	"github.com/chaitin/MonkeyCode/backend/pkg/promptparser"
 )
 
@@ -66,7 +67,7 @@ func (r *Recorder) handleShadow() {
 	}
 
 	var (
-		taskID, mode, prompt, language string
+		taskID, mode, prompt, language, tool, code string
 	)
 
 	switch r.ctx.Model.ModelType {
@@ -76,9 +77,11 @@ func (r *Recorder) handleShadow() {
 			r.logger.WarnContext(r.ctx.ctx, "unmarshal chat completion request failed", "error", err)
 			return
 		}
-		prompt = r.getPrompt(r.ctx.ctx, &req)
+		prompt = req.Metadata["prompt"]
 		taskID = req.Metadata["task_id"]
 		mode = req.Metadata["mode"]
+		tool = req.Metadata["tool"]
+		code = req.Metadata["code"]
 
 	case consts.ModelTypeCoder:
 		var req domain.CompletionRequest
@@ -108,19 +111,22 @@ func (r *Recorder) handleShadow() {
 		WorkMode:        mode,
 		Prompt:          prompt,
 		ProgramLanguage: language,
-		Role:            consts.ChatRoleUser,
+		Role:            consts.ChatRoleAssistant,
 	}
 
-	var assistantRc *domain.RecordParam
+	switch tool {
+	case "appliedDiff", "editedExistingFile":
+		lines := diff.ParseConflictsAndCountLines(code)
+		for _, line := range lines {
+			rc.CodeLines += int64(line)
+		}
+	case "newFileCreated":
+		rc.CodeLines = int64(strings.Count(code, "\n"))
+	}
+
 	ct := r.ctx.RespHeader.Get("Content-Type")
 	if strings.Contains(ct, "stream") {
 		r.handleStream(rc)
-		if r.ctx.Model.ModelType == consts.ModelTypeLLM {
-			assistantRc = rc.Clone()
-			assistantRc.Role = consts.ChatRoleAssistant
-			rc.Completion = ""
-			rc.OutputTokens = 0
-		}
 	} else {
 		r.handleJson(rc)
 	}
@@ -130,14 +136,19 @@ func (r *Recorder) handleShadow() {
 		With("resp_header", formatHeader(r.ctx.RespHeader)).
 		DebugContext(r.ctx.ctx, "handle shadow", "rc", rc)
 
-	if err := r.usecase.Record(context.Background(), rc); err != nil {
-		r.logger.WarnContext(r.ctx.ctx, "记录请求失败", "error", err)
-	}
-
-	if assistantRc != nil {
-		if err := r.usecase.Record(context.Background(), assistantRc); err != nil {
+	// 记录用户的提问
+	if r.ctx.Model.ModelType == consts.ModelTypeLLM && prompt != "" {
+		tmp := rc.Clone()
+		tmp.Role = consts.ChatRoleUser
+		tmp.Completion = ""
+		tmp.OutputTokens = 0
+		if err := r.usecase.Record(context.Background(), tmp); err != nil {
 			r.logger.WarnContext(r.ctx.ctx, "记录请求失败", "error", err)
 		}
+	}
+
+	if err := r.usecase.Record(context.Background(), rc); err != nil {
+		r.logger.WarnContext(r.ctx.ctx, "记录请求失败", "error", err)
 	}
 }
 

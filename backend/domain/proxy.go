@@ -22,12 +22,14 @@ type ProxyUsecase interface {
 	Record(ctx context.Context, record *RecordParam) error
 	ValidateApiKey(ctx context.Context, key string) (*ApiKey, error)
 	AcceptCompletion(ctx context.Context, req *AcceptCompletionReq) error
+	Report(ctx context.Context, req *ReportReq) error
 }
 
 type ProxyRepo interface {
 	Record(ctx context.Context, record *RecordParam) error
 	UpdateByTaskID(ctx context.Context, taskID string, fn func(*db.TaskUpdateOne)) error
 	AcceptCompletion(ctx context.Context, req *AcceptCompletionReq) error
+	Report(ctx context.Context, req *ReportReq) error
 	SelectModelWithLoadBalancing(modelName string, modelType consts.ModelType) (*db.Model, error)
 	ValidateApiKey(ctx context.Context, key string) (*db.ApiKey, error)
 }
@@ -40,6 +42,13 @@ type VersionInfo struct {
 type AcceptCompletionReq struct {
 	ID         string `json:"id"`         // 记录ID
 	Completion string `json:"completion"` // 补全内容
+}
+
+type ReportReq struct {
+	Action  consts.ReportAction `json:"action"`
+	ID      string              `json:"id"`      // task_id or resp_id
+	Content string              `json:"content"` // 内容
+	Tool    string              `json:"tool"`    // 工具
 }
 
 type RecordParam struct {
@@ -57,6 +66,7 @@ type RecordParam struct {
 	Completion      string
 	WorkMode        string
 	CodeLines       int64
+	Code            string
 }
 
 func (r *RecordParam) Clone() *RecordParam {

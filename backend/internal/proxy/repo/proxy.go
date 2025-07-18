@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,6 +17,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
 	"github.com/chaitin/MonkeyCode/backend/domain"
+	"github.com/chaitin/MonkeyCode/backend/pkg/diff"
 	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
 )
 
@@ -113,6 +115,9 @@ func (r *ProxyRepo) Record(ctx context.Context, record *domain.RecordParam) erro
 			if t.InputTokens == 0 && record.InputTokens > 0 {
 				up.SetInputTokens(record.InputTokens)
 			}
+			if t.CodeLines > 0 {
+				up.AddCodeLines(record.CodeLines)
+			}
 			if t.RequestID != record.RequestID {
 				up.SetRequestID(record.RequestID)
 				up.AddInputTokens(record.InputTokens)
@@ -144,6 +149,8 @@ func (r *ProxyRepo) Record(ctx context.Context, record *domain.RecordParam) erro
 			SetPrompt(record.Prompt).
 			SetCompletion(record.Completion).
 			SetOutputTokens(record.OutputTokens).
+			SetCodeLines(record.CodeLines).
+			SetCode(record.Code).
 			Save(ctx)
 
 		return err
@@ -181,4 +188,89 @@ func (r *ProxyRepo) AcceptCompletion(ctx context.Context, req *domain.AcceptComp
 			Where(taskrecord.TaskID(rc.ID)).
 			SetCompletion(req.Completion).Exec(ctx)
 	})
+}
+
+func (r *ProxyRepo) Report(ctx context.Context, req *domain.ReportReq) error {
+	return entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		rc, err := tx.Task.Query().Where(task.TaskID(req.ID)).Only(ctx)
+		if err != nil {
+			return err
+		}
+
+		switch req.Action {
+		case consts.ReportActionAccept:
+			if err := tx.Task.UpdateOneID(rc.ID).
+				SetIsAccept(true).
+				SetCompletion(req.Content).
+				Exec(ctx); err != nil {
+				return err
+			}
+
+			return tx.TaskRecord.Update().
+				Where(taskrecord.TaskID(rc.ID)).
+				SetCompletion(req.Content).Exec(ctx)
+
+		case consts.ReportActionSuggest:
+			if err := tx.Task.UpdateOneID(rc.ID).
+				SetIsSuggested(true).
+				SetCompletion(req.Content).
+				Exec(ctx); err != nil {
+				return err
+			}
+
+			return tx.TaskRecord.Update().
+				Where(taskrecord.TaskID(rc.ID)).
+				SetCompletion(req.Content).Exec(ctx)
+
+		case consts.ReportActionFileWritten:
+			if err := r.handleFileWritten(ctx, tx, rc, req); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
+func (r *ProxyRepo) handleFileWritten(ctx context.Context, tx *db.Tx, rc *db.Task, req *domain.ReportReq) error {
+	lines := 0
+	switch req.Tool {
+	case "appliedDiff", "editedExistingFile", "insertContent":
+		if strings.Contains(req.Content, "<<<<<<<") {
+			lines := diff.ParseConflictsAndCountLines(req.Content)
+			for _, line := range lines {
+				rc.CodeLines += int64(line)
+			}
+		} else {
+			rc.CodeLines = int64(strings.Count(req.Content, "\n"))
+		}
+	case "newFileCreated":
+		rc.CodeLines = int64(strings.Count(req.Content, "\n"))
+	}
+
+	if lines > 0 {
+		if err := tx.Task.
+			UpdateOneID(rc.ID).
+			AddCodeLines(int64(lines)).
+			SetIsAccept(true).
+			Exec(ctx); err != nil {
+			return err
+		}
+	}
+
+	if req.Content != "" {
+		if _, err := tx.TaskRecord.Create().
+			SetTaskID(rc.ID).
+			SetRole(consts.ChatRoleSystem).
+			SetPrompt("写入文件").
+			SetCompletion("").
+			SetCodeLines(int64(lines)).
+			SetCode(req.Content).
+			SetOutputTokens(0).
+			Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

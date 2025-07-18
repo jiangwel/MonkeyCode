@@ -35,6 +35,8 @@ func (TaskRecord) Fields() []ent.Field {
 		field.String("role").GoType(consts.ChatRole("")),
 		field.String("completion"),
 		field.Int64("output_tokens"),
+		field.Int64("code_lines"),
+		field.String("code").Optional(),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

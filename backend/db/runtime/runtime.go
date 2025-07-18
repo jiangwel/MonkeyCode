@@ -256,12 +256,16 @@ func init() {
 	taskDescIsAccept := taskFields[6].Descriptor()
 	// task.DefaultIsAccept holds the default value on creation for the is_accept field.
 	task.DefaultIsAccept = taskDescIsAccept.Default.(bool)
+	// taskDescIsSuggested is the schema descriptor for is_suggested field.
+	taskDescIsSuggested := taskFields[13].Descriptor()
+	// task.DefaultIsSuggested holds the default value on creation for the is_suggested field.
+	task.DefaultIsSuggested = taskDescIsSuggested.Default.(bool)
 	// taskDescCreatedAt is the schema descriptor for created_at field.
-	taskDescCreatedAt := taskFields[13].Descriptor()
+	taskDescCreatedAt := taskFields[14].Descriptor()
 	// task.DefaultCreatedAt holds the default value on creation for the created_at field.
 	task.DefaultCreatedAt = taskDescCreatedAt.Default.(func() time.Time)
 	// taskDescUpdatedAt is the schema descriptor for updated_at field.
-	taskDescUpdatedAt := taskFields[14].Descriptor()
+	taskDescUpdatedAt := taskFields[15].Descriptor()
 	// task.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	task.DefaultUpdatedAt = taskDescUpdatedAt.Default.(func() time.Time)
 	// task.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -269,11 +273,11 @@ func init() {
 	taskrecordFields := schema.TaskRecord{}.Fields()
 	_ = taskrecordFields
 	// taskrecordDescCreatedAt is the schema descriptor for created_at field.
-	taskrecordDescCreatedAt := taskrecordFields[6].Descriptor()
+	taskrecordDescCreatedAt := taskrecordFields[8].Descriptor()
 	// taskrecord.DefaultCreatedAt holds the default value on creation for the created_at field.
 	taskrecord.DefaultCreatedAt = taskrecordDescCreatedAt.Default.(func() time.Time)
 	// taskrecordDescUpdatedAt is the schema descriptor for updated_at field.
-	taskrecordDescUpdatedAt := taskrecordFields[7].Descriptor()
+	taskrecordDescUpdatedAt := taskrecordFields[9].Descriptor()
 	// taskrecord.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	taskrecord.DefaultUpdatedAt = taskrecordDescUpdatedAt.Default.(func() time.Time)
 	// taskrecord.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
