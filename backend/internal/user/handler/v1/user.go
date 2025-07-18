@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/GoYoko/web"
+	"golang.org/x/time/rate"
 
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/consts"
@@ -33,9 +34,9 @@ type UserHandler struct {
 	session   *session.Session
 	logger    *slog.Logger
 	cfg       *config.Config
-	limitCh   chan struct{}
-	vsixCache map[string]*CacheEntry // 缓存处理后的vsix文件
-	cacheMu   sync.RWMutex           // 缓存读写锁
+	vsixCache map[string]*CacheEntry
+	cacheMu   sync.RWMutex
+	limiter   *rate.Limiter
 }
 
 func NewUserHandler(
@@ -54,8 +55,8 @@ func NewUserHandler(
 		logger:    logger,
 		cfg:       cfg,
 		euse:      euse,
-		limitCh:   make(chan struct{}, cfg.Extension.Limit),
 		vsixCache: make(map[string]*CacheEntry),
+		limiter:   rate.NewLimiter(rate.Every(time.Duration(cfg.Extension.LimitSecond)*time.Second), cfg.Extension.Limit),
 	}
 
 	w.GET("/api/v1/static/vsix/:version", web.BaseHandler(u.VSIXDownload))
@@ -130,27 +131,22 @@ func (h *UserHandler) cleanExpiredCache() {
 //	@Produce		octet-stream
 //	@Router			/api/v1/static/vsix [get]
 func (h *UserHandler) VSIXDownload(c *web.Context) error {
-	h.limitCh <- struct{}{}
-	defer func() {
-		<-h.limitCh
-	}()
+	if !h.limiter.Allow() {
+		return c.String(http.StatusTooManyRequests, "Too Many Requests")
+	}
 
 	v, err := h.euse.GetByVersion(c.Request().Context(), c.Param("version"))
 	if err != nil {
 		return err
 	}
 
-	// 生成缓存键
 	cacheKey := h.generateCacheKey(v.Version, h.cfg.BaseUrl)
 
-	// 先检查缓存
 	h.cacheMu.RLock()
 	if entry, exists := h.vsixCache[cacheKey]; exists {
-		// 检查缓存是否过期（1小时）
 		if time.Since(entry.createdAt) < time.Hour {
 			h.cacheMu.RUnlock()
 
-			// 从缓存返回数据
 			disposition := fmt.Sprintf("attachment; filename=monkeycode-%s.vsix", v.Version)
 			c.Response().Header().Set("Content-Type", "application/octet-stream")
 			c.Response().Header().Set("Content-Disposition", disposition)
@@ -162,15 +158,11 @@ func (h *UserHandler) VSIXDownload(c *web.Context) error {
 	}
 	h.cacheMu.RUnlock()
 
-	// 缓存未命中或已过期，需要重新生成
-
-	// 使用buffer来捕获生成的数据
 	var buf bytes.Buffer
 	if err := vsix.ChangeVsixEndpoint(v.Path, "extension/package.json", h.cfg.BaseUrl, &buf); err != nil {
 		return err
 	}
 
-	// 将结果存入缓存
 	data := buf.Bytes()
 	h.cacheMu.Lock()
 	h.vsixCache[cacheKey] = &CacheEntry{
@@ -179,10 +171,8 @@ func (h *UserHandler) VSIXDownload(c *web.Context) error {
 	}
 	h.cacheMu.Unlock()
 
-	// 异步清理过期缓存
 	go h.cleanExpiredCache()
 
-	// 返回数据给客户端
 	disposition := fmt.Sprintf("attachment; filename=monkeycode-%s.vsix", v.Version)
 	c.Response().Header().Set("Content-Type", "application/octet-stream")
 	c.Response().Header().Set("Content-Disposition", disposition)
