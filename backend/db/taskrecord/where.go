@@ -83,6 +83,16 @@ func OutputTokens(v int64) predicate.TaskRecord {
 	return predicate.TaskRecord(sql.FieldEQ(FieldOutputTokens, v))
 }
 
+// CodeLines applies equality check predicate on the "code_lines" field. It's identical to CodeLinesEQ.
+func CodeLines(v int64) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldEQ(FieldCodeLines, v))
+}
+
+// Code applies equality check predicate on the "code" field. It's identical to CodeEQ.
+func Code(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldEQ(FieldCode, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.TaskRecord {
 	return predicate.TaskRecord(sql.FieldEQ(FieldCreatedAt, v))
@@ -385,6 +395,121 @@ func OutputTokensLT(v int64) predicate.TaskRecord {
 // OutputTokensLTE applies the LTE predicate on the "output_tokens" field.
 func OutputTokensLTE(v int64) predicate.TaskRecord {
 	return predicate.TaskRecord(sql.FieldLTE(FieldOutputTokens, v))
+}
+
+// CodeLinesEQ applies the EQ predicate on the "code_lines" field.
+func CodeLinesEQ(v int64) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldEQ(FieldCodeLines, v))
+}
+
+// CodeLinesNEQ applies the NEQ predicate on the "code_lines" field.
+func CodeLinesNEQ(v int64) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldNEQ(FieldCodeLines, v))
+}
+
+// CodeLinesIn applies the In predicate on the "code_lines" field.
+func CodeLinesIn(vs ...int64) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldIn(FieldCodeLines, vs...))
+}
+
+// CodeLinesNotIn applies the NotIn predicate on the "code_lines" field.
+func CodeLinesNotIn(vs ...int64) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldNotIn(FieldCodeLines, vs...))
+}
+
+// CodeLinesGT applies the GT predicate on the "code_lines" field.
+func CodeLinesGT(v int64) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldGT(FieldCodeLines, v))
+}
+
+// CodeLinesGTE applies the GTE predicate on the "code_lines" field.
+func CodeLinesGTE(v int64) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldGTE(FieldCodeLines, v))
+}
+
+// CodeLinesLT applies the LT predicate on the "code_lines" field.
+func CodeLinesLT(v int64) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldLT(FieldCodeLines, v))
+}
+
+// CodeLinesLTE applies the LTE predicate on the "code_lines" field.
+func CodeLinesLTE(v int64) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldLTE(FieldCodeLines, v))
+}
+
+// CodeEQ applies the EQ predicate on the "code" field.
+func CodeEQ(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldEQ(FieldCode, v))
+}
+
+// CodeNEQ applies the NEQ predicate on the "code" field.
+func CodeNEQ(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldNEQ(FieldCode, v))
+}
+
+// CodeIn applies the In predicate on the "code" field.
+func CodeIn(vs ...string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldIn(FieldCode, vs...))
+}
+
+// CodeNotIn applies the NotIn predicate on the "code" field.
+func CodeNotIn(vs ...string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldNotIn(FieldCode, vs...))
+}
+
+// CodeGT applies the GT predicate on the "code" field.
+func CodeGT(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldGT(FieldCode, v))
+}
+
+// CodeGTE applies the GTE predicate on the "code" field.
+func CodeGTE(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldGTE(FieldCode, v))
+}
+
+// CodeLT applies the LT predicate on the "code" field.
+func CodeLT(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldLT(FieldCode, v))
+}
+
+// CodeLTE applies the LTE predicate on the "code" field.
+func CodeLTE(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldLTE(FieldCode, v))
+}
+
+// CodeContains applies the Contains predicate on the "code" field.
+func CodeContains(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldContains(FieldCode, v))
+}
+
+// CodeHasPrefix applies the HasPrefix predicate on the "code" field.
+func CodeHasPrefix(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldHasPrefix(FieldCode, v))
+}
+
+// CodeHasSuffix applies the HasSuffix predicate on the "code" field.
+func CodeHasSuffix(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldHasSuffix(FieldCode, v))
+}
+
+// CodeIsNil applies the IsNil predicate on the "code" field.
+func CodeIsNil() predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldIsNull(FieldCode))
+}
+
+// CodeNotNil applies the NotNil predicate on the "code" field.
+func CodeNotNil() predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldNotNull(FieldCode))
+}
+
+// CodeEqualFold applies the EqualFold predicate on the "code" field.
+func CodeEqualFold(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldEqualFold(FieldCode, v))
+}
+
+// CodeContainsFold applies the ContainsFold predicate on the "code" field.
+func CodeContainsFold(v string) predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldContainsFold(FieldCode, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

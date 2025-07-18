@@ -121,6 +121,47 @@ func (tru *TaskRecordUpdate) AddOutputTokens(i int64) *TaskRecordUpdate {
 	return tru
 }
 
+// SetCodeLines sets the "code_lines" field.
+func (tru *TaskRecordUpdate) SetCodeLines(i int64) *TaskRecordUpdate {
+	tru.mutation.ResetCodeLines()
+	tru.mutation.SetCodeLines(i)
+	return tru
+}
+
+// SetNillableCodeLines sets the "code_lines" field if the given value is not nil.
+func (tru *TaskRecordUpdate) SetNillableCodeLines(i *int64) *TaskRecordUpdate {
+	if i != nil {
+		tru.SetCodeLines(*i)
+	}
+	return tru
+}
+
+// AddCodeLines adds i to the "code_lines" field.
+func (tru *TaskRecordUpdate) AddCodeLines(i int64) *TaskRecordUpdate {
+	tru.mutation.AddCodeLines(i)
+	return tru
+}
+
+// SetCode sets the "code" field.
+func (tru *TaskRecordUpdate) SetCode(s string) *TaskRecordUpdate {
+	tru.mutation.SetCode(s)
+	return tru
+}
+
+// SetNillableCode sets the "code" field if the given value is not nil.
+func (tru *TaskRecordUpdate) SetNillableCode(s *string) *TaskRecordUpdate {
+	if s != nil {
+		tru.SetCode(*s)
+	}
+	return tru
+}
+
+// ClearCode clears the value of the "code" field.
+func (tru *TaskRecordUpdate) ClearCode() *TaskRecordUpdate {
+	tru.mutation.ClearCode()
+	return tru
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (tru *TaskRecordUpdate) SetCreatedAt(t time.Time) *TaskRecordUpdate {
 	tru.mutation.SetCreatedAt(t)
@@ -225,6 +266,18 @@ func (tru *TaskRecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := tru.mutation.AddedOutputTokens(); ok {
 		_spec.AddField(taskrecord.FieldOutputTokens, field.TypeInt64, value)
+	}
+	if value, ok := tru.mutation.CodeLines(); ok {
+		_spec.SetField(taskrecord.FieldCodeLines, field.TypeInt64, value)
+	}
+	if value, ok := tru.mutation.AddedCodeLines(); ok {
+		_spec.AddField(taskrecord.FieldCodeLines, field.TypeInt64, value)
+	}
+	if value, ok := tru.mutation.Code(); ok {
+		_spec.SetField(taskrecord.FieldCode, field.TypeString, value)
+	}
+	if tru.mutation.CodeCleared() {
+		_spec.ClearField(taskrecord.FieldCode, field.TypeString)
 	}
 	if value, ok := tru.mutation.CreatedAt(); ok {
 		_spec.SetField(taskrecord.FieldCreatedAt, field.TypeTime, value)
@@ -372,6 +425,47 @@ func (truo *TaskRecordUpdateOne) AddOutputTokens(i int64) *TaskRecordUpdateOne {
 	return truo
 }
 
+// SetCodeLines sets the "code_lines" field.
+func (truo *TaskRecordUpdateOne) SetCodeLines(i int64) *TaskRecordUpdateOne {
+	truo.mutation.ResetCodeLines()
+	truo.mutation.SetCodeLines(i)
+	return truo
+}
+
+// SetNillableCodeLines sets the "code_lines" field if the given value is not nil.
+func (truo *TaskRecordUpdateOne) SetNillableCodeLines(i *int64) *TaskRecordUpdateOne {
+	if i != nil {
+		truo.SetCodeLines(*i)
+	}
+	return truo
+}
+
+// AddCodeLines adds i to the "code_lines" field.
+func (truo *TaskRecordUpdateOne) AddCodeLines(i int64) *TaskRecordUpdateOne {
+	truo.mutation.AddCodeLines(i)
+	return truo
+}
+
+// SetCode sets the "code" field.
+func (truo *TaskRecordUpdateOne) SetCode(s string) *TaskRecordUpdateOne {
+	truo.mutation.SetCode(s)
+	return truo
+}
+
+// SetNillableCode sets the "code" field if the given value is not nil.
+func (truo *TaskRecordUpdateOne) SetNillableCode(s *string) *TaskRecordUpdateOne {
+	if s != nil {
+		truo.SetCode(*s)
+	}
+	return truo
+}
+
+// ClearCode clears the value of the "code" field.
+func (truo *TaskRecordUpdateOne) ClearCode() *TaskRecordUpdateOne {
+	truo.mutation.ClearCode()
+	return truo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (truo *TaskRecordUpdateOne) SetCreatedAt(t time.Time) *TaskRecordUpdateOne {
 	truo.mutation.SetCreatedAt(t)
@@ -506,6 +600,18 @@ func (truo *TaskRecordUpdateOne) sqlSave(ctx context.Context) (_node *TaskRecord
 	}
 	if value, ok := truo.mutation.AddedOutputTokens(); ok {
 		_spec.AddField(taskrecord.FieldOutputTokens, field.TypeInt64, value)
+	}
+	if value, ok := truo.mutation.CodeLines(); ok {
+		_spec.SetField(taskrecord.FieldCodeLines, field.TypeInt64, value)
+	}
+	if value, ok := truo.mutation.AddedCodeLines(); ok {
+		_spec.AddField(taskrecord.FieldCodeLines, field.TypeInt64, value)
+	}
+	if value, ok := truo.mutation.Code(); ok {
+		_spec.SetField(taskrecord.FieldCode, field.TypeString, value)
+	}
+	if truo.mutation.CodeCleared() {
+		_spec.ClearField(taskrecord.FieldCode, field.TypeString)
 	}
 	if value, ok := truo.mutation.CreatedAt(); ok {
 		_spec.SetField(taskrecord.FieldCreatedAt, field.TypeTime, value)

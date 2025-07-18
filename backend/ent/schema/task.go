@@ -41,6 +41,7 @@ func (Task) Fields() []ent.Field {
 		field.Int64("code_lines").Optional(),
 		field.Int64("input_tokens").Optional(),
 		field.Int64("output_tokens").Optional(),
+		field.Bool("is_suggested").Default(false),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

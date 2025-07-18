@@ -50,6 +50,7 @@ func NewV1Handler(
 	g := w.Group("/v1", middleware.Auth())
 	g.GET("/models", web.BaseHandler(h.ModelList))
 	g.POST("/completion/accept", web.BindHandler(h.AcceptCompletion), active.Active("user"))
+	g.POST("/report", web.BindHandler(h.Report), active.Active("user"))
 	g.POST("/chat/completions", web.BaseHandler(h.ChatCompletion), active.Active("user"))
 	g.POST("/completions", web.BaseHandler(h.Completions), active.Active("user"))
 	g.POST("/embeddings", web.BaseHandler(h.Embeddings), active.Active("user"))
@@ -94,6 +95,25 @@ func (h *V1Handler) AcceptCompletion(c *web.Context, req domain.AcceptCompletion
 		return BadRequest(c, err.Error())
 	}
 	return nil
+}
+
+// Report 报告
+//
+//	@Tags			OpenAIV1
+//	@Summary		报告
+//	@Description	报告
+//	@ID				report
+//	@Accept			json
+//	@Produce		json
+//	@Param			param	body		domain.ReportReq	true	"报告请求"
+//	@Success		200		{object}	web.Resp{}
+//	@Router			/v1/report [post]
+func (h *V1Handler) Report(c *web.Context, req domain.ReportReq) error {
+	h.logger.DebugContext(c.Request().Context(), "Report", slog.Any("req", req))
+	if err := h.proxyUse.Report(c.Request().Context(), &req); err != nil {
+		return err
+	}
+	return c.Success(nil)
 }
 
 // ModelList 模型列表

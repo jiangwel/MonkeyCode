@@ -118,6 +118,11 @@ func OutputTokens(v int64) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldOutputTokens, v))
 }
 
+// IsSuggested applies equality check predicate on the "is_suggested" field. It's identical to IsSuggestedEQ.
+func IsSuggested(v bool) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldIsSuggested, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldCreatedAt, v))
@@ -795,6 +800,16 @@ func OutputTokensIsNil() predicate.Task {
 // OutputTokensNotNil applies the NotNil predicate on the "output_tokens" field.
 func OutputTokensNotNil() predicate.Task {
 	return predicate.Task(sql.FieldNotNull(FieldOutputTokens))
+}
+
+// IsSuggestedEQ applies the EQ predicate on the "is_suggested" field.
+func IsSuggestedEQ(v bool) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldIsSuggested, v))
+}
+
+// IsSuggestedNEQ applies the NEQ predicate on the "is_suggested" field.
+func IsSuggestedNEQ(v bool) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldIsSuggested, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/chaitin/MonkeyCode/backend/db"
+	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 )
 
 type DashboardUsecase interface {
@@ -62,6 +63,7 @@ type UserHeatmap struct {
 type UserCodeRank struct {
 	Username string `json:"username"` // 用户名
 	Lines    int64  `json:"lines"`    // 代码行数
+	User     *User  `json:"user"`     // 用户信息
 }
 
 func (u *UserCodeRank) From(d *db.Task) *UserCodeRank {
@@ -70,6 +72,7 @@ func (u *UserCodeRank) From(d *db.Task) *UserCodeRank {
 	}
 	u.Username = d.Edges.User.Username
 	u.Lines = d.CodeLines
+	u.User = cvt.From(d.Edges.User, &User{})
 	return u
 }
 

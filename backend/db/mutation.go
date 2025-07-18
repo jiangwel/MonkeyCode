@@ -9876,6 +9876,7 @@ type TaskMutation struct {
 	addinput_tokens     *int64
 	output_tokens       *int64
 	addoutput_tokens    *int64
+	is_suggested        *bool
 	created_at          *time.Time
 	updated_at          *time.Time
 	clearedFields       map[string]struct{}
@@ -10607,6 +10608,42 @@ func (m *TaskMutation) ResetOutputTokens() {
 	delete(m.clearedFields, task.FieldOutputTokens)
 }
 
+// SetIsSuggested sets the "is_suggested" field.
+func (m *TaskMutation) SetIsSuggested(b bool) {
+	m.is_suggested = &b
+}
+
+// IsSuggested returns the value of the "is_suggested" field in the mutation.
+func (m *TaskMutation) IsSuggested() (r bool, exists bool) {
+	v := m.is_suggested
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsSuggested returns the old "is_suggested" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldIsSuggested(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsSuggested is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsSuggested requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsSuggested: %w", err)
+	}
+	return oldValue.IsSuggested, nil
+}
+
+// ResetIsSuggested resets all changes to the "is_suggested" field.
+func (m *TaskMutation) ResetIsSuggested() {
+	m.is_suggested = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *TaskMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -10821,7 +10858,7 @@ func (m *TaskMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TaskMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.task_id != nil {
 		fields = append(fields, task.FieldTaskID)
 	}
@@ -10857,6 +10894,9 @@ func (m *TaskMutation) Fields() []string {
 	}
 	if m.output_tokens != nil {
 		fields = append(fields, task.FieldOutputTokens)
+	}
+	if m.is_suggested != nil {
+		fields = append(fields, task.FieldIsSuggested)
 	}
 	if m.created_at != nil {
 		fields = append(fields, task.FieldCreatedAt)
@@ -10896,6 +10936,8 @@ func (m *TaskMutation) Field(name string) (ent.Value, bool) {
 		return m.InputTokens()
 	case task.FieldOutputTokens:
 		return m.OutputTokens()
+	case task.FieldIsSuggested:
+		return m.IsSuggested()
 	case task.FieldCreatedAt:
 		return m.CreatedAt()
 	case task.FieldUpdatedAt:
@@ -10933,6 +10975,8 @@ func (m *TaskMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldInputTokens(ctx)
 	case task.FieldOutputTokens:
 		return m.OldOutputTokens(ctx)
+	case task.FieldIsSuggested:
+		return m.OldIsSuggested(ctx)
 	case task.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case task.FieldUpdatedAt:
@@ -11029,6 +11073,13 @@ func (m *TaskMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOutputTokens(v)
+		return nil
+	case task.FieldIsSuggested:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsSuggested(v)
 		return nil
 	case task.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -11225,6 +11276,9 @@ func (m *TaskMutation) ResetField(name string) error {
 	case task.FieldOutputTokens:
 		m.ResetOutputTokens()
 		return nil
+	case task.FieldIsSuggested:
+		m.ResetIsSuggested()
+		return nil
 	case task.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
@@ -11366,6 +11420,9 @@ type TaskRecordMutation struct {
 	completion       *string
 	output_tokens    *int64
 	addoutput_tokens *int64
+	code_lines       *int64
+	addcode_lines    *int64
+	code             *string
 	created_at       *time.Time
 	updated_at       *time.Time
 	clearedFields    map[string]struct{}
@@ -11706,6 +11763,111 @@ func (m *TaskRecordMutation) ResetOutputTokens() {
 	m.addoutput_tokens = nil
 }
 
+// SetCodeLines sets the "code_lines" field.
+func (m *TaskRecordMutation) SetCodeLines(i int64) {
+	m.code_lines = &i
+	m.addcode_lines = nil
+}
+
+// CodeLines returns the value of the "code_lines" field in the mutation.
+func (m *TaskRecordMutation) CodeLines() (r int64, exists bool) {
+	v := m.code_lines
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCodeLines returns the old "code_lines" field's value of the TaskRecord entity.
+// If the TaskRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskRecordMutation) OldCodeLines(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCodeLines is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCodeLines requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCodeLines: %w", err)
+	}
+	return oldValue.CodeLines, nil
+}
+
+// AddCodeLines adds i to the "code_lines" field.
+func (m *TaskRecordMutation) AddCodeLines(i int64) {
+	if m.addcode_lines != nil {
+		*m.addcode_lines += i
+	} else {
+		m.addcode_lines = &i
+	}
+}
+
+// AddedCodeLines returns the value that was added to the "code_lines" field in this mutation.
+func (m *TaskRecordMutation) AddedCodeLines() (r int64, exists bool) {
+	v := m.addcode_lines
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCodeLines resets all changes to the "code_lines" field.
+func (m *TaskRecordMutation) ResetCodeLines() {
+	m.code_lines = nil
+	m.addcode_lines = nil
+}
+
+// SetCode sets the "code" field.
+func (m *TaskRecordMutation) SetCode(s string) {
+	m.code = &s
+}
+
+// Code returns the value of the "code" field in the mutation.
+func (m *TaskRecordMutation) Code() (r string, exists bool) {
+	v := m.code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCode returns the old "code" field's value of the TaskRecord entity.
+// If the TaskRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskRecordMutation) OldCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCode: %w", err)
+	}
+	return oldValue.Code, nil
+}
+
+// ClearCode clears the value of the "code" field.
+func (m *TaskRecordMutation) ClearCode() {
+	m.code = nil
+	m.clearedFields[taskrecord.FieldCode] = struct{}{}
+}
+
+// CodeCleared returns if the "code" field was cleared in this mutation.
+func (m *TaskRecordMutation) CodeCleared() bool {
+	_, ok := m.clearedFields[taskrecord.FieldCode]
+	return ok
+}
+
+// ResetCode resets all changes to the "code" field.
+func (m *TaskRecordMutation) ResetCode() {
+	m.code = nil
+	delete(m.clearedFields, taskrecord.FieldCode)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *TaskRecordMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -11839,7 +12001,7 @@ func (m *TaskRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TaskRecordMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 9)
 	if m.task != nil {
 		fields = append(fields, taskrecord.FieldTaskID)
 	}
@@ -11854,6 +12016,12 @@ func (m *TaskRecordMutation) Fields() []string {
 	}
 	if m.output_tokens != nil {
 		fields = append(fields, taskrecord.FieldOutputTokens)
+	}
+	if m.code_lines != nil {
+		fields = append(fields, taskrecord.FieldCodeLines)
+	}
+	if m.code != nil {
+		fields = append(fields, taskrecord.FieldCode)
 	}
 	if m.created_at != nil {
 		fields = append(fields, taskrecord.FieldCreatedAt)
@@ -11879,6 +12047,10 @@ func (m *TaskRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.Completion()
 	case taskrecord.FieldOutputTokens:
 		return m.OutputTokens()
+	case taskrecord.FieldCodeLines:
+		return m.CodeLines()
+	case taskrecord.FieldCode:
+		return m.Code()
 	case taskrecord.FieldCreatedAt:
 		return m.CreatedAt()
 	case taskrecord.FieldUpdatedAt:
@@ -11902,6 +12074,10 @@ func (m *TaskRecordMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldCompletion(ctx)
 	case taskrecord.FieldOutputTokens:
 		return m.OldOutputTokens(ctx)
+	case taskrecord.FieldCodeLines:
+		return m.OldCodeLines(ctx)
+	case taskrecord.FieldCode:
+		return m.OldCode(ctx)
 	case taskrecord.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case taskrecord.FieldUpdatedAt:
@@ -11950,6 +12126,20 @@ func (m *TaskRecordMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetOutputTokens(v)
 		return nil
+	case taskrecord.FieldCodeLines:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCodeLines(v)
+		return nil
+	case taskrecord.FieldCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCode(v)
+		return nil
 	case taskrecord.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -11975,6 +12165,9 @@ func (m *TaskRecordMutation) AddedFields() []string {
 	if m.addoutput_tokens != nil {
 		fields = append(fields, taskrecord.FieldOutputTokens)
 	}
+	if m.addcode_lines != nil {
+		fields = append(fields, taskrecord.FieldCodeLines)
+	}
 	return fields
 }
 
@@ -11985,6 +12178,8 @@ func (m *TaskRecordMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case taskrecord.FieldOutputTokens:
 		return m.AddedOutputTokens()
+	case taskrecord.FieldCodeLines:
+		return m.AddedCodeLines()
 	}
 	return nil, false
 }
@@ -12001,6 +12196,13 @@ func (m *TaskRecordMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddOutputTokens(v)
 		return nil
+	case taskrecord.FieldCodeLines:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCodeLines(v)
+		return nil
 	}
 	return fmt.Errorf("unknown TaskRecord numeric field %s", name)
 }
@@ -12014,6 +12216,9 @@ func (m *TaskRecordMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(taskrecord.FieldPrompt) {
 		fields = append(fields, taskrecord.FieldPrompt)
+	}
+	if m.FieldCleared(taskrecord.FieldCode) {
+		fields = append(fields, taskrecord.FieldCode)
 	}
 	return fields
 }
@@ -12034,6 +12239,9 @@ func (m *TaskRecordMutation) ClearField(name string) error {
 		return nil
 	case taskrecord.FieldPrompt:
 		m.ClearPrompt()
+		return nil
+	case taskrecord.FieldCode:
+		m.ClearCode()
 		return nil
 	}
 	return fmt.Errorf("unknown TaskRecord nullable field %s", name)
@@ -12057,6 +12265,12 @@ func (m *TaskRecordMutation) ResetField(name string) error {
 		return nil
 	case taskrecord.FieldOutputTokens:
 		m.ResetOutputTokens()
+		return nil
+	case taskrecord.FieldCodeLines:
+		m.ResetCodeLines()
+		return nil
+	case taskrecord.FieldCode:
+		m.ResetCode()
 		return nil
 	case taskrecord.FieldCreatedAt:
 		m.ResetCreatedAt()

@@ -224,6 +224,7 @@ func (d *DashboardRepo) UserCodeRank(ctx context.Context, req domain.StatisticsF
 		return &domain.UserCodeRank{
 			Username: m[v.UserID].Username,
 			Lines:    v.CodeLines,
+			User:     cvt.From(m[v.UserID], &domain.User{}),
 		}
 	}), nil
 }
