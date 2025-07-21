@@ -29,7 +29,7 @@ type UserUsecase interface {
 	GetSetting(ctx context.Context) (*Setting, error)
 	UpdateSetting(ctx context.Context, req *UpdateSettingReq) (*Setting, error)
 	OAuthSignUpOrIn(ctx context.Context, req *OAuthSignUpOrInReq) (*OAuthURLResp, error)
-	OAuthCallback(ctx context.Context, req *OAuthCallbackReq) (string, error)
+	OAuthCallback(ctx *web.Context, req *OAuthCallbackReq) error
 }
 
 type UserRepo interface {
@@ -83,10 +83,11 @@ type VSCodeAuthInitResp struct {
 }
 
 type LoginReq struct {
-	SessionID string `json:"session_id"` // 会话Id
-	Username  string `json:"username"`   // 用户名
-	Password  string `json:"password"`   // 密码
-	IP        string `json:"-"`          // IP地址
+	Source    consts.LoginSource `json:"source"`     // 登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin
+	SessionID string             `json:"session_id"` // 会话Id插件登录时必填
+	Username  string             `json:"username"`   // 用户名
+	Password  string             `json:"password"`   // 密码
+	IP        string             `json:"-"`          // IP地址
 }
 
 type AdminLoginReq struct {
@@ -95,7 +96,8 @@ type AdminLoginReq struct {
 }
 
 type LoginResp struct {
-	RedirectURL string `json:"redirect_url"` // 重定向URL
+	RedirectURL string `json:"redirect_url"`   // 重定向URL
+	User        *User  `json:"user,omitempty"` // 用户信息
 }
 
 type ListReq struct {

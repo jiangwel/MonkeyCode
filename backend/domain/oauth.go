@@ -32,6 +32,7 @@ type OAuthUserInfo struct {
 }
 
 type OAuthSignUpOrInReq struct {
+	Source      consts.LoginSource  `json:"source"`                                        // 登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin
 	Platform    consts.UserPlatform `json:"platform" query:"platform" validate:"required"` // 第三方平台 dingtalk
 	SessionID   string              `json:"session_id" query:"session_id"`                 // 会话ID
 	RedirectURL string              `json:"redirect_url" query:"redirect_url"`             // 登录成功后跳转的 URL
@@ -56,7 +57,8 @@ type OAuthURLResp struct {
 }
 
 type OAuthState struct {
-	Kind        consts.OAuthKind    `json:"kind" query:"kind" validate:"required"`         // 注册或登录
+	Source      consts.LoginSource  `json:"source"`                                        // 登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin
+	Kind        consts.OAuthKind    `json:"kind" query:"kind" validate:"required"`         // invite: 邀请登录 login: 登录
 	SessionID   string              `json:"session_id"`                                    // 会话ID
 	Platform    consts.UserPlatform `json:"platform" query:"platform" validate:"required"` // 第三方平台 dingtalk
 	RedirectURL string              `json:"redirect_url" query:"redirect_url"`             // 登录成功后跳转的 URL

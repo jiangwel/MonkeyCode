@@ -14,7 +14,8 @@ const (
 )
 
 const (
-	SessionName = "monkeycode_session"
+	SessionName     = "monkeycode_session"
+	UserSessionName = "monkeycode_user_session"
 )
 
 type UserPlatform string
@@ -37,4 +38,11 @@ type InviteCodeStatus string
 const (
 	InviteCodeStatusPending InviteCodeStatus = "pending"
 	InviteCodeStatusUsed    InviteCodeStatus = "used"
+)
+
+type LoginSource string
+
+const (
+	LoginSourcePlugin  LoginSource = "plugin"
+	LoginSourceBrowser LoginSource = "browser"
 )

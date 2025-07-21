@@ -1785,6 +1785,20 @@
                         "description": "会话ID",
                         "name": "session_id",
                         "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "plugin",
+                            "browser"
+                        ],
+                        "type": "string",
+                        "x-enum-varnames": [
+                            "LoginSourcePlugin",
+                            "LoginSourceBrowser"
+                        ],
+                        "description": "登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin",
+                        "name": "source",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2105,6 +2119,17 @@
                 "ChatRoleUser",
                 "ChatRoleAssistant",
                 "ChatRoleSystem"
+            ]
+        },
+        "consts.LoginSource": {
+            "type": "string",
+            "enum": [
+                "plugin",
+                "browser"
+            ],
+            "x-enum-varnames": [
+                "LoginSourcePlugin",
+                "LoginSourceBrowser"
             ]
         },
         "consts.ModelProvider": {
@@ -2894,8 +2919,16 @@
                     "type": "string"
                 },
                 "session_id": {
-                    "description": "会话Id",
+                    "description": "会话Id插件登录时必填",
                     "type": "string"
+                },
+                "source": {
+                    "description": "登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/consts.LoginSource"
+                        }
+                    ]
                 },
                 "username": {
                     "description": "用户名",
@@ -2909,6 +2942,14 @@
                 "redirect_url": {
                     "description": "重定向URL",
                     "type": "string"
+                },
+                "user": {
+                    "description": "用户信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.User"
+                        }
+                    ]
                 }
             }
         },

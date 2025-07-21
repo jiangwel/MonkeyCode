@@ -199,6 +199,11 @@ func (h *UserHandler) Login(c *web.Context, req domain.LoginReq) error {
 	if err != nil {
 		return err
 	}
+	if req.Source == consts.LoginSourceBrowser {
+		if _, err := h.session.Save(c, consts.UserSessionName, c.Request().Host, resp.User); err != nil {
+			return err
+		}
+	}
 	return c.Success(resp)
 }
 
@@ -491,12 +496,7 @@ func (h *UserHandler) OAuthSignUpOrIn(ctx *web.Context, req domain.OAuthSignUpOr
 //	@Router			/api/v1/user/oauth/callback [get]
 func (h *UserHandler) OAuthCallback(ctx *web.Context, req domain.OAuthCallbackReq) error {
 	req.IP = ctx.RealIP()
-	resp, err := h.usecase.OAuthCallback(ctx.Request().Context(), &req)
-	if err != nil {
-		return err
-	}
-	ctx.Redirect(http.StatusFound, resp)
-	return nil
+	return h.usecase.OAuthCallback(ctx, &req)
 }
 
 func (h *UserHandler) InitAdmin() error {

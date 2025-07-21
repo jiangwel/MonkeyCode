@@ -420,17 +420,20 @@ func (r *UserRepo) SaveUserLoginHistory(ctx context.Context, userID string, ip s
 	if err != nil {
 		return err
 	}
-	_, err = r.db.UserLoginHistory.Create().
+	c := r.db.UserLoginHistory.Create().
 		SetUserID(uid).
 		SetIP(ip).
 		SetCity(addr.City).
 		SetCountry(addr.Country).
-		SetProvince(addr.Province).
-		SetClientVersion(session.Version).
-		SetOsType(session.OSType).
-		SetOsRelease(session.OSRelease).
-		SetClientID(session.ClientID).
-		SetHostname(session.Hostname).
-		Save(ctx)
-	return err
+		SetProvince(addr.Province)
+
+	if session != nil {
+		c.SetClientVersion(session.Version).
+			SetOsType(session.OSType).
+			SetOsRelease(session.OSRelease).
+			SetClientID(session.ClientID).
+			SetHostname(session.Hostname)
+	}
+
+	return c.Exec(ctx)
 }
