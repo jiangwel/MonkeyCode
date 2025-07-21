@@ -101,7 +101,7 @@ func (h *V1Handler) AcceptCompletion(c *web.Context, req domain.AcceptCompletion
 //
 //	@Tags			OpenAIV1
 //	@Summary		报告
-//	@Description	报告
+//	@Description	报告，支持多种操作：accept（接受补全）、suggest（建议）、reject（拒绝补全并记录用户输入）、file_written（文件写入）
 //	@ID				report
 //	@Accept			json
 //	@Produce		json
