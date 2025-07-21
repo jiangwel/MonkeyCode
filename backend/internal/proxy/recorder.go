@@ -84,11 +84,6 @@ func (r *Recorder) handleShadow() {
 		mode = req.Metadata["mode"]
 		tool = req.Metadata["tool"]
 		code = req.Metadata["code"]
-		sourceCode = req.Metadata["source_code"]
-		if pos, err := strconv.ParseInt(req.Metadata["cursor_position"], 10, 64); err == nil {
-			cursorPosition = pos
-		}
-		userInput = req.Metadata["user_input"]
 
 	case consts.ModelTypeCoder:
 		var req domain.CompletionRequest
