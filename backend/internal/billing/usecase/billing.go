@@ -25,11 +25,11 @@ func (b *BillingUsecase) ListCompletionRecord(ctx context.Context, req domain.Li
 }
 
 // CompletionInfo implements domain.BillingUsecase.
-func (b *BillingUsecase) CompletionInfo(ctx context.Context, id string) (*domain.CompletionInfo, error) {
-	return b.repo.CompletionInfo(ctx, id)
+func (b *BillingUsecase) CompletionInfo(ctx context.Context, id, userID string) (*domain.CompletionInfo, error) {
+	return b.repo.CompletionInfo(ctx, id, userID)
 }
 
 // ChatInfo implements domain.BillingUsecase.
-func (b *BillingUsecase) ChatInfo(ctx context.Context, id string) (*domain.ChatInfo, error) {
-	return b.repo.ChatInfo(ctx, id)
+func (b *BillingUsecase) ChatInfo(ctx context.Context, id, userID string) (*domain.ChatInfo, error) {
+	return b.repo.ChatInfo(ctx, id, userID)
 }

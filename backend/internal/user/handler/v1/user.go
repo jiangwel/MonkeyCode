@@ -32,6 +32,7 @@ type UserHandler struct {
 	usecase   domain.UserUsecase
 	euse      domain.ExtensionUsecase
 	duse      domain.DashboardUsecase
+	buse      domain.BillingUsecase
 	session   *session.Session
 	logger    *slog.Logger
 	cfg       *config.Config
@@ -45,6 +46,7 @@ func NewUserHandler(
 	usecase domain.UserUsecase,
 	euse domain.ExtensionUsecase,
 	duse domain.DashboardUsecase,
+	buse domain.BillingUsecase,
 	auth *middleware.AuthMiddleware,
 	active *middleware.ActiveMiddleware,
 	session *session.Session,
@@ -55,6 +57,7 @@ func NewUserHandler(
 		usecase:   usecase,
 		euse:      euse,
 		duse:      duse,
+		buse:      buse,
 		session:   session,
 		logger:    logger,
 		cfg:       cfg,
@@ -102,6 +105,17 @@ func NewUserHandler(
 	d.GET("/stat", web.BindHandler(u.UserStat))
 	d.GET("/events", web.BaseHandler(u.UserEvents))
 	d.GET("/heatmap", web.BaseHandler(u.UserHeatmap))
+
+	// user record
+	uc := w.Group("/api/v1/user/chat")
+	uc.Use(auth.UserAuth(), active.Active("user"))
+	uc.GET("/record", web.BindHandler(u.ListChatRecord, web.WithPage()))
+	uc.GET("/info", web.BaseHandler(u.ChatInfo))
+
+	cplt := w.Group("/api/v1/user/completion")
+	cplt.Use(auth.UserAuth(), active.Active("user"))
+	cplt.GET("/record", web.BindHandler(u.ListCompletionRecord, web.WithPage()))
+	cplt.GET("/info", web.BaseHandler(u.CompletionInfo))
 
 	return u
 }
@@ -489,6 +503,7 @@ func (h *UserHandler) UpdateSetting(c *web.Context, req domain.UpdateSettingReq)
 //	@Success		200	{object}	web.Resp{data=domain.OAuthURLResp}
 //	@Router			/api/v1/user/oauth/signup-or-in [get]
 func (h *UserHandler) OAuthSignUpOrIn(ctx *web.Context, req domain.OAuthSignUpOrInReq) error {
+	h.logger.With("req", req).DebugContext(ctx.Request().Context(), "OAuthSignUpOrIn")
 	resp, err := h.usecase.OAuthSignUpOrIn(ctx.Request().Context(), &req)
 	if err != nil {
 		return err
@@ -514,13 +529,14 @@ func (h *UserHandler) OAuthCallback(ctx *web.Context, req domain.OAuthCallbackRe
 
 // Profile 获取用户信息
 //
-//	@Tags			User
+//	@Tags			User Manage
 //	@Summary		获取用户信息
 //	@Description	获取用户信息
 //	@ID				user-profile
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	web.Resp{data=string}
+//	@Success		200	{object}	web.Resp{data=domain.User}
+//	@Failure		401	{object}	web.Resp{}
 //	@Router			/api/v1/user/profile [get]
 func (h *UserHandler) Profile(ctx *web.Context) error {
 	return ctx.Success(middleware.GetUser(ctx))
@@ -528,14 +544,15 @@ func (h *UserHandler) Profile(ctx *web.Context) error {
 
 // UpdateProfile 更新用户信息
 //
-//	@Tags			User
+//	@Tags			User Manage
 //	@Summary		更新用户信息
 //	@Description	更新用户信息
-//	@ID				user-profile
+//	@ID				user-update-profile
 //	@Accept			json
 //	@Produce		json
 //	@Param			req	body		domain.ProfileUpdateReq	true	"param"
 //	@Success		200	{object}	web.Resp{data=domain.User}
+//	@Failure		401	{object}	web.Resp{}
 //	@Router			/api/v1/user/profile [put]
 func (h *UserHandler) UpdateProfile(ctx *web.Context, req domain.ProfileUpdateReq) error {
 	req.UID = middleware.GetUser(ctx).ID

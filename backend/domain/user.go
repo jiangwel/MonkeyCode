@@ -92,11 +92,11 @@ type VSCodeAuthInitResp struct {
 }
 
 type LoginReq struct {
-	Source    consts.LoginSource `json:"source"`     // 登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin
-	SessionID string             `json:"session_id"` // 会话Id插件登录时必填
-	Username  string             `json:"username"`   // 用户名
-	Password  string             `json:"password"`   // 密码
-	IP        string             `json:"-"`          // IP地址
+	Source    consts.LoginSource `json:"source" validate:"required" default:"plugin"` // 登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin
+	SessionID string             `json:"session_id"`                                  // 会话Id插件登录时必填
+	Username  string             `json:"username"`                                    // 用户名
+	Password  string             `json:"password"`                                    // 密码
+	IP        string             `json:"-"`                                           // IP地址
 }
 
 type AdminLoginReq struct {

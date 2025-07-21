@@ -53,5 +53,9 @@ func (p *ProxyMiddleware) Auth() echo.MiddlewareFunc {
 }
 
 func GetApiKey(c echo.Context) *domain.ApiKey {
-	return c.Get(ApiContextKey).(*domain.ApiKey)
+	i := c.Get(ApiContextKey)
+	if i == nil {
+		return nil
+	}
+	return i.(*domain.ApiKey)
 }

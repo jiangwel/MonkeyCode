@@ -77,10 +77,10 @@ func newServer() (*Server, error) {
 	userUsecase := usecase4.NewUserUsecase(configConfig, redisClient, userRepo, slogLogger, sessionSession)
 	dashboardRepo := repo6.NewDashboardRepo(client)
 	dashboardUsecase := usecase5.NewDashboardUsecase(dashboardRepo)
-	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, dashboardUsecase, authMiddleware, activeMiddleware, sessionSession, slogLogger, configConfig)
-	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware, activeMiddleware)
 	billingRepo := repo7.NewBillingRepo(client)
 	billingUsecase := usecase6.NewBillingUsecase(billingRepo)
+	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, dashboardUsecase, billingUsecase, authMiddleware, activeMiddleware, sessionSession, slogLogger, configConfig)
+	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware, activeMiddleware)
 	billingHandler := v1_5.NewBillingHandler(web, billingUsecase, authMiddleware, activeMiddleware)
 	server := &Server{
 		config:      configConfig,

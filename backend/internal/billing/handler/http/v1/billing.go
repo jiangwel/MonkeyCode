@@ -84,7 +84,7 @@ func (h *BillingHandler) ListCompletionRecord(c *web.Context, req domain.ListRec
 //	@Success		200	{object}	web.Resp{data=domain.CompletionInfo}
 //	@Router			/api/v1/billing/completion/info [get]
 func (h *BillingHandler) CompletionInfo(c *web.Context) error {
-	info, err := h.usecase.CompletionInfo(c.Request().Context(), c.QueryParam("id"))
+	info, err := h.usecase.CompletionInfo(c.Request().Context(), c.QueryParam("id"), "")
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (h *BillingHandler) CompletionInfo(c *web.Context) error {
 //	@Success		200	{object}	web.Resp{data=domain.ChatInfo}
 //	@Router			/api/v1/billing/chat/info [get]
 func (h *BillingHandler) ChatInfo(c *web.Context) error {
-	info, err := h.usecase.ChatInfo(c.Request().Context(), c.QueryParam("id"))
+	info, err := h.usecase.ChatInfo(c.Request().Context(), c.QueryParam("id"), "")
 	if err != nil {
 		return err
 	}

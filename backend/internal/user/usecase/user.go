@@ -239,7 +239,7 @@ func (u *UserUsecase) Login(ctx context.Context, req *domain.LoginReq) (*domain.
 		}, nil
 	}
 
-	return nil, fmt.Errorf("invalid login kind")
+	return nil, fmt.Errorf("invalid login source")
 }
 
 func (u *UserUsecase) getVSCodeURL(ctx context.Context, sessionID, apiKey, username string) (string, *domain.VSCodeSession, error) {
@@ -533,10 +533,10 @@ func (u *UserUsecase) OAuthCallback(c *web.Context, req *domain.OAuthCallbackReq
 
 		if session.Source == consts.LoginSourceBrowser {
 			resUser := cvt.From(user, &domain.User{})
+			u.logger.With("user", resUser).With("host", c.Request().Host).DebugContext(ctx, "save user session")
 			if _, err := u.session.Save(c, consts.UserSessionName, c.Request().Host, resUser); err != nil {
 				return err
 			}
-			return c.Success(resUser)
 		}
 
 		c.Redirect(http.StatusFound, redirect)
@@ -599,7 +599,7 @@ func (u *UserUsecase) WithOAuthCallback(ctx context.Context, req *domain.OAuthCa
 		}
 	}
 
-	u.logger.Debug("oauth callback", "redirect", redirect)
+	u.logger.With("session", session).Debug("oauth callback", "redirect", redirect)
 	return user, redirect, nil
 }
 

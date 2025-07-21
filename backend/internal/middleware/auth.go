@@ -57,9 +57,17 @@ func (m *AuthMiddleware) Auth() echo.MiddlewareFunc {
 }
 
 func GetAdmin(c echo.Context) *domain.AdminUser {
-	return c.Get(adminKey).(*domain.AdminUser)
+	i := c.Get(adminKey)
+	if i == nil {
+		return nil
+	}
+	return i.(*domain.AdminUser)
 }
 
 func GetUser(c echo.Context) *domain.User {
-	return c.Get(userKey).(*domain.User)
+	i := c.Get(userKey)
+	if i == nil {
+		return nil
+	}
+	return i.(*domain.User)
 }
