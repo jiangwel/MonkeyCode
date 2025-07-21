@@ -34,8 +34,10 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/pkg"
 	"github.com/chaitin/MonkeyCode/backend/pkg/ipdb"
 	"github.com/chaitin/MonkeyCode/backend/pkg/logger"
+	"github.com/chaitin/MonkeyCode/backend/pkg/report"
 	"github.com/chaitin/MonkeyCode/backend/pkg/session"
 	"github.com/chaitin/MonkeyCode/backend/pkg/store"
+	"github.com/chaitin/MonkeyCode/backend/pkg/version"
 	"log/slog"
 )
 
@@ -82,6 +84,8 @@ func newServer() (*Server, error) {
 	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, dashboardUsecase, billingUsecase, authMiddleware, activeMiddleware, sessionSession, slogLogger, configConfig)
 	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware, activeMiddleware)
 	billingHandler := v1_5.NewBillingHandler(web, billingUsecase, authMiddleware, activeMiddleware)
+	versionInfo := version.NewVersionInfo()
+	reporter := report.NewReport(slogLogger, configConfig, versionInfo)
 	server := &Server{
 		config:      configConfig,
 		web:         web,
@@ -92,6 +96,8 @@ func newServer() (*Server, error) {
 		userV1:      userHandler,
 		dashboardV1: dashboardHandler,
 		billingV1:   billingHandler,
+		version:     versionInfo,
+		report:      reporter,
 	}
 	return server, nil
 }
@@ -108,4 +114,6 @@ type Server struct {
 	userV1      *v1_3.UserHandler
 	dashboardV1 *v1_4.DashboardHandler
 	billingV1   *v1_5.BillingHandler
+	version     *version.VersionInfo
+	report      *report.Reporter
 }

@@ -24,6 +24,7 @@ import (
 	userV1 "github.com/chaitin/MonkeyCode/backend/internal/user/handler/v1"
 	userrepo "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
 	userusecase "github.com/chaitin/MonkeyCode/backend/internal/user/usecase"
+	"github.com/chaitin/MonkeyCode/backend/pkg/version"
 )
 
 var Provider = wire.NewSet(
@@ -50,4 +51,5 @@ var Provider = wire.NewSet(
 	billingusecase.NewBillingUsecase,
 	erepo.NewExtensionRepo,
 	eusecase.NewExtensionUsecase,
+	version.NewVersionInfo,
 )

@@ -87,6 +87,18 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/}
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
 
+      - name: Get build time
+        id: get_build_time
+        run: |
+          BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          echo "BUILD_TIME=${BUILD_TIME}" >> $GITHUB_OUTPUT
+
+      - name: Get git commit
+        id: get_git_commit
+        run: |
+          GIT_COMMIT=$(git rev-parse HEAD)
+          echo "GIT_COMMIT=${GIT_COMMIT}" >> $GITHUB_OUTPUT
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -114,5 +126,8 @@ jobs:
             GOCACHE=/tmp/go-build
             GOMODCACHE=/tmp/go-mod
             REPO_COMMIT=${{ github.sha }}
+            VERSION=${{ steps.get_version.outputs.VERSION }}
+            BUILD_TIME=${{ steps.get_build_time.outputs.BUILD_TIME }}
+            GIT_COMMIT=${{ steps.get_git_commit.outputs.GIT_COMMIT }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
