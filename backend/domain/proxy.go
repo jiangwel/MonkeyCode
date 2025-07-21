@@ -67,6 +67,9 @@ type RecordParam struct {
 	WorkMode        string
 	CodeLines       int64
 	Code            string
+	SourceCode      string // 当前文件的原文
+	CursorPosition  int64  // 光标位置
+	UserInput       string // 用户实际输入的内容
 }
 
 func (r *RecordParam) Clone() *RecordParam {
@@ -85,5 +88,8 @@ func (r *RecordParam) Clone() *RecordParam {
 		Completion:      r.Completion,
 		WorkMode:        r.WorkMode,
 		CodeLines:       r.CodeLines,
+		SourceCode:      r.SourceCode,
+		CursorPosition:  r.CursorPosition,
+		UserInput:       r.UserInput,
 	}
 }

@@ -123,6 +123,21 @@ func IsSuggested(v bool) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldIsSuggested, v))
 }
 
+// SourceCode applies equality check predicate on the "source_code" field. It's identical to SourceCodeEQ.
+func SourceCode(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldSourceCode, v))
+}
+
+// CursorPosition applies equality check predicate on the "cursor_position" field. It's identical to CursorPositionEQ.
+func CursorPosition(v int64) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldCursorPosition, v))
+}
+
+// UserInput applies equality check predicate on the "user_input" field. It's identical to UserInputEQ.
+func UserInput(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldUserInput, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldCreatedAt, v))
@@ -810,6 +825,206 @@ func IsSuggestedEQ(v bool) predicate.Task {
 // IsSuggestedNEQ applies the NEQ predicate on the "is_suggested" field.
 func IsSuggestedNEQ(v bool) predicate.Task {
 	return predicate.Task(sql.FieldNEQ(FieldIsSuggested, v))
+}
+
+// SourceCodeEQ applies the EQ predicate on the "source_code" field.
+func SourceCodeEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldSourceCode, v))
+}
+
+// SourceCodeNEQ applies the NEQ predicate on the "source_code" field.
+func SourceCodeNEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldSourceCode, v))
+}
+
+// SourceCodeIn applies the In predicate on the "source_code" field.
+func SourceCodeIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldSourceCode, vs...))
+}
+
+// SourceCodeNotIn applies the NotIn predicate on the "source_code" field.
+func SourceCodeNotIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldSourceCode, vs...))
+}
+
+// SourceCodeGT applies the GT predicate on the "source_code" field.
+func SourceCodeGT(v string) predicate.Task {
+	return predicate.Task(sql.FieldGT(FieldSourceCode, v))
+}
+
+// SourceCodeGTE applies the GTE predicate on the "source_code" field.
+func SourceCodeGTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldGTE(FieldSourceCode, v))
+}
+
+// SourceCodeLT applies the LT predicate on the "source_code" field.
+func SourceCodeLT(v string) predicate.Task {
+	return predicate.Task(sql.FieldLT(FieldSourceCode, v))
+}
+
+// SourceCodeLTE applies the LTE predicate on the "source_code" field.
+func SourceCodeLTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldLTE(FieldSourceCode, v))
+}
+
+// SourceCodeContains applies the Contains predicate on the "source_code" field.
+func SourceCodeContains(v string) predicate.Task {
+	return predicate.Task(sql.FieldContains(FieldSourceCode, v))
+}
+
+// SourceCodeHasPrefix applies the HasPrefix predicate on the "source_code" field.
+func SourceCodeHasPrefix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasPrefix(FieldSourceCode, v))
+}
+
+// SourceCodeHasSuffix applies the HasSuffix predicate on the "source_code" field.
+func SourceCodeHasSuffix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasSuffix(FieldSourceCode, v))
+}
+
+// SourceCodeIsNil applies the IsNil predicate on the "source_code" field.
+func SourceCodeIsNil() predicate.Task {
+	return predicate.Task(sql.FieldIsNull(FieldSourceCode))
+}
+
+// SourceCodeNotNil applies the NotNil predicate on the "source_code" field.
+func SourceCodeNotNil() predicate.Task {
+	return predicate.Task(sql.FieldNotNull(FieldSourceCode))
+}
+
+// SourceCodeEqualFold applies the EqualFold predicate on the "source_code" field.
+func SourceCodeEqualFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldEqualFold(FieldSourceCode, v))
+}
+
+// SourceCodeContainsFold applies the ContainsFold predicate on the "source_code" field.
+func SourceCodeContainsFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldContainsFold(FieldSourceCode, v))
+}
+
+// CursorPositionEQ applies the EQ predicate on the "cursor_position" field.
+func CursorPositionEQ(v int64) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldCursorPosition, v))
+}
+
+// CursorPositionNEQ applies the NEQ predicate on the "cursor_position" field.
+func CursorPositionNEQ(v int64) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldCursorPosition, v))
+}
+
+// CursorPositionIn applies the In predicate on the "cursor_position" field.
+func CursorPositionIn(vs ...int64) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldCursorPosition, vs...))
+}
+
+// CursorPositionNotIn applies the NotIn predicate on the "cursor_position" field.
+func CursorPositionNotIn(vs ...int64) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldCursorPosition, vs...))
+}
+
+// CursorPositionGT applies the GT predicate on the "cursor_position" field.
+func CursorPositionGT(v int64) predicate.Task {
+	return predicate.Task(sql.FieldGT(FieldCursorPosition, v))
+}
+
+// CursorPositionGTE applies the GTE predicate on the "cursor_position" field.
+func CursorPositionGTE(v int64) predicate.Task {
+	return predicate.Task(sql.FieldGTE(FieldCursorPosition, v))
+}
+
+// CursorPositionLT applies the LT predicate on the "cursor_position" field.
+func CursorPositionLT(v int64) predicate.Task {
+	return predicate.Task(sql.FieldLT(FieldCursorPosition, v))
+}
+
+// CursorPositionLTE applies the LTE predicate on the "cursor_position" field.
+func CursorPositionLTE(v int64) predicate.Task {
+	return predicate.Task(sql.FieldLTE(FieldCursorPosition, v))
+}
+
+// CursorPositionIsNil applies the IsNil predicate on the "cursor_position" field.
+func CursorPositionIsNil() predicate.Task {
+	return predicate.Task(sql.FieldIsNull(FieldCursorPosition))
+}
+
+// CursorPositionNotNil applies the NotNil predicate on the "cursor_position" field.
+func CursorPositionNotNil() predicate.Task {
+	return predicate.Task(sql.FieldNotNull(FieldCursorPosition))
+}
+
+// UserInputEQ applies the EQ predicate on the "user_input" field.
+func UserInputEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldUserInput, v))
+}
+
+// UserInputNEQ applies the NEQ predicate on the "user_input" field.
+func UserInputNEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldUserInput, v))
+}
+
+// UserInputIn applies the In predicate on the "user_input" field.
+func UserInputIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldUserInput, vs...))
+}
+
+// UserInputNotIn applies the NotIn predicate on the "user_input" field.
+func UserInputNotIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldUserInput, vs...))
+}
+
+// UserInputGT applies the GT predicate on the "user_input" field.
+func UserInputGT(v string) predicate.Task {
+	return predicate.Task(sql.FieldGT(FieldUserInput, v))
+}
+
+// UserInputGTE applies the GTE predicate on the "user_input" field.
+func UserInputGTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldGTE(FieldUserInput, v))
+}
+
+// UserInputLT applies the LT predicate on the "user_input" field.
+func UserInputLT(v string) predicate.Task {
+	return predicate.Task(sql.FieldLT(FieldUserInput, v))
+}
+
+// UserInputLTE applies the LTE predicate on the "user_input" field.
+func UserInputLTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldLTE(FieldUserInput, v))
+}
+
+// UserInputContains applies the Contains predicate on the "user_input" field.
+func UserInputContains(v string) predicate.Task {
+	return predicate.Task(sql.FieldContains(FieldUserInput, v))
+}
+
+// UserInputHasPrefix applies the HasPrefix predicate on the "user_input" field.
+func UserInputHasPrefix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasPrefix(FieldUserInput, v))
+}
+
+// UserInputHasSuffix applies the HasSuffix predicate on the "user_input" field.
+func UserInputHasSuffix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasSuffix(FieldUserInput, v))
+}
+
+// UserInputIsNil applies the IsNil predicate on the "user_input" field.
+func UserInputIsNil() predicate.Task {
+	return predicate.Task(sql.FieldIsNull(FieldUserInput))
+}
+
+// UserInputNotNil applies the NotNil predicate on the "user_input" field.
+func UserInputNotNil() predicate.Task {
+	return predicate.Task(sql.FieldNotNull(FieldUserInput))
+}
+
+// UserInputEqualFold applies the EqualFold predicate on the "user_input" field.
+func UserInputEqualFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldEqualFold(FieldUserInput, v))
+}
+
+// UserInputContainsFold applies the ContainsFold predicate on the "user_input" field.
+func UserInputContainsFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldContainsFold(FieldUserInput, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

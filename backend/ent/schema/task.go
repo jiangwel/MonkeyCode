@@ -42,6 +42,9 @@ func (Task) Fields() []ent.Field {
 		field.Int64("input_tokens").Optional(),
 		field.Int64("output_tokens").Optional(),
 		field.Bool("is_suggested").Default(false),
+		field.String("source_code").Optional(),    // 当前文件的原文
+		field.Int64("cursor_position").Optional(), // 光标位置
+		field.String("user_input").Optional(),     // 用户实际输入的内容
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

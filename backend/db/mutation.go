@@ -9877,6 +9877,10 @@ type TaskMutation struct {
 	output_tokens       *int64
 	addoutput_tokens    *int64
 	is_suggested        *bool
+	source_code         *string
+	cursor_position     *int64
+	addcursor_position  *int64
+	user_input          *string
 	created_at          *time.Time
 	updated_at          *time.Time
 	clearedFields       map[string]struct{}
@@ -10644,6 +10648,174 @@ func (m *TaskMutation) ResetIsSuggested() {
 	m.is_suggested = nil
 }
 
+// SetSourceCode sets the "source_code" field.
+func (m *TaskMutation) SetSourceCode(s string) {
+	m.source_code = &s
+}
+
+// SourceCode returns the value of the "source_code" field in the mutation.
+func (m *TaskMutation) SourceCode() (r string, exists bool) {
+	v := m.source_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceCode returns the old "source_code" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldSourceCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceCode: %w", err)
+	}
+	return oldValue.SourceCode, nil
+}
+
+// ClearSourceCode clears the value of the "source_code" field.
+func (m *TaskMutation) ClearSourceCode() {
+	m.source_code = nil
+	m.clearedFields[task.FieldSourceCode] = struct{}{}
+}
+
+// SourceCodeCleared returns if the "source_code" field was cleared in this mutation.
+func (m *TaskMutation) SourceCodeCleared() bool {
+	_, ok := m.clearedFields[task.FieldSourceCode]
+	return ok
+}
+
+// ResetSourceCode resets all changes to the "source_code" field.
+func (m *TaskMutation) ResetSourceCode() {
+	m.source_code = nil
+	delete(m.clearedFields, task.FieldSourceCode)
+}
+
+// SetCursorPosition sets the "cursor_position" field.
+func (m *TaskMutation) SetCursorPosition(i int64) {
+	m.cursor_position = &i
+	m.addcursor_position = nil
+}
+
+// CursorPosition returns the value of the "cursor_position" field in the mutation.
+func (m *TaskMutation) CursorPosition() (r int64, exists bool) {
+	v := m.cursor_position
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCursorPosition returns the old "cursor_position" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldCursorPosition(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCursorPosition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCursorPosition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCursorPosition: %w", err)
+	}
+	return oldValue.CursorPosition, nil
+}
+
+// AddCursorPosition adds i to the "cursor_position" field.
+func (m *TaskMutation) AddCursorPosition(i int64) {
+	if m.addcursor_position != nil {
+		*m.addcursor_position += i
+	} else {
+		m.addcursor_position = &i
+	}
+}
+
+// AddedCursorPosition returns the value that was added to the "cursor_position" field in this mutation.
+func (m *TaskMutation) AddedCursorPosition() (r int64, exists bool) {
+	v := m.addcursor_position
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCursorPosition clears the value of the "cursor_position" field.
+func (m *TaskMutation) ClearCursorPosition() {
+	m.cursor_position = nil
+	m.addcursor_position = nil
+	m.clearedFields[task.FieldCursorPosition] = struct{}{}
+}
+
+// CursorPositionCleared returns if the "cursor_position" field was cleared in this mutation.
+func (m *TaskMutation) CursorPositionCleared() bool {
+	_, ok := m.clearedFields[task.FieldCursorPosition]
+	return ok
+}
+
+// ResetCursorPosition resets all changes to the "cursor_position" field.
+func (m *TaskMutation) ResetCursorPosition() {
+	m.cursor_position = nil
+	m.addcursor_position = nil
+	delete(m.clearedFields, task.FieldCursorPosition)
+}
+
+// SetUserInput sets the "user_input" field.
+func (m *TaskMutation) SetUserInput(s string) {
+	m.user_input = &s
+}
+
+// UserInput returns the value of the "user_input" field in the mutation.
+func (m *TaskMutation) UserInput() (r string, exists bool) {
+	v := m.user_input
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserInput returns the old "user_input" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldUserInput(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserInput is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserInput requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserInput: %w", err)
+	}
+	return oldValue.UserInput, nil
+}
+
+// ClearUserInput clears the value of the "user_input" field.
+func (m *TaskMutation) ClearUserInput() {
+	m.user_input = nil
+	m.clearedFields[task.FieldUserInput] = struct{}{}
+}
+
+// UserInputCleared returns if the "user_input" field was cleared in this mutation.
+func (m *TaskMutation) UserInputCleared() bool {
+	_, ok := m.clearedFields[task.FieldUserInput]
+	return ok
+}
+
+// ResetUserInput resets all changes to the "user_input" field.
+func (m *TaskMutation) ResetUserInput() {
+	m.user_input = nil
+	delete(m.clearedFields, task.FieldUserInput)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *TaskMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -10858,7 +11030,7 @@ func (m *TaskMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TaskMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 18)
 	if m.task_id != nil {
 		fields = append(fields, task.FieldTaskID)
 	}
@@ -10897,6 +11069,15 @@ func (m *TaskMutation) Fields() []string {
 	}
 	if m.is_suggested != nil {
 		fields = append(fields, task.FieldIsSuggested)
+	}
+	if m.source_code != nil {
+		fields = append(fields, task.FieldSourceCode)
+	}
+	if m.cursor_position != nil {
+		fields = append(fields, task.FieldCursorPosition)
+	}
+	if m.user_input != nil {
+		fields = append(fields, task.FieldUserInput)
 	}
 	if m.created_at != nil {
 		fields = append(fields, task.FieldCreatedAt)
@@ -10938,6 +11119,12 @@ func (m *TaskMutation) Field(name string) (ent.Value, bool) {
 		return m.OutputTokens()
 	case task.FieldIsSuggested:
 		return m.IsSuggested()
+	case task.FieldSourceCode:
+		return m.SourceCode()
+	case task.FieldCursorPosition:
+		return m.CursorPosition()
+	case task.FieldUserInput:
+		return m.UserInput()
 	case task.FieldCreatedAt:
 		return m.CreatedAt()
 	case task.FieldUpdatedAt:
@@ -10977,6 +11164,12 @@ func (m *TaskMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldOutputTokens(ctx)
 	case task.FieldIsSuggested:
 		return m.OldIsSuggested(ctx)
+	case task.FieldSourceCode:
+		return m.OldSourceCode(ctx)
+	case task.FieldCursorPosition:
+		return m.OldCursorPosition(ctx)
+	case task.FieldUserInput:
+		return m.OldUserInput(ctx)
 	case task.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case task.FieldUpdatedAt:
@@ -11081,6 +11274,27 @@ func (m *TaskMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsSuggested(v)
 		return nil
+	case task.FieldSourceCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceCode(v)
+		return nil
+	case task.FieldCursorPosition:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCursorPosition(v)
+		return nil
+	case task.FieldUserInput:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserInput(v)
+		return nil
 	case task.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -11112,6 +11326,9 @@ func (m *TaskMutation) AddedFields() []string {
 	if m.addoutput_tokens != nil {
 		fields = append(fields, task.FieldOutputTokens)
 	}
+	if m.addcursor_position != nil {
+		fields = append(fields, task.FieldCursorPosition)
+	}
 	return fields
 }
 
@@ -11126,6 +11343,8 @@ func (m *TaskMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedInputTokens()
 	case task.FieldOutputTokens:
 		return m.AddedOutputTokens()
+	case task.FieldCursorPosition:
+		return m.AddedCursorPosition()
 	}
 	return nil, false
 }
@@ -11155,6 +11374,13 @@ func (m *TaskMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddOutputTokens(v)
+		return nil
+	case task.FieldCursorPosition:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCursorPosition(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Task numeric field %s", name)
@@ -11190,6 +11416,15 @@ func (m *TaskMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(task.FieldOutputTokens) {
 		fields = append(fields, task.FieldOutputTokens)
+	}
+	if m.FieldCleared(task.FieldSourceCode) {
+		fields = append(fields, task.FieldSourceCode)
+	}
+	if m.FieldCleared(task.FieldCursorPosition) {
+		fields = append(fields, task.FieldCursorPosition)
+	}
+	if m.FieldCleared(task.FieldUserInput) {
+		fields = append(fields, task.FieldUserInput)
 	}
 	return fields
 }
@@ -11231,6 +11466,15 @@ func (m *TaskMutation) ClearField(name string) error {
 		return nil
 	case task.FieldOutputTokens:
 		m.ClearOutputTokens()
+		return nil
+	case task.FieldSourceCode:
+		m.ClearSourceCode()
+		return nil
+	case task.FieldCursorPosition:
+		m.ClearCursorPosition()
+		return nil
+	case task.FieldUserInput:
+		m.ClearUserInput()
 		return nil
 	}
 	return fmt.Errorf("unknown Task nullable field %s", name)
@@ -11278,6 +11522,15 @@ func (m *TaskMutation) ResetField(name string) error {
 		return nil
 	case task.FieldIsSuggested:
 		m.ResetIsSuggested()
+		return nil
+	case task.FieldSourceCode:
+		m.ResetSourceCode()
+		return nil
+	case task.FieldCursorPosition:
+		m.ResetCursorPosition()
+		return nil
+	case task.FieldUserInput:
+		m.ResetUserInput()
 		return nil
 	case task.FieldCreatedAt:
 		m.ResetCreatedAt()

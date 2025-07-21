@@ -291,6 +291,73 @@ func (tu *TaskUpdate) SetNillableIsSuggested(b *bool) *TaskUpdate {
 	return tu
 }
 
+// SetSourceCode sets the "source_code" field.
+func (tu *TaskUpdate) SetSourceCode(s string) *TaskUpdate {
+	tu.mutation.SetSourceCode(s)
+	return tu
+}
+
+// SetNillableSourceCode sets the "source_code" field if the given value is not nil.
+func (tu *TaskUpdate) SetNillableSourceCode(s *string) *TaskUpdate {
+	if s != nil {
+		tu.SetSourceCode(*s)
+	}
+	return tu
+}
+
+// ClearSourceCode clears the value of the "source_code" field.
+func (tu *TaskUpdate) ClearSourceCode() *TaskUpdate {
+	tu.mutation.ClearSourceCode()
+	return tu
+}
+
+// SetCursorPosition sets the "cursor_position" field.
+func (tu *TaskUpdate) SetCursorPosition(i int64) *TaskUpdate {
+	tu.mutation.ResetCursorPosition()
+	tu.mutation.SetCursorPosition(i)
+	return tu
+}
+
+// SetNillableCursorPosition sets the "cursor_position" field if the given value is not nil.
+func (tu *TaskUpdate) SetNillableCursorPosition(i *int64) *TaskUpdate {
+	if i != nil {
+		tu.SetCursorPosition(*i)
+	}
+	return tu
+}
+
+// AddCursorPosition adds i to the "cursor_position" field.
+func (tu *TaskUpdate) AddCursorPosition(i int64) *TaskUpdate {
+	tu.mutation.AddCursorPosition(i)
+	return tu
+}
+
+// ClearCursorPosition clears the value of the "cursor_position" field.
+func (tu *TaskUpdate) ClearCursorPosition() *TaskUpdate {
+	tu.mutation.ClearCursorPosition()
+	return tu
+}
+
+// SetUserInput sets the "user_input" field.
+func (tu *TaskUpdate) SetUserInput(s string) *TaskUpdate {
+	tu.mutation.SetUserInput(s)
+	return tu
+}
+
+// SetNillableUserInput sets the "user_input" field if the given value is not nil.
+func (tu *TaskUpdate) SetNillableUserInput(s *string) *TaskUpdate {
+	if s != nil {
+		tu.SetUserInput(*s)
+	}
+	return tu
+}
+
+// ClearUserInput clears the value of the "user_input" field.
+func (tu *TaskUpdate) ClearUserInput() *TaskUpdate {
+	tu.mutation.ClearUserInput()
+	return tu
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (tu *TaskUpdate) SetCreatedAt(t time.Time) *TaskUpdate {
 	tu.mutation.SetCreatedAt(t)
@@ -487,6 +554,27 @@ func (tu *TaskUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := tu.mutation.IsSuggested(); ok {
 		_spec.SetField(task.FieldIsSuggested, field.TypeBool, value)
+	}
+	if value, ok := tu.mutation.SourceCode(); ok {
+		_spec.SetField(task.FieldSourceCode, field.TypeString, value)
+	}
+	if tu.mutation.SourceCodeCleared() {
+		_spec.ClearField(task.FieldSourceCode, field.TypeString)
+	}
+	if value, ok := tu.mutation.CursorPosition(); ok {
+		_spec.SetField(task.FieldCursorPosition, field.TypeInt64, value)
+	}
+	if value, ok := tu.mutation.AddedCursorPosition(); ok {
+		_spec.AddField(task.FieldCursorPosition, field.TypeInt64, value)
+	}
+	if tu.mutation.CursorPositionCleared() {
+		_spec.ClearField(task.FieldCursorPosition, field.TypeInt64)
+	}
+	if value, ok := tu.mutation.UserInput(); ok {
+		_spec.SetField(task.FieldUserInput, field.TypeString, value)
+	}
+	if tu.mutation.UserInputCleared() {
+		_spec.ClearField(task.FieldUserInput, field.TypeString)
 	}
 	if value, ok := tu.mutation.CreatedAt(); ok {
 		_spec.SetField(task.FieldCreatedAt, field.TypeTime, value)
@@ -876,6 +964,73 @@ func (tuo *TaskUpdateOne) SetNillableIsSuggested(b *bool) *TaskUpdateOne {
 	return tuo
 }
 
+// SetSourceCode sets the "source_code" field.
+func (tuo *TaskUpdateOne) SetSourceCode(s string) *TaskUpdateOne {
+	tuo.mutation.SetSourceCode(s)
+	return tuo
+}
+
+// SetNillableSourceCode sets the "source_code" field if the given value is not nil.
+func (tuo *TaskUpdateOne) SetNillableSourceCode(s *string) *TaskUpdateOne {
+	if s != nil {
+		tuo.SetSourceCode(*s)
+	}
+	return tuo
+}
+
+// ClearSourceCode clears the value of the "source_code" field.
+func (tuo *TaskUpdateOne) ClearSourceCode() *TaskUpdateOne {
+	tuo.mutation.ClearSourceCode()
+	return tuo
+}
+
+// SetCursorPosition sets the "cursor_position" field.
+func (tuo *TaskUpdateOne) SetCursorPosition(i int64) *TaskUpdateOne {
+	tuo.mutation.ResetCursorPosition()
+	tuo.mutation.SetCursorPosition(i)
+	return tuo
+}
+
+// SetNillableCursorPosition sets the "cursor_position" field if the given value is not nil.
+func (tuo *TaskUpdateOne) SetNillableCursorPosition(i *int64) *TaskUpdateOne {
+	if i != nil {
+		tuo.SetCursorPosition(*i)
+	}
+	return tuo
+}
+
+// AddCursorPosition adds i to the "cursor_position" field.
+func (tuo *TaskUpdateOne) AddCursorPosition(i int64) *TaskUpdateOne {
+	tuo.mutation.AddCursorPosition(i)
+	return tuo
+}
+
+// ClearCursorPosition clears the value of the "cursor_position" field.
+func (tuo *TaskUpdateOne) ClearCursorPosition() *TaskUpdateOne {
+	tuo.mutation.ClearCursorPosition()
+	return tuo
+}
+
+// SetUserInput sets the "user_input" field.
+func (tuo *TaskUpdateOne) SetUserInput(s string) *TaskUpdateOne {
+	tuo.mutation.SetUserInput(s)
+	return tuo
+}
+
+// SetNillableUserInput sets the "user_input" field if the given value is not nil.
+func (tuo *TaskUpdateOne) SetNillableUserInput(s *string) *TaskUpdateOne {
+	if s != nil {
+		tuo.SetUserInput(*s)
+	}
+	return tuo
+}
+
+// ClearUserInput clears the value of the "user_input" field.
+func (tuo *TaskUpdateOne) ClearUserInput() *TaskUpdateOne {
+	tuo.mutation.ClearUserInput()
+	return tuo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (tuo *TaskUpdateOne) SetCreatedAt(t time.Time) *TaskUpdateOne {
 	tuo.mutation.SetCreatedAt(t)
@@ -1102,6 +1257,27 @@ func (tuo *TaskUpdateOne) sqlSave(ctx context.Context) (_node *Task, err error) 
 	}
 	if value, ok := tuo.mutation.IsSuggested(); ok {
 		_spec.SetField(task.FieldIsSuggested, field.TypeBool, value)
+	}
+	if value, ok := tuo.mutation.SourceCode(); ok {
+		_spec.SetField(task.FieldSourceCode, field.TypeString, value)
+	}
+	if tuo.mutation.SourceCodeCleared() {
+		_spec.ClearField(task.FieldSourceCode, field.TypeString)
+	}
+	if value, ok := tuo.mutation.CursorPosition(); ok {
+		_spec.SetField(task.FieldCursorPosition, field.TypeInt64, value)
+	}
+	if value, ok := tuo.mutation.AddedCursorPosition(); ok {
+		_spec.AddField(task.FieldCursorPosition, field.TypeInt64, value)
+	}
+	if tuo.mutation.CursorPositionCleared() {
+		_spec.ClearField(task.FieldCursorPosition, field.TypeInt64)
+	}
+	if value, ok := tuo.mutation.UserInput(); ok {
+		_spec.SetField(task.FieldUserInput, field.TypeString, value)
+	}
+	if tuo.mutation.UserInputCleared() {
+		_spec.ClearField(task.FieldUserInput, field.TypeString)
 	}
 	if value, ok := tuo.mutation.CreatedAt(); ok {
 		_spec.SetField(task.FieldCreatedAt, field.TypeTime, value)
