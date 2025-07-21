@@ -28,7 +28,7 @@ import { getGetSetting } from '@/api/Admin';
 import { useForm, Controller } from 'react-hook-form';
 import { styled } from '@mui/material/styles';
 import { useRequest } from 'ahooks';
-import { DomainSetting } from '@/api/types';
+import { DomainSetting, ConstsLoginSource } from '@/api/types';
 
 // 样式化组件
 const StyledContainer = styled(Container)(({ theme }) => ({
@@ -132,36 +132,28 @@ const UserLogin = () => {
   }, []);
 
   // 处理登录表单提交
-  const onSubmit = useCallback(
-    async (data: LoginFormData) => {
-      setLoading(true);
-      setError(null);
+  const onSubmit = useCallback(async (data: LoginFormData) => {
+    setLoading(true);
+    setError(null);
 
-      try {
-        const sessionId = searchParams.get('session_id');
-        if (!sessionId) {
-          message.error('缺少会话ID参数');
-          return;
-        }
+    try {
+      // 用户登录
+      const loginResult = await postLogin({
+        ...data,
+        source: ConstsLoginSource.LoginSourceBrowser,
+      });
 
-        // 用户登录
-        const loginResult = await postLogin({
-          ...data,
-          session_id: sessionId,
-        });
-
-        window.location.href = loginResult.redirect_url!;
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : '登录失败，请重试';
-        setError(errorMessage);
-        console.error('登录失败:', err);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [searchParams]
-  );
+      const redirectUrl = getRedirectUrl('user');
+      window.location.href = redirectUrl.href;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : '登录失败，请重试';
+      setError(errorMessage);
+      console.error('登录失败:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // 初始化背景动画
   useEffect(() => {
@@ -266,10 +258,11 @@ const UserLogin = () => {
   );
 
   const onOauthLogin = (platform: 'dingtalk' | 'custom') => {
-    const redirectUrl = getRedirectUrl();
+    const redirectUrl = getRedirectUrl('user');
     getUserOauthSignupOrIn({
       platform,
       redirect_url: redirectUrl.href,
+      source: ConstsLoginSource.LoginSourceBrowser,
     }).then((res) => {
       if (res.url) {
         window.location.href = res.url;

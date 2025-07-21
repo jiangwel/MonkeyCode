@@ -27,7 +27,7 @@ import { getGetSetting } from '@/api/Admin';
 import { useForm, Controller } from 'react-hook-form';
 import { styled } from '@mui/material/styles';
 import { useRequest } from 'ahooks';
-import { DomainSetting } from '@/api/types';
+import { DomainSetting, ConstsLoginSource } from '@/api/types';
 
 // 样式化组件
 const StyledContainer = styled(Container)(({ theme }) => ({

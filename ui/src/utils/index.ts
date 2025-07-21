@@ -131,9 +131,11 @@ export const isValidUrl = (url: string) => {
   return regex.test(url);
 };
 
-export const getRedirectUrl = () => {
+export const getRedirectUrl = (source: 'user' | 'admin' = 'admin') => {
   const searchParams = new URLSearchParams(location.search);
-  const redirect = searchParams.get('redirect') || '/dashboard';
+  const redirect =
+    searchParams.get('redirect') ||
+    `${source === 'admin' ? '' : '/user'}/dashboard`;
   let redirectUrl: URL | null = null;
   try {
     redirectUrl = redirect ? new URL(decodeURIComponent(redirect)) : null;
@@ -145,7 +147,10 @@ export const getRedirectUrl = () => {
 
   redirectUrl = isValidUrl(redirectUrl?.href || '')
     ? redirectUrl
-    : new URL('/dashboard', location.origin);
+    : new URL(
+        `${source === 'admin' ? '' : '/user'}/dashboard`,
+        location.origin
+      );
   return redirectUrl as URL;
 };
 

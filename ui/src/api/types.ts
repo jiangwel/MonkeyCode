@@ -54,6 +54,11 @@ export enum ConstsModelProvider {
   ModelProviderVolcengine = "Volcengine",
 }
 
+export enum ConstsLoginSource {
+  LoginSourcePlugin = "plugin",
+  LoginSourceBrowser = "browser",
+}
+
 export enum ConstsChatRole {
   ChatRoleUser = "user",
   ChatRoleAssistant = "assistant",
@@ -360,8 +365,10 @@ export interface DomainListUserResp {
 export interface DomainLoginReq {
   /** 密码 */
   password?: string;
-  /** 会话Id */
+  /** 会话Id插件登录时必填 */
   session_id?: string;
+  /** 登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin */
+  source?: ConstsLoginSource;
   /** 用户名 */
   username?: string;
 }
@@ -369,6 +376,8 @@ export interface DomainLoginReq {
 export interface DomainLoginResp {
   /** 重定向URL */
   redirect_url?: string;
+  /** 用户信息 */
+  user?: DomainUser;
 }
 
 export interface DomainModel {
@@ -463,6 +472,17 @@ export interface DomainModelTokenUsageResp {
 
 export interface DomainOAuthURLResp {
   url?: string;
+}
+
+export interface DomainProfileUpdateReq {
+  /** 头像 */
+  avatar?: string;
+  /** 旧密码 */
+  old_password?: string;
+  /** 密码 */
+  password?: string;
+  /** 用户名 */
+  username?: string;
 }
 
 export interface DomainProviderModel {
@@ -727,13 +747,13 @@ export interface DomainUserStat {
   }[];
   /** 编程语言占比 */
   program_language?: DomainCategoryPoint[];
-  /** 近90天总接受率 */
+  /** 总接受率 */
   total_accepted_per?: number;
-  /** 近90天总对话任务数 */
+  /** 总对话任务数 */
   total_chats?: number;
-  /** 近90天总补全任务数 */
+  /** 总补全任务数 */
   total_completions?: number;
-  /** 近90天总代码行数 */
+  /** 总代码行数 */
   total_lines_of_code?: number;
   /** 工作模式占比 */
   work_mode?: DomainCategoryPoint[];
@@ -935,6 +955,84 @@ export interface GetGetTokenUsageParams {
   model_type: "llm" | "coder" | "embedding" | "audio" | "reranker";
 }
 
+export interface GetUserChatInfoParams {
+  /** 对话记录ID */
+  id: string;
+}
+
+export interface GetUserListChatRecordParams {
+  /** 作者 */
+  author?: string;
+  /** 是否接受筛选 */
+  is_accept?: boolean;
+  /** 语言 */
+  language?: string;
+  /** 下一页标识 */
+  next_token?: string;
+  /** 分页 */
+  page?: number;
+  /** 每页多少条记录 */
+  size?: number;
+  /** 工作模式 */
+  work_mode?: string;
+}
+
+export interface GetUserCompletionInfoParams {
+  /** 补全记录ID */
+  id: string;
+}
+
+export interface GetUserListCompletionRecordParams {
+  /** 作者 */
+  author?: string;
+  /** 是否接受筛选 */
+  is_accept?: boolean;
+  /** 语言 */
+  language?: string;
+  /** 下一页标识 */
+  next_token?: string;
+  /** 分页 */
+  page?: number;
+  /** 每页多少条记录 */
+  size?: number;
+  /** 工作模式 */
+  work_mode?: string;
+}
+
+export interface GetUserDashboardEventsParams {
+  /**
+   * 持续时间 (小时或天数)`
+   * @min 24
+   * @max 90
+   * @default 90
+   */
+  duration?: number;
+  /**
+   * 精度: "hour", "day"
+   * @default "day"
+   */
+  precision: "hour" | "day";
+  /** 用户ID，可选参数 */
+  user_id?: string;
+}
+
+export interface GetUserDashboardStatParams {
+  /**
+   * 持续时间 (小时或天数)`
+   * @min 24
+   * @max 90
+   * @default 90
+   */
+  duration?: number;
+  /**
+   * 精度: "hour", "day"
+   * @default "day"
+   */
+  precision: "hour" | "day";
+  /** 用户ID，可选参数 */
+  user_id?: string;
+}
+
 export interface DeleteDeleteUserParams {
   /** 用户ID */
   id: string;
@@ -972,4 +1070,6 @@ export interface GetUserOauthSignupOrInParams {
   redirect_url?: string;
   /** 会话ID */
   session_id?: string;
+  /** 登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin */
+  source?: "plugin" | "browser";
 }

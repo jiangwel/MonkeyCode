@@ -1,5 +1,5 @@
 import Card from '@/components/card';
-import { getCompletionInfo } from '@/api/Billing';
+import { getUserCompletionInfo } from '@/api/UserRecord';
 import { Modal } from '@c-x/ui';
 import MonacoEditor from '@monaco-editor/react';
 
@@ -32,7 +32,7 @@ const ChatDetailModal = ({
 
   const getChatDetailModal = () => {
     if (!data) return;
-    getCompletionInfo({ id: data.id! }).then((res) => {
+    getUserCompletionInfo({ id: data.id! }).then((res) => {
       // 先去除 <|im_start|> 和 <|im_end|> 及其间内容
       const rawPrompt = removeImBlocks(res.prompt || '');
       const content = res.content || '';

@@ -1,6 +1,6 @@
 import Avatar from '@/components/avatar';
 import Card from '@/components/card';
-import { getChatInfo } from '@/api/Billing';
+import { getUserChatInfo } from '@/api/UserRecord';
 import MarkDown from '@/components/markDown';
 import { Ellipsis, Modal } from '@c-x/ui';
 import { styled } from '@mui/material';
@@ -78,7 +78,7 @@ const ChatDetailModal = ({
 
   const getChatDetailModal = () => {
     if (!data) return;
-    getChatInfo({ id: data.id! }).then((res) => {
+    getUserChatInfo({ id: data.id! }).then((res) => {
       setContent(res.contents || []);
     });
   };

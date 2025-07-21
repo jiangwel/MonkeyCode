@@ -81,6 +81,13 @@ const USER_MENUS = [
     icon: 'icon-buquanjilu',
     show: true,
   },
+  // {
+  //   label: '设置',
+  //   value: '/user/setting',
+  //   pathname: '/user/setting',
+  //   icon: 'icon-setting',
+  //   show: true,
+  // },
 ];
 
 const SidebarButton = styled(Button)(({ theme }) => ({
