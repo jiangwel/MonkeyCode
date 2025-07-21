@@ -1446,6 +1446,467 @@
                 "responses": {}
             }
         },
+        "/api/v1/user/chat/info": {
+            "get": {
+                "description": "获取对话内容",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Record"
+                ],
+                "summary": "获取对话内容",
+                "operationId": "user-chat-info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "对话记录ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.ChatInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/chat/record": {
+            "get": {
+                "description": "获取用户对话记录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Record"
+                ],
+                "summary": "获取用户对话记录",
+                "operationId": "user-list-chat-record",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "作者",
+                        "name": "author",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否接受筛选",
+                        "name": "is_accept",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "语言",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "下一页标识",
+                        "name": "next_token",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "分页",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页多少条记录",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "工作模式",
+                        "name": "work_mode",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.ListChatRecordResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/completion/info": {
+            "get": {
+                "description": "获取补全内容",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Record"
+                ],
+                "summary": "获取补全内容",
+                "operationId": "user-completion-info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "补全记录ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.CompletionInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/completion/record": {
+            "get": {
+                "description": "获取补全记录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Record"
+                ],
+                "summary": "获取补全记录",
+                "operationId": "user-list-completion-record",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "作者",
+                        "name": "author",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否接受筛选",
+                        "name": "is_accept",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "语言",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "下一页标识",
+                        "name": "next_token",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "分页",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页多少条记录",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "工作模式",
+                        "name": "work_mode",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.ListCompletionRecordResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/dashboard/events": {
+            "get": {
+                "description": "获取用户事件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Dashboard"
+                ],
+                "summary": "获取用户事件",
+                "operationId": "user-dashboard-events",
+                "parameters": [
+                    {
+                        "maximum": 90,
+                        "minimum": 24,
+                        "type": "integer",
+                        "default": 90,
+                        "description": "持续时间 (小时或天数)`",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hour",
+                            "day"
+                        ],
+                        "type": "string",
+                        "default": "day",
+                        "description": "精度: \"hour\", \"day\"",
+                        "name": "precision",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户ID，可选参数",
+                        "name": "user_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/domain.UserEvent"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/dashboard/heatmap": {
+            "get": {
+                "description": "用户热力图",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Dashboard"
+                ],
+                "summary": "用户热力图",
+                "operationId": "user-dashboard-heatmap",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.UserHeatmapResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/dashboard/stat": {
+            "get": {
+                "description": "获取用户统计信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Dashboard"
+                ],
+                "summary": "获取用户统计信息",
+                "operationId": "user-dashboard-stat",
+                "parameters": [
+                    {
+                        "maximum": 90,
+                        "minimum": 24,
+                        "type": "integer",
+                        "default": 90,
+                        "description": "持续时间 (小时或天数)`",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hour",
+                            "day"
+                        ],
+                        "type": "string",
+                        "default": "day",
+                        "description": "精度: \"hour\", \"day\"",
+                        "name": "precision",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户ID，可选参数",
+                        "name": "user_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.UserStat"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/user/delete": {
             "delete": {
                 "description": "删除用户",
@@ -1785,6 +2246,22 @@
                         "description": "会话ID",
                         "name": "session_id",
                         "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "plugin",
+                            "browser"
+                        ],
+                        "type": "string",
+                        "default": "plugin",
+                        "x-enum-varnames": [
+                            "LoginSourcePlugin",
+                            "LoginSourceBrowser"
+                        ],
+                        "description": "登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1804,6 +2281,99 @@
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/profile": {
+            "get": {
+                "description": "获取用户信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Manage"
+                ],
+                "summary": "获取用户信息",
+                "operationId": "user-profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.User"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "更新用户信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Manage"
+                ],
+                "summary": "更新用户信息",
+                "operationId": "user-update-profile",
+                "parameters": [
+                    {
+                        "description": "param",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.ProfileUpdateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.User"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
                         }
                     }
                 }
@@ -2105,6 +2675,17 @@
                 "ChatRoleUser",
                 "ChatRoleAssistant",
                 "ChatRoleSystem"
+            ]
+        },
+        "consts.LoginSource": {
+            "type": "string",
+            "enum": [
+                "plugin",
+                "browser"
+            ],
+            "x-enum-varnames": [
+                "LoginSourcePlugin",
+                "LoginSourceBrowser"
             ]
         },
         "consts.ModelProvider": {
@@ -2888,14 +3469,26 @@
         },
         "domain.LoginReq": {
             "type": "object",
+            "required": [
+                "source"
+            ],
             "properties": {
                 "password": {
                     "description": "密码",
                     "type": "string"
                 },
                 "session_id": {
-                    "description": "会话Id",
+                    "description": "会话Id插件登录时必填",
                     "type": "string"
+                },
+                "source": {
+                    "description": "登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin",
+                    "default": "plugin",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/consts.LoginSource"
+                        }
+                    ]
                 },
                 "username": {
                     "description": "用户名",
@@ -2909,6 +3502,14 @@
                 "redirect_url": {
                     "description": "重定向URL",
                     "type": "string"
+                },
+                "user": {
+                    "description": "用户信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.User"
+                        }
+                    ]
                 }
             }
         },
@@ -3120,6 +3721,27 @@
             "type": "object",
             "properties": {
                 "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ProfileUpdateReq": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像",
+                    "type": "string"
+                },
+                "old_password": {
+                    "description": "旧密码",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "密码",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "用户名",
                     "type": "string"
                 }
             }
@@ -3728,19 +4350,19 @@
                     }
                 },
                 "total_accepted_per": {
-                    "description": "近90天总接受率",
+                    "description": "总接受率",
                     "type": "number"
                 },
                 "total_chats": {
-                    "description": "近90天总对话任务数",
+                    "description": "总对话任务数",
                     "type": "integer"
                 },
                 "total_completions": {
-                    "description": "近90天总补全任务数",
+                    "description": "总补全任务数",
                     "type": "integer"
                 },
                 "total_lines_of_code": {
-                    "description": "近90天总代码行数",
+                    "description": "总代码行数",
                     "type": "integer"
                 },
                 "work_mode": {

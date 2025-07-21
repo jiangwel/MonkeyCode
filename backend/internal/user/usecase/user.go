@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"time"
 
@@ -23,13 +24,15 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/errcode"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 	"github.com/chaitin/MonkeyCode/backend/pkg/oauth"
+	"github.com/chaitin/MonkeyCode/backend/pkg/session"
 )
 
 type UserUsecase struct {
-	cfg    *config.Config
-	redis  *redis.Client
-	repo   domain.UserRepo
-	logger *slog.Logger
+	cfg     *config.Config
+	redis   *redis.Client
+	repo    domain.UserRepo
+	logger  *slog.Logger
+	session *session.Session
 }
 
 func NewUserUsecase(
@@ -37,12 +40,14 @@ func NewUserUsecase(
 	redis *redis.Client,
 	repo domain.UserRepo,
 	logger *slog.Logger,
+	session *session.Session,
 ) domain.UserUsecase {
 	u := &UserUsecase{
-		cfg:    cfg,
-		redis:  redis,
-		repo:   repo,
-		logger: logger,
+		cfg:     cfg,
+		redis:   redis,
+		repo:    repo,
+		logger:  logger,
+		session: session,
 	}
 	return u
 }
@@ -205,22 +210,36 @@ func (u *UserUsecase) Login(ctx context.Context, req *domain.LoginReq) (*domain.
 		return nil, errcode.ErrPassword.Wrap(err)
 	}
 
-	apiKey, err := u.repo.GetOrCreateApiKey(ctx, user.ID.String())
-	if err != nil {
-		return nil, err
+	switch req.Source {
+	case consts.LoginSourcePlugin:
+		apiKey, err := u.repo.GetOrCreateApiKey(ctx, user.ID.String())
+		if err != nil {
+			return nil, err
+		}
+
+		r, session, err := u.getVSCodeURL(ctx, req.SessionID, apiKey.Key, user.Username)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := u.repo.SaveUserLoginHistory(ctx, user.ID.String(), req.IP, session); err != nil {
+			u.logger.With("error", err).Error("save user login history")
+		}
+		return &domain.LoginResp{
+			RedirectURL: r,
+		}, nil
+
+	case consts.LoginSourceBrowser:
+		if err := u.repo.SaveUserLoginHistory(ctx, user.ID.String(), req.IP, nil); err != nil {
+			u.logger.With("error", err).Error("save user login history")
+		}
+		return &domain.LoginResp{
+			RedirectURL: "",
+			User:        cvt.From(user, &domain.User{}),
+		}, nil
 	}
 
-	r, session, err := u.getVSCodeURL(ctx, req.SessionID, apiKey.Key, user.Username)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := u.repo.SaveUserLoginHistory(ctx, user.ID.String(), req.IP, session); err != nil {
-		u.logger.With("error", err).Error("save user login history")
-	}
-	return &domain.LoginResp{
-		RedirectURL: r,
-	}, nil
+	return nil, fmt.Errorf("invalid login source")
 }
 
 func (u *UserUsecase) getVSCodeURL(ctx context.Context, sessionID, apiKey, username string) (string, *domain.VSCodeSession, error) {
@@ -376,7 +395,7 @@ func (u *UserUsecase) UpdateSetting(ctx context.Context, req *domain.UpdateSetti
 }
 
 func (u *UserUsecase) Update(ctx context.Context, req *domain.UpdateUserReq) (*domain.User, error) {
-	user, err := u.repo.Update(ctx, req.ID, func(u *db.UserUpdateOne) error {
+	user, err := u.repo.Update(ctx, req.ID, func(_ *db.User, u *db.UserUpdateOne) error {
 		if req.Status != nil {
 			u.SetStatus(*req.Status)
 		}
@@ -455,6 +474,7 @@ func (u *UserUsecase) OAuthSignUpOrIn(ctx context.Context, req *domain.OAuthSign
 	state, url := oauth.GetAuthorizeURL()
 
 	session := &domain.OAuthState{
+		Source:      req.Source,
 		SessionID:   req.SessionID,
 		Kind:        req.OAuthKind(),
 		Platform:    req.Platform,
@@ -474,35 +494,56 @@ func (u *UserUsecase) OAuthSignUpOrIn(ctx context.Context, req *domain.OAuthSign
 	}, nil
 }
 
-func (u *UserUsecase) OAuthCallback(ctx context.Context, req *domain.OAuthCallbackReq) (string, error) {
+func (u *UserUsecase) OAuthCallback(c *web.Context, req *domain.OAuthCallbackReq) error {
+	ctx := c.Request().Context()
 	b, err := u.redis.Get(ctx, fmt.Sprintf("oauth:state:%s", req.State)).Result()
 	if err != nil {
-		return "", err
+		return err
 	}
 	var session domain.OAuthState
 	if err := json.Unmarshal([]byte(b), &session); err != nil {
-		return "", err
+		return err
 	}
 
 	switch session.Kind {
 	case consts.OAuthKindInvite:
-		return u.WithOAuthCallback(ctx, req, &session, func(ctx context.Context, s *domain.OAuthState, oui *domain.OAuthUserInfo) (*db.User, error) {
+		_, redirect, err := u.WithOAuthCallback(ctx, req, &session, func(ctx context.Context, s *domain.OAuthState, oui *domain.OAuthUserInfo) (*db.User, error) {
 			return u.repo.OAuthRegister(ctx, s.Platform, s.InviteCode, oui)
 		})
+		if err != nil {
+			return err
+		}
+		c.Redirect(http.StatusFound, redirect)
+		return nil
 
 	case consts.OAuthKindLogin:
 		setting, err := u.repo.GetSetting(ctx)
 		if err != nil {
-			return "", err
+			return err
 		}
-		return u.WithOAuthCallback(ctx, req, &session, func(ctx context.Context, s *domain.OAuthState, oui *domain.OAuthUserInfo) (*db.User, error) {
+		user, redirect, err := u.WithOAuthCallback(ctx, req, &session, func(ctx context.Context, s *domain.OAuthState, oui *domain.OAuthUserInfo) (*db.User, error) {
 			if setting.EnableAutoLogin {
 				return u.repo.SignUpOrIn(ctx, s.Platform, oui)
 			}
 			return u.repo.OAuthLogin(ctx, s.Platform, oui)
 		})
+		if err != nil {
+			return err
+		}
+
+		if session.Source == consts.LoginSourceBrowser {
+			resUser := cvt.From(user, &domain.User{})
+			u.logger.With("user", resUser).With("host", c.Request().Host).DebugContext(ctx, "save user session")
+			if _, err := u.session.Save(c, consts.UserSessionName, c.Request().Host, resUser); err != nil {
+				return err
+			}
+		}
+
+		c.Redirect(http.StatusFound, redirect)
+		return nil
+
 	default:
-		return "", errcode.ErrOAuthStateInvalid
+		return errcode.ErrOAuthStateInvalid
 	}
 }
 
@@ -530,28 +571,27 @@ func (u *UserUsecase) FetchUserInfo(ctx context.Context, req *domain.OAuthCallba
 
 type OAuthUserRepoHandle func(context.Context, *domain.OAuthState, *domain.OAuthUserInfo) (*db.User, error)
 
-func (u *UserUsecase) WithOAuthCallback(ctx context.Context, req *domain.OAuthCallbackReq, session *domain.OAuthState, handle OAuthUserRepoHandle) (string, error) {
+func (u *UserUsecase) WithOAuthCallback(ctx context.Context, req *domain.OAuthCallbackReq, session *domain.OAuthState, handle OAuthUserRepoHandle) (*db.User, string, error) {
 	info, err := u.FetchUserInfo(ctx, req, session)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 
 	user, err := handle(ctx, session, info)
 	if err != nil {
-		return "", err
-	}
-
-	apiKey, err := u.repo.GetOrCreateApiKey(ctx, user.ID.String())
-	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 
 	redirect := session.RedirectURL
 
 	if session.SessionID != "" {
+		apiKey, err := u.repo.GetOrCreateApiKey(ctx, user.ID.String())
+		if err != nil {
+			return nil, "", err
+		}
 		r, vsess, err := u.getVSCodeURL(ctx, session.SessionID, apiKey.Key, user.Username)
 		if err != nil {
-			return "", err
+			return nil, "", err
 		}
 		redirect = fmt.Sprintf("%s?redirect_url=%s", redirect, url.QueryEscape(r))
 		if err := u.repo.SaveUserLoginHistory(ctx, user.ID.String(), req.IP, vsess); err != nil {
@@ -559,6 +599,36 @@ func (u *UserUsecase) WithOAuthCallback(ctx context.Context, req *domain.OAuthCa
 		}
 	}
 
-	u.logger.Debug("oauth callback", "redirect", redirect)
-	return redirect, nil
+	u.logger.With("session", session).Debug("oauth callback", "redirect", redirect)
+	return user, redirect, nil
+}
+
+func (u *UserUsecase) ProfileUpdate(ctx context.Context, req *domain.ProfileUpdateReq) (*domain.User, error) {
+	user, err := u.repo.Update(ctx, req.UID, func(old *db.User, uuo *db.UserUpdateOne) error {
+		if req.Avatar != nil {
+			uuo.SetAvatarURL(*req.Avatar)
+		}
+
+		if req.Username != nil {
+			uuo.SetUsername(*req.Username)
+		}
+
+		if req.Password != nil && req.OldPassword != nil {
+			if err := bcrypt.CompareHashAndPassword([]byte(old.Password), []byte(*req.OldPassword)); err != nil {
+				return errcode.ErrPassword.Wrap(err)
+			}
+
+			hash, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
+			if err != nil {
+				return errcode.ErrPassword.Wrap(err)
+			}
+			uuo.SetPassword(string(hash))
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cvt.From(user, &domain.User{}), nil
 }

@@ -13,19 +13,20 @@ import (
 type BillingUsecase interface {
 	ListChatRecord(ctx context.Context, req ListRecordReq) (*ListChatRecordResp, error)
 	ListCompletionRecord(ctx context.Context, req ListRecordReq) (*ListCompletionRecordResp, error)
-	CompletionInfo(ctx context.Context, id string) (*CompletionInfo, error)
-	ChatInfo(ctx context.Context, id string) (*ChatInfo, error)
+	CompletionInfo(ctx context.Context, id, userID string) (*CompletionInfo, error)
+	ChatInfo(ctx context.Context, id, userID string) (*ChatInfo, error)
 }
 
 type BillingRepo interface {
 	ListChatRecord(ctx context.Context, req ListRecordReq) (*ListChatRecordResp, error)
 	ListCompletionRecord(ctx context.Context, req ListRecordReq) (*ListCompletionRecordResp, error)
-	CompletionInfo(ctx context.Context, id string) (*CompletionInfo, error)
-	ChatInfo(ctx context.Context, id string) (*ChatInfo, error)
+	CompletionInfo(ctx context.Context, id, userID string) (*CompletionInfo, error)
+	ChatInfo(ctx context.Context, id, userID string) (*ChatInfo, error)
 }
 
 type ListRecordReq struct {
 	*web.Pagination
+	UserID   string `json:"-"`
 	Author   string `json:"author" query:"author"`       // 作者
 	Language string `json:"language" query:"language"`   // 语言
 	WorkMode string `json:"work_mode" query:"work_mode"` // 工作模式

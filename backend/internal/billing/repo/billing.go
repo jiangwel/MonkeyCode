@@ -13,6 +13,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
+	"github.com/google/uuid"
 )
 
 type BillingRepo struct {
@@ -24,14 +25,21 @@ func NewBillingRepo(db *db.Client) domain.BillingRepo {
 }
 
 // ChatInfo implements domain.BillingRepo.
-func (b *BillingRepo) ChatInfo(ctx context.Context, id string) (*domain.ChatInfo, error) {
-	record, err := b.db.Task.Query().
+func (b *BillingRepo) ChatInfo(ctx context.Context, id, userID string) (*domain.ChatInfo, error) {
+	q := b.db.Task.Query().
 		WithTaskRecords(func(trq *db.TaskRecordQuery) {
 			trq.Order(taskrecord.ByCreatedAt(sql.OrderAsc()))
 			trq.Where(taskrecord.RoleNEQ(consts.ChatRoleSystem))
 		}).
-		Where(task.TaskID(id)).
-		First(ctx)
+		Where(task.TaskID(id))
+	if userID != "" {
+		uid, err := uuid.Parse(userID)
+		if err != nil {
+			return nil, err
+		}
+		q.Where(task.UserID(uid))
+	}
+	record, err := q.First(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -40,13 +48,20 @@ func (b *BillingRepo) ChatInfo(ctx context.Context, id string) (*domain.ChatInfo
 }
 
 // CompletionInfo implements domain.BillingRepo.
-func (b *BillingRepo) CompletionInfo(ctx context.Context, id string) (*domain.CompletionInfo, error) {
-	record, err := b.db.Task.Query().
+func (b *BillingRepo) CompletionInfo(ctx context.Context, id, userID string) (*domain.CompletionInfo, error) {
+	q := b.db.Task.Query().
 		WithTaskRecords(func(trq *db.TaskRecordQuery) {
 			trq.Order(taskrecord.ByCreatedAt(sql.OrderAsc()))
 		}).
-		Where(task.TaskID(id)).
-		First(ctx)
+		Where(task.TaskID(id))
+	if userID != "" {
+		uid, err := uuid.Parse(userID)
+		if err != nil {
+			return nil, err
+		}
+		q.Where(task.UserID(uid))
+	}
+	record, err := q.First(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +99,12 @@ func (b *BillingRepo) ListChatRecord(ctx context.Context, req domain.ListRecordR
 func filterTask(q *db.TaskQuery, req domain.ListRecordReq) {
 	if req.IsAccept != nil {
 		q.Where(task.IsAccept(*req.IsAccept))
+	}
+
+	if req.UserID != "" {
+		if uid, err := uuid.Parse(req.UserID); err == nil {
+			q.Where(task.UserID(uid))
+		}
 	}
 
 	if req.Author != "" {

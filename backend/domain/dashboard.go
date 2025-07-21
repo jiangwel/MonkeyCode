@@ -77,10 +77,10 @@ func (u *UserCodeRank) From(d *db.Task) *UserCodeRank {
 }
 
 type UserStat struct {
-	TotalChats       int64                `json:"total_chats"`         // 近90天总对话任务数
-	TotalCompletions int64                `json:"total_completions"`   // 近90天总补全任务数
-	TotalLinesOfCode int64                `json:"total_lines_of_code"` // 近90天总代码行数
-	TotalAcceptedPer float64              `json:"total_accepted_per"`  // 近90天总接受率
+	TotalChats       int64                `json:"total_chats"`         // 总对话任务数
+	TotalCompletions int64                `json:"total_completions"`   // 总补全任务数
+	TotalLinesOfCode int64                `json:"total_lines_of_code"` // 总代码行数
+	TotalAcceptedPer float64              `json:"total_accepted_per"`  // 总接受率
 	Chats            []TimePoint[int64]   `json:"chats"`               // 对话任务数统计
 	Completions      []TimePoint[int64]   `json:"code_completions"`    // 补全任务数统计
 	LinesOfCode      []TimePoint[int64]   `json:"lines_of_code"`       // 代码行数统计
