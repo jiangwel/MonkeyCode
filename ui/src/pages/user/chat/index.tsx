@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table } from '@c-x/ui';
-import { getListChatRecord } from '@/api/Billing';
+import { getUserListChatRecord } from '@/api/UserRecord';
 import dayjs from 'dayjs';
 
 import Card from '@/components/card';
@@ -24,7 +24,7 @@ const Chat = () => {
   >();
   const fetchData = async () => {
     setLoading(true);
-    const res = await getListChatRecord({
+    const res = await getUserListChatRecord({
       page: page,
       size: size,
     });

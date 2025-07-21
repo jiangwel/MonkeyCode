@@ -1,21 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
-import { getListUser } from '@/api/User';
+import { useState } from 'react';
 import { Stack, MenuItem, Select } from '@mui/material';
-
+import { getUserProfile } from '@/api/UserManage';
 import { useRequest } from 'ahooks';
 import MemberStatistic from './components/memberStatistic';
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import { DomainUser } from '@/api/types';
 
 export type TimeRange = '90d' | '24h';
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const { tab, id } = useParams();
-  const [tabValue, setTabValue] = useState(tab || 'global');
-  const [memberData, setMemberData] = useState<DomainUser | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>('24h');
+
+  const { data: userData = {} } = useRequest(getUserProfile);
 
   return (
     <Stack gap={2} sx={{ height: '100%' }}>
@@ -32,7 +26,7 @@ const Dashboard = () => {
         </Select>
       </Stack>
 
-      <MemberStatistic memberData={memberData} timeRange={timeRange} />
+      <MemberStatistic memberData={userData as any} timeRange={timeRange} />
     </Stack>
   );
 };

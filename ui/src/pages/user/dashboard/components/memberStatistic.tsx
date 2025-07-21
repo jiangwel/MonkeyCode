@@ -1,16 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Grid2 as Grid } from '@mui/material';
-import { useParams } from 'react-router-dom';
 import MemberInfo from '@/pages/dashboard/components/memberInfo';
 import PieCharts from '@/pages/dashboard/components/pieCharts';
 import LineCharts from '@/pages/dashboard/components/lineCharts';
 import { RecentActivityCard } from '@/pages/dashboard/components/statisticCard';
 import { useRequest } from 'ahooks';
 import {
-  getUserEventsDashboard,
-  getUserStatDashboard,
-  getUserHeatmapDashboard,
-} from '@/api/Dashboard';
+  getUserDashboardEvents,
+  getUserDashboardHeatmap,
+  getUserDashboardStat,
+} from '@/api/UserDashboard';
 import { StyledHighlight } from '@/pages/dashboard/components/globalStatistic';
 import { getRecent90DaysData, getRecent24HoursData } from '@/utils';
 import { DomainUser } from '@/api/types';
@@ -33,42 +32,28 @@ const MemberStatistic = ({
     precision: timeRange === '90d' ? 'day' : 'hour',
   });
 
-  const { id } = useParams();
   const { data: userEvents } = useRequest(
     () =>
-      getUserEventsDashboard({
-        user_id: id || '',
+      getUserDashboardEvents({
         precision: timeDuration.precision,
       }),
     {
-      refreshDeps: [id],
       manual: false,
-      ready: !!id,
     }
   );
   const { data: userStat } = useRequest(
     () =>
-      getUserStatDashboard({
-        user_id: id || '',
+      getUserDashboardStat({
         ...timeDuration,
       }),
     {
-      refreshDeps: [id, timeDuration],
+      refreshDeps: [timeDuration],
       manual: false,
-      ready: !!id,
     }
   );
-  const { data: userHeatmap } = useRequest(
-    () =>
-      getUserHeatmapDashboard({
-        user_id: id || '',
-      }),
-    {
-      refreshDeps: [id],
-      manual: false,
-      ready: !!id,
-    }
-  );
+  const { data: userHeatmap } = useRequest(getUserDashboardHeatmap, {
+    manual: false,
+  });
 
   useEffect(() => {
     setTimeDuration({

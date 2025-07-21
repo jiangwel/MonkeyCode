@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DomainCompletionRecord, DomainUser } from '@/api/types';
-import { getListCompletionRecord } from '@/api/Billing';
-import { useRequest } from 'ahooks';
+import { getUserListCompletionRecord } from '@/api/UserRecord';
 import { Table } from '@c-x/ui';
 import Card from '@/components/card';
 import {
@@ -14,7 +13,6 @@ import {
   Autocomplete,
   TextField,
 } from '@mui/material';
-import { getListUser } from '@/api/User';
 import dayjs from 'dayjs';
 import { useDebounceFn } from 'ahooks';
 import { ColumnsType } from '@c-x/ui/dist/Table';
@@ -34,29 +32,19 @@ const Completion = () => {
     DomainCompletionRecord | undefined
   >();
 
-  // 新增筛选项 state
-  const [filterUser, setFilterUser] = useState('');
   const [filterLang, setFilterLang] = useState('');
   const [filterAccept, setFilterAccept] = useState<
     'accepted' | 'unaccepted' | ''
   >('accepted');
-
-  const { data: userOptions = { users: [] } } = useRequest(() =>
-    getListUser({
-      page: 1,
-      size: 9999,
-    })
-  );
 
   useEffect(() => {
     setPage(1); // 筛选变化时重置页码
     fetchData({
       page: 1,
       language: filterLang,
-      author: filterUser,
       is_accept: filterAccept,
     });
-  }, [filterUser, filterLang, filterAccept]);
+  }, [filterLang, filterAccept]);
 
   const fetchData = async (params: {
     page?: number;
@@ -67,11 +55,10 @@ const Completion = () => {
   }) => {
     setLoading(true);
     const isAccept = params.is_accept || filterAccept;
-    const res = await getListCompletionRecord({
+    const res = await getUserListCompletionRecord({
       page: params.page || page,
       size: params.size || size,
       language: params.language || filterLang,
-      author: params.author || filterUser,
       is_accept:
         isAccept === 'accepted'
           ? true
