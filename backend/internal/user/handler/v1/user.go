@@ -31,6 +31,7 @@ type CacheEntry struct {
 type UserHandler struct {
 	usecase   domain.UserUsecase
 	euse      domain.ExtensionUsecase
+	duse      domain.DashboardUsecase
 	session   *session.Session
 	logger    *slog.Logger
 	cfg       *config.Config
@@ -43,6 +44,7 @@ func NewUserHandler(
 	w *web.Web,
 	usecase domain.UserUsecase,
 	euse domain.ExtensionUsecase,
+	duse domain.DashboardUsecase,
 	auth *middleware.AuthMiddleware,
 	active *middleware.ActiveMiddleware,
 	session *session.Session,
@@ -51,10 +53,11 @@ func NewUserHandler(
 ) *UserHandler {
 	u := &UserHandler{
 		usecase:   usecase,
+		euse:      euse,
+		duse:      duse,
 		session:   session,
 		logger:    logger,
 		cfg:       cfg,
-		euse:      euse,
 		vsixCache: make(map[string]*CacheEntry),
 		limiter:   rate.NewLimiter(rate.Every(time.Duration(cfg.Extension.LimitSecond)*time.Second), cfg.Extension.Limit),
 	}
@@ -82,6 +85,9 @@ func NewUserHandler(
 	g.POST("/register", web.BindHandler(u.Register))
 	g.POST("/login", web.BindHandler(u.Login))
 
+	g.GET("/profile", web.BaseHandler(u.Profile), auth.UserAuth())
+	g.PUT("/profile", web.BindHandler(u.UpdateProfile), auth.UserAuth())
+
 	g.Use(auth.Auth(), active.Active("admin"))
 
 	g.PUT("/update", web.BindHandler(u.Update))
@@ -89,6 +95,13 @@ func NewUserHandler(
 	g.GET("/invite", web.BaseHandler(u.Invite))
 	g.GET("/list", web.BindHandler(u.List, web.WithPage()))
 	g.GET("/login-history", web.BaseHandler(u.LoginHistory, web.WithPage()))
+
+	// user dashboard
+	d := w.Group("/api/v1/user/dashboard")
+	d.Use(auth.UserAuth(), active.Active("user"))
+	d.GET("/stat", web.BindHandler(u.UserStat))
+	d.GET("/events", web.BaseHandler(u.UserEvents))
+	d.GET("/heatmap", web.BaseHandler(u.UserHeatmap))
 
 	return u
 }
@@ -338,7 +351,7 @@ func (h *UserHandler) LoginHistory(c *web.Context) error {
 //	@Success		200	{object}	web.Resp{data=domain.InviteResp}
 //	@Router			/api/v1/user/invite [get]
 func (h *UserHandler) Invite(c *web.Context) error {
-	user := middleware.GetUser(c)
+	user := middleware.GetAdmin(c)
 	resp, err := h.usecase.Invite(c.Request().Context(), user.ID)
 	if err != nil {
 		return err
@@ -378,7 +391,7 @@ func (h *UserHandler) Register(c *web.Context, req domain.RegisterReq) error {
 //	@Success		200		{object}	web.Resp{data=domain.AdminUser}
 //	@Router			/api/v1/admin/create [post]
 func (h *UserHandler) CreateAdmin(c *web.Context, req domain.CreateAdminReq) error {
-	user := middleware.GetUser(c)
+	user := middleware.GetAdmin(c)
 	if user.Username != "admin" {
 		return errcode.ErrPermission
 	}
@@ -497,6 +510,40 @@ func (h *UserHandler) OAuthSignUpOrIn(ctx *web.Context, req domain.OAuthSignUpOr
 func (h *UserHandler) OAuthCallback(ctx *web.Context, req domain.OAuthCallbackReq) error {
 	req.IP = ctx.RealIP()
 	return h.usecase.OAuthCallback(ctx, &req)
+}
+
+// Profile 获取用户信息
+//
+//	@Tags			User
+//	@Summary		获取用户信息
+//	@Description	获取用户信息
+//	@ID				user-profile
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	web.Resp{data=string}
+//	@Router			/api/v1/user/profile [get]
+func (h *UserHandler) Profile(ctx *web.Context) error {
+	return ctx.Success(middleware.GetUser(ctx))
+}
+
+// UpdateProfile 更新用户信息
+//
+//	@Tags			User
+//	@Summary		更新用户信息
+//	@Description	更新用户信息
+//	@ID				user-profile
+//	@Accept			json
+//	@Produce		json
+//	@Param			req	body		domain.ProfileUpdateReq	true	"param"
+//	@Success		200	{object}	web.Resp{data=domain.User}
+//	@Router			/api/v1/user/profile [put]
+func (h *UserHandler) UpdateProfile(ctx *web.Context, req domain.ProfileUpdateReq) error {
+	req.UID = middleware.GetUser(ctx).ID
+	user, err := h.usecase.ProfileUpdate(ctx.Request().Context(), &req)
+	if err != nil {
+		return err
+	}
+	return ctx.Success(user)
 }
 
 func (h *UserHandler) InitAdmin() error {

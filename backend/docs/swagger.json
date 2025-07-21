@@ -1446,6 +1446,175 @@
                 "responses": {}
             }
         },
+        "/api/v1/user/dashboard/events": {
+            "get": {
+                "description": "获取用户事件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "获取用户事件",
+                "operationId": "user-dashboard-events",
+                "parameters": [
+                    {
+                        "maximum": 90,
+                        "minimum": 24,
+                        "type": "integer",
+                        "default": 90,
+                        "description": "持续时间 (小时或天数)`",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hour",
+                            "day"
+                        ],
+                        "type": "string",
+                        "default": "day",
+                        "description": "精度: \"hour\", \"day\"",
+                        "name": "precision",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户ID，可选参数",
+                        "name": "user_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/domain.UserEvent"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/dashboard/heatmap": {
+            "get": {
+                "description": "用户热力图",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "用户热力图",
+                "operationId": "user-dashboard-heatmap",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.UserHeatmapResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/dashboard/stat": {
+            "get": {
+                "description": "获取用户统计信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "获取用户统计信息",
+                "operationId": "user-dashboard-stat",
+                "parameters": [
+                    {
+                        "maximum": 90,
+                        "minimum": 24,
+                        "type": "integer",
+                        "default": 90,
+                        "description": "持续时间 (小时或天数)`",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hour",
+                            "day"
+                        ],
+                        "type": "string",
+                        "default": "day",
+                        "description": "精度: \"hour\", \"day\"",
+                        "name": "precision",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户ID，可选参数",
+                        "name": "user_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.UserStat"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/user/delete": {
             "delete": {
                 "description": "删除用户",
@@ -1814,6 +1983,87 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/domain.OAuthURLResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/profile": {
+            "get": {
+                "description": "获取用户信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "获取用户信息",
+                "operationId": "user-profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "更新用户信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "更新用户信息",
+                "operationId": "user-profile",
+                "parameters": [
+                    {
+                        "description": "param",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.ProfileUpdateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.User"
                                         }
                                     }
                                 }
@@ -3165,6 +3415,27 @@
                 }
             }
         },
+        "domain.ProfileUpdateReq": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像",
+                    "type": "string"
+                },
+                "old_password": {
+                    "description": "旧密码",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "密码",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "用户名",
+                    "type": "string"
+                }
+            }
+        },
         "domain.ProviderModel": {
             "type": "object",
             "properties": {
@@ -3769,19 +4040,19 @@
                     }
                 },
                 "total_accepted_per": {
-                    "description": "近90天总接受率",
+                    "description": "总接受率",
                     "type": "number"
                 },
                 "total_chats": {
-                    "description": "近90天总对话任务数",
+                    "description": "总对话任务数",
                     "type": "integer"
                 },
                 "total_completions": {
-                    "description": "近90天总补全任务数",
+                    "description": "总补全任务数",
                     "type": "integer"
                 },
                 "total_lines_of_code": {
-                    "description": "近90天总代码行数",
+                    "description": "总代码行数",
                     "type": "integer"
                 },
                 "work_mode": {

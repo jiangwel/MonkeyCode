@@ -221,7 +221,7 @@ func (r *UserRepo) UpdateSetting(ctx context.Context, fn func(*db.Setting, *db.S
 	return res, err
 }
 
-func (r *UserRepo) Update(ctx context.Context, id string, fn func(*db.UserUpdateOne) error) (*db.User, error) {
+func (r *UserRepo) Update(ctx context.Context, id string, fn func(*db.User, *db.UserUpdateOne) error) (*db.User, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
@@ -233,7 +233,7 @@ func (r *UserRepo) Update(ctx context.Context, id string, fn func(*db.UserUpdate
 		if err != nil {
 			return err
 		}
-		if err := fn(u.Update()); err != nil {
+		if err := fn(u, u.Update()); err != nil {
 			return err
 		}
 		return u.Update().Exec(ctx)

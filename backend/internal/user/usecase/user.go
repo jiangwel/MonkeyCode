@@ -395,7 +395,7 @@ func (u *UserUsecase) UpdateSetting(ctx context.Context, req *domain.UpdateSetti
 }
 
 func (u *UserUsecase) Update(ctx context.Context, req *domain.UpdateUserReq) (*domain.User, error) {
-	user, err := u.repo.Update(ctx, req.ID, func(u *db.UserUpdateOne) error {
+	user, err := u.repo.Update(ctx, req.ID, func(_ *db.User, u *db.UserUpdateOne) error {
 		if req.Status != nil {
 			u.SetStatus(*req.Status)
 		}
@@ -601,4 +601,34 @@ func (u *UserUsecase) WithOAuthCallback(ctx context.Context, req *domain.OAuthCa
 
 	u.logger.Debug("oauth callback", "redirect", redirect)
 	return user, redirect, nil
+}
+
+func (u *UserUsecase) ProfileUpdate(ctx context.Context, req *domain.ProfileUpdateReq) (*domain.User, error) {
+	user, err := u.repo.Update(ctx, req.UID, func(old *db.User, uuo *db.UserUpdateOne) error {
+		if req.Avatar != nil {
+			uuo.SetAvatarURL(*req.Avatar)
+		}
+
+		if req.Username != nil {
+			uuo.SetUsername(*req.Username)
+		}
+
+		if req.Password != nil && req.OldPassword != nil {
+			if err := bcrypt.CompareHashAndPassword([]byte(old.Password), []byte(*req.OldPassword)); err != nil {
+				return errcode.ErrPassword.Wrap(err)
+			}
+
+			hash, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
+			if err != nil {
+				return errcode.ErrPassword.Wrap(err)
+			}
+			uuo.SetPassword(string(hash))
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cvt.From(user, &domain.User{}), nil
 }

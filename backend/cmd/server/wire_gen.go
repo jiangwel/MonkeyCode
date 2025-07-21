@@ -75,9 +75,9 @@ func newServer() (*Server, error) {
 	}
 	userRepo := repo5.NewUserRepo(client, ipdbIPDB, redisClient)
 	userUsecase := usecase4.NewUserUsecase(configConfig, redisClient, userRepo, slogLogger, sessionSession)
-	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, authMiddleware, activeMiddleware, sessionSession, slogLogger, configConfig)
 	dashboardRepo := repo6.NewDashboardRepo(client)
 	dashboardUsecase := usecase5.NewDashboardUsecase(dashboardRepo)
+	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, dashboardUsecase, authMiddleware, activeMiddleware, sessionSession, slogLogger, configConfig)
 	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware, activeMiddleware)
 	billingRepo := repo7.NewBillingRepo(client)
 	billingUsecase := usecase6.NewBillingUsecase(billingRepo)

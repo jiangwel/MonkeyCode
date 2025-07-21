@@ -14,6 +14,7 @@ import (
 type UserUsecase interface {
 	Login(ctx context.Context, req *LoginReq) (*LoginResp, error)
 	Update(ctx context.Context, req *UpdateUserReq) (*User, error)
+	ProfileUpdate(ctx context.Context, req *ProfileUpdateReq) (*User, error)
 	Delete(ctx context.Context, id string) error
 	InitAdmin(ctx context.Context) error
 	AdminLogin(ctx context.Context, req *LoginReq) (*AdminUser, error)
@@ -34,7 +35,7 @@ type UserUsecase interface {
 
 type UserRepo interface {
 	List(ctx context.Context, page *web.Pagination) ([]*db.User, *db.PageInfo, error)
-	Update(ctx context.Context, id string, fn func(*db.UserUpdateOne) error) (*db.User, error)
+	Update(ctx context.Context, id string, fn func(*db.User, *db.UserUpdateOne) error) (*db.User, error)
 	Delete(ctx context.Context, id string) error
 	InitAdmin(ctx context.Context, username, password string) error
 	CreateUser(ctx context.Context, user *db.User) (*db.User, error)
@@ -55,6 +56,14 @@ type UserRepo interface {
 	SignUpOrIn(ctx context.Context, platform consts.UserPlatform, req *OAuthUserInfo) (*db.User, error)
 	SaveAdminLoginHistory(ctx context.Context, adminID, ip string) error
 	SaveUserLoginHistory(ctx context.Context, userID, ip string, session *VSCodeSession) error
+}
+
+type ProfileUpdateReq struct {
+	UID         string  `json:"-"`
+	Username    *string `json:"username"`     // 用户名
+	Password    *string `json:"password"`     // 密码
+	OldPassword *string `json:"old_password"` // 旧密码
+	Avatar      *string `json:"avatar"`       // 头像
 }
 
 type UpdateUserReq struct {

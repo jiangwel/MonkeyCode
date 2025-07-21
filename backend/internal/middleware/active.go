@@ -29,7 +29,7 @@ func (a *ActiveMiddleware) Active(scope string) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			switch scope {
 			case "admin":
-				if user := GetUser(c); user != nil {
+				if user := GetAdmin(c); user != nil {
 					if err := a.redis.Set(context.Background(), fmt.Sprintf(consts.AdminActiveKeyFmt, user.ID), time.Now().Unix(), 0).Err(); err != nil {
 						a.logger.With("error", err).ErrorContext(c.Request().Context(), "failed to set admin active status in Redis")
 					}
