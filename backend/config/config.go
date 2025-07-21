@@ -67,6 +67,10 @@ type Config struct {
 		LimitSecond int    `mapstructure:"limit_second"`
 		Limit       int    `mapstructure:"limit"`
 	} `mapstructure:"extension"`
+
+	DataReport struct {
+		Key string `mapstructure:"key"`
+	} `mapstructure:"data_report"`
 }
 
 func Init() (*Config, error) {
@@ -103,6 +107,7 @@ func Init() (*Config, error) {
 	v.SetDefault("extension.baseurl", "https://release.baizhi.cloud")
 	v.SetDefault("extension.limit", 1)
 	v.SetDefault("extension.limit_second", 10)
+	v.SetDefault("data_report.key", "")
 
 	c := Config{}
 	if err := v.Unmarshal(&c); err != nil {

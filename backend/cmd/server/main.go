@@ -24,6 +24,7 @@ func main() {
 		panic(err)
 	}
 
+	s.version.Print()
 	s.logger.With("config", s.config).Debug("config")
 
 	if s.config.Debug {
@@ -37,6 +38,10 @@ func main() {
 	}
 
 	if err := s.userV1.InitAdmin(); err != nil {
+		panic(err)
+	}
+
+	if err := s.report.ReportInstallation(); err != nil {
 		panic(err)
 	}
 
