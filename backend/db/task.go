@@ -47,6 +47,12 @@ type Task struct {
 	OutputTokens int64 `json:"output_tokens,omitempty"`
 	// IsSuggested holds the value of the "is_suggested" field.
 	IsSuggested bool `json:"is_suggested,omitempty"`
+	// SourceCode holds the value of the "source_code" field.
+	SourceCode string `json:"source_code,omitempty"`
+	// CursorPosition holds the value of the "cursor_position" field.
+	CursorPosition int64 `json:"cursor_position,omitempty"`
+	// UserInput holds the value of the "user_input" field.
+	UserInput string `json:"user_input,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -108,9 +114,9 @@ func (*Task) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case task.FieldIsAccept, task.FieldIsSuggested:
 			values[i] = new(sql.NullBool)
-		case task.FieldCodeLines, task.FieldInputTokens, task.FieldOutputTokens:
+		case task.FieldCodeLines, task.FieldInputTokens, task.FieldOutputTokens, task.FieldCursorPosition:
 			values[i] = new(sql.NullInt64)
-		case task.FieldTaskID, task.FieldRequestID, task.FieldModelType, task.FieldProgramLanguage, task.FieldWorkMode, task.FieldCompletion:
+		case task.FieldTaskID, task.FieldRequestID, task.FieldModelType, task.FieldProgramLanguage, task.FieldWorkMode, task.FieldCompletion, task.FieldSourceCode, task.FieldUserInput:
 			values[i] = new(sql.NullString)
 		case task.FieldCreatedAt, task.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -215,6 +221,24 @@ func (t *Task) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.IsSuggested = value.Bool
 			}
+		case task.FieldSourceCode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_code", values[i])
+			} else if value.Valid {
+				t.SourceCode = value.String
+			}
+		case task.FieldCursorPosition:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field cursor_position", values[i])
+			} else if value.Valid {
+				t.CursorPosition = value.Int64
+			}
+		case task.FieldUserInput:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_input", values[i])
+			} else if value.Valid {
+				t.UserInput = value.String
+			}
 		case task.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -316,6 +340,15 @@ func (t *Task) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_suggested=")
 	builder.WriteString(fmt.Sprintf("%v", t.IsSuggested))
+	builder.WriteString(", ")
+	builder.WriteString("source_code=")
+	builder.WriteString(t.SourceCode)
+	builder.WriteString(", ")
+	builder.WriteString("cursor_position=")
+	builder.WriteString(fmt.Sprintf("%v", t.CursorPosition))
+	builder.WriteString(", ")
+	builder.WriteString("user_input=")
+	builder.WriteString(t.UserInput)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(t.CreatedAt.Format(time.ANSIC))

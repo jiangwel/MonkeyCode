@@ -194,6 +194,48 @@ func (tc *TaskCreate) SetNillableIsSuggested(b *bool) *TaskCreate {
 	return tc
 }
 
+// SetSourceCode sets the "source_code" field.
+func (tc *TaskCreate) SetSourceCode(s string) *TaskCreate {
+	tc.mutation.SetSourceCode(s)
+	return tc
+}
+
+// SetNillableSourceCode sets the "source_code" field if the given value is not nil.
+func (tc *TaskCreate) SetNillableSourceCode(s *string) *TaskCreate {
+	if s != nil {
+		tc.SetSourceCode(*s)
+	}
+	return tc
+}
+
+// SetCursorPosition sets the "cursor_position" field.
+func (tc *TaskCreate) SetCursorPosition(i int64) *TaskCreate {
+	tc.mutation.SetCursorPosition(i)
+	return tc
+}
+
+// SetNillableCursorPosition sets the "cursor_position" field if the given value is not nil.
+func (tc *TaskCreate) SetNillableCursorPosition(i *int64) *TaskCreate {
+	if i != nil {
+		tc.SetCursorPosition(*i)
+	}
+	return tc
+}
+
+// SetUserInput sets the "user_input" field.
+func (tc *TaskCreate) SetUserInput(s string) *TaskCreate {
+	tc.mutation.SetUserInput(s)
+	return tc
+}
+
+// SetNillableUserInput sets the "user_input" field if the given value is not nil.
+func (tc *TaskCreate) SetNillableUserInput(s *string) *TaskCreate {
+	if s != nil {
+		tc.SetUserInput(*s)
+	}
+	return tc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (tc *TaskCreate) SetCreatedAt(t time.Time) *TaskCreate {
 	tc.mutation.SetCreatedAt(t)
@@ -405,6 +447,18 @@ func (tc *TaskCreate) createSpec() (*Task, *sqlgraph.CreateSpec) {
 	if value, ok := tc.mutation.IsSuggested(); ok {
 		_spec.SetField(task.FieldIsSuggested, field.TypeBool, value)
 		_node.IsSuggested = value
+	}
+	if value, ok := tc.mutation.SourceCode(); ok {
+		_spec.SetField(task.FieldSourceCode, field.TypeString, value)
+		_node.SourceCode = value
+	}
+	if value, ok := tc.mutation.CursorPosition(); ok {
+		_spec.SetField(task.FieldCursorPosition, field.TypeInt64, value)
+		_node.CursorPosition = value
+	}
+	if value, ok := tc.mutation.UserInput(); ok {
+		_spec.SetField(task.FieldUserInput, field.TypeString, value)
+		_node.UserInput = value
 	}
 	if value, ok := tc.mutation.CreatedAt(); ok {
 		_spec.SetField(task.FieldCreatedAt, field.TypeTime, value)
@@ -744,6 +798,66 @@ func (u *TaskUpsert) UpdateIsSuggested() *TaskUpsert {
 	return u
 }
 
+// SetSourceCode sets the "source_code" field.
+func (u *TaskUpsert) SetSourceCode(v string) *TaskUpsert {
+	u.Set(task.FieldSourceCode, v)
+	return u
+}
+
+// UpdateSourceCode sets the "source_code" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateSourceCode() *TaskUpsert {
+	u.SetExcluded(task.FieldSourceCode)
+	return u
+}
+
+// ClearSourceCode clears the value of the "source_code" field.
+func (u *TaskUpsert) ClearSourceCode() *TaskUpsert {
+	u.SetNull(task.FieldSourceCode)
+	return u
+}
+
+// SetCursorPosition sets the "cursor_position" field.
+func (u *TaskUpsert) SetCursorPosition(v int64) *TaskUpsert {
+	u.Set(task.FieldCursorPosition, v)
+	return u
+}
+
+// UpdateCursorPosition sets the "cursor_position" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateCursorPosition() *TaskUpsert {
+	u.SetExcluded(task.FieldCursorPosition)
+	return u
+}
+
+// AddCursorPosition adds v to the "cursor_position" field.
+func (u *TaskUpsert) AddCursorPosition(v int64) *TaskUpsert {
+	u.Add(task.FieldCursorPosition, v)
+	return u
+}
+
+// ClearCursorPosition clears the value of the "cursor_position" field.
+func (u *TaskUpsert) ClearCursorPosition() *TaskUpsert {
+	u.SetNull(task.FieldCursorPosition)
+	return u
+}
+
+// SetUserInput sets the "user_input" field.
+func (u *TaskUpsert) SetUserInput(v string) *TaskUpsert {
+	u.Set(task.FieldUserInput, v)
+	return u
+}
+
+// UpdateUserInput sets the "user_input" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateUserInput() *TaskUpsert {
+	u.SetExcluded(task.FieldUserInput)
+	return u
+}
+
+// ClearUserInput clears the value of the "user_input" field.
+func (u *TaskUpsert) ClearUserInput() *TaskUpsert {
+	u.SetNull(task.FieldUserInput)
+	return u
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (u *TaskUpsert) SetCreatedAt(v time.Time) *TaskUpsert {
 	u.Set(task.FieldCreatedAt, v)
@@ -1079,6 +1193,76 @@ func (u *TaskUpsertOne) SetIsSuggested(v bool) *TaskUpsertOne {
 func (u *TaskUpsertOne) UpdateIsSuggested() *TaskUpsertOne {
 	return u.Update(func(s *TaskUpsert) {
 		s.UpdateIsSuggested()
+	})
+}
+
+// SetSourceCode sets the "source_code" field.
+func (u *TaskUpsertOne) SetSourceCode(v string) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetSourceCode(v)
+	})
+}
+
+// UpdateSourceCode sets the "source_code" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateSourceCode() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateSourceCode()
+	})
+}
+
+// ClearSourceCode clears the value of the "source_code" field.
+func (u *TaskUpsertOne) ClearSourceCode() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.ClearSourceCode()
+	})
+}
+
+// SetCursorPosition sets the "cursor_position" field.
+func (u *TaskUpsertOne) SetCursorPosition(v int64) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetCursorPosition(v)
+	})
+}
+
+// AddCursorPosition adds v to the "cursor_position" field.
+func (u *TaskUpsertOne) AddCursorPosition(v int64) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.AddCursorPosition(v)
+	})
+}
+
+// UpdateCursorPosition sets the "cursor_position" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateCursorPosition() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateCursorPosition()
+	})
+}
+
+// ClearCursorPosition clears the value of the "cursor_position" field.
+func (u *TaskUpsertOne) ClearCursorPosition() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.ClearCursorPosition()
+	})
+}
+
+// SetUserInput sets the "user_input" field.
+func (u *TaskUpsertOne) SetUserInput(v string) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetUserInput(v)
+	})
+}
+
+// UpdateUserInput sets the "user_input" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateUserInput() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateUserInput()
+	})
+}
+
+// ClearUserInput clears the value of the "user_input" field.
+func (u *TaskUpsertOne) ClearUserInput() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.ClearUserInput()
 	})
 }
 
@@ -1588,6 +1772,76 @@ func (u *TaskUpsertBulk) SetIsSuggested(v bool) *TaskUpsertBulk {
 func (u *TaskUpsertBulk) UpdateIsSuggested() *TaskUpsertBulk {
 	return u.Update(func(s *TaskUpsert) {
 		s.UpdateIsSuggested()
+	})
+}
+
+// SetSourceCode sets the "source_code" field.
+func (u *TaskUpsertBulk) SetSourceCode(v string) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetSourceCode(v)
+	})
+}
+
+// UpdateSourceCode sets the "source_code" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateSourceCode() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateSourceCode()
+	})
+}
+
+// ClearSourceCode clears the value of the "source_code" field.
+func (u *TaskUpsertBulk) ClearSourceCode() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.ClearSourceCode()
+	})
+}
+
+// SetCursorPosition sets the "cursor_position" field.
+func (u *TaskUpsertBulk) SetCursorPosition(v int64) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetCursorPosition(v)
+	})
+}
+
+// AddCursorPosition adds v to the "cursor_position" field.
+func (u *TaskUpsertBulk) AddCursorPosition(v int64) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.AddCursorPosition(v)
+	})
+}
+
+// UpdateCursorPosition sets the "cursor_position" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateCursorPosition() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateCursorPosition()
+	})
+}
+
+// ClearCursorPosition clears the value of the "cursor_position" field.
+func (u *TaskUpsertBulk) ClearCursorPosition() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.ClearCursorPosition()
+	})
+}
+
+// SetUserInput sets the "user_input" field.
+func (u *TaskUpsertBulk) SetUserInput(v string) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetUserInput(v)
+	})
+}
+
+// UpdateUserInput sets the "user_input" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateUserInput() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateUserInput()
+	})
+}
+
+// ClearUserInput clears the value of the "user_input" field.
+func (u *TaskUpsertBulk) ClearUserInput() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.ClearUserInput()
 	})
 }
 

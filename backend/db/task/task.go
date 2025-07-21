@@ -40,6 +40,12 @@ const (
 	FieldOutputTokens = "output_tokens"
 	// FieldIsSuggested holds the string denoting the is_suggested field in the database.
 	FieldIsSuggested = "is_suggested"
+	// FieldSourceCode holds the string denoting the source_code field in the database.
+	FieldSourceCode = "source_code"
+	// FieldCursorPosition holds the string denoting the cursor_position field in the database.
+	FieldCursorPosition = "cursor_position"
+	// FieldUserInput holds the string denoting the user_input field in the database.
+	FieldUserInput = "user_input"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -91,6 +97,9 @@ var Columns = []string{
 	FieldInputTokens,
 	FieldOutputTokens,
 	FieldIsSuggested,
+	FieldSourceCode,
+	FieldCursorPosition,
+	FieldUserInput,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -189,6 +198,21 @@ func ByOutputTokens(opts ...sql.OrderTermOption) OrderOption {
 // ByIsSuggested orders the results by the is_suggested field.
 func ByIsSuggested(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsSuggested, opts...).ToFunc()
+}
+
+// BySourceCode orders the results by the source_code field.
+func BySourceCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceCode, opts...).ToFunc()
+}
+
+// ByCursorPosition orders the results by the cursor_position field.
+func ByCursorPosition(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCursorPosition, opts...).ToFunc()
+}
+
+// ByUserInput orders the results by the user_input field.
+func ByUserInput(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserInput, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

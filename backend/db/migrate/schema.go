@@ -271,6 +271,9 @@ var (
 		{Name: "input_tokens", Type: field.TypeInt64, Nullable: true},
 		{Name: "output_tokens", Type: field.TypeInt64, Nullable: true},
 		{Name: "is_suggested", Type: field.TypeBool, Default: false},
+		{Name: "source_code", Type: field.TypeString, Nullable: true},
+		{Name: "cursor_position", Type: field.TypeInt64, Nullable: true},
+		{Name: "user_input", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "model_id", Type: field.TypeUUID, Nullable: true},
@@ -284,13 +287,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "tasks_models_tasks",
-				Columns:    []*schema.Column{TasksColumns[14]},
+				Columns:    []*schema.Column{TasksColumns[17]},
 				RefColumns: []*schema.Column{ModelsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "tasks_users_tasks",
-				Columns:    []*schema.Column{TasksColumns[15]},
+				Columns:    []*schema.Column{TasksColumns[18]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

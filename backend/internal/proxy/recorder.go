@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -67,7 +68,8 @@ func (r *Recorder) handleShadow() {
 	}
 
 	var (
-		taskID, mode, prompt, language, tool, code string
+		taskID, mode, prompt, language, tool, code, sourceCode, userInput string
+		cursorPosition                                                    int64
 	)
 
 	switch r.ctx.Model.ModelType {
@@ -93,6 +95,11 @@ func (r *Recorder) handleShadow() {
 		taskID = req.Metadata["task_id"]
 		mode = req.Metadata["mode"]
 		language = req.Metadata["program_language"]
+		sourceCode = req.Metadata["source_code"]
+		if pos, err := strconv.ParseInt(req.Metadata["cursor_position"], 10, 64); err == nil {
+			cursorPosition = pos
+		}
+		userInput = req.Metadata["user_input"]
 
 	default:
 		r.logger.WarnContext(r.ctx.ctx, "skip handle shadow, model type not support", "modelType", r.ctx.Model.ModelType)
@@ -112,6 +119,9 @@ func (r *Recorder) handleShadow() {
 		Prompt:          prompt,
 		ProgramLanguage: language,
 		Role:            consts.ChatRoleAssistant,
+		SourceCode:      sourceCode,
+		CursorPosition:  cursorPosition,
+		UserInput:       userInput,
 	}
 
 	switch tool {

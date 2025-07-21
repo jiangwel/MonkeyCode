@@ -101,6 +101,9 @@ func (r *ProxyRepo) Record(ctx context.Context, record *domain.RecordParam) erro
 				SetModelType(record.ModelType).
 				SetWorkMode(record.WorkMode).
 				SetCodeLines(record.CodeLines).
+				SetSourceCode(record.SourceCode).
+				SetCursorPosition(record.CursorPosition).
+				SetUserInput(record.UserInput).
 				Save(ctx)
 			isNew = true
 		}
@@ -121,6 +124,16 @@ func (r *ProxyRepo) Record(ctx context.Context, record *domain.RecordParam) erro
 			if t.RequestID != record.RequestID {
 				up.SetRequestID(record.RequestID)
 				up.AddInputTokens(record.InputTokens)
+			}
+			// 更新新字段，如果提供了的话
+			if record.SourceCode != "" {
+				up.SetSourceCode(record.SourceCode)
+			}
+			if record.CursorPosition > 0 {
+				up.SetCursorPosition(record.CursorPosition)
+			}
+			if record.UserInput != "" {
+				up.SetUserInput(record.UserInput)
 			}
 			if err := up.Exec(ctx); err != nil {
 				return err
