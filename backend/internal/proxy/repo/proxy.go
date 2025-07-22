@@ -115,9 +115,6 @@ func (r *ProxyRepo) Record(ctx context.Context, record *domain.RecordParam) erro
 			if record.OutputTokens > 0 {
 				up.AddOutputTokens(record.OutputTokens)
 			}
-			if t.InputTokens == 0 && record.InputTokens > 0 {
-				up.SetInputTokens(record.InputTokens)
-			}
 			if t.CodeLines > 0 {
 				up.AddCodeLines(record.CodeLines)
 			}
