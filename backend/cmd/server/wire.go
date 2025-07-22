@@ -12,6 +12,7 @@ import (
 
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db"
+	"github.com/chaitin/MonkeyCode/backend/domain"
 	billingv1 "github.com/chaitin/MonkeyCode/backend/internal/billing/handler/http/v1"
 	dashv1 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/handler/v1"
 	v1 "github.com/chaitin/MonkeyCode/backend/internal/model/handler/http/v1"
@@ -33,6 +34,7 @@ type Server struct {
 	billingV1   *billingv1.BillingHandler
 	version     *version.VersionInfo
 	report      *report.Reporter
+	reportuse   domain.ReportUsecase
 }
 
 func newServer() (*Server, error) {

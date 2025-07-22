@@ -52,7 +52,7 @@ func (r *Reporter) readMachineID() (string, error) {
 	return r.machineID, nil
 }
 
-func (r *Reporter) report(data any) error {
+func (r *Reporter) Report(index string, data any) error {
 	b, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func (r *Reporter) report(data any) error {
 	}
 
 	req := map[string]any{
-		"index": "monkeycode-installation",
+		"index": index,
 		"id":    uuid.NewString(),
 		"data":  encrypt,
 	}
@@ -75,6 +75,10 @@ func (r *Reporter) report(data any) error {
 	}
 
 	return nil
+}
+
+func (r *Reporter) GetMachineID() string {
+	return r.machineID
 }
 
 func (r *Reporter) ReportInstallation() error {
@@ -102,7 +106,7 @@ func (r *Reporter) ReportInstallation() error {
 		return err
 	}
 
-	return r.report(InstallData{
+	return r.Report("monkeycode-installation", InstallData{
 		MachineID: id,
 		Version:   r.version.Version(),
 		Timestamp: time.Now().Format(time.RFC3339),
