@@ -124,6 +124,20 @@ func (tc *TaskCreate) SetNillableWorkMode(s *string) *TaskCreate {
 	return tc
 }
 
+// SetPrompt sets the "prompt" field.
+func (tc *TaskCreate) SetPrompt(s string) *TaskCreate {
+	tc.mutation.SetPrompt(s)
+	return tc
+}
+
+// SetNillablePrompt sets the "prompt" field if the given value is not nil.
+func (tc *TaskCreate) SetNillablePrompt(s *string) *TaskCreate {
+	if s != nil {
+		tc.SetPrompt(*s)
+	}
+	return tc
+}
+
 // SetCompletion sets the "completion" field.
 func (tc *TaskCreate) SetCompletion(s string) *TaskCreate {
 	tc.mutation.SetCompletion(s)
@@ -209,16 +223,8 @@ func (tc *TaskCreate) SetNillableSourceCode(s *string) *TaskCreate {
 }
 
 // SetCursorPosition sets the "cursor_position" field.
-func (tc *TaskCreate) SetCursorPosition(i int64) *TaskCreate {
-	tc.mutation.SetCursorPosition(i)
-	return tc
-}
-
-// SetNillableCursorPosition sets the "cursor_position" field if the given value is not nil.
-func (tc *TaskCreate) SetNillableCursorPosition(i *int64) *TaskCreate {
-	if i != nil {
-		tc.SetCursorPosition(*i)
-	}
+func (tc *TaskCreate) SetCursorPosition(m map[string]interface{}) *TaskCreate {
+	tc.mutation.SetCursorPosition(m)
 	return tc
 }
 
@@ -428,6 +434,10 @@ func (tc *TaskCreate) createSpec() (*Task, *sqlgraph.CreateSpec) {
 		_spec.SetField(task.FieldWorkMode, field.TypeString, value)
 		_node.WorkMode = value
 	}
+	if value, ok := tc.mutation.Prompt(); ok {
+		_spec.SetField(task.FieldPrompt, field.TypeString, value)
+		_node.Prompt = value
+	}
 	if value, ok := tc.mutation.Completion(); ok {
 		_spec.SetField(task.FieldCompletion, field.TypeString, value)
 		_node.Completion = value
@@ -453,7 +463,7 @@ func (tc *TaskCreate) createSpec() (*Task, *sqlgraph.CreateSpec) {
 		_node.SourceCode = value
 	}
 	if value, ok := tc.mutation.CursorPosition(); ok {
-		_spec.SetField(task.FieldCursorPosition, field.TypeInt64, value)
+		_spec.SetField(task.FieldCursorPosition, field.TypeJSON, value)
 		_node.CursorPosition = value
 	}
 	if value, ok := tc.mutation.UserInput(); ok {
@@ -696,6 +706,24 @@ func (u *TaskUpsert) ClearWorkMode() *TaskUpsert {
 	return u
 }
 
+// SetPrompt sets the "prompt" field.
+func (u *TaskUpsert) SetPrompt(v string) *TaskUpsert {
+	u.Set(task.FieldPrompt, v)
+	return u
+}
+
+// UpdatePrompt sets the "prompt" field to the value that was provided on create.
+func (u *TaskUpsert) UpdatePrompt() *TaskUpsert {
+	u.SetExcluded(task.FieldPrompt)
+	return u
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (u *TaskUpsert) ClearPrompt() *TaskUpsert {
+	u.SetNull(task.FieldPrompt)
+	return u
+}
+
 // SetCompletion sets the "completion" field.
 func (u *TaskUpsert) SetCompletion(v string) *TaskUpsert {
 	u.Set(task.FieldCompletion, v)
@@ -817,7 +845,7 @@ func (u *TaskUpsert) ClearSourceCode() *TaskUpsert {
 }
 
 // SetCursorPosition sets the "cursor_position" field.
-func (u *TaskUpsert) SetCursorPosition(v int64) *TaskUpsert {
+func (u *TaskUpsert) SetCursorPosition(v map[string]interface{}) *TaskUpsert {
 	u.Set(task.FieldCursorPosition, v)
 	return u
 }
@@ -825,12 +853,6 @@ func (u *TaskUpsert) SetCursorPosition(v int64) *TaskUpsert {
 // UpdateCursorPosition sets the "cursor_position" field to the value that was provided on create.
 func (u *TaskUpsert) UpdateCursorPosition() *TaskUpsert {
 	u.SetExcluded(task.FieldCursorPosition)
-	return u
-}
-
-// AddCursorPosition adds v to the "cursor_position" field.
-func (u *TaskUpsert) AddCursorPosition(v int64) *TaskUpsert {
-	u.Add(task.FieldCursorPosition, v)
 	return u
 }
 
@@ -1077,6 +1099,27 @@ func (u *TaskUpsertOne) ClearWorkMode() *TaskUpsertOne {
 	})
 }
 
+// SetPrompt sets the "prompt" field.
+func (u *TaskUpsertOne) SetPrompt(v string) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetPrompt(v)
+	})
+}
+
+// UpdatePrompt sets the "prompt" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdatePrompt() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdatePrompt()
+	})
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (u *TaskUpsertOne) ClearPrompt() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.ClearPrompt()
+	})
+}
+
 // SetCompletion sets the "completion" field.
 func (u *TaskUpsertOne) SetCompletion(v string) *TaskUpsertOne {
 	return u.Update(func(s *TaskUpsert) {
@@ -1218,16 +1261,9 @@ func (u *TaskUpsertOne) ClearSourceCode() *TaskUpsertOne {
 }
 
 // SetCursorPosition sets the "cursor_position" field.
-func (u *TaskUpsertOne) SetCursorPosition(v int64) *TaskUpsertOne {
+func (u *TaskUpsertOne) SetCursorPosition(v map[string]interface{}) *TaskUpsertOne {
 	return u.Update(func(s *TaskUpsert) {
 		s.SetCursorPosition(v)
-	})
-}
-
-// AddCursorPosition adds v to the "cursor_position" field.
-func (u *TaskUpsertOne) AddCursorPosition(v int64) *TaskUpsertOne {
-	return u.Update(func(s *TaskUpsert) {
-		s.AddCursorPosition(v)
 	})
 }
 
@@ -1656,6 +1692,27 @@ func (u *TaskUpsertBulk) ClearWorkMode() *TaskUpsertBulk {
 	})
 }
 
+// SetPrompt sets the "prompt" field.
+func (u *TaskUpsertBulk) SetPrompt(v string) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetPrompt(v)
+	})
+}
+
+// UpdatePrompt sets the "prompt" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdatePrompt() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdatePrompt()
+	})
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (u *TaskUpsertBulk) ClearPrompt() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.ClearPrompt()
+	})
+}
+
 // SetCompletion sets the "completion" field.
 func (u *TaskUpsertBulk) SetCompletion(v string) *TaskUpsertBulk {
 	return u.Update(func(s *TaskUpsert) {
@@ -1797,16 +1854,9 @@ func (u *TaskUpsertBulk) ClearSourceCode() *TaskUpsertBulk {
 }
 
 // SetCursorPosition sets the "cursor_position" field.
-func (u *TaskUpsertBulk) SetCursorPosition(v int64) *TaskUpsertBulk {
+func (u *TaskUpsertBulk) SetCursorPosition(v map[string]interface{}) *TaskUpsertBulk {
 	return u.Update(func(s *TaskUpsert) {
 		s.SetCursorPosition(v)
-	})
-}
-
-// AddCursorPosition adds v to the "cursor_position" field.
-func (u *TaskUpsertBulk) AddCursorPosition(v int64) *TaskUpsertBulk {
-	return u.Update(func(s *TaskUpsert) {
-		s.AddCursorPosition(v)
 	})
 }
 

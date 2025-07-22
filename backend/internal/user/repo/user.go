@@ -18,6 +18,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/adminloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
+	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
@@ -436,4 +437,75 @@ func (r *UserRepo) SaveUserLoginHistory(ctx context.Context, userID string, ip s
 	}
 
 	return c.Exec(ctx)
+}
+
+func (r *UserRepo) ExportCompletionData(ctx context.Context) ([]*domain.CompletionData, error) {
+	// 查询所有任务数据
+	tasks, err := r.db.Task.Query().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取所有模型ID并查询模型信息
+	modelIDs := make([]uuid.UUID, 0)
+	for _, t := range tasks {
+		if t.ModelID != uuid.Nil {
+			modelIDs = append(modelIDs, t.ModelID)
+		}
+	}
+
+	models, err := r.db.Model.Query().Where(model.IDIn(modelIDs...)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 创建模型ID到模型名称的映射
+	modelMap := make(map[uuid.UUID]string)
+	for _, m := range models {
+		modelMap[m.ID] = m.ShowName
+	}
+
+	var result []*domain.CompletionData
+	for _, t := range tasks {
+		// 获取模型名称
+		modelName := ""
+		if t.ModelID != uuid.Nil {
+			if name, exists := modelMap[t.ModelID]; exists {
+				modelName = name
+			}
+		}
+
+		// 处理cursor_position（已经是JSON格式）
+		var cursorPosition map[string]interface{}
+		if t.CursorPosition != nil {
+			cursorPosition = t.CursorPosition
+		}
+
+		completionData := &domain.CompletionData{
+			TaskID:          t.TaskID,
+			UserID:          t.UserID.String(),
+			ModelID:         t.ModelID.String(),
+			ModelName:       modelName,
+			RequestID:       t.RequestID,
+			ModelType:       string(t.ModelType),
+			ProgramLanguage: t.ProgramLanguage,
+			WorkMode:        t.WorkMode,
+			Prompt:          t.Prompt,
+			Completion:      t.Completion,
+			SourceCode:      t.SourceCode,
+			CursorPosition:  cursorPosition,
+			UserInput:       t.UserInput,
+			IsAccept:        t.IsAccept,
+			IsSuggested:     t.IsSuggested,
+			CodeLines:       t.CodeLines,
+			InputTokens:     t.InputTokens,
+			OutputTokens:    t.OutputTokens,
+			CreatedAt:       t.CreatedAt.Unix(),
+			UpdatedAt:       t.UpdatedAt.Unix(),
+		}
+
+		result = append(result, completionData)
+	}
+
+	return result, nil
 }

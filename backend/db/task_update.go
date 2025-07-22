@@ -176,6 +176,26 @@ func (tu *TaskUpdate) ClearWorkMode() *TaskUpdate {
 	return tu
 }
 
+// SetPrompt sets the "prompt" field.
+func (tu *TaskUpdate) SetPrompt(s string) *TaskUpdate {
+	tu.mutation.SetPrompt(s)
+	return tu
+}
+
+// SetNillablePrompt sets the "prompt" field if the given value is not nil.
+func (tu *TaskUpdate) SetNillablePrompt(s *string) *TaskUpdate {
+	if s != nil {
+		tu.SetPrompt(*s)
+	}
+	return tu
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (tu *TaskUpdate) ClearPrompt() *TaskUpdate {
+	tu.mutation.ClearPrompt()
+	return tu
+}
+
 // SetCompletion sets the "completion" field.
 func (tu *TaskUpdate) SetCompletion(s string) *TaskUpdate {
 	tu.mutation.SetCompletion(s)
@@ -312,23 +332,8 @@ func (tu *TaskUpdate) ClearSourceCode() *TaskUpdate {
 }
 
 // SetCursorPosition sets the "cursor_position" field.
-func (tu *TaskUpdate) SetCursorPosition(i int64) *TaskUpdate {
-	tu.mutation.ResetCursorPosition()
-	tu.mutation.SetCursorPosition(i)
-	return tu
-}
-
-// SetNillableCursorPosition sets the "cursor_position" field if the given value is not nil.
-func (tu *TaskUpdate) SetNillableCursorPosition(i *int64) *TaskUpdate {
-	if i != nil {
-		tu.SetCursorPosition(*i)
-	}
-	return tu
-}
-
-// AddCursorPosition adds i to the "cursor_position" field.
-func (tu *TaskUpdate) AddCursorPosition(i int64) *TaskUpdate {
-	tu.mutation.AddCursorPosition(i)
+func (tu *TaskUpdate) SetCursorPosition(m map[string]interface{}) *TaskUpdate {
+	tu.mutation.SetCursorPosition(m)
 	return tu
 }
 
@@ -519,6 +524,12 @@ func (tu *TaskUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if tu.mutation.WorkModeCleared() {
 		_spec.ClearField(task.FieldWorkMode, field.TypeString)
 	}
+	if value, ok := tu.mutation.Prompt(); ok {
+		_spec.SetField(task.FieldPrompt, field.TypeString, value)
+	}
+	if tu.mutation.PromptCleared() {
+		_spec.ClearField(task.FieldPrompt, field.TypeString)
+	}
 	if value, ok := tu.mutation.Completion(); ok {
 		_spec.SetField(task.FieldCompletion, field.TypeString, value)
 	}
@@ -562,13 +573,10 @@ func (tu *TaskUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.ClearField(task.FieldSourceCode, field.TypeString)
 	}
 	if value, ok := tu.mutation.CursorPosition(); ok {
-		_spec.SetField(task.FieldCursorPosition, field.TypeInt64, value)
-	}
-	if value, ok := tu.mutation.AddedCursorPosition(); ok {
-		_spec.AddField(task.FieldCursorPosition, field.TypeInt64, value)
+		_spec.SetField(task.FieldCursorPosition, field.TypeJSON, value)
 	}
 	if tu.mutation.CursorPositionCleared() {
-		_spec.ClearField(task.FieldCursorPosition, field.TypeInt64)
+		_spec.ClearField(task.FieldCursorPosition, field.TypeJSON)
 	}
 	if value, ok := tu.mutation.UserInput(); ok {
 		_spec.SetField(task.FieldUserInput, field.TypeString, value)
@@ -849,6 +857,26 @@ func (tuo *TaskUpdateOne) ClearWorkMode() *TaskUpdateOne {
 	return tuo
 }
 
+// SetPrompt sets the "prompt" field.
+func (tuo *TaskUpdateOne) SetPrompt(s string) *TaskUpdateOne {
+	tuo.mutation.SetPrompt(s)
+	return tuo
+}
+
+// SetNillablePrompt sets the "prompt" field if the given value is not nil.
+func (tuo *TaskUpdateOne) SetNillablePrompt(s *string) *TaskUpdateOne {
+	if s != nil {
+		tuo.SetPrompt(*s)
+	}
+	return tuo
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (tuo *TaskUpdateOne) ClearPrompt() *TaskUpdateOne {
+	tuo.mutation.ClearPrompt()
+	return tuo
+}
+
 // SetCompletion sets the "completion" field.
 func (tuo *TaskUpdateOne) SetCompletion(s string) *TaskUpdateOne {
 	tuo.mutation.SetCompletion(s)
@@ -985,23 +1013,8 @@ func (tuo *TaskUpdateOne) ClearSourceCode() *TaskUpdateOne {
 }
 
 // SetCursorPosition sets the "cursor_position" field.
-func (tuo *TaskUpdateOne) SetCursorPosition(i int64) *TaskUpdateOne {
-	tuo.mutation.ResetCursorPosition()
-	tuo.mutation.SetCursorPosition(i)
-	return tuo
-}
-
-// SetNillableCursorPosition sets the "cursor_position" field if the given value is not nil.
-func (tuo *TaskUpdateOne) SetNillableCursorPosition(i *int64) *TaskUpdateOne {
-	if i != nil {
-		tuo.SetCursorPosition(*i)
-	}
-	return tuo
-}
-
-// AddCursorPosition adds i to the "cursor_position" field.
-func (tuo *TaskUpdateOne) AddCursorPosition(i int64) *TaskUpdateOne {
-	tuo.mutation.AddCursorPosition(i)
+func (tuo *TaskUpdateOne) SetCursorPosition(m map[string]interface{}) *TaskUpdateOne {
+	tuo.mutation.SetCursorPosition(m)
 	return tuo
 }
 
@@ -1222,6 +1235,12 @@ func (tuo *TaskUpdateOne) sqlSave(ctx context.Context) (_node *Task, err error) 
 	if tuo.mutation.WorkModeCleared() {
 		_spec.ClearField(task.FieldWorkMode, field.TypeString)
 	}
+	if value, ok := tuo.mutation.Prompt(); ok {
+		_spec.SetField(task.FieldPrompt, field.TypeString, value)
+	}
+	if tuo.mutation.PromptCleared() {
+		_spec.ClearField(task.FieldPrompt, field.TypeString)
+	}
 	if value, ok := tuo.mutation.Completion(); ok {
 		_spec.SetField(task.FieldCompletion, field.TypeString, value)
 	}
@@ -1265,13 +1284,10 @@ func (tuo *TaskUpdateOne) sqlSave(ctx context.Context) (_node *Task, err error) 
 		_spec.ClearField(task.FieldSourceCode, field.TypeString)
 	}
 	if value, ok := tuo.mutation.CursorPosition(); ok {
-		_spec.SetField(task.FieldCursorPosition, field.TypeInt64, value)
-	}
-	if value, ok := tuo.mutation.AddedCursorPosition(); ok {
-		_spec.AddField(task.FieldCursorPosition, field.TypeInt64, value)
+		_spec.SetField(task.FieldCursorPosition, field.TypeJSON, value)
 	}
 	if tuo.mutation.CursorPositionCleared() {
-		_spec.ClearField(task.FieldCursorPosition, field.TypeInt64)
+		_spec.ClearField(task.FieldCursorPosition, field.TypeJSON)
 	}
 	if value, ok := tuo.mutation.UserInput(); ok {
 		_spec.SetField(task.FieldUserInput, field.TypeString, value)
