@@ -76,10 +76,11 @@ func NewUserHandler(
 	admin.GET("/setting", web.BaseHandler(u.GetSetting))
 
 	admin.Use(auth.Auth(), active.Active("admin"))
-	admin.PUT("/setting", web.BindHandler(u.UpdateSetting))
-	admin.POST("/create", web.BindHandler(u.CreateAdmin))
 	admin.GET("/list", web.BaseHandler(u.AdminList, web.WithPage()))
 	admin.GET("/login-history", web.BaseHandler(u.AdminLoginHistory, web.WithPage()))
+	admin.PUT("/setting", web.BindHandler(u.UpdateSetting))
+	admin.POST("/create", web.BindHandler(u.CreateAdmin))
+	admin.POST("/logout", web.BaseHandler(u.AdminLogout))
 	admin.DELETE("/delete", web.BaseHandler(u.DeleteAdmin))
 
 	// user
@@ -91,6 +92,7 @@ func NewUserHandler(
 
 	g.GET("/profile", web.BaseHandler(u.Profile), auth.UserAuth())
 	g.PUT("/profile", web.BindHandler(u.UpdateProfile), auth.UserAuth())
+	g.POST("/logout", web.BaseHandler(u.Logout), auth.UserAuth())
 
 	g.Use(auth.Auth(), active.Active("admin"))
 
@@ -236,6 +238,23 @@ func (h *UserHandler) Login(c *web.Context, req domain.LoginReq) error {
 	return c.Success(resp)
 }
 
+// Logout 用户登出
+//
+//	@Tags			User
+//	@Summary		用户登出
+//	@Description	用户登出
+//	@ID				logout
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	web.Resp{}
+//	@Router			/api/v1/user/logout [post]
+func (h *UserHandler) Logout(c *web.Context) error {
+	if err := h.session.Del(c, consts.UserSessionName); err != nil {
+		return err
+	}
+	return c.Success(nil)
+}
+
 // Update 更新用户
 //
 //	@Tags			User
@@ -316,6 +335,23 @@ func (h *UserHandler) AdminLogin(c *web.Context, req domain.LoginReq) error {
 		return err
 	}
 	return c.Success(resp)
+}
+
+// AdminLogout 管理员登出
+//
+//	@Tags			Admin
+//	@Summary		管理员登出
+//	@Description	管理员登出
+//	@ID				admin-logout
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	web.Resp{}
+//	@Router			/api/v1/admin/logout [post]
+func (h *UserHandler) AdminLogout(c *web.Context) error {
+	if err := h.session.Del(c, consts.SessionName); err != nil {
+		return err
+	}
+	return c.Success(nil)
 }
 
 // List 获取用户列表
