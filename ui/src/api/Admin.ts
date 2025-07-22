@@ -176,6 +176,51 @@ export const getAdminLoginHistory = (
   });
 
 /**
+ * @description 管理员登出
+ *
+ * @tags Admin
+ * @name PostAdminLogout
+ * @summary 管理员登出
+ * @request POST:/api/v1/admin/logout
+ * @response `200` `WebResp` OK
+ */
+
+export const postAdminLogout = (params: RequestParams = {}) =>
+  request<WebResp>({
+    path: `/api/v1/admin/logout`,
+    method: "POST",
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
+ * @description 管理员信息
+ *
+ * @tags Admin
+ * @name GetAdminProfile
+ * @summary 管理员信息
+ * @request GET:/api/v1/admin/profile
+ * @response `200` `(WebResp & {
+    data?: DomainAdminUser,
+
+})` OK
+ */
+
+export const getAdminProfile = (params: RequestParams = {}) =>
+  request<
+    WebResp & {
+      data?: DomainAdminUser;
+    }
+  >({
+    path: `/api/v1/admin/profile`,
+    method: "GET",
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
  * @description 获取系统设置
  *
  * @tags Admin

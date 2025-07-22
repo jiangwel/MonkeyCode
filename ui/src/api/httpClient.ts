@@ -58,6 +58,9 @@ export enum ContentType {
   Text = "text/plain",
 }
 
+const whitePathnameList = ["/user/login", "/login"];
+const whiteApiList = ["/api/v1/user/profile", "/api/v1/admin/profile"];
+
 const redirectToLogin = () => {
   const redirectAfterLogin = encodeURIComponent(location.href);
   const search = `redirect=${redirectAfterLogin}`;
@@ -101,6 +104,9 @@ export class HttpClient<SecurityDataType = unknown> {
       },
       (err) => {
         if (err?.response?.status === 401) {
+          if (whitePathnameList.includes(location.pathname)) {
+            return;
+          }
           Message.error("尚未登录");
           redirectToLogin();
           return;

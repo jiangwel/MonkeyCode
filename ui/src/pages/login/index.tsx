@@ -16,6 +16,7 @@ import { postAdminLogin } from '@/api/Admin';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
+import { ConstsLoginSource } from '@/api/types';
 import { Icon } from '@c-x/ui';
 import Logo from '@/assets/images/logo.png';
 import { getRedirectUrl } from '@/utils';
@@ -71,6 +72,7 @@ const LoginPage = () => {
     return postAdminLogin({
       username: data.username,
       password: data.password,
+      source: ConstsLoginSource.LoginSourceBrowser,
     });
   };
 

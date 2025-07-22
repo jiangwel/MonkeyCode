@@ -147,6 +147,7 @@ const AuthPage = () => {
         const loginResult = await postLogin({
           ...data,
           session_id: sessionId,
+          source: ConstsLoginSource.LoginSourcePlugin,
         });
 
         if (!loginResult.redirect_url) {

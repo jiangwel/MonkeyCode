@@ -26,7 +26,7 @@ import { useRequest } from 'ahooks';
 import { postRegister, getUserOauthSignupOrIn } from '@/api/User';
 import { getGetSetting } from '@/api/Admin';
 import { Icon } from '@c-x/ui';
-import { DomainSetting } from '@/api/types';
+import { ConstsLoginSource, DomainSetting } from '@/api/types';
 
 import DownloadIcon from '@mui/icons-material/Download';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
@@ -140,6 +140,7 @@ const Invite = () => {
       platform,
       redirect_url: `${window.location.origin}/invite/${id}/2`,
       inviate_code: id,
+      source: 'plugin',
     }).then((res) => {
       if (res.url) {
         window.location.href = res.url;
