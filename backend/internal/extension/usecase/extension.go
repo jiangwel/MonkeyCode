@@ -7,13 +7,15 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
-	"time"
 
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
+	"github.com/chaitin/MonkeyCode/backend/pkg/version"
+	"github.com/chaitin/MonkeyCode/backend/pkg/vsix"
 )
 
 type ExtensionUsecase struct {
@@ -35,7 +37,7 @@ func NewExtensionUsecase(
 		mu:     sync.Mutex{},
 		logger: logger,
 	}
-	go e.syncLatest()
+	e.syncLatest()
 	return e
 }
 
@@ -67,21 +69,12 @@ func (e *ExtensionUsecase) syncLatest() {
 
 	logger := e.logger.With("fn", "syncLatest")
 	logger.With("version", e.version).Debug("开始同步插件版本信息")
-	t := time.NewTicker(1 * time.Minute)
 
 	e.innerSync()
-	for range t.C {
-		e.innerSync()
-	}
 }
 
 func (e *ExtensionUsecase) innerSync() {
-	logger := e.logger.With("fn", "syncLatest")
-	v, err := e.getRemoteVersion()
-	if err != nil {
-		logger.With("error", err).Error("获取远程插件版本信息失败")
-		return
-	}
+	v := strings.ReplaceAll(version.Version, "v", "")
 	if v == e.version {
 		return
 	}
@@ -105,13 +98,19 @@ func (e *ExtensionUsecase) download(version string) {
 		logger.With("error", err).Error("创建文件失败")
 		return
 	}
-	defer f.Close()
 	_, err = io.Copy(f, resp.Body)
 	if err != nil {
 		logger.With("error", err).Error("复制文件内容失败")
 		return
 	}
+	f.Close()
 	logger.Debug("下载插件成功")
+
+	if err := vsix.ValidateVsix(filename); err != nil {
+		logger.With("error", err).Error("校验插件失败")
+		os.Remove(filename)
+		return
+	}
 
 	if _, err := e.repo.Save(context.Background(), &db.Extension{
 		Version: version,
@@ -122,25 +121,4 @@ func (e *ExtensionUsecase) download(version string) {
 		return
 	}
 	e.version = version
-}
-
-func (e *ExtensionUsecase) getRemoteVersion() (string, error) {
-	logger := e.logger.With("fn", "getRemoteVersion")
-	u := fmt.Sprintf("%s/monkeycode/vsix_version.txt", e.config.Extension.Baseurl)
-	logger.With("url", u).Debug("开始获取远程插件版本信息")
-	resp, err := http.Get(u)
-	if err != nil {
-		logger.With("error", err).Error("获取插件版本信息失败")
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	version, err := io.ReadAll(resp.Body)
-	if err != nil {
-		logger.With("error", err).Error("读取插件body信息失败")
-		return "", err
-	}
-
-	logger.With("version", string(version)).Debug("读取到的插件版本信息")
-	return string(version), nil
 }

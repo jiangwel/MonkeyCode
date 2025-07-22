@@ -6,6 +6,15 @@ import (
 	"io"
 )
 
+func ValidateVsix(filename string) error {
+	f, err := zip.OpenReader(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return nil
+}
+
 func ChangeVsixEndpoint(vsixFile, target, endpoint string, w io.Writer) error {
 	reader, err := zip.OpenReader(vsixFile)
 	if err != nil {
