@@ -76,6 +76,7 @@ func NewUserHandler(
 	admin.GET("/setting", web.BaseHandler(u.GetSetting))
 
 	admin.Use(auth.Auth(), active.Active("admin"))
+	admin.GET("/profile", web.BaseHandler(u.AdminProfile))
 	admin.GET("/list", web.BaseHandler(u.AdminList, web.WithPage()))
 	admin.GET("/login-history", web.BaseHandler(u.AdminLoginHistory, web.WithPage()))
 	admin.PUT("/setting", web.BindHandler(u.UpdateSetting))
@@ -352,6 +353,21 @@ func (h *UserHandler) AdminLogout(c *web.Context) error {
 		return err
 	}
 	return c.Success(nil)
+}
+
+// AdminProfile 管理员信息
+//
+//	@Tags			Admin
+//	@Summary		管理员信息
+//	@Description	管理员信息
+//	@ID				admin-profile
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	web.Resp{data=domain.AdminUser}
+//	@Router			/api/v1/admin/profile [get]
+func (h *UserHandler) AdminProfile(c *web.Context) error {
+	user := middleware.GetAdmin(c)
+	return c.Success(user)
 }
 
 // List 获取用户列表
