@@ -85,6 +85,7 @@ type VSCodeAuthInitReq struct {
 	OSType      consts.OSType    `json:"os_type"`                          // 操作系统类型
 	OSRelease   consts.OSRelease `json:"os_release"`                       // 操作系统版本
 	Hostname    string           `json:"hostname"`                         // 主机名
+	BaseURL     string           `json:"-"`
 }
 
 type VSCodeAuthInitResp struct {

@@ -17,8 +17,6 @@ type Config struct {
 
 	Logger *logger.Config `mapstructure:"logger"`
 
-	BaseUrl string `mapstructure:"base_url"`
-
 	Server struct {
 		Addr string `mapstructure:"addr"`
 	} `mapstructure:"server"`
@@ -81,7 +79,6 @@ func Init() (*Config, error) {
 
 	v.SetDefault("debug", false)
 	v.SetDefault("logger.level", "info")
-	v.SetDefault("base_url", "")
 	v.SetDefault("server.addr", ":8888")
 	v.SetDefault("admin.user", "admin")
 	v.SetDefault("admin.password", "")

@@ -2618,7 +2618,7 @@
         },
         "/v1/report": {
             "post": {
-                "description": "报告",
+                "description": "报告，支持多种操作：accept（接受补全）、suggest（建议）、reject（拒绝补全并记录用户输入）、file_written（文件写入）",
                 "consumes": [
                     "application/json"
                 ],
@@ -2748,12 +2748,14 @@
             "enum": [
                 "accept",
                 "suggest",
-                "file_written"
+                "file_written",
+                "reject"
             ],
             "x-enum-varnames": [
                 "ReportActionAccept",
                 "ReportActionSuggest",
-                "ReportActionFileWritten"
+                "ReportActionFileWritten",
+                "ReportActionReject"
             ]
         },
         "consts.UserPlatform": {
@@ -3807,12 +3809,24 @@
                     "description": "内容",
                     "type": "string"
                 },
+                "cursor_position": {
+                    "description": "光标位置（用于reject action）",
+                    "type": "integer"
+                },
                 "id": {
                     "description": "task_id or resp_id",
                     "type": "string"
                 },
+                "source_code": {
+                    "description": "当前文件的原文（用于reject action）",
+                    "type": "string"
+                },
                 "tool": {
                     "description": "工具",
+                    "type": "string"
+                },
+                "user_input": {
+                    "description": "用户输入的新文本（用于reject action）",
                     "type": "string"
                 }
             }
