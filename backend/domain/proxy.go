@@ -45,10 +45,13 @@ type AcceptCompletionReq struct {
 }
 
 type ReportReq struct {
-	Action  consts.ReportAction `json:"action"`
-	ID      string              `json:"id"`      // task_id or resp_id
-	Content string              `json:"content"` // 内容
-	Tool    string              `json:"tool"`    // 工具
+	Action         consts.ReportAction `json:"action"`
+	ID             string              `json:"id"`              // task_id or resp_id
+	Content        string              `json:"content"`         // 内容
+	Tool           string              `json:"tool"`            // 工具
+	UserInput      string              `json:"user_input"`      // 用户输入的新文本（用于reject action）
+	SourceCode     string              `json:"source_code"`     // 当前文件的原文（用于reject action）
+	CursorPosition int64               `json:"cursor_position"` // 光标位置（用于reject action）
 }
 
 type RecordParam struct {
