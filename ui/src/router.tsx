@@ -43,6 +43,7 @@ const UserChat = LazyLoadable(lazy(() => import('@/pages/user/chat')));
 const UserCompletion = LazyLoadable(
   lazy(() => import('@/pages/user/completion'))
 );
+const UserSetting = LazyLoadable(lazy(() => import('@/pages/user/setting')));
 
 const UserDashboard = LazyLoadable(
   lazy(() => import('@/pages/user/dashboard'))
@@ -107,6 +108,10 @@ const routerConfig = [
       {
         path: 'completion',
         element: <UserCompletion />,
+      },
+      {
+        path: 'setting',
+        element: <UserSetting />,
       },
     ],
   },

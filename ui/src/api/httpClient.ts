@@ -105,11 +105,11 @@ export class HttpClient<SecurityDataType = unknown> {
       (err) => {
         if (err?.response?.status === 401) {
           if (whitePathnameList.includes(location.pathname)) {
-            return;
+            return Promise.reject("尚未登录");
           }
           Message.error("尚未登录");
           redirectToLogin();
-          return;
+          return Promise.reject("尚未登录");
         }
         // 手动取消请求
         if (err.code === "ERR_CANCELED") {
