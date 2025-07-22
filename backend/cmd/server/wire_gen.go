@@ -10,6 +10,7 @@ import (
 	"github.com/GoYoko/web"
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db"
+	"github.com/chaitin/MonkeyCode/backend/domain"
 	v1_5 "github.com/chaitin/MonkeyCode/backend/internal/billing/handler/http/v1"
 	repo7 "github.com/chaitin/MonkeyCode/backend/internal/billing/repo"
 	usecase6 "github.com/chaitin/MonkeyCode/backend/internal/billing/usecase"
@@ -28,6 +29,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/repo"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/usecase"
+	repo8 "github.com/chaitin/MonkeyCode/backend/internal/report/repo"
+	usecase7 "github.com/chaitin/MonkeyCode/backend/internal/report/usecase"
 	v1_3 "github.com/chaitin/MonkeyCode/backend/internal/user/handler/v1"
 	repo5 "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
 	usecase4 "github.com/chaitin/MonkeyCode/backend/internal/user/usecase"
@@ -86,6 +89,8 @@ func newServer() (*Server, error) {
 	billingHandler := v1_5.NewBillingHandler(web, billingUsecase, authMiddleware, activeMiddleware)
 	versionInfo := version.NewVersionInfo()
 	reporter := report.NewReport(slogLogger, configConfig, versionInfo)
+	reportRepo := repo8.NewReportRepo(client)
+	reportUsecase := usecase7.NewReportUsecase(reportRepo, slogLogger, reporter)
 	server := &Server{
 		config:      configConfig,
 		web:         web,
@@ -98,6 +103,7 @@ func newServer() (*Server, error) {
 		billingV1:   billingHandler,
 		version:     versionInfo,
 		report:      reporter,
+		reportuse:   reportUsecase,
 	}
 	return server, nil
 }
@@ -116,4 +122,5 @@ type Server struct {
 	billingV1   *v1_5.BillingHandler
 	version     *version.VersionInfo
 	report      *report.Reporter
+	reportuse   domain.ReportUsecase
 }
