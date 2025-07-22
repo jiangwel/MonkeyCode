@@ -125,7 +125,7 @@ export const getModelList = (params: RequestParams = {}) =>
   });
 
 /**
- * @description 报告
+ * @description 报告，支持多种操作：accept（接受补全）、suggest（建议）、reject（拒绝补全并记录用户输入）、file_written（文件写入）
  *
  * @tags OpenAIV1
  * @name PostReport

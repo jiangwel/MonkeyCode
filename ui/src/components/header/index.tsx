@@ -1,14 +1,24 @@
-import { Button, IconButton, Stack } from '@mui/material';
-import { Icon, message } from '@c-x/ui';
+import { Button, IconButton, Stack, Tooltip } from '@mui/material';
+import { message } from '@c-x/ui';
+import { postLogout } from '@/api/User';
+import { postAdminLogout } from '@/api/Admin';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DownloadIcon from '@mui/icons-material/Download';
-import { Box } from '@mui/material';
 import Bread from './Bread';
 
 const Header = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const onLogout = async () => {
+    if (pathname.startsWith('/user')) {
+      await postLogout();
+    } else {
+      await postAdminLogout();
+    }
+    message.success('退出登录成功');
+    navigate(pathname.startsWith('/user') ? '/user/login' : '/login');
+  };
   return (
     <Stack
       direction={'row'}
@@ -33,25 +43,22 @@ const Header = () => {
         >
           下载客户端
         </Button>
-        <IconButton
-          title='退出登录'
-          size='small'
-          sx={{
-            bgcolor: '#fff',
+        <Tooltip title='退出登录' arrow>
+          <IconButton
+            title='退出登录'
+            size='small'
+            sx={{
+              bgcolor: '#fff',
 
-            '&:hover': {
-              color: 'primary.main',
-            },
-          }}
-          onClick={() => {
-            message.success('退出登录成功');
-            navigate(pathname.startsWith('/user/') ? '/user/login' : '/login', {
-              replace: true,
-            });
-          }}
-        >
-          <LogoutIcon sx={{ fontSize: 16 }} />
-        </IconButton>
+              '&:hover': {
+                color: 'primary.main',
+              },
+            }}
+            onClick={onLogout}
+          >
+            <LogoutIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Tooltip>
       </Stack>
     </Stack>
   );

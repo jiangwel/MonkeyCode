@@ -26,6 +26,7 @@ export enum ConstsReportAction {
   ReportActionAccept = "accept",
   ReportActionSuggest = "suggest",
   ReportActionFileWritten = "file_written",
+  ReportActionReject = "reject",
 }
 
 export enum ConstsModelType {
@@ -367,8 +368,11 @@ export interface DomainLoginReq {
   password?: string;
   /** 会话Id插件登录时必填 */
   session_id?: string;
-  /** 登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin */
-  source?: ConstsLoginSource;
+  /**
+   * 登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin
+   * @default "plugin"
+   */
+  source: ConstsLoginSource;
   /** 用户名 */
   username?: string;
 }
@@ -511,10 +515,16 @@ export interface DomainReportReq {
   action?: ConstsReportAction;
   /** 内容 */
   content?: string;
+  /** 光标位置（用于reject action） */
+  cursor_position?: number;
   /** task_id or resp_id */
   id?: string;
+  /** 当前文件的原文（用于reject action） */
+  source_code?: string;
   /** 工具 */
   tool?: string;
+  /** 用户输入的新文本（用于reject action） */
+  user_input?: string;
 }
 
 export interface DomainSetting {
@@ -1070,6 +1080,9 @@ export interface GetUserOauthSignupOrInParams {
   redirect_url?: string;
   /** 会话ID */
   session_id?: string;
-  /** 登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin */
-  source?: "plugin" | "browser";
+  /**
+   * 登录来源 plugin: 插件 browser: 浏览器; 默认为 plugin
+   * @default "plugin"
+   */
+  source: "plugin" | "browser";
 }

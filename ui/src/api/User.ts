@@ -190,6 +190,25 @@ export const getLoginHistory = (
   });
 
 /**
+ * @description 用户登出
+ *
+ * @tags User
+ * @name PostLogout
+ * @summary 用户登出
+ * @request POST:/api/v1/user/logout
+ * @response `200` `WebResp` OK
+ */
+
+export const postLogout = (params: RequestParams = {}) =>
+  request<WebResp>({
+    path: `/api/v1/user/logout`,
+    method: "POST",
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
  * @description 用户 OAuth 回调
  *
  * @tags User
