@@ -195,3 +195,14 @@ func GetHeaderMap(header string) map[string]string {
 	}
 	return headerMap
 }
+
+func GetBaseURL(req *http.Request) string {
+	scheme := "http"
+	if req.TLS != nil {
+		scheme = "https"
+	}
+	if proto := req.Header.Get("X-Forwarded-Proto"); proto != "" {
+		scheme = proto
+	}
+	return fmt.Sprintf("%s://%s", scheme, req.Host)
+}

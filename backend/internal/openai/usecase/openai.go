@@ -77,7 +77,7 @@ func (u *OpenAIUsecase) GetConfig(ctx context.Context, req *domain.ConfigReq) (*
 
 	cnt := bytes.NewBuffer(nil)
 	if err := t.Execute(cnt, map[string]string{
-		"apiBase":   u.cfg.BaseUrl,
+		"apiBase":   req.BaseURL,
 		"apikey":    apiKey.Key,
 		"chatModel": chatModel,
 		"codeModel": codeModel,

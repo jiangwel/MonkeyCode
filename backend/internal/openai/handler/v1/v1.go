@@ -13,6 +13,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/internal/middleware"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy"
+	"github.com/chaitin/MonkeyCode/backend/pkg/request"
 )
 
 type V1Handler struct {
@@ -75,7 +76,7 @@ func (h *V1Handler) Version(c *web.Context) error {
 
 	return c.JSON(http.StatusOK, domain.VersionInfo{
 		Version: v.Version,
-		URL:     fmt.Sprintf("%s/api/v1/static/vsix/%s", h.config.BaseUrl, v.Version),
+		URL:     fmt.Sprintf("%s/api/v1/static/vsix/%s", request.GetBaseURL(c.Request()), v.Version),
 	})
 }
 
@@ -182,6 +183,7 @@ func (h *V1Handler) Embeddings(c *web.Context) error {
 func (h *V1Handler) GetConfig(c *web.Context, req domain.ConfigReq) error {
 	key := middleware.GetApiKey(c)
 	req.Key = key.Key
+	req.BaseURL = request.GetBaseURL(c.Request())
 	resp, err := h.usecase.GetConfig(c.Request().Context(), &req)
 	if err != nil {
 		return err

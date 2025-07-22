@@ -24,6 +24,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/errcode"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 	"github.com/chaitin/MonkeyCode/backend/pkg/oauth"
+	"github.com/chaitin/MonkeyCode/backend/pkg/request"
 	"github.com/chaitin/MonkeyCode/backend/pkg/session"
 )
 
@@ -291,7 +292,7 @@ func (u *UserUsecase) VSCodeAuthInit(ctx context.Context, req *domain.VSCodeAuth
 		return nil, err
 	}
 	return &domain.VSCodeAuthInitResp{
-		AuthURL: fmt.Sprintf("%s?session_id=%s", u.cfg.BaseUrl+"/auth", i),
+		AuthURL: fmt.Sprintf("%s?session_id=%s", req.BaseURL+"/auth", i),
 	}, nil
 }
 
@@ -422,11 +423,11 @@ func (u *UserUsecase) DeleteAdmin(ctx context.Context, id string) error {
 	return u.repo.DeleteAdmin(ctx, id)
 }
 
-func (u *UserUsecase) getOAuthConfig(setting *db.Setting, platform consts.UserPlatform) (*domain.OAuthConfig, error) {
+func (u *UserUsecase) getOAuthConfig(baseURL string, setting *db.Setting, platform consts.UserPlatform) (*domain.OAuthConfig, error) {
 	cfg := domain.OAuthConfig{
 		Debug:       u.cfg.Debug,
 		Platform:    platform,
-		RedirectURI: fmt.Sprintf("%s/api/v1/user/oauth/callback", u.cfg.BaseUrl),
+		RedirectURI: fmt.Sprintf("%s/api/v1/user/oauth/callback", baseURL),
 	}
 
 	switch platform {
@@ -462,7 +463,7 @@ func (u *UserUsecase) OAuthSignUpOrIn(ctx context.Context, req *domain.OAuthSign
 	if err != nil {
 		return nil, err
 	}
-	cfg, err := u.getOAuthConfig(setting, req.Platform)
+	cfg, err := u.getOAuthConfig(req.BaseURL, setting, req.Platform)
 	if err != nil {
 		return nil, err
 	}
@@ -496,6 +497,8 @@ func (u *UserUsecase) OAuthSignUpOrIn(ctx context.Context, req *domain.OAuthSign
 
 func (u *UserUsecase) OAuthCallback(c *web.Context, req *domain.OAuthCallbackReq) error {
 	ctx := c.Request().Context()
+	req.IP = c.RealIP()
+	req.BaseURL = request.GetBaseURL(c.Request())
 	b, err := u.redis.Get(ctx, fmt.Sprintf("oauth:state:%s", req.State)).Result()
 	if err != nil {
 		return err
@@ -553,7 +556,7 @@ func (u *UserUsecase) FetchUserInfo(ctx context.Context, req *domain.OAuthCallba
 		return nil, err
 	}
 
-	cfg, err := u.getOAuthConfig(setting, session.Platform)
+	cfg, err := u.getOAuthConfig(req.BaseURL, setting, session.Platform)
 	if err != nil {
 		return nil, err
 	}

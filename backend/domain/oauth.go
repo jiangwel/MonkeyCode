@@ -37,6 +37,7 @@ type OAuthSignUpOrInReq struct {
 	SessionID   string              `json:"session_id" query:"session_id"`                              // 会话ID
 	RedirectURL string              `json:"redirect_url" query:"redirect_url"`                          // 登录成功后跳转的 URL
 	InviteCode  string              `json:"inviate_code" query:"inviate_code"`                          // 邀请码
+	BaseURL     string              `json:"-"`
 }
 
 func (o OAuthSignUpOrInReq) OAuthKind() consts.OAuthKind {
@@ -47,9 +48,10 @@ func (o OAuthSignUpOrInReq) OAuthKind() consts.OAuthKind {
 }
 
 type OAuthCallbackReq struct {
-	State string `json:"state" query:"state" validate:"required"`
-	Code  string `json:"code" query:"code" validate:"required"`
-	IP    string `json:"-"`
+	State   string `json:"state" query:"state" validate:"required"`
+	Code    string `json:"code" query:"code" validate:"required"`
+	IP      string `json:"-"`
+	BaseURL string `json:"-"`
 }
 
 type OAuthURLResp struct {

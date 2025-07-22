@@ -18,6 +18,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/errcode"
 	"github.com/chaitin/MonkeyCode/backend/internal/middleware"
+	"github.com/chaitin/MonkeyCode/backend/pkg/request"
 	"github.com/chaitin/MonkeyCode/backend/pkg/session"
 	"github.com/chaitin/MonkeyCode/backend/pkg/vsix"
 )
@@ -121,6 +122,7 @@ func NewUserHandler(
 }
 
 func (h *UserHandler) VSCodeAuthInit(c *web.Context, req domain.VSCodeAuthInitReq) error {
+	req.BaseURL = request.GetBaseURL(c.Request())
 	resp, err := h.usecase.VSCodeAuthInit(c.Request().Context(), &req)
 	if err != nil {
 		return err
@@ -167,7 +169,7 @@ func (h *UserHandler) VSIXDownload(c *web.Context) error {
 		return err
 	}
 
-	cacheKey := h.generateCacheKey(v.Version, h.cfg.BaseUrl)
+	cacheKey := h.generateCacheKey(v.Version, request.GetBaseURL(c.Request()))
 
 	h.cacheMu.RLock()
 	if entry, exists := h.vsixCache[cacheKey]; exists {
@@ -186,7 +188,7 @@ func (h *UserHandler) VSIXDownload(c *web.Context) error {
 	h.cacheMu.RUnlock()
 
 	var buf bytes.Buffer
-	if err := vsix.ChangeVsixEndpoint(v.Path, "extension/package.json", h.cfg.BaseUrl, &buf); err != nil {
+	if err := vsix.ChangeVsixEndpoint(v.Path, "extension/package.json", request.GetBaseURL(c.Request()), &buf); err != nil {
 		return err
 	}
 
@@ -504,6 +506,7 @@ func (h *UserHandler) UpdateSetting(c *web.Context, req domain.UpdateSettingReq)
 //	@Router			/api/v1/user/oauth/signup-or-in [get]
 func (h *UserHandler) OAuthSignUpOrIn(ctx *web.Context, req domain.OAuthSignUpOrInReq) error {
 	h.logger.With("req", req).DebugContext(ctx.Request().Context(), "OAuthSignUpOrIn")
+	req.BaseURL = request.GetBaseURL(ctx.Request())
 	resp, err := h.usecase.OAuthSignUpOrIn(ctx.Request().Context(), &req)
 	if err != nil {
 		return err
@@ -523,7 +526,6 @@ func (h *UserHandler) OAuthSignUpOrIn(ctx *web.Context, req domain.OAuthSignUpOr
 //	@Success		200	{object}	web.Resp{data=string}
 //	@Router			/api/v1/user/oauth/callback [get]
 func (h *UserHandler) OAuthCallback(ctx *web.Context, req domain.OAuthCallbackReq) error {
-	req.IP = ctx.RealIP()
 	return h.usecase.OAuthCallback(ctx, &req)
 }
 
