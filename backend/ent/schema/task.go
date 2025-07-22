@@ -43,9 +43,9 @@ func (Task) Fields() []ent.Field {
 		field.Int64("input_tokens").Optional(),
 		field.Int64("output_tokens").Optional(),
 		field.Bool("is_suggested").Default(false),
-		field.String("source_code").Optional(),                             // 当前文件的原文
-		field.JSON("cursor_position", map[string]interface{}{}).Optional(), // 光标位置 {"line": 10, "column": 5}
-		field.String("user_input").Optional(),                              // 用户实际输入的内容
+		field.String("source_code").Optional(),                     // 当前文件的原文
+		field.JSON("cursor_position", map[string]any{}).Optional(), // 光标位置 {"line": 10, "column": 5}
+		field.String("user_input").Optional(),                      // 用户实际输入的内容
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

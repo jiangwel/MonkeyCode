@@ -69,7 +69,7 @@ func (r *Recorder) handleShadow() {
 
 	var (
 		taskID, mode, prompt, language, tool, code, sourceCode, userInput string
-		cursorPosition                                                    map[string]interface{}
+		cursorPosition                                                    map[string]any
 	)
 
 	switch r.ctx.Model.ModelType {
@@ -99,7 +99,7 @@ func (r *Recorder) handleShadow() {
 		// 解析cursor_position为JSON格式
 		if posStr := req.Metadata["cursor_position"]; posStr != "" {
 			if pos, err := strconv.ParseInt(posStr, 10, 64); err == nil {
-				cursorPosition = map[string]interface{}{
+				cursorPosition = map[string]any{
 					"position": pos,
 					"line":     1, // 默认值
 					"column":   pos,

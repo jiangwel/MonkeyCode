@@ -393,26 +393,26 @@ func (s *Setting) From(e *db.Setting) *Setting {
 
 // CompletionData 补全数据导出结构
 type CompletionData struct {
-	TaskID          string                 `json:"task_id"`          // 任务ID
-	UserID          string                 `json:"user_id"`          // 用户ID
-	ModelID         string                 `json:"model_id"`         // 模型ID
-	ModelName       string                 `json:"model_name"`       // 模型名称
-	RequestID       string                 `json:"request_id"`       // 请求ID
-	ModelType       string                 `json:"model_type"`       // 模型类型
-	ProgramLanguage string                 `json:"program_language"` // 编程语言
-	WorkMode        string                 `json:"work_mode"`        // 工作模式
-	Prompt          string                 `json:"prompt"`           // 用户输入的提示
-	Completion      string                 `json:"completion"`       // LLM生成的补全代码
-	SourceCode      string                 `json:"source_code"`      // 当前文件原文
-	CursorPosition  map[string]interface{} `json:"cursor_position"`  // 光标位置 {"line": 10, "column": 5}
-	UserInput       string                 `json:"user_input"`       // 用户最终输入的内容
-	IsAccept        bool                   `json:"is_accept"`        // 用户是否接受补全
-	IsSuggested     bool                   `json:"is_suggested"`     // 是否为建议模式
-	CodeLines       int64                  `json:"code_lines"`       // 代码行数
-	InputTokens     int64                  `json:"input_tokens"`     // 输入token数
-	OutputTokens    int64                  `json:"output_tokens"`    // 输出token数
-	CreatedAt       int64                  `json:"created_at"`       // 创建时间戳
-	UpdatedAt       int64                  `json:"updated_at"`       // 更新时间戳
+	TaskID          string         `json:"task_id"`          // 任务ID
+	UserID          string         `json:"user_id"`          // 用户ID
+	ModelID         string         `json:"model_id"`         // 模型ID
+	ModelName       string         `json:"model_name"`       // 模型名称
+	RequestID       string         `json:"request_id"`       // 请求ID
+	ModelType       string         `json:"model_type"`       // 模型类型
+	ProgramLanguage string         `json:"program_language"` // 编程语言
+	WorkMode        string         `json:"work_mode"`        // 工作模式
+	Prompt          string         `json:"prompt"`           // 用户输入的提示
+	Completion      string         `json:"completion"`       // LLM生成的补全代码
+	SourceCode      string         `json:"source_code"`      // 当前文件原文
+	CursorPosition  map[string]any `json:"cursor_position"`  // 光标位置 {"line": 10, "column": 5}
+	UserInput       string         `json:"user_input"`       // 用户最终输入的内容
+	IsAccept        bool           `json:"is_accept"`        // 用户是否接受补全
+	IsSuggested     bool           `json:"is_suggested"`     // 是否为建议模式
+	CodeLines       int64          `json:"code_lines"`       // 代码行数
+	InputTokens     int64          `json:"input_tokens"`     // 输入token数
+	OutputTokens    int64          `json:"output_tokens"`    // 输出token数
+	CreatedAt       int64          `json:"created_at"`       // 创建时间戳
+	UpdatedAt       int64          `json:"updated_at"`       // 更新时间戳
 }
 
 // ExportCompletionDataResp 导出补全数据响应

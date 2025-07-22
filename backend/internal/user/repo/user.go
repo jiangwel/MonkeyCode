@@ -476,7 +476,7 @@ func (r *UserRepo) ExportCompletionData(ctx context.Context) ([]*domain.Completi
 		}
 
 		// 处理cursor_position（已经是JSON格式）
-		var cursorPosition map[string]interface{}
+		var cursorPosition map[string]any
 		if t.CursorPosition != nil {
 			cursorPosition = t.CursorPosition
 		}
