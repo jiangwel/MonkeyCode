@@ -100,6 +100,7 @@ func (r *ProxyRepo) Record(ctx context.Context, record *domain.RecordParam) erro
 				SetIsAccept(record.IsAccept).
 				SetModelType(record.ModelType).
 				SetWorkMode(record.WorkMode).
+				SetPrompt(record.Prompt).
 				SetCodeLines(record.CodeLines).
 				SetSourceCode(record.SourceCode).
 				SetCursorPosition(record.CursorPosition).
@@ -126,7 +127,10 @@ func (r *ProxyRepo) Record(ctx context.Context, record *domain.RecordParam) erro
 			if record.SourceCode != "" {
 				up.SetSourceCode(record.SourceCode)
 			}
-			if record.CursorPosition > 0 {
+			if record.Prompt != "" {
+				up.SetPrompt(record.Prompt)
+			}
+			if record.CursorPosition != nil {
 				up.SetCursorPosition(record.CursorPosition)
 			}
 			if record.UserInput != "" {
@@ -264,10 +268,16 @@ func (r *ProxyRepo) handleRejectCompletion(ctx context.Context, tx *db.Tx, rc *d
 	shouldRecord := false
 
 	// 检查光标位置是否匹配（允许小的误差）
-	if req.CursorPosition > 0 && rc.CursorPosition > 0 {
-		positionDiff := abs(req.CursorPosition - rc.CursorPosition)
-		if positionDiff <= 10 { // 允许10个字符的误差
-			shouldRecord = true
+	if req.CursorPosition != nil && rc.CursorPosition != nil {
+		// 从JSON中提取position值进行比较
+		reqPos, reqOk := req.CursorPosition["position"].(float64)
+		rcPos, rcOk := rc.CursorPosition["position"].(float64)
+
+		if reqOk && rcOk {
+			positionDiff := abs(int64(reqPos) - int64(rcPos))
+			if positionDiff <= 10 { // 允许10个字符的误差
+				shouldRecord = true
+			}
 		}
 	}
 

@@ -83,6 +83,7 @@ func NewUserHandler(
 	admin.POST("/create", web.BindHandler(u.CreateAdmin))
 	admin.POST("/logout", web.BaseHandler(u.AdminLogout))
 	admin.DELETE("/delete", web.BaseHandler(u.DeleteAdmin))
+	admin.GET("/export-completion-data", web.BaseHandler(u.ExportCompletionData))
 
 	// user
 	g := w.Group("/api/v1/user")
@@ -619,4 +620,24 @@ func (h *UserHandler) UpdateProfile(ctx *web.Context, req domain.ProfileUpdateRe
 
 func (h *UserHandler) InitAdmin() error {
 	return h.usecase.InitAdmin(context.Background())
+}
+
+// ExportCompletionData godoc
+// @Summary 导出补全数据
+// @Description 管理员导出所有补全相关数据
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} domain.ExportCompletionDataResp
+// @Failure 401 {object} errcode.Error
+// @Failure 500 {object} errcode.Error
+// @Router /api/v1/admin/export-completion-data [get]
+func (h *UserHandler) ExportCompletionData(c *web.Context) error {
+	data, err := h.usecase.ExportCompletionData(c.Request().Context())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, data)
 }

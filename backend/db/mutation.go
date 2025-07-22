@@ -9869,6 +9869,7 @@ type TaskMutation struct {
 	is_accept           *bool
 	program_language    *string
 	work_mode           *string
+	prompt              *string
 	completion          *string
 	code_lines          *int64
 	addcode_lines       *int64
@@ -9878,8 +9879,7 @@ type TaskMutation struct {
 	addoutput_tokens    *int64
 	is_suggested        *bool
 	source_code         *string
-	cursor_position     *int64
-	addcursor_position  *int64
+	cursor_position     *map[string]interface{}
 	user_input          *string
 	created_at          *time.Time
 	updated_at          *time.Time
@@ -10353,6 +10353,55 @@ func (m *TaskMutation) ResetWorkMode() {
 	delete(m.clearedFields, task.FieldWorkMode)
 }
 
+// SetPrompt sets the "prompt" field.
+func (m *TaskMutation) SetPrompt(s string) {
+	m.prompt = &s
+}
+
+// Prompt returns the value of the "prompt" field in the mutation.
+func (m *TaskMutation) Prompt() (r string, exists bool) {
+	v := m.prompt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrompt returns the old "prompt" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldPrompt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrompt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrompt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrompt: %w", err)
+	}
+	return oldValue.Prompt, nil
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (m *TaskMutation) ClearPrompt() {
+	m.prompt = nil
+	m.clearedFields[task.FieldPrompt] = struct{}{}
+}
+
+// PromptCleared returns if the "prompt" field was cleared in this mutation.
+func (m *TaskMutation) PromptCleared() bool {
+	_, ok := m.clearedFields[task.FieldPrompt]
+	return ok
+}
+
+// ResetPrompt resets all changes to the "prompt" field.
+func (m *TaskMutation) ResetPrompt() {
+	m.prompt = nil
+	delete(m.clearedFields, task.FieldPrompt)
+}
+
 // SetCompletion sets the "completion" field.
 func (m *TaskMutation) SetCompletion(s string) {
 	m.completion = &s
@@ -10698,13 +10747,12 @@ func (m *TaskMutation) ResetSourceCode() {
 }
 
 // SetCursorPosition sets the "cursor_position" field.
-func (m *TaskMutation) SetCursorPosition(i int64) {
-	m.cursor_position = &i
-	m.addcursor_position = nil
+func (m *TaskMutation) SetCursorPosition(value map[string]interface{}) {
+	m.cursor_position = &value
 }
 
 // CursorPosition returns the value of the "cursor_position" field in the mutation.
-func (m *TaskMutation) CursorPosition() (r int64, exists bool) {
+func (m *TaskMutation) CursorPosition() (r map[string]interface{}, exists bool) {
 	v := m.cursor_position
 	if v == nil {
 		return
@@ -10715,7 +10763,7 @@ func (m *TaskMutation) CursorPosition() (r int64, exists bool) {
 // OldCursorPosition returns the old "cursor_position" field's value of the Task entity.
 // If the Task object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TaskMutation) OldCursorPosition(ctx context.Context) (v int64, err error) {
+func (m *TaskMutation) OldCursorPosition(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCursorPosition is only allowed on UpdateOne operations")
 	}
@@ -10729,28 +10777,9 @@ func (m *TaskMutation) OldCursorPosition(ctx context.Context) (v int64, err erro
 	return oldValue.CursorPosition, nil
 }
 
-// AddCursorPosition adds i to the "cursor_position" field.
-func (m *TaskMutation) AddCursorPosition(i int64) {
-	if m.addcursor_position != nil {
-		*m.addcursor_position += i
-	} else {
-		m.addcursor_position = &i
-	}
-}
-
-// AddedCursorPosition returns the value that was added to the "cursor_position" field in this mutation.
-func (m *TaskMutation) AddedCursorPosition() (r int64, exists bool) {
-	v := m.addcursor_position
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ClearCursorPosition clears the value of the "cursor_position" field.
 func (m *TaskMutation) ClearCursorPosition() {
 	m.cursor_position = nil
-	m.addcursor_position = nil
 	m.clearedFields[task.FieldCursorPosition] = struct{}{}
 }
 
@@ -10763,7 +10792,6 @@ func (m *TaskMutation) CursorPositionCleared() bool {
 // ResetCursorPosition resets all changes to the "cursor_position" field.
 func (m *TaskMutation) ResetCursorPosition() {
 	m.cursor_position = nil
-	m.addcursor_position = nil
 	delete(m.clearedFields, task.FieldCursorPosition)
 }
 
@@ -11030,7 +11058,7 @@ func (m *TaskMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TaskMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.task_id != nil {
 		fields = append(fields, task.FieldTaskID)
 	}
@@ -11054,6 +11082,9 @@ func (m *TaskMutation) Fields() []string {
 	}
 	if m.work_mode != nil {
 		fields = append(fields, task.FieldWorkMode)
+	}
+	if m.prompt != nil {
+		fields = append(fields, task.FieldPrompt)
 	}
 	if m.completion != nil {
 		fields = append(fields, task.FieldCompletion)
@@ -11109,6 +11140,8 @@ func (m *TaskMutation) Field(name string) (ent.Value, bool) {
 		return m.ProgramLanguage()
 	case task.FieldWorkMode:
 		return m.WorkMode()
+	case task.FieldPrompt:
+		return m.Prompt()
 	case task.FieldCompletion:
 		return m.Completion()
 	case task.FieldCodeLines:
@@ -11154,6 +11187,8 @@ func (m *TaskMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldProgramLanguage(ctx)
 	case task.FieldWorkMode:
 		return m.OldWorkMode(ctx)
+	case task.FieldPrompt:
+		return m.OldPrompt(ctx)
 	case task.FieldCompletion:
 		return m.OldCompletion(ctx)
 	case task.FieldCodeLines:
@@ -11239,6 +11274,13 @@ func (m *TaskMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetWorkMode(v)
 		return nil
+	case task.FieldPrompt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrompt(v)
+		return nil
 	case task.FieldCompletion:
 		v, ok := value.(string)
 		if !ok {
@@ -11282,7 +11324,7 @@ func (m *TaskMutation) SetField(name string, value ent.Value) error {
 		m.SetSourceCode(v)
 		return nil
 	case task.FieldCursorPosition:
-		v, ok := value.(int64)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -11326,9 +11368,6 @@ func (m *TaskMutation) AddedFields() []string {
 	if m.addoutput_tokens != nil {
 		fields = append(fields, task.FieldOutputTokens)
 	}
-	if m.addcursor_position != nil {
-		fields = append(fields, task.FieldCursorPosition)
-	}
 	return fields
 }
 
@@ -11343,8 +11382,6 @@ func (m *TaskMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedInputTokens()
 	case task.FieldOutputTokens:
 		return m.AddedOutputTokens()
-	case task.FieldCursorPosition:
-		return m.AddedCursorPosition()
 	}
 	return nil, false
 }
@@ -11375,13 +11412,6 @@ func (m *TaskMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddOutputTokens(v)
 		return nil
-	case task.FieldCursorPosition:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddCursorPosition(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Task numeric field %s", name)
 }
@@ -11404,6 +11434,9 @@ func (m *TaskMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(task.FieldWorkMode) {
 		fields = append(fields, task.FieldWorkMode)
+	}
+	if m.FieldCleared(task.FieldPrompt) {
+		fields = append(fields, task.FieldPrompt)
 	}
 	if m.FieldCleared(task.FieldCompletion) {
 		fields = append(fields, task.FieldCompletion)
@@ -11454,6 +11487,9 @@ func (m *TaskMutation) ClearField(name string) error {
 		return nil
 	case task.FieldWorkMode:
 		m.ClearWorkMode()
+		return nil
+	case task.FieldPrompt:
+		m.ClearPrompt()
 		return nil
 	case task.FieldCompletion:
 		m.ClearCompletion()
@@ -11507,6 +11543,9 @@ func (m *TaskMutation) ResetField(name string) error {
 		return nil
 	case task.FieldWorkMode:
 		m.ResetWorkMode()
+		return nil
+	case task.FieldPrompt:
+		m.ResetPrompt()
 		return nil
 	case task.FieldCompletion:
 		m.ResetCompletion()

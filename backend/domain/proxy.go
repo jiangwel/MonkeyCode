@@ -51,7 +51,7 @@ type ReportReq struct {
 	Tool           string              `json:"tool"`            // 工具
 	UserInput      string              `json:"user_input"`      // 用户输入的新文本（用于reject action）
 	SourceCode     string              `json:"source_code"`     // 当前文件的原文（用于reject action）
-	CursorPosition int64               `json:"cursor_position"` // 光标位置（用于reject action）
+	CursorPosition map[string]any      `json:"cursor_position"` // 光标位置（用于reject action）
 }
 
 type RecordParam struct {
@@ -70,9 +70,9 @@ type RecordParam struct {
 	WorkMode        string
 	CodeLines       int64
 	Code            string
-	SourceCode      string // 当前文件的原文
-	CursorPosition  int64  // 光标位置
-	UserInput       string // 用户实际输入的内容
+	SourceCode      string         // 当前文件的原文
+	CursorPosition  map[string]any // 光标位置
+	UserInput       string         // 用户实际输入的内容
 }
 
 func (r *RecordParam) Clone() *RecordParam {

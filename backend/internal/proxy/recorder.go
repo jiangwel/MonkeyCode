@@ -69,7 +69,7 @@ func (r *Recorder) handleShadow() {
 
 	var (
 		taskID, mode, prompt, language, tool, code, sourceCode, userInput string
-		cursorPosition                                                    int64
+		cursorPosition                                                    map[string]any
 	)
 
 	switch r.ctx.Model.ModelType {
@@ -96,8 +96,15 @@ func (r *Recorder) handleShadow() {
 		mode = req.Metadata["mode"]
 		language = req.Metadata["program_language"]
 		sourceCode = req.Metadata["source_code"]
-		if pos, err := strconv.ParseInt(req.Metadata["cursor_position"], 10, 64); err == nil {
-			cursorPosition = pos
+		// 解析cursor_position为JSON格式
+		if posStr := req.Metadata["cursor_position"]; posStr != "" {
+			if pos, err := strconv.ParseInt(posStr, 10, 64); err == nil {
+				cursorPosition = map[string]any{
+					"position": pos,
+					"line":     1, // 默认值
+					"column":   pos,
+				}
+			}
 		}
 		userInput = req.Metadata["user_input"]
 

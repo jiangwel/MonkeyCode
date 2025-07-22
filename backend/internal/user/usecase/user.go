@@ -635,3 +635,15 @@ func (u *UserUsecase) ProfileUpdate(ctx context.Context, req *domain.ProfileUpda
 	}
 	return cvt.From(user, &domain.User{}), nil
 }
+
+func (u *UserUsecase) ExportCompletionData(ctx context.Context) (*domain.ExportCompletionDataResp, error) {
+	data, err := u.repo.ExportCompletionData(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.ExportCompletionDataResp{
+		TotalCount: int64(len(data)),
+		Data:       data,
+	}, nil
+}

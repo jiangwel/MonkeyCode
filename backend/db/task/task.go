@@ -30,6 +30,8 @@ const (
 	FieldProgramLanguage = "program_language"
 	// FieldWorkMode holds the string denoting the work_mode field in the database.
 	FieldWorkMode = "work_mode"
+	// FieldPrompt holds the string denoting the prompt field in the database.
+	FieldPrompt = "prompt"
 	// FieldCompletion holds the string denoting the completion field in the database.
 	FieldCompletion = "completion"
 	// FieldCodeLines holds the string denoting the code_lines field in the database.
@@ -92,6 +94,7 @@ var Columns = []string{
 	FieldIsAccept,
 	FieldProgramLanguage,
 	FieldWorkMode,
+	FieldPrompt,
 	FieldCompletion,
 	FieldCodeLines,
 	FieldInputTokens,
@@ -175,6 +178,11 @@ func ByWorkMode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWorkMode, opts...).ToFunc()
 }
 
+// ByPrompt orders the results by the prompt field.
+func ByPrompt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPrompt, opts...).ToFunc()
+}
+
 // ByCompletion orders the results by the completion field.
 func ByCompletion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCompletion, opts...).ToFunc()
@@ -203,11 +211,6 @@ func ByIsSuggested(opts ...sql.OrderTermOption) OrderOption {
 // BySourceCode orders the results by the source_code field.
 func BySourceCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSourceCode, opts...).ToFunc()
-}
-
-// ByCursorPosition orders the results by the cursor_position field.
-func ByCursorPosition(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCursorPosition, opts...).ToFunc()
 }
 
 // ByUserInput orders the results by the user_input field.

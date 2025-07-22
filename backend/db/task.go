@@ -3,6 +3,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -37,6 +38,8 @@ type Task struct {
 	ProgramLanguage string `json:"program_language,omitempty"`
 	// WorkMode holds the value of the "work_mode" field.
 	WorkMode string `json:"work_mode,omitempty"`
+	// Prompt holds the value of the "prompt" field.
+	Prompt string `json:"prompt,omitempty"`
 	// Completion holds the value of the "completion" field.
 	Completion string `json:"completion,omitempty"`
 	// CodeLines holds the value of the "code_lines" field.
@@ -50,7 +53,7 @@ type Task struct {
 	// SourceCode holds the value of the "source_code" field.
 	SourceCode string `json:"source_code,omitempty"`
 	// CursorPosition holds the value of the "cursor_position" field.
-	CursorPosition int64 `json:"cursor_position,omitempty"`
+	CursorPosition map[string]interface{} `json:"cursor_position,omitempty"`
 	// UserInput holds the value of the "user_input" field.
 	UserInput string `json:"user_input,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -112,11 +115,13 @@ func (*Task) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case task.FieldCursorPosition:
+			values[i] = new([]byte)
 		case task.FieldIsAccept, task.FieldIsSuggested:
 			values[i] = new(sql.NullBool)
-		case task.FieldCodeLines, task.FieldInputTokens, task.FieldOutputTokens, task.FieldCursorPosition:
+		case task.FieldCodeLines, task.FieldInputTokens, task.FieldOutputTokens:
 			values[i] = new(sql.NullInt64)
-		case task.FieldTaskID, task.FieldRequestID, task.FieldModelType, task.FieldProgramLanguage, task.FieldWorkMode, task.FieldCompletion, task.FieldSourceCode, task.FieldUserInput:
+		case task.FieldTaskID, task.FieldRequestID, task.FieldModelType, task.FieldProgramLanguage, task.FieldWorkMode, task.FieldPrompt, task.FieldCompletion, task.FieldSourceCode, task.FieldUserInput:
 			values[i] = new(sql.NullString)
 		case task.FieldCreatedAt, task.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -191,6 +196,12 @@ func (t *Task) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.WorkMode = value.String
 			}
+		case task.FieldPrompt:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field prompt", values[i])
+			} else if value.Valid {
+				t.Prompt = value.String
+			}
 		case task.FieldCompletion:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field completion", values[i])
@@ -228,10 +239,12 @@ func (t *Task) assignValues(columns []string, values []any) error {
 				t.SourceCode = value.String
 			}
 		case task.FieldCursorPosition:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field cursor_position", values[i])
-			} else if value.Valid {
-				t.CursorPosition = value.Int64
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &t.CursorPosition); err != nil {
+					return fmt.Errorf("unmarshal field cursor_position: %w", err)
+				}
 			}
 		case task.FieldUserInput:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -325,6 +338,9 @@ func (t *Task) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("work_mode=")
 	builder.WriteString(t.WorkMode)
+	builder.WriteString(", ")
+	builder.WriteString("prompt=")
+	builder.WriteString(t.Prompt)
 	builder.WriteString(", ")
 	builder.WriteString("completion=")
 	builder.WriteString(t.Completion)

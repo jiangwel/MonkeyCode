@@ -98,6 +98,11 @@ func WorkMode(v string) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldWorkMode, v))
 }
 
+// Prompt applies equality check predicate on the "prompt" field. It's identical to PromptEQ.
+func Prompt(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldPrompt, v))
+}
+
 // Completion applies equality check predicate on the "completion" field. It's identical to CompletionEQ.
 func Completion(v string) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldCompletion, v))
@@ -126,11 +131,6 @@ func IsSuggested(v bool) predicate.Task {
 // SourceCode applies equality check predicate on the "source_code" field. It's identical to SourceCodeEQ.
 func SourceCode(v string) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldSourceCode, v))
-}
-
-// CursorPosition applies equality check predicate on the "cursor_position" field. It's identical to CursorPositionEQ.
-func CursorPosition(v int64) predicate.Task {
-	return predicate.Task(sql.FieldEQ(FieldCursorPosition, v))
 }
 
 // UserInput applies equality check predicate on the "user_input" field. It's identical to UserInputEQ.
@@ -592,6 +592,81 @@ func WorkModeContainsFold(v string) predicate.Task {
 	return predicate.Task(sql.FieldContainsFold(FieldWorkMode, v))
 }
 
+// PromptEQ applies the EQ predicate on the "prompt" field.
+func PromptEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldPrompt, v))
+}
+
+// PromptNEQ applies the NEQ predicate on the "prompt" field.
+func PromptNEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldPrompt, v))
+}
+
+// PromptIn applies the In predicate on the "prompt" field.
+func PromptIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldPrompt, vs...))
+}
+
+// PromptNotIn applies the NotIn predicate on the "prompt" field.
+func PromptNotIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldPrompt, vs...))
+}
+
+// PromptGT applies the GT predicate on the "prompt" field.
+func PromptGT(v string) predicate.Task {
+	return predicate.Task(sql.FieldGT(FieldPrompt, v))
+}
+
+// PromptGTE applies the GTE predicate on the "prompt" field.
+func PromptGTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldGTE(FieldPrompt, v))
+}
+
+// PromptLT applies the LT predicate on the "prompt" field.
+func PromptLT(v string) predicate.Task {
+	return predicate.Task(sql.FieldLT(FieldPrompt, v))
+}
+
+// PromptLTE applies the LTE predicate on the "prompt" field.
+func PromptLTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldLTE(FieldPrompt, v))
+}
+
+// PromptContains applies the Contains predicate on the "prompt" field.
+func PromptContains(v string) predicate.Task {
+	return predicate.Task(sql.FieldContains(FieldPrompt, v))
+}
+
+// PromptHasPrefix applies the HasPrefix predicate on the "prompt" field.
+func PromptHasPrefix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasPrefix(FieldPrompt, v))
+}
+
+// PromptHasSuffix applies the HasSuffix predicate on the "prompt" field.
+func PromptHasSuffix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasSuffix(FieldPrompt, v))
+}
+
+// PromptIsNil applies the IsNil predicate on the "prompt" field.
+func PromptIsNil() predicate.Task {
+	return predicate.Task(sql.FieldIsNull(FieldPrompt))
+}
+
+// PromptNotNil applies the NotNil predicate on the "prompt" field.
+func PromptNotNil() predicate.Task {
+	return predicate.Task(sql.FieldNotNull(FieldPrompt))
+}
+
+// PromptEqualFold applies the EqualFold predicate on the "prompt" field.
+func PromptEqualFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldEqualFold(FieldPrompt, v))
+}
+
+// PromptContainsFold applies the ContainsFold predicate on the "prompt" field.
+func PromptContainsFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldContainsFold(FieldPrompt, v))
+}
+
 // CompletionEQ applies the EQ predicate on the "completion" field.
 func CompletionEQ(v string) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldCompletion, v))
@@ -900,46 +975,6 @@ func SourceCodeEqualFold(v string) predicate.Task {
 // SourceCodeContainsFold applies the ContainsFold predicate on the "source_code" field.
 func SourceCodeContainsFold(v string) predicate.Task {
 	return predicate.Task(sql.FieldContainsFold(FieldSourceCode, v))
-}
-
-// CursorPositionEQ applies the EQ predicate on the "cursor_position" field.
-func CursorPositionEQ(v int64) predicate.Task {
-	return predicate.Task(sql.FieldEQ(FieldCursorPosition, v))
-}
-
-// CursorPositionNEQ applies the NEQ predicate on the "cursor_position" field.
-func CursorPositionNEQ(v int64) predicate.Task {
-	return predicate.Task(sql.FieldNEQ(FieldCursorPosition, v))
-}
-
-// CursorPositionIn applies the In predicate on the "cursor_position" field.
-func CursorPositionIn(vs ...int64) predicate.Task {
-	return predicate.Task(sql.FieldIn(FieldCursorPosition, vs...))
-}
-
-// CursorPositionNotIn applies the NotIn predicate on the "cursor_position" field.
-func CursorPositionNotIn(vs ...int64) predicate.Task {
-	return predicate.Task(sql.FieldNotIn(FieldCursorPosition, vs...))
-}
-
-// CursorPositionGT applies the GT predicate on the "cursor_position" field.
-func CursorPositionGT(v int64) predicate.Task {
-	return predicate.Task(sql.FieldGT(FieldCursorPosition, v))
-}
-
-// CursorPositionGTE applies the GTE predicate on the "cursor_position" field.
-func CursorPositionGTE(v int64) predicate.Task {
-	return predicate.Task(sql.FieldGTE(FieldCursorPosition, v))
-}
-
-// CursorPositionLT applies the LT predicate on the "cursor_position" field.
-func CursorPositionLT(v int64) predicate.Task {
-	return predicate.Task(sql.FieldLT(FieldCursorPosition, v))
-}
-
-// CursorPositionLTE applies the LTE predicate on the "cursor_position" field.
-func CursorPositionLTE(v int64) predicate.Task {
-	return predicate.Task(sql.FieldLTE(FieldCursorPosition, v))
 }
 
 // CursorPositionIsNil applies the IsNil predicate on the "cursor_position" field.
