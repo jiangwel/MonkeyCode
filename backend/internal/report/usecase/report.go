@@ -24,11 +24,7 @@ func NewReportUsecase(repo domain.ReportRepo, logger *slog.Logger, reporter *rep
 }
 
 func (r *ReportUsecase) Report() {
-	ticker := time.NewTicker(5 * time.Minute)
-	if err := r.innerReport(); err != nil {
-		r.logger.With("error", err).Error("report failed")
-	}
-
+	ticker := time.NewTicker(24 * time.Hour)
 	for range ticker.C {
 		if err := r.innerReport(); err != nil {
 			r.logger.With("error", err).Error("report failed")
