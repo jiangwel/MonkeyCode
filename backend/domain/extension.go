@@ -10,6 +10,7 @@ import (
 
 type ExtensionUsecase interface {
 	Latest(ctx context.Context) (*Extension, error)
+	SyncLatest()
 	GetByVersion(ctx context.Context, version string) (*Extension, error)
 }
 

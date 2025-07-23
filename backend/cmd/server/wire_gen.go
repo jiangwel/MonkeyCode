@@ -104,6 +104,7 @@ func newServer() (*Server, error) {
 		version:     versionInfo,
 		report:      reporter,
 		reportuse:   reportUsecase,
+		euse:        extensionUsecase,
 	}
 	return server, nil
 }
@@ -123,4 +124,5 @@ type Server struct {
 	version     *version.VersionInfo
 	report      *report.Reporter
 	reportuse   domain.ReportUsecase
+	euse        domain.ExtensionUsecase
 }
