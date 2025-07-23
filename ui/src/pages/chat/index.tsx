@@ -4,7 +4,16 @@ import { getListChatRecord } from '@/api/Billing';
 import dayjs from 'dayjs';
 
 import Card from '@/components/card';
-import { Autocomplete, Box, FormControl, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  TextField,
+} from '@mui/material';
 import StyledLabel from '@/components/label';
 
 import ChatDetailModal from './chatDetailModal';
@@ -180,7 +189,14 @@ const Chat = () => {
             label='工作模式'
             value={filterMode}
             onChange={(e) =>
-              setfilterMode(e.target.value as 'code' | 'ask' | 'architect' | 'debug' | 'orchestrator')
+              setfilterMode(
+                e.target.value as
+                  | 'code'
+                  | 'ask'
+                  | 'architect'
+                  | 'debug'
+                  | 'orchestrator'
+              )
             }
           >
             <MenuItem value=''>全部</MenuItem>
@@ -193,7 +209,7 @@ const Chat = () => {
         </FormControl>
       </Stack>
       <Table
-        height='100%'
+        height='calc(100% - 52px)'
         sx={{ mx: -2 }}
         PaginationProps={{
           sx: {

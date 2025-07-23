@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { DomainUser, DomainAdminUser } from '@/api/types';
+import { DomainUser, DomainAdminUser, DomainModel } from '@/api/types';
 
 export const AuthContext = createContext<
   [
@@ -20,6 +20,13 @@ export const AuthContext = createContext<
 ]);
 
 export const CommonContext = createContext<{
-  contactModalOpen: boolean;
-  setContactModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}>({ contactModalOpen: false, setContactModalOpen: () => {} });
+  coderModel: DomainModel[];
+  llmModel: DomainModel[];
+  isConfigModel: boolean;
+  refreshModel: () => void;
+}>({
+  coderModel: [],
+  llmModel: [],
+  isConfigModel: false,
+  refreshModel: () => {},
+});
