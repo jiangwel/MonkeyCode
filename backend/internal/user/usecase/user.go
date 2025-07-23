@@ -24,7 +24,6 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/errcode"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 	"github.com/chaitin/MonkeyCode/backend/pkg/oauth"
-	"github.com/chaitin/MonkeyCode/backend/pkg/request"
 	"github.com/chaitin/MonkeyCode/backend/pkg/session"
 )
 
@@ -498,7 +497,7 @@ func (u *UserUsecase) OAuthSignUpOrIn(ctx context.Context, req *domain.OAuthSign
 func (u *UserUsecase) OAuthCallback(c *web.Context, req *domain.OAuthCallbackReq) error {
 	ctx := c.Request().Context()
 	req.IP = c.RealIP()
-	req.BaseURL = request.GetBaseURL(c.Request())
+	req.BaseURL = u.cfg.GetBaseURL(c.Request())
 	b, err := u.redis.Get(ctx, fmt.Sprintf("oauth:state:%s", req.State)).Result()
 	if err != nil {
 		return err
