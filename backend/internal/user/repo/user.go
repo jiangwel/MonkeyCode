@@ -59,7 +59,6 @@ func (r *UserRepo) CreateAdmin(ctx context.Context, admin *db.Admin) (*db.Admin,
 		SetPassword(admin.Password).
 		SetStatus(admin.Status).
 		Save(ctx)
-
 }
 
 func (r *UserRepo) AdminByName(ctx context.Context, username string) (*db.Admin, error) {
@@ -104,7 +103,6 @@ func (r *UserRepo) innerValidateInviteCode(ctx context.Context, tx *db.Tx, code 
 	ic, err = tx.InviteCode.UpdateOneID(ic.ID).
 		SetStatus(consts.InviteCodeStatusUsed).
 		Save(ctx)
-
 	if err != nil {
 		return nil, err
 	}
@@ -147,16 +145,6 @@ func (r *UserRepo) CreateInviteCode(ctx context.Context, userID string, code str
 		Save(ctx)
 }
 
-func (r *UserRepo) AdminList(ctx context.Context, page *web.Pagination) ([]*db.Admin, *db.PageInfo, error) {
-	q := r.db.Admin.Query()
-	return q.Page(ctx, page.Page, page.Size)
-}
-
-func (r *UserRepo) List(ctx context.Context, page *web.Pagination) ([]*db.User, *db.PageInfo, error) {
-	q := r.db.User.Query()
-	return q.Page(ctx, page.Page, page.Size)
-}
-
 func (r *UserRepo) GetOrCreateApiKey(ctx context.Context, userID string) (*db.ApiKey, error) {
 	i, err := uuid.Parse(userID)
 	if err != nil {
@@ -186,6 +174,33 @@ func (r *UserRepo) GetOrCreateApiKey(ctx context.Context, userID string) (*db.Ap
 		return nil
 	})
 	return apiKey, err
+}
+
+// GetUserByApiKey a new method to get user by api key
+func (r *UserRepo) GetUserByApiKey(ctx context.Context, apiKey string) (*db.User, error) {
+	key, err := r.db.ApiKey.Query().
+		Where(apikey.Key(apiKey)).
+		WithUser().
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if key.Edges.User == nil {
+		return nil, fmt.Errorf("user not found for api key %s", apiKey)
+	}
+
+	return key.Edges.User, nil
+}
+
+func (r *UserRepo) AdminList(ctx context.Context, page *web.Pagination) ([]*db.Admin, *db.PageInfo, error) {
+	q := r.db.Admin.Query()
+	return q.Page(ctx, page.Page, page.Size)
+}
+
+func (r *UserRepo) List(ctx context.Context, page *web.Pagination) ([]*db.User, *db.PageInfo, error) {
+	q := r.db.User.Query()
+	return q.Page(ctx, page.Page, page.Size)
 }
 
 func (r *UserRepo) GetSetting(ctx context.Context) (*db.Setting, error) {

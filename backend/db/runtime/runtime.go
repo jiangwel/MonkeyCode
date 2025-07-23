@@ -24,6 +24,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
+	"github.com/chaitin/MonkeyCode/backend/db/workspace"
+	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 	"github.com/chaitin/MonkeyCode/backend/ent/schema"
 	"github.com/google/uuid"
 )
@@ -326,6 +328,50 @@ func init() {
 	userloginhistoryDescCreatedAt := userloginhistoryFields[13].Descriptor()
 	// userloginhistory.DefaultCreatedAt holds the default value on creation for the created_at field.
 	userloginhistory.DefaultCreatedAt = userloginhistoryDescCreatedAt.Default.(func() time.Time)
+	workspaceFields := schema.Workspace{}.Fields()
+	_ = workspaceFields
+	// workspaceDescRootPath is the schema descriptor for root_path field.
+	workspaceDescRootPath := workspaceFields[4].Descriptor()
+	// workspace.RootPathValidator is a validator for the "root_path" field. It is called by the builders before save.
+	workspace.RootPathValidator = workspaceDescRootPath.Validators[0].(func(string) error)
+	// workspaceDescLastAccessedAt is the schema descriptor for last_accessed_at field.
+	workspaceDescLastAccessedAt := workspaceFields[6].Descriptor()
+	// workspace.DefaultLastAccessedAt holds the default value on creation for the last_accessed_at field.
+	workspace.DefaultLastAccessedAt = workspaceDescLastAccessedAt.Default.(func() time.Time)
+	// workspaceDescCreatedAt is the schema descriptor for created_at field.
+	workspaceDescCreatedAt := workspaceFields[7].Descriptor()
+	// workspace.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workspace.DefaultCreatedAt = workspaceDescCreatedAt.Default.(func() time.Time)
+	// workspaceDescUpdatedAt is the schema descriptor for updated_at field.
+	workspaceDescUpdatedAt := workspaceFields[8].Descriptor()
+	// workspace.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workspace.DefaultUpdatedAt = workspaceDescUpdatedAt.Default.(func() time.Time)
+	// workspace.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workspace.UpdateDefaultUpdatedAt = workspaceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	workspacefileFields := schema.WorkspaceFile{}.Fields()
+	_ = workspacefileFields
+	// workspacefileDescPath is the schema descriptor for path field.
+	workspacefileDescPath := workspacefileFields[3].Descriptor()
+	// workspacefile.PathValidator is a validator for the "path" field. It is called by the builders before save.
+	workspacefile.PathValidator = workspacefileDescPath.Validators[0].(func(string) error)
+	// workspacefileDescHash is the schema descriptor for hash field.
+	workspacefileDescHash := workspacefileFields[5].Descriptor()
+	// workspacefile.HashValidator is a validator for the "hash" field. It is called by the builders before save.
+	workspacefile.HashValidator = workspacefileDescHash.Validators[0].(func(string) error)
+	// workspacefileDescSize is the schema descriptor for size field.
+	workspacefileDescSize := workspacefileFields[7].Descriptor()
+	// workspacefile.DefaultSize holds the default value on creation for the size field.
+	workspacefile.DefaultSize = workspacefileDescSize.Default.(int64)
+	// workspacefileDescCreatedAt is the schema descriptor for created_at field.
+	workspacefileDescCreatedAt := workspacefileFields[8].Descriptor()
+	// workspacefile.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workspacefile.DefaultCreatedAt = workspacefileDescCreatedAt.Default.(func() time.Time)
+	// workspacefileDescUpdatedAt is the schema descriptor for updated_at field.
+	workspacefileDescUpdatedAt := workspacefileFields[9].Descriptor()
+	// workspacefile.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workspacefile.DefaultUpdatedAt = workspacefileDescUpdatedAt.Default.(func() time.Time)
+	// workspacefile.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workspacefile.UpdateDefaultUpdatedAt = workspacefileDescUpdatedAt.UpdateDefault.(func() time.Time)
 }
 
 const (

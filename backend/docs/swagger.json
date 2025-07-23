@@ -99,6 +99,46 @@
                 }
             }
         },
+        "/api/v1/admin/export-completion-data": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "管理员导出所有补全相关数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "导出补全数据",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ExportCompletionDataResp"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/list": {
             "get": {
                 "description": "获取管理员用户列表",
@@ -2557,6 +2597,462 @@
                 }
             }
         },
+        "/api/v1/workspace/files": {
+            "get": {
+                "description": "分页获取工作区文件列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceFile"
+                ],
+                "summary": "获取工作区文件列表",
+                "operationId": "list-workspace-files",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "编程语言筛选",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "下一页标识",
+                        "name": "next_token",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "分页",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "搜索关键词（文件路径）",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页多少条记录",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户ID",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "工作区ID",
+                        "name": "workspace_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.ListWorkspaceFileResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建一个新的工作区文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceFile"
+                ],
+                "summary": "创建工作区文件",
+                "operationId": "create-workspace-file",
+                "parameters": [
+                    {
+                        "description": "文件信息",
+                        "name": "file",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateWorkspaceFileReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.WorkspaceFile"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/workspace/files/batch": {
+            "put": {
+                "description": "批量更新多个工作区文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceFile"
+                ],
+                "summary": "批量更新工作区文件",
+                "operationId": "batch-update-workspace-files",
+                "parameters": [
+                    {
+                        "description": "文件列表",
+                        "name": "files",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.BatchUpdateWorkspaceFileReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/domain.WorkspaceFile"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "批量创建多个工作区文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceFile"
+                ],
+                "summary": "批量创建工作区文件",
+                "operationId": "batch-create-workspace-files",
+                "parameters": [
+                    {
+                        "description": "文件列表",
+                        "name": "files",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.BatchCreateWorkspaceFileReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/domain.WorkspaceFile"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/workspace/files/by-path": {
+            "get": {
+                "description": "根据用户ID、项目ID和文件路径获取工作区文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceFile"
+                ],
+                "summary": "根据路径获取工作区文件",
+                "operationId": "get-workspace-file-by-path",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户ID",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "项目ID",
+                        "name": "project_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "文件路径",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.WorkspaceFile"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/workspace/files/sync": {
+            "post": {
+                "description": "同步本地文件到工作区，智能检测新增、修改和删除",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceFile"
+                ],
+                "summary": "同步工作区文件",
+                "operationId": "sync-workspace-files",
+                "parameters": [
+                    {
+                        "description": "同步信息",
+                        "name": "sync",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.SyncWorkspaceFileReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.SyncWorkspaceFileResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/workspace/files/{id}": {
+            "get": {
+                "description": "根据文件ID获取工作区文件详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceFile"
+                ],
+                "summary": "根据ID获取工作区文件",
+                "operationId": "get-workspace-file-by-id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "文件ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.WorkspaceFile"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "更新指定的工作区文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceFile"
+                ],
+                "summary": "更新工作区文件",
+                "operationId": "update-workspace-file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "文件ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新信息",
+                        "name": "file",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateWorkspaceFileReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.WorkspaceFile"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除指定的工作区文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceFile"
+                ],
+                "summary": "删除工作区文件",
+                "operationId": "delete-workspace-file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "文件ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/chat/completions": {
             "post": {
                 "description": "处理聊天补全请求",
@@ -2955,6 +3451,46 @@
                 }
             }
         },
+        "domain.BatchCreateWorkspaceFileReq": {
+            "type": "object",
+            "required": [
+                "files",
+                "user_id",
+                "workspace_id"
+            ],
+            "properties": {
+                "files": {
+                    "description": "文件列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CreateWorkspaceFileReq"
+                    }
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "description": "工作区ID",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.BatchUpdateWorkspaceFileReq": {
+            "type": "object",
+            "required": [
+                "files"
+            ],
+            "properties": {
+                "files": {
+                    "description": "文件列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.UpdateWorkspaceFileReq"
+                    }
+                }
+            }
+        },
         "domain.CategoryPoint": {
             "type": "object",
             "properties": {
@@ -3118,6 +3654,92 @@
                 }
             }
         },
+        "domain.CompletionData": {
+            "type": "object",
+            "properties": {
+                "code_lines": {
+                    "description": "代码行数",
+                    "type": "integer"
+                },
+                "completion": {
+                    "description": "LLM生成的补全代码",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "创建时间戳",
+                    "type": "integer"
+                },
+                "cursor_position": {
+                    "description": "光标位置 {\"line\": 10, \"column\": 5}",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "input_tokens": {
+                    "description": "输入token数",
+                    "type": "integer"
+                },
+                "is_accept": {
+                    "description": "用户是否接受补全",
+                    "type": "boolean"
+                },
+                "is_suggested": {
+                    "description": "是否为建议模式",
+                    "type": "boolean"
+                },
+                "model_id": {
+                    "description": "模型ID",
+                    "type": "string"
+                },
+                "model_name": {
+                    "description": "模型名称",
+                    "type": "string"
+                },
+                "model_type": {
+                    "description": "模型类型",
+                    "type": "string"
+                },
+                "output_tokens": {
+                    "description": "输出token数",
+                    "type": "integer"
+                },
+                "program_language": {
+                    "description": "编程语言",
+                    "type": "string"
+                },
+                "prompt": {
+                    "description": "用户输入的提示",
+                    "type": "string"
+                },
+                "request_id": {
+                    "description": "请求ID",
+                    "type": "string"
+                },
+                "source_code": {
+                    "description": "当前文件原文",
+                    "type": "string"
+                },
+                "task_id": {
+                    "description": "任务ID",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "更新时间戳",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "string"
+                },
+                "user_input": {
+                    "description": "用户最终输入的内容",
+                    "type": "string"
+                },
+                "work_mode": {
+                    "description": "工作模式",
+                    "type": "string"
+                }
+            }
+        },
         "domain.CompletionInfo": {
             "type": "object",
             "properties": {
@@ -3242,6 +3864,45 @@
                 },
                 "show_name": {
                     "description": "模型显示名称",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateWorkspaceFileReq": {
+            "type": "object",
+            "required": [
+                "hash",
+                "path",
+                "user_id",
+                "workspace_id"
+            ],
+            "properties": {
+                "content": {
+                    "description": "文件内容",
+                    "type": "string"
+                },
+                "hash": {
+                    "description": "文件哈希",
+                    "type": "string"
+                },
+                "language": {
+                    "description": "编程语言",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "文件路径",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "文件大小",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "description": "工作区ID",
                     "type": "string"
                 }
             }
@@ -3381,6 +4042,22 @@
                 "enable": {
                     "description": "钉钉OAuth开关",
                     "type": "boolean"
+                }
+            }
+        },
+        "domain.ExportCompletionDataResp": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "补全数据列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CompletionData"
+                    }
+                },
+                "total_count": {
+                    "description": "总记录数",
+                    "type": "integer"
                 }
             }
         },
@@ -3550,6 +4227,26 @@
                     "items": {
                         "$ref": "#/definitions/domain.User"
                     }
+                }
+            }
+        },
+        "domain.ListWorkspaceFileResp": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.WorkspaceFile"
+                    }
+                },
+                "has_next_page": {
+                    "type": "boolean"
+                },
+                "next_token": {
+                    "type": "string"
+                },
+                "total_count": {
+                    "type": "integer"
                 }
             }
         },
@@ -3895,7 +4592,8 @@
                 },
                 "cursor_position": {
                     "description": "光标位置（用于reject action）",
-                    "type": "integer"
+                    "type": "object",
+                    "additionalProperties": {}
                 },
                 "id": {
                     "description": "task_id or resp_id",
@@ -3970,6 +4668,61 @@
                 "total_users": {
                     "description": "总用户数",
                     "type": "integer"
+                }
+            }
+        },
+        "domain.SyncWorkspaceFileReq": {
+            "type": "object",
+            "required": [
+                "files",
+                "user_id",
+                "workspace_id"
+            ],
+            "properties": {
+                "files": {
+                    "description": "要同步的文件列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CreateWorkspaceFileReq"
+                    }
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "description": "工作区ID",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.SyncWorkspaceFileResp": {
+            "type": "object",
+            "properties": {
+                "created": {
+                    "description": "新创建的文件",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.WorkspaceFile"
+                    }
+                },
+                "deleted": {
+                    "description": "删除的文件ID",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "total": {
+                    "description": "处理的文件总数",
+                    "type": "integer"
+                },
+                "updated": {
+                    "description": "更新的文件",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.WorkspaceFile"
+                    }
                 }
             }
         },
@@ -4224,6 +4977,34 @@
                 }
             }
         },
+        "domain.UpdateWorkspaceFileReq": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "content": {
+                    "description": "文件内容",
+                    "type": "string"
+                },
+                "hash": {
+                    "description": "文件哈希",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "文件ID",
+                    "type": "string"
+                },
+                "language": {
+                    "description": "编程语言",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "文件大小",
+                    "type": "integer"
+                }
+            }
+        },
         "domain.User": {
             "type": "object",
             "properties": {
@@ -4469,6 +5250,51 @@
                     "items": {
                         "$ref": "#/definitions/domain.CategoryPoint"
                     }
+                }
+            }
+        },
+        "domain.WorkspaceFile": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "文件内容",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "hash": {
+                    "description": "文件哈希",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "文件ID",
+                    "type": "string"
+                },
+                "language": {
+                    "description": "编程语言",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "文件路径",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "文件大小",
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "description": "更新时间",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "description": "工作区ID",
+                    "type": "string"
                 }
             }
         },

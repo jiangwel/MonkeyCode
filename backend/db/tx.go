@@ -50,6 +50,10 @@ type Tx struct {
 	UserIdentity *UserIdentityClient
 	// UserLoginHistory is the client for interacting with the UserLoginHistory builders.
 	UserLoginHistory *UserLoginHistoryClient
+	// Workspace is the client for interacting with the Workspace builders.
+	Workspace *WorkspaceClient
+	// WorkspaceFile is the client for interacting with the WorkspaceFile builders.
+	WorkspaceFile *WorkspaceFileClient
 
 	// lazily loaded.
 	client     *Client
@@ -199,6 +203,8 @@ func (tx *Tx) init() {
 	tx.User = NewUserClient(tx.config)
 	tx.UserIdentity = NewUserIdentityClient(tx.config)
 	tx.UserLoginHistory = NewUserLoginHistoryClient(tx.config)
+	tx.Workspace = NewWorkspaceClient(tx.config)
+	tx.WorkspaceFile = NewWorkspaceFileClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

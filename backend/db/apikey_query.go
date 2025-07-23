@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
+	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/google/uuid"
 )
 
@@ -24,6 +25,7 @@ type ApiKeyQuery struct {
 	order      []apikey.OrderOption
 	inters     []Interceptor
 	predicates []predicate.ApiKey
+	withUser   *UserQuery
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -59,6 +61,28 @@ func (akq *ApiKeyQuery) Unique(unique bool) *ApiKeyQuery {
 func (akq *ApiKeyQuery) Order(o ...apikey.OrderOption) *ApiKeyQuery {
 	akq.order = append(akq.order, o...)
 	return akq
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (akq *ApiKeyQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: akq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := akq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := akq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(apikey.Table, apikey.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, apikey.UserTable, apikey.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(akq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first ApiKey entity from the query.
@@ -253,11 +277,23 @@ func (akq *ApiKeyQuery) Clone() *ApiKeyQuery {
 		order:      append([]apikey.OrderOption{}, akq.order...),
 		inters:     append([]Interceptor{}, akq.inters...),
 		predicates: append([]predicate.ApiKey{}, akq.predicates...),
+		withUser:   akq.withUser.Clone(),
 		// clone intermediate query.
 		sql:       akq.sql.Clone(),
 		path:      akq.path,
 		modifiers: append([]func(*sql.Selector){}, akq.modifiers...),
 	}
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (akq *ApiKeyQuery) WithUser(opts ...func(*UserQuery)) *ApiKeyQuery {
+	query := (&UserClient{config: akq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	akq.withUser = query
+	return akq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -336,8 +372,11 @@ func (akq *ApiKeyQuery) prepareQuery(ctx context.Context) error {
 
 func (akq *ApiKeyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ApiKey, error) {
 	var (
-		nodes = []*ApiKey{}
-		_spec = akq.querySpec()
+		nodes       = []*ApiKey{}
+		_spec       = akq.querySpec()
+		loadedTypes = [1]bool{
+			akq.withUser != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ApiKey).scanValues(nil, columns)
@@ -345,6 +384,7 @@ func (akq *ApiKeyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ApiK
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &ApiKey{config: akq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(akq.modifiers) > 0 {
@@ -359,7 +399,43 @@ func (akq *ApiKeyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ApiK
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := akq.withUser; query != nil {
+		if err := akq.loadUser(ctx, query, nodes, nil,
+			func(n *ApiKey, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (akq *ApiKeyQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*ApiKey, init func(*ApiKey), assign func(*ApiKey, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*ApiKey)
+	for i := range nodes {
+		fk := nodes[i].UserID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (akq *ApiKeyQuery) sqlCount(ctx context.Context) (int, error) {
@@ -389,6 +465,9 @@ func (akq *ApiKeyQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != apikey.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if akq.withUser != nil {
+			_spec.Node.AddColumnOnce(apikey.FieldUserID)
 		}
 	}
 	if ps := akq.predicates; len(ps) > 0 {

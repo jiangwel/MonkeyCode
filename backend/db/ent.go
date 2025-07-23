@@ -30,6 +30,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
+	"github.com/chaitin/MonkeyCode/backend/db/workspace"
+	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -108,6 +110,8 @@ func checkColumn(table, column string) error {
 			user.Table:               user.ValidColumn,
 			useridentity.Table:       useridentity.ValidColumn,
 			userloginhistory.Table:   userloginhistory.ValidColumn,
+			workspace.Table:          workspace.ValidColumn,
+			workspacefile.Table:      workspacefile.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

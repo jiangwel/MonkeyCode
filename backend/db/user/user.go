@@ -42,6 +42,12 @@ const (
 	EdgeTasks = "tasks"
 	// EdgeIdentities holds the string denoting the identities edge name in mutations.
 	EdgeIdentities = "identities"
+	// EdgeWorkspaces holds the string denoting the workspaces edge name in mutations.
+	EdgeWorkspaces = "workspaces"
+	// EdgeWorkspaceFiles holds the string denoting the workspace_files edge name in mutations.
+	EdgeWorkspaceFiles = "workspace_files"
+	// EdgeAPIKeys holds the string denoting the api_keys edge name in mutations.
+	EdgeAPIKeys = "api_keys"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// LoginHistoriesTable is the table that holds the login_histories relation/edge.
@@ -72,6 +78,27 @@ const (
 	IdentitiesInverseTable = "user_identities"
 	// IdentitiesColumn is the table column denoting the identities relation/edge.
 	IdentitiesColumn = "user_id"
+	// WorkspacesTable is the table that holds the workspaces relation/edge.
+	WorkspacesTable = "workspaces"
+	// WorkspacesInverseTable is the table name for the Workspace entity.
+	// It exists in this package in order to avoid circular dependency with the "workspace" package.
+	WorkspacesInverseTable = "workspaces"
+	// WorkspacesColumn is the table column denoting the workspaces relation/edge.
+	WorkspacesColumn = "user_id"
+	// WorkspaceFilesTable is the table that holds the workspace_files relation/edge.
+	WorkspaceFilesTable = "workspace_files"
+	// WorkspaceFilesInverseTable is the table name for the WorkspaceFile entity.
+	// It exists in this package in order to avoid circular dependency with the "workspacefile" package.
+	WorkspaceFilesInverseTable = "workspace_files"
+	// WorkspaceFilesColumn is the table column denoting the workspace_files relation/edge.
+	WorkspaceFilesColumn = "user_id"
+	// APIKeysTable is the table that holds the api_keys relation/edge.
+	APIKeysTable = "api_keys"
+	// APIKeysInverseTable is the table name for the ApiKey entity.
+	// It exists in this package in order to avoid circular dependency with the "apikey" package.
+	APIKeysInverseTable = "api_keys"
+	// APIKeysColumn is the table column denoting the api_keys relation/edge.
+	APIKeysColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -224,6 +251,48 @@ func ByIdentities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newIdentitiesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByWorkspacesCount orders the results by workspaces count.
+func ByWorkspacesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newWorkspacesStep(), opts...)
+	}
+}
+
+// ByWorkspaces orders the results by workspaces terms.
+func ByWorkspaces(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorkspacesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByWorkspaceFilesCount orders the results by workspace_files count.
+func ByWorkspaceFilesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newWorkspaceFilesStep(), opts...)
+	}
+}
+
+// ByWorkspaceFiles orders the results by workspace_files terms.
+func ByWorkspaceFiles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorkspaceFilesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAPIKeysCount orders the results by api_keys count.
+func ByAPIKeysCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAPIKeysStep(), opts...)
+	}
+}
+
+// ByAPIKeys orders the results by api_keys terms.
+func ByAPIKeys(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAPIKeysStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newLoginHistoriesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -250,5 +319,26 @@ func newIdentitiesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(IdentitiesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, IdentitiesTable, IdentitiesColumn),
+	)
+}
+func newWorkspacesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorkspacesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, WorkspacesTable, WorkspacesColumn),
+	)
+}
+func newWorkspaceFilesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorkspaceFilesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, WorkspaceFilesTable, WorkspaceFilesColumn),
+	)
+}
+func newAPIKeysStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(APIKeysInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, APIKeysTable, APIKeysColumn),
 	)
 }

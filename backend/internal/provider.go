@@ -23,9 +23,13 @@ import (
 	proxyusecase "github.com/chaitin/MonkeyCode/backend/internal/proxy/usecase"
 	reportrepo "github.com/chaitin/MonkeyCode/backend/internal/report/repo"
 	reportuse "github.com/chaitin/MonkeyCode/backend/internal/report/usecase"
+	sockethandler "github.com/chaitin/MonkeyCode/backend/internal/socket/handler"
 	userV1 "github.com/chaitin/MonkeyCode/backend/internal/user/handler/v1"
 	userrepo "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
 	userusecase "github.com/chaitin/MonkeyCode/backend/internal/user/usecase"
+	workspacehandlerv1 "github.com/chaitin/MonkeyCode/backend/internal/workspace/handler/http/v1"
+	workspacerepo "github.com/chaitin/MonkeyCode/backend/internal/workspace/repo"
+	workspaceusecase "github.com/chaitin/MonkeyCode/backend/internal/workspace/usecase"
 	"github.com/chaitin/MonkeyCode/backend/pkg/version"
 )
 
@@ -53,6 +57,10 @@ var Provider = wire.NewSet(
 	billingusecase.NewBillingUsecase,
 	erepo.NewExtensionRepo,
 	eusecase.NewExtensionUsecase,
+	workspacerepo.NewWorkspaceFileRepo,
+	workspaceusecase.NewWorkspaceFileUsecase,
+	workspacehandlerv1.NewWorkspaceFileHandler,
+	sockethandler.NewSocketHandler,
 	version.NewVersionInfo,
 	reportuse.NewReportUsecase,
 	reportrepo.NewReportRepo,

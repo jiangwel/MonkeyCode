@@ -623,16 +623,17 @@ func (h *UserHandler) InitAdmin() error {
 }
 
 // ExportCompletionData godoc
-// @Summary 导出补全数据
-// @Description 管理员导出所有补全相关数据
-// @Tags admin
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Success 200 {object} domain.ExportCompletionDataResp
-// @Failure 401 {object} errcode.Error
-// @Failure 500 {object} errcode.Error
-// @Router /api/v1/admin/export-completion-data [get]
+//
+//	@Summary		导出补全数据
+//	@Description	管理员导出所有补全相关数据
+//	@Tags			admin
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Success		200	{object}	domain.ExportCompletionDataResp
+//	@Failure		401	{object}	web.Resp{}
+//	@Failure		500	{object}	web.Resp{}
+//	@Router			/api/v1/admin/export-completion-data [get]
 func (h *UserHandler) ExportCompletionData(c *web.Context) error {
 	data, err := h.usecase.ExportCompletionData(c.Request().Context())
 	if err != nil {

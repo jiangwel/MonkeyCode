@@ -13,12 +13,15 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
+	"github.com/chaitin/MonkeyCode/backend/db/workspace"
+	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 	"github.com/google/uuid"
 )
 
@@ -33,6 +36,9 @@ type UserQuery struct {
 	withModels         *ModelQuery
 	withTasks          *TaskQuery
 	withIdentities     *UserIdentityQuery
+	withWorkspaces     *WorkspaceQuery
+	withWorkspaceFiles *WorkspaceFileQuery
+	withAPIKeys        *ApiKeyQuery
 	modifiers          []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -151,6 +157,72 @@ func (uq *UserQuery) QueryIdentities() *UserIdentityQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(useridentity.Table, useridentity.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.IdentitiesTable, user.IdentitiesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWorkspaces chains the current query on the "workspaces" edge.
+func (uq *UserQuery) QueryWorkspaces() *WorkspaceQuery {
+	query := (&WorkspaceClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.WorkspacesTable, user.WorkspacesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWorkspaceFiles chains the current query on the "workspace_files" edge.
+func (uq *UserQuery) QueryWorkspaceFiles() *WorkspaceFileQuery {
+	query := (&WorkspaceFileClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(workspacefile.Table, workspacefile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.WorkspaceFilesTable, user.WorkspaceFilesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAPIKeys chains the current query on the "api_keys" edge.
+func (uq *UserQuery) QueryAPIKeys() *ApiKeyQuery {
+	query := (&ApiKeyClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(apikey.Table, apikey.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.APIKeysTable, user.APIKeysColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -354,6 +426,9 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withModels:         uq.withModels.Clone(),
 		withTasks:          uq.withTasks.Clone(),
 		withIdentities:     uq.withIdentities.Clone(),
+		withWorkspaces:     uq.withWorkspaces.Clone(),
+		withWorkspaceFiles: uq.withWorkspaceFiles.Clone(),
+		withAPIKeys:        uq.withAPIKeys.Clone(),
 		// clone intermediate query.
 		sql:       uq.sql.Clone(),
 		path:      uq.path,
@@ -402,6 +477,39 @@ func (uq *UserQuery) WithIdentities(opts ...func(*UserIdentityQuery)) *UserQuery
 		opt(query)
 	}
 	uq.withIdentities = query
+	return uq
+}
+
+// WithWorkspaces tells the query-builder to eager-load the nodes that are connected to
+// the "workspaces" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithWorkspaces(opts ...func(*WorkspaceQuery)) *UserQuery {
+	query := (&WorkspaceClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withWorkspaces = query
+	return uq
+}
+
+// WithWorkspaceFiles tells the query-builder to eager-load the nodes that are connected to
+// the "workspace_files" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithWorkspaceFiles(opts ...func(*WorkspaceFileQuery)) *UserQuery {
+	query := (&WorkspaceFileClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withWorkspaceFiles = query
+	return uq
+}
+
+// WithAPIKeys tells the query-builder to eager-load the nodes that are connected to
+// the "api_keys" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithAPIKeys(opts ...func(*ApiKeyQuery)) *UserQuery {
+	query := (&ApiKeyClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAPIKeys = query
 	return uq
 }
 
@@ -483,11 +591,14 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [7]bool{
 			uq.withLoginHistories != nil,
 			uq.withModels != nil,
 			uq.withTasks != nil,
 			uq.withIdentities != nil,
+			uq.withWorkspaces != nil,
+			uq.withWorkspaceFiles != nil,
+			uq.withAPIKeys != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -536,6 +647,27 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadIdentities(ctx, query, nodes,
 			func(n *User) { n.Edges.Identities = []*UserIdentity{} },
 			func(n *User, e *UserIdentity) { n.Edges.Identities = append(n.Edges.Identities, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withWorkspaces; query != nil {
+		if err := uq.loadWorkspaces(ctx, query, nodes,
+			func(n *User) { n.Edges.Workspaces = []*Workspace{} },
+			func(n *User, e *Workspace) { n.Edges.Workspaces = append(n.Edges.Workspaces, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withWorkspaceFiles; query != nil {
+		if err := uq.loadWorkspaceFiles(ctx, query, nodes,
+			func(n *User) { n.Edges.WorkspaceFiles = []*WorkspaceFile{} },
+			func(n *User, e *WorkspaceFile) { n.Edges.WorkspaceFiles = append(n.Edges.WorkspaceFiles, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withAPIKeys; query != nil {
+		if err := uq.loadAPIKeys(ctx, query, nodes,
+			func(n *User) { n.Edges.APIKeys = []*ApiKey{} },
+			func(n *User, e *ApiKey) { n.Edges.APIKeys = append(n.Edges.APIKeys, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -647,6 +779,96 @@ func (uq *UserQuery) loadIdentities(ctx context.Context, query *UserIdentityQuer
 	}
 	query.Where(predicate.UserIdentity(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.IdentitiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadWorkspaces(ctx context.Context, query *WorkspaceQuery, nodes []*User, init func(*User), assign func(*User, *Workspace)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(workspace.FieldUserID)
+	}
+	query.Where(predicate.Workspace(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.WorkspacesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadWorkspaceFiles(ctx context.Context, query *WorkspaceFileQuery, nodes []*User, init func(*User), assign func(*User, *WorkspaceFile)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(workspacefile.FieldUserID)
+	}
+	query.Where(predicate.WorkspaceFile(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.WorkspaceFilesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadAPIKeys(ctx context.Context, query *ApiKeyQuery, nodes []*User, init func(*User), assign func(*User, *ApiKey)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(apikey.FieldUserID)
+	}
+	query.Where(predicate.ApiKey(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.APIKeysColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

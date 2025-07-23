@@ -27,6 +27,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
+	"github.com/chaitin/MonkeyCode/backend/db/workspace"
+	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 )
 
 // The Query interface represents an operation that queries a graph.
@@ -571,6 +573,60 @@ func (f TraverseUserLoginHistory) Traverse(ctx context.Context, q db.Query) erro
 	return fmt.Errorf("unexpected query type %T. expect *db.UserLoginHistoryQuery", q)
 }
 
+// The WorkspaceFunc type is an adapter to allow the use of ordinary function as a Querier.
+type WorkspaceFunc func(context.Context, *db.WorkspaceQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f WorkspaceFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.WorkspaceQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.WorkspaceQuery", q)
+}
+
+// The TraverseWorkspace type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseWorkspace func(context.Context, *db.WorkspaceQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseWorkspace) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseWorkspace) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.WorkspaceQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.WorkspaceQuery", q)
+}
+
+// The WorkspaceFileFunc type is an adapter to allow the use of ordinary function as a Querier.
+type WorkspaceFileFunc func(context.Context, *db.WorkspaceFileQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f WorkspaceFileFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.WorkspaceFileQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.WorkspaceFileQuery", q)
+}
+
+// The TraverseWorkspaceFile type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseWorkspaceFile func(context.Context, *db.WorkspaceFileQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseWorkspaceFile) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseWorkspaceFile) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.WorkspaceFileQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.WorkspaceFileQuery", q)
+}
+
 // NewQuery returns the generic Query interface for the given typed query.
 func NewQuery(q db.Query) (Query, error) {
 	switch q := q.(type) {
@@ -610,6 +666,10 @@ func NewQuery(q db.Query) (Query, error) {
 		return &query[*db.UserIdentityQuery, predicate.UserIdentity, useridentity.OrderOption]{typ: db.TypeUserIdentity, tq: q}, nil
 	case *db.UserLoginHistoryQuery:
 		return &query[*db.UserLoginHistoryQuery, predicate.UserLoginHistory, userloginhistory.OrderOption]{typ: db.TypeUserLoginHistory, tq: q}, nil
+	case *db.WorkspaceQuery:
+		return &query[*db.WorkspaceQuery, predicate.Workspace, workspace.OrderOption]{typ: db.TypeWorkspace, tq: q}, nil
+	case *db.WorkspaceFileQuery:
+		return &query[*db.WorkspaceFileQuery, predicate.WorkspaceFile, workspacefile.OrderOption]{typ: db.TypeWorkspaceFile, tq: q}, nil
 	default:
 		return nil, fmt.Errorf("unknown query type %T", q)
 	}

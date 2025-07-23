@@ -32,6 +32,7 @@ type UserUsecase interface {
 	OAuthSignUpOrIn(ctx context.Context, req *OAuthSignUpOrInReq) (*OAuthURLResp, error)
 	OAuthCallback(ctx *web.Context, req *OAuthCallbackReq) error
 	ExportCompletionData(ctx context.Context) (*ExportCompletionDataResp, error)
+	GetUserByApiKey(ctx context.Context, apiKey string) (*db.User, error)
 }
 
 type UserRepo interface {
@@ -45,6 +46,7 @@ type UserRepo interface {
 	AdminByName(ctx context.Context, username string) (*db.Admin, error)
 	GetByName(ctx context.Context, username string) (*db.User, error)
 	GetOrCreateApiKey(ctx context.Context, userID string) (*db.ApiKey, error)
+	GetUserByApiKey(ctx context.Context, apiKey string) (*db.User, error)
 	AdminList(ctx context.Context, page *web.Pagination) ([]*db.Admin, *db.PageInfo, error)
 	CreateInviteCode(ctx context.Context, userID string, code string) (*db.InviteCode, error)
 	ValidateInviteCode(ctx context.Context, code string) (*db.InviteCode, error)

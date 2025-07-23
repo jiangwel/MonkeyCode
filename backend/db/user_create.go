@@ -13,11 +13,14 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chaitin/MonkeyCode/backend/consts"
+	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
+	"github.com/chaitin/MonkeyCode/backend/db/workspace"
+	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 	"github.com/google/uuid"
 )
 
@@ -219,6 +222,51 @@ func (uc *UserCreate) AddIdentities(u ...*UserIdentity) *UserCreate {
 		ids[i] = u[i].ID
 	}
 	return uc.AddIdentityIDs(ids...)
+}
+
+// AddWorkspaceIDs adds the "workspaces" edge to the Workspace entity by IDs.
+func (uc *UserCreate) AddWorkspaceIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddWorkspaceIDs(ids...)
+	return uc
+}
+
+// AddWorkspaces adds the "workspaces" edges to the Workspace entity.
+func (uc *UserCreate) AddWorkspaces(w ...*Workspace) *UserCreate {
+	ids := make([]uuid.UUID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uc.AddWorkspaceIDs(ids...)
+}
+
+// AddWorkspaceFileIDs adds the "workspace_files" edge to the WorkspaceFile entity by IDs.
+func (uc *UserCreate) AddWorkspaceFileIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddWorkspaceFileIDs(ids...)
+	return uc
+}
+
+// AddWorkspaceFiles adds the "workspace_files" edges to the WorkspaceFile entity.
+func (uc *UserCreate) AddWorkspaceFiles(w ...*WorkspaceFile) *UserCreate {
+	ids := make([]uuid.UUID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uc.AddWorkspaceFileIDs(ids...)
+}
+
+// AddAPIKeyIDs adds the "api_keys" edge to the ApiKey entity by IDs.
+func (uc *UserCreate) AddAPIKeyIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddAPIKeyIDs(ids...)
+	return uc
+}
+
+// AddAPIKeys adds the "api_keys" edges to the ApiKey entity.
+func (uc *UserCreate) AddAPIKeys(a ...*ApiKey) *UserCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uc.AddAPIKeyIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -426,6 +474,54 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(useridentity.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.WorkspacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspacesTable,
+			Columns: []string{user.WorkspacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.WorkspaceFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspaceFilesTable,
+			Columns: []string{user.WorkspaceFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacefile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.APIKeysIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.APIKeysTable,
+			Columns: []string{user.APIKeysColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

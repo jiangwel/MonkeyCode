@@ -29,11 +29,14 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/repo"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/usecase"
-	repo8 "github.com/chaitin/MonkeyCode/backend/internal/report/repo"
-	usecase7 "github.com/chaitin/MonkeyCode/backend/internal/report/usecase"
+	repo9 "github.com/chaitin/MonkeyCode/backend/internal/report/repo"
+	usecase8 "github.com/chaitin/MonkeyCode/backend/internal/report/usecase"
+	"github.com/chaitin/MonkeyCode/backend/internal/socket/handler"
 	v1_3 "github.com/chaitin/MonkeyCode/backend/internal/user/handler/v1"
 	repo5 "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
 	usecase4 "github.com/chaitin/MonkeyCode/backend/internal/user/usecase"
+	repo8 "github.com/chaitin/MonkeyCode/backend/internal/workspace/repo"
+	usecase7 "github.com/chaitin/MonkeyCode/backend/internal/workspace/usecase"
 	"github.com/chaitin/MonkeyCode/backend/pkg"
 	"github.com/chaitin/MonkeyCode/backend/pkg/ipdb"
 	"github.com/chaitin/MonkeyCode/backend/pkg/logger"
@@ -87,10 +90,16 @@ func newServer() (*Server, error) {
 	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, dashboardUsecase, billingUsecase, authMiddleware, activeMiddleware, sessionSession, slogLogger, configConfig)
 	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware, activeMiddleware)
 	billingHandler := v1_5.NewBillingHandler(web, billingUsecase, authMiddleware, activeMiddleware)
+	workspaceFileRepo := repo8.NewWorkspaceFileRepo(client)
+	workspaceFileUsecase := usecase7.NewWorkspaceFileUsecase(workspaceFileRepo, configConfig, slogLogger)
+	socketHandler, err := handler.NewSocketHandler(configConfig, slogLogger, workspaceFileUsecase, userUsecase)
+	if err != nil {
+		return nil, err
+	}
 	versionInfo := version.NewVersionInfo()
 	reporter := report.NewReport(slogLogger, configConfig, versionInfo)
-	reportRepo := repo8.NewReportRepo(client)
-	reportUsecase := usecase7.NewReportUsecase(reportRepo, slogLogger, reporter)
+	reportRepo := repo9.NewReportRepo(client)
+	reportUsecase := usecase8.NewReportUsecase(reportRepo, slogLogger, reporter)
 	server := &Server{
 		config:      configConfig,
 		web:         web,
@@ -101,6 +110,7 @@ func newServer() (*Server, error) {
 		userV1:      userHandler,
 		dashboardV1: dashboardHandler,
 		billingV1:   billingHandler,
+		socketH:     socketHandler,
 		version:     versionInfo,
 		report:      reporter,
 		reportuse:   reportUsecase,
@@ -120,6 +130,7 @@ type Server struct {
 	userV1      *v1_3.UserHandler
 	dashboardV1 *v1_4.DashboardHandler
 	billingV1   *v1_5.BillingHandler
+	socketH     *handler.SocketHandler
 	version     *version.VersionInfo
 	report      *report.Reporter
 	reportuse   domain.ReportUsecase

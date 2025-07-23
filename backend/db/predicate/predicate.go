@@ -59,3 +59,9 @@ type UserIdentity func(*sql.Selector)
 
 // UserLoginHistory is the predicate function for userloginhistory builders.
 type UserLoginHistory func(*sql.Selector)
+
+// Workspace is the predicate function for workspace builders.
+type Workspace func(*sql.Selector)
+
+// WorkspaceFile is the predicate function for workspacefile builders.
+type WorkspaceFile func(*sql.Selector)

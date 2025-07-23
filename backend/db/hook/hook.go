@@ -225,6 +225,30 @@ func (f UserLoginHistoryFunc) Mutate(ctx context.Context, m db.Mutation) (db.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.UserLoginHistoryMutation", m)
 }
 
+// The WorkspaceFunc type is an adapter to allow the use of ordinary
+// function as Workspace mutator.
+type WorkspaceFunc func(context.Context, *db.WorkspaceMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkspaceFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.WorkspaceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.WorkspaceMutation", m)
+}
+
+// The WorkspaceFileFunc type is an adapter to allow the use of ordinary
+// function as WorkspaceFile mutator.
+type WorkspaceFileFunc func(context.Context, *db.WorkspaceFileMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkspaceFileFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.WorkspaceFileMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.WorkspaceFileMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, db.Mutation) bool
 

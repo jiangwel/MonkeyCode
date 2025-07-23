@@ -14,6 +14,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
+	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/google/uuid"
 )
 
@@ -127,9 +128,20 @@ func (aku *ApiKeyUpdate) SetUpdatedAt(t time.Time) *ApiKeyUpdate {
 	return aku
 }
 
+// SetUser sets the "user" edge to the User entity.
+func (aku *ApiKeyUpdate) SetUser(u *User) *ApiKeyUpdate {
+	return aku.SetUserID(u.ID)
+}
+
 // Mutation returns the ApiKeyMutation object of the builder.
 func (aku *ApiKeyUpdate) Mutation() *ApiKeyMutation {
 	return aku.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (aku *ApiKeyUpdate) ClearUser() *ApiKeyUpdate {
+	aku.mutation.ClearUser()
+	return aku
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -168,6 +180,14 @@ func (aku *ApiKeyUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (aku *ApiKeyUpdate) check() error {
+	if aku.mutation.UserCleared() && len(aku.mutation.UserIDs()) > 0 {
+		return errors.New(`db: clearing a required unique edge "ApiKey.user"`)
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (aku *ApiKeyUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ApiKeyUpdate {
 	aku.modifiers = append(aku.modifiers, modifiers...)
@@ -175,6 +195,9 @@ func (aku *ApiKeyUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ApiKey
 }
 
 func (aku *ApiKeyUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := aku.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(apikey.Table, apikey.Columns, sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeUUID))
 	if ps := aku.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -182,9 +205,6 @@ func (aku *ApiKeyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := aku.mutation.UserID(); ok {
-		_spec.SetField(apikey.FieldUserID, field.TypeUUID, value)
 	}
 	if value, ok := aku.mutation.Key(); ok {
 		_spec.SetField(apikey.FieldKey, field.TypeString, value)
@@ -206,6 +226,35 @@ func (aku *ApiKeyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := aku.mutation.UpdatedAt(); ok {
 		_spec.SetField(apikey.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if aku.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   apikey.UserTable,
+			Columns: []string{apikey.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aku.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   apikey.UserTable,
+			Columns: []string{apikey.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(aku.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, aku.driver, _spec); err != nil {
@@ -325,9 +374,20 @@ func (akuo *ApiKeyUpdateOne) SetUpdatedAt(t time.Time) *ApiKeyUpdateOne {
 	return akuo
 }
 
+// SetUser sets the "user" edge to the User entity.
+func (akuo *ApiKeyUpdateOne) SetUser(u *User) *ApiKeyUpdateOne {
+	return akuo.SetUserID(u.ID)
+}
+
 // Mutation returns the ApiKeyMutation object of the builder.
 func (akuo *ApiKeyUpdateOne) Mutation() *ApiKeyMutation {
 	return akuo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (akuo *ApiKeyUpdateOne) ClearUser() *ApiKeyUpdateOne {
+	akuo.mutation.ClearUser()
+	return akuo
 }
 
 // Where appends a list predicates to the ApiKeyUpdate builder.
@@ -379,6 +439,14 @@ func (akuo *ApiKeyUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (akuo *ApiKeyUpdateOne) check() error {
+	if akuo.mutation.UserCleared() && len(akuo.mutation.UserIDs()) > 0 {
+		return errors.New(`db: clearing a required unique edge "ApiKey.user"`)
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (akuo *ApiKeyUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ApiKeyUpdateOne {
 	akuo.modifiers = append(akuo.modifiers, modifiers...)
@@ -386,6 +454,9 @@ func (akuo *ApiKeyUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Ap
 }
 
 func (akuo *ApiKeyUpdateOne) sqlSave(ctx context.Context) (_node *ApiKey, err error) {
+	if err := akuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(apikey.Table, apikey.Columns, sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeUUID))
 	id, ok := akuo.mutation.ID()
 	if !ok {
@@ -411,9 +482,6 @@ func (akuo *ApiKeyUpdateOne) sqlSave(ctx context.Context) (_node *ApiKey, err er
 			}
 		}
 	}
-	if value, ok := akuo.mutation.UserID(); ok {
-		_spec.SetField(apikey.FieldUserID, field.TypeUUID, value)
-	}
 	if value, ok := akuo.mutation.Key(); ok {
 		_spec.SetField(apikey.FieldKey, field.TypeString, value)
 	}
@@ -434,6 +502,35 @@ func (akuo *ApiKeyUpdateOne) sqlSave(ctx context.Context) (_node *ApiKey, err er
 	}
 	if value, ok := akuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(apikey.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if akuo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   apikey.UserTable,
+			Columns: []string{apikey.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := akuo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   apikey.UserTable,
+			Columns: []string{apikey.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(akuo.modifiers...)
 	_node = &ApiKey{config: akuo.config}
