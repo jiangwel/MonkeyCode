@@ -510,7 +510,14 @@ func (u *UserUsecase) OAuthCallback(c *web.Context, req *domain.OAuthCallbackReq
 
 	switch session.Kind {
 	case consts.OAuthKindInvite:
+		setting, err := u.repo.GetSetting(ctx)
+		if err != nil {
+			return err
+		}
 		_, redirect, err := u.WithOAuthCallback(ctx, req, &session, func(ctx context.Context, s *domain.OAuthState, oui *domain.OAuthUserInfo) (*db.User, error) {
+			if setting.EnableAutoLogin {
+				return u.repo.SignUpOrIn(ctx, s.Platform, oui)
+			}
 			return u.repo.OAuthRegister(ctx, s.Platform, s.InviteCode, oui)
 		})
 		if err != nil {
