@@ -19,11 +19,10 @@ import (
 )
 
 type ExtensionUsecase struct {
-	logger  *slog.Logger
-	repo    domain.ExtensionRepo
-	config  *config.Config
-	version string
-	mu      sync.Mutex
+	logger *slog.Logger
+	repo   domain.ExtensionRepo
+	config *config.Config
+	mu     sync.Mutex
 }
 
 func NewExtensionUsecase(
@@ -37,7 +36,6 @@ func NewExtensionUsecase(
 		mu:     sync.Mutex{},
 		logger: logger,
 	}
-	e.syncLatest()
 	return e
 }
 
@@ -61,21 +59,24 @@ func (e *ExtensionUsecase) Latest(ctx context.Context) (*domain.Extension, error
 	return cvt.From(ee, &domain.Extension{}), nil
 }
 
-func (e *ExtensionUsecase) syncLatest() {
-	latest, err := e.repo.Latest(context.Background())
-	if err == nil {
-		e.version = latest.Version
-	}
-
-	logger := e.logger.With("fn", "syncLatest")
-	logger.With("version", e.version).Debug("开始同步插件版本信息")
-
+func (e *ExtensionUsecase) SyncLatest() {
 	e.innerSync()
 }
 
 func (e *ExtensionUsecase) innerSync() {
 	v := strings.ReplaceAll(version.Version, "v", "")
-	if v == e.version {
+	logger := e.logger.With("fn", "syncLatest").With("current", v)
+	latest, err := e.repo.Latest(context.Background())
+	if err != nil {
+		if strings.Contains(err.Error(), "extension not found") {
+			latest = &db.Extension{}
+		} else {
+			logger.With("error", err).Error("获取最新插件版本失败")
+			return
+		}
+	}
+
+	if v == latest.Version {
 		return
 	}
 
@@ -120,5 +121,4 @@ func (e *ExtensionUsecase) download(version string) {
 		os.Remove(filename)
 		return
 	}
-	e.version = version
 }
