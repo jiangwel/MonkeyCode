@@ -257,15 +257,15 @@ func (m *ModelUsecase) InitModel(ctx context.Context) error {
 
 func (m *ModelUsecase) GetProviderModelList(ctx context.Context, req *domain.GetProviderModelListReq) (*domain.GetProviderModelListResp, error) {
 	switch req.Provider {
-	case consts.ModelProviderMoonshot,
-		consts.ModelProviderDeepSeek,
-		consts.ModelProviderAzureOpenAI,
+	case consts.ModelProviderAzureOpenAI,
 		consts.ModelProviderVolcengine:
 		return &domain.GetProviderModelListResp{
 			Models: domain.ModelProviderBrandModelsList[req.Provider],
 		}, nil
 	case consts.ModelProviderOpenAI,
 		consts.ModelProviderHunyuan,
+		consts.ModelProviderMoonshot,
+		consts.ModelProviderDeepSeek,
 		consts.ModelProviderBaiLian:
 		u, err := url.Parse(req.BaseURL)
 		if err != nil {
