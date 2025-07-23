@@ -61,8 +61,8 @@ const App = () => {
       return false;
     } else {
       const isActive =
-        res[0].every((item) => item.is_active) &&
-        res[1].every((item) => item.is_active);
+        res[0].some((item) => item.is_active) &&
+        res[1].some((item) => item.is_active);
       if (isActive) {
         setIsConfigModel(true);
         return true;
