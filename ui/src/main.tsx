@@ -45,10 +45,9 @@ const App = () => {
         .finally(() => {
           setLoading(false);
         });
-    } else {
+    } else if (!location.pathname.startsWith('/auth')) {
       return getAdminProfile()
         .then((res) => {
-          console.log(res);
           setUser(res);
           if (location.pathname.startsWith('/login')) {
             onGotoRedirect('admin');
@@ -57,6 +56,8 @@ const App = () => {
         .finally(() => {
           setLoading(false);
         });
+    } else {
+      setLoading(false);
     }
   };
 

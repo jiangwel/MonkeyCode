@@ -58,7 +58,7 @@ export enum ContentType {
   Text = "text/plain",
 }
 
-const whitePathnameList = ["/user/login", "/login"];
+const whitePathnameList = ["/user/login", "/login", "/auth"];
 const whiteApiList = ["/api/v1/user/profile", "/api/v1/admin/profile"];
 
 const redirectToLogin = () => {
