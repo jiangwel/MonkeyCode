@@ -2,6 +2,8 @@ package config
 
 import (
 	_ "embed"
+	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -19,6 +21,7 @@ type Config struct {
 
 	Server struct {
 		Addr string `mapstructure:"addr"`
+		Port string `mapstructure:"port"`
 	} `mapstructure:"server"`
 
 	Admin struct {
@@ -72,6 +75,17 @@ type Config struct {
 	} `mapstructure:"data_report"`
 }
 
+func (c *Config) GetBaseURL(req *http.Request) string {
+	scheme := "http"
+	if req.TLS != nil {
+		scheme = "https"
+	}
+	if proto := req.Header.Get("X-Forwarded-Proto"); proto != "" {
+		scheme = proto
+	}
+	return fmt.Sprintf("%s://%s:%s", scheme, req.Host, c.Server.Port)
+}
+
 func Init() (*Config, error) {
 	v := viper.New()
 	v.AutomaticEnv()
@@ -81,6 +95,7 @@ func Init() (*Config, error) {
 	v.SetDefault("debug", false)
 	v.SetDefault("logger.level", "info")
 	v.SetDefault("server.addr", ":8888")
+	v.SetDefault("server.port", "")
 	v.SetDefault("admin.user", "admin")
 	v.SetDefault("admin.password", "")
 	v.SetDefault("admin.limit", 100)
