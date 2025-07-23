@@ -40,14 +40,7 @@ type StatisticsFilter struct {
 }
 
 func (s StatisticsFilter) StartTime() time.Time {
-	switch s.Precision {
-	case "hour":
-		return time.Now().Add(-time.Duration(s.Duration) * time.Hour)
-	case "day":
-		return time.Now().AddDate(0, 0, -int(s.Duration))
-	default:
-		return time.Now().AddDate(0, 0, -90)
-	}
+	return time.Now().Add(-24 * time.Hour)
 }
 
 type UserHeatmapResp struct {

@@ -12,6 +12,7 @@ import (
 
 	"github.com/GoYoko/web"
 
+	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
@@ -32,10 +33,16 @@ type UserRepo struct {
 	db    *db.Client
 	ipdb  *ipdb.IPDB
 	redis *redis.Client
+	cfg   *config.Config
 }
 
-func NewUserRepo(db *db.Client, ipdb *ipdb.IPDB, redis *redis.Client) domain.UserRepo {
-	return &UserRepo{db: db, ipdb: ipdb, redis: redis}
+func NewUserRepo(
+	db *db.Client,
+	ipdb *ipdb.IPDB,
+	redis *redis.Client,
+	cfg *config.Config,
+) domain.UserRepo {
+	return &UserRepo{db: db, ipdb: ipdb, redis: redis, cfg: cfg}
 }
 
 func (r *UserRepo) InitAdmin(ctx context.Context, username, password string) error {
@@ -113,13 +120,25 @@ func (r *UserRepo) innerValidateInviteCode(ctx context.Context, tx *db.Tx, code 
 }
 
 func (r *UserRepo) CreateUser(ctx context.Context, user *db.User) (*db.User, error) {
-	return r.db.User.Create().
-		SetUsername(user.Username).
-		SetEmail(user.Email).
-		SetPassword(user.Password).
-		SetStatus(user.Status).
-		SetPlatform(user.Platform).
-		Save(ctx)
+	var res *db.User
+	err := entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		if err := r.checkLimit(ctx, tx); err != nil {
+			return err
+		}
+		u, err := tx.User.Create().
+			SetUsername(user.Username).
+			SetEmail(user.Email).
+			SetPassword(user.Password).
+			SetStatus(user.Status).
+			SetPlatform(user.Platform).
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+		res = u
+		return nil
+	})
+	return res, err
 }
 
 func (r *UserRepo) UserLoginHistory(ctx context.Context, page *web.Pagination) ([]*db.UserLoginHistory, *db.PageInfo, error) {
@@ -297,6 +316,10 @@ func (r *UserRepo) DeleteAdmin(ctx context.Context, id string) error {
 func (r *UserRepo) OAuthRegister(ctx context.Context, platform consts.UserPlatform, inviteCode string, req *domain.OAuthUserInfo) (*db.User, error) {
 	var u *db.User
 	err := entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		if err := r.checkLimit(ctx, tx); err != nil {
+			return err
+		}
+
 		if _, err := r.innerValidateInviteCode(ctx, tx, inviteCode); err != nil {
 			return errcode.ErrInviteCodeInvalid.Wrap(err)
 		}
@@ -365,6 +388,17 @@ func (r *UserRepo) updateAvatar(ctx context.Context, tx *db.Tx, ui *db.UserIdent
 	return tx.User.UpdateOneID(ui.UserID).SetAvatarURL(avatar).Exec(ctx)
 }
 
+func (r *UserRepo) checkLimit(ctx context.Context, tx *db.Tx) error {
+	count, err := tx.User.Query().Count(ctx)
+	if err != nil {
+		return err
+	}
+	if count >= r.cfg.Admin.Limit {
+		return errcode.ErrUserLimit.Wrap(err)
+	}
+	return nil
+}
+
 func (r *UserRepo) SignUpOrIn(ctx context.Context, platform consts.UserPlatform, req *domain.OAuthUserInfo) (*db.User, error) {
 	var u *db.User
 	err := entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
@@ -382,6 +416,9 @@ func (r *UserRepo) SignUpOrIn(ctx context.Context, platform consts.UserPlatform,
 			return nil
 		}
 		if !db.IsNotFound(err) {
+			return err
+		}
+		if err = r.checkLimit(ctx, tx); err != nil {
 			return err
 		}
 		user, err := tx.User.Create().

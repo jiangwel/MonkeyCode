@@ -24,6 +24,7 @@ type Config struct {
 	Admin struct {
 		User     string `mapstructure:"user"`
 		Password string `mapstructure:"password"`
+		Limit    int    `mapstructure:"limit"`
 	} `mapstructure:"admin"`
 
 	Session struct {
@@ -82,6 +83,7 @@ func Init() (*Config, error) {
 	v.SetDefault("server.addr", ":8888")
 	v.SetDefault("admin.user", "admin")
 	v.SetDefault("admin.password", "")
+	v.SetDefault("admin.limit", 100)
 	v.SetDefault("session.expire_day", 30)
 	v.SetDefault("database.master", "")
 	v.SetDefault("database.slave", "")

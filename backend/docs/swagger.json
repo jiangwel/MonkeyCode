@@ -99,6 +99,46 @@
                 }
             }
         },
+        "/api/v1/admin/export-completion-data": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "管理员导出所有补全相关数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "导出补全数据",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ExportCompletionDataResp"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/list": {
             "get": {
                 "description": "获取管理员用户列表",
@@ -3118,6 +3158,92 @@
                 }
             }
         },
+        "domain.CompletionData": {
+            "type": "object",
+            "properties": {
+                "code_lines": {
+                    "description": "代码行数",
+                    "type": "integer"
+                },
+                "completion": {
+                    "description": "LLM生成的补全代码",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "创建时间戳",
+                    "type": "integer"
+                },
+                "cursor_position": {
+                    "description": "光标位置 {\"line\": 10, \"column\": 5}",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "input_tokens": {
+                    "description": "输入token数",
+                    "type": "integer"
+                },
+                "is_accept": {
+                    "description": "用户是否接受补全",
+                    "type": "boolean"
+                },
+                "is_suggested": {
+                    "description": "是否为建议模式",
+                    "type": "boolean"
+                },
+                "model_id": {
+                    "description": "模型ID",
+                    "type": "string"
+                },
+                "model_name": {
+                    "description": "模型名称",
+                    "type": "string"
+                },
+                "model_type": {
+                    "description": "模型类型",
+                    "type": "string"
+                },
+                "output_tokens": {
+                    "description": "输出token数",
+                    "type": "integer"
+                },
+                "program_language": {
+                    "description": "编程语言",
+                    "type": "string"
+                },
+                "prompt": {
+                    "description": "用户输入的提示",
+                    "type": "string"
+                },
+                "request_id": {
+                    "description": "请求ID",
+                    "type": "string"
+                },
+                "source_code": {
+                    "description": "当前文件原文",
+                    "type": "string"
+                },
+                "task_id": {
+                    "description": "任务ID",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "更新时间戳",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "string"
+                },
+                "user_input": {
+                    "description": "用户最终输入的内容",
+                    "type": "string"
+                },
+                "work_mode": {
+                    "description": "工作模式",
+                    "type": "string"
+                }
+            }
+        },
         "domain.CompletionInfo": {
             "type": "object",
             "properties": {
@@ -3381,6 +3507,22 @@
                 "enable": {
                     "description": "钉钉OAuth开关",
                     "type": "boolean"
+                }
+            }
+        },
+        "domain.ExportCompletionDataResp": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "补全数据列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CompletionData"
+                    }
+                },
+                "total_count": {
+                    "description": "总记录数",
+                    "type": "integer"
                 }
             }
         },
@@ -3895,7 +4037,8 @@
                 },
                 "cursor_position": {
                     "description": "光标位置（用于reject action）",
-                    "type": "integer"
+                    "type": "object",
+                    "additionalProperties": {}
                 },
                 "id": {
                     "description": "task_id or resp_id",

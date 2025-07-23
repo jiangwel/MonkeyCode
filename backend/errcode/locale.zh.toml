@@ -27,3 +27,6 @@ other = "钉钉未启用"
 
 [err-custom-not-enabled]
 other = "OAuth未启用"
+
+[err-user-limit]
+other = "用户数量已达上限"
