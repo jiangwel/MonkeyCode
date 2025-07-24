@@ -12,6 +12,7 @@ var LocalFS embed.FS
 var (
 	ErrPermission          = web.NewBadRequestErr("err-permission")
 	ErrUserNotFound        = web.NewBadRequestErr("err-user-not-found")
+	ErrReadOnly            = web.NewBadRequestErr("err-read-only")
 	ErrPassword            = web.NewBadRequestErr("err-password")
 	ErrInviteCodeInvalid   = web.NewBadRequestErr("err-invite-code-invalid")
 	ErrEmailInvalid        = web.NewBadRequestErr("err-email-invalid")

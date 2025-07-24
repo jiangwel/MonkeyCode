@@ -17,6 +17,8 @@ var ConfigTmpl []byte
 type Config struct {
 	Debug bool `mapstructure:"debug"`
 
+	ReadOnly bool `mapstructure:"read_only"`
+
 	Logger *logger.Config `mapstructure:"logger"`
 
 	Server struct {
@@ -97,6 +99,7 @@ func Init() (*Config, error) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	v.SetDefault("debug", false)
+	v.SetDefault("read_only", false)
 	v.SetDefault("logger.level", "info")
 	v.SetDefault("server.addr", ":8888")
 	v.SetDefault("server.port", "")

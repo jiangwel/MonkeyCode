@@ -73,7 +73,8 @@ func newServer() (*Server, error) {
 	modelUsecase := usecase3.NewModelUsecase(slogLogger, modelRepo, configConfig)
 	sessionSession := session.NewSession(configConfig)
 	authMiddleware := middleware.NewAuthMiddleware(sessionSession, slogLogger)
-	modelHandler := v1_2.NewModelHandler(web, modelUsecase, authMiddleware, activeMiddleware, slogLogger)
+	readOnlyMiddleware := middleware.NewReadOnlyMiddleware(configConfig)
+	modelHandler := v1_2.NewModelHandler(web, modelUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, slogLogger)
 	ipdbIPDB, err := ipdb.NewIPDB(slogLogger)
 	if err != nil {
 		return nil, err
@@ -84,7 +85,7 @@ func newServer() (*Server, error) {
 	dashboardUsecase := usecase5.NewDashboardUsecase(dashboardRepo)
 	billingRepo := repo7.NewBillingRepo(client)
 	billingUsecase := usecase6.NewBillingUsecase(billingRepo)
-	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, dashboardUsecase, billingUsecase, authMiddleware, activeMiddleware, sessionSession, slogLogger, configConfig)
+	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, dashboardUsecase, billingUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, sessionSession, slogLogger, configConfig)
 	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware, activeMiddleware)
 	billingHandler := v1_5.NewBillingHandler(web, billingUsecase, authMiddleware, activeMiddleware)
 	versionInfo := version.NewVersionInfo()
