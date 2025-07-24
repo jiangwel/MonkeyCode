@@ -23,7 +23,6 @@ import { addCommasToNumber } from '@/utils';
 import User from '@/components/user';
 import { useRequest } from 'ahooks';
 import { getListUser } from '@/api/User';
-import { set } from 'react-hook-form';
 
 const Chat = () => {
   const [page, setPage] = useState(1);
@@ -46,13 +45,18 @@ const Chat = () => {
     })
   );
 
-  const fetchData = async () => {
+  const fetchData = async (params: {
+    page?: number;
+    size?: number;
+    work_mode?: string;
+    author?: string;
+  }) => {
     setLoading(true);
     const res = await getListChatRecord({
-      page: page,
-      size: size,
-      work_mode: filterMode,
-      author: filterUser,
+      page: params.page || page,
+      size: params.size || size,
+      work_mode: params.work_mode || filterMode,
+      author: params.author || filterUser,
     });
     setLoading(false);
     setTotal(res?.total_count || 0);
@@ -60,10 +64,13 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    setPage(1);
-    fetchData();
-    // eslint-disable-next-line
-  }, [page, size, filterMode, filterUser]);
+    setPage(1); // 筛选变化时重置页码
+    fetchData({
+      page: 1,
+      work_mode: filterMode,
+      author: filterUser,
+    });
+  }, [filterMode, filterUser]);
 
   const columns: ColumnsType<DomainChatRecord> = [
     {
@@ -228,6 +235,10 @@ const Chat = () => {
           onChange: (page: number, size: number) => {
             setPage(page);
             setSize(size);
+            fetchData({
+              page: page,
+              size: size,
+            });
           },
         }}
       />
