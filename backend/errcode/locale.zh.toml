@@ -4,6 +4,9 @@ other = "无权操作"
 [err-user-not-found]
 other = "用户不存在"
 
+[err-user-lock]
+other = "用户已锁定"
+
 [err-password]
 other = "密码错误"
 

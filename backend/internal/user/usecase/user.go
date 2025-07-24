@@ -19,6 +19,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
+	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/ent/types"
 	"github.com/chaitin/MonkeyCode/backend/errcode"
@@ -205,6 +206,9 @@ func (u *UserUsecase) Login(ctx context.Context, req *domain.LoginReq) (*domain.
 	user, err := u.repo.GetByName(ctx, req.Username)
 	if err != nil {
 		return nil, errcode.ErrUserNotFound.Wrap(err)
+	}
+	if user.Status != consts.UserStatusActive {
+		return nil, errcode.ErrUserLock
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		return nil, errcode.ErrPassword.Wrap(err)
@@ -394,17 +398,34 @@ func (u *UserUsecase) UpdateSetting(ctx context.Context, req *domain.UpdateSetti
 	return cvt.From(s, &domain.Setting{}), nil
 }
 
+func (u *UserUsecase) cleanApiKey(ctx context.Context, tx *db.Tx, user *db.User) error {
+	if apikey, err := tx.ApiKey.Query().Where(apikey.UserID(user.ID)).First(ctx); err == nil {
+		if err := tx.ApiKey.DeleteOneID(apikey.ID).Exec(ctx); err != nil {
+			return err
+		}
+		rkey := "sk-" + apikey.Key
+		return u.redis.Del(ctx, rkey).Err()
+
+	}
+	return nil
+}
+
 func (u *UserUsecase) Update(ctx context.Context, req *domain.UpdateUserReq) (*domain.User, error) {
-	user, err := u.repo.Update(ctx, req.ID, func(_ *db.User, u *db.UserUpdateOne) error {
+	user, err := u.repo.Update(ctx, req.ID, func(tx *db.Tx, old *db.User, up *db.UserUpdateOne) error {
 		if req.Status != nil {
-			u.SetStatus(*req.Status)
+			if *req.Status == consts.UserStatusLocked {
+				if err := u.cleanApiKey(ctx, tx, old); err != nil {
+					return err
+				}
+			}
+			up.SetStatus(*req.Status)
 		}
 		if req.Password != nil {
 			hash, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
 			if err != nil {
 				return err
 			}
-			u.SetPassword(string(hash))
+			up.SetPassword(string(hash))
 		}
 		return nil
 	})
@@ -613,7 +634,7 @@ func (u *UserUsecase) WithOAuthCallback(ctx context.Context, req *domain.OAuthCa
 }
 
 func (u *UserUsecase) ProfileUpdate(ctx context.Context, req *domain.ProfileUpdateReq) (*domain.User, error) {
-	user, err := u.repo.Update(ctx, req.UID, func(old *db.User, uuo *db.UserUpdateOne) error {
+	user, err := u.repo.Update(ctx, req.UID, func(_ *db.Tx, old *db.User, uuo *db.UserUpdateOne) error {
 		if req.Avatar != nil {
 			uuo.SetAvatarURL(*req.Avatar)
 		}
