@@ -6,7 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/chaitin/MonkeyCode/backend/config"
-	"github.com/chaitin/MonkeyCode/backend/errcode"
 )
 
 type ReadOnlyMiddleware struct {
@@ -21,7 +20,10 @@ func (m *ReadOnlyMiddleware) Guard() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if m.cfg.ReadOnly && c.Request().Method != http.MethodGet {
-				return errcode.ErrReadOnly
+				return c.JSON(http.StatusOK, echo.Map{
+					"code":    -1,
+					"message": "只读模式下不支持该操作",
+				})
 			}
 			return next(c)
 		}
