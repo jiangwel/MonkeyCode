@@ -4,7 +4,14 @@ import { getUserListChatRecord } from '@/api/UserRecord';
 import dayjs from 'dayjs';
 
 import Card from '@/components/card';
-import { Box } from '@mui/material';
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+} from '@mui/material';
 import StyledLabel from '@/components/label';
 
 import ChatDetailModal from './chatDetailModal';
@@ -19,14 +26,24 @@ const Chat = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState<DomainChatRecord[]>([]);
+  const [filterMode, setfilterMode] = useState<
+    'code' | 'architect' | 'ask' | 'debug' | 'orchestrator'
+  >();
   const [chatDetailModal, setChatDetailModal] = useState<
     DomainChatRecord | undefined
   >();
-  const fetchData = async () => {
+
+  const fetchData = async (params: {
+    page?: number;
+    size?: number;
+    work_mode?: string;
+    author?: string;
+  }) => {
     setLoading(true);
     const res = await getUserListChatRecord({
-      page: page,
-      size: size,
+      page: params.page || page,
+      size: params.size || size,
+      work_mode: params.work_mode || filterMode,
     });
     setLoading(false);
     setTotal(res?.total_count || 0);
@@ -35,9 +52,11 @@ const Chat = () => {
 
   useEffect(() => {
     setPage(1); // 筛选变化时重置页码
-    fetchData();
-    // eslint-disable-next-line
-  }, [page, size]);
+    fetchData({
+      page: 1,
+      work_mode: filterMode,
+    });
+  }, [filterMode]);
 
   const columns: ColumnsType<DomainChatRecord> = [
     {
@@ -138,8 +157,34 @@ const Chat = () => {
   ];
   return (
     <Card sx={{ flex: 1, height: '100%' }}>
+      <Stack direction='row' spacing={2} sx={{ mb: 2 }}>
+        <FormControl size='small' sx={{ minWidth: 180 }}>
+          <InputLabel>工作模式</InputLabel>
+          <Select
+            label='工作模式'
+            value={filterMode}
+            onChange={(e) =>
+              setfilterMode(
+                e.target.value as
+                  | 'code'
+                  | 'ask'
+                  | 'architect'
+                  | 'debug'
+                  | 'orchestrator'
+              )
+            }
+          >
+            <MenuItem value=''>全部</MenuItem>
+            <MenuItem value='code'>编程模式</MenuItem>
+            <MenuItem value='ask'>问答模式</MenuItem>
+            <MenuItem value='architect'>架构模式</MenuItem>
+            <MenuItem value='debug'>调试模式</MenuItem>
+            <MenuItem value='orchestrator'>编排模式</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
       <Table
-        height='100%'
+        height='calc(100% - 52px)'
         sx={{ mx: -2 }}
         PaginationProps={{
           sx: {
@@ -158,6 +203,10 @@ const Chat = () => {
           onChange: (page: number, size: number) => {
             setPage(page);
             setSize(size);
+            fetchData({
+              page: page,
+              size: size,
+            });
           },
         }}
       />
