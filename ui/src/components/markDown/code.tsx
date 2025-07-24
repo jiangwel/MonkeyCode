@@ -1,6 +1,12 @@
 import MonacoEditor from '@monaco-editor/react';
+import { loader } from '@monaco-editor/react';
+import * as monaco from 'monaco-editor';
 import { getBaseLanguageId } from '@/utils';
 import { useRef, useState, useEffect } from 'react';
+
+// 配置 Monaco Editor 从本地加载而不是 CDN
+// 禁用默认的 CDN 加载
+loader.config({ monaco });
 
 const CHAR_WIDTH = 8; // 估算每个字符宽度，实际可根据字体调整
 const MIN_WIDTH = 200;
