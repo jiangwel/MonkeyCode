@@ -253,10 +253,11 @@ func (r *UserRepo) Update(ctx context.Context, id string, fn func(*db.User, *db.
 		if err != nil {
 			return err
 		}
-		if err := fn(u, u.Update()); err != nil {
+		up := tx.User.UpdateOneID(u.ID)
+		if err = fn(u, up); err != nil {
 			return err
 		}
-		return u.Update().Exec(ctx)
+		return up.Exec(ctx)
 	})
 	return u, err
 }
