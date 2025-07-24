@@ -153,19 +153,8 @@ func (r *Recorder) handleShadow() {
 		With("resp_header", formatHeader(r.ctx.RespHeader)).
 		DebugContext(r.ctx.ctx, "handle shadow", "rc", rc)
 
-	// 记录用户的提问
-	if r.ctx.Model.ModelType == consts.ModelTypeLLM && prompt != "" {
-		tmp := rc.Clone()
-		tmp.Role = consts.ChatRoleUser
-		tmp.Completion = ""
-		tmp.OutputTokens = 0
-		if err := r.usecase.Record(context.Background(), tmp); err != nil {
-			r.logger.WarnContext(r.ctx.ctx, "记录请求失败", "error", err)
-		}
-	}
-
 	if err := r.usecase.Record(context.Background(), rc); err != nil {
-		r.logger.WarnContext(r.ctx.ctx, "记录请求失败", "error", err)
+		r.logger.With("record", rc).WarnContext(r.ctx.ctx, "记录请求失败", "error", err)
 	}
 }
 

@@ -110,6 +110,7 @@ func (h *V1Handler) AcceptCompletion(c *web.Context, req domain.AcceptCompletion
 //	@Router			/v1/report [post]
 func (h *V1Handler) Report(c *web.Context, req domain.ReportReq) error {
 	h.logger.DebugContext(c.Request().Context(), "Report", slog.Any("req", req))
+	req.UserID = middleware.GetApiKey(c).UserID
 	if err := h.proxyUse.Report(c.Request().Context(), &req); err != nil {
 		return err
 	}

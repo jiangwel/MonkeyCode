@@ -272,6 +272,14 @@ func init() {
 	task.UpdateDefaultUpdatedAt = taskDescUpdatedAt.UpdateDefault.(func() time.Time)
 	taskrecordFields := schema.TaskRecord{}.Fields()
 	_ = taskrecordFields
+	// taskrecordDescOutputTokens is the schema descriptor for output_tokens field.
+	taskrecordDescOutputTokens := taskrecordFields[5].Descriptor()
+	// taskrecord.DefaultOutputTokens holds the default value on creation for the output_tokens field.
+	taskrecord.DefaultOutputTokens = taskrecordDescOutputTokens.Default.(int64)
+	// taskrecordDescCodeLines is the schema descriptor for code_lines field.
+	taskrecordDescCodeLines := taskrecordFields[6].Descriptor()
+	// taskrecord.DefaultCodeLines holds the default value on creation for the code_lines field.
+	taskrecord.DefaultCodeLines = taskrecordDescCodeLines.Default.(int64)
 	// taskrecordDescCreatedAt is the schema descriptor for created_at field.
 	taskrecordDescCreatedAt := taskrecordFields[8].Descriptor()
 	// taskrecord.DefaultCreatedAt holds the default value on creation for the created_at field.
