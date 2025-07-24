@@ -91,7 +91,7 @@ func newServer() (*Server, error) {
 	versionInfo := version.NewVersionInfo()
 	reporter := report.NewReport(slogLogger, configConfig, versionInfo)
 	reportRepo := repo8.NewReportRepo(client)
-	reportUsecase := usecase7.NewReportUsecase(reportRepo, slogLogger, reporter)
+	reportUsecase := usecase7.NewReportUsecase(reportRepo, slogLogger, reporter, redisClient)
 	server := &Server{
 		config:      configConfig,
 		web:         web,
