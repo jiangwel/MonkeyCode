@@ -8,7 +8,7 @@ const ADMIN_BREADCRUMB_MAP: Record<string, { title: string; to: string }> = {
   chat: { title: '对话记录', to: '/chat' },
   completion: { title: '补全记录', to: '/completion' },
   model: { title: '模型管理', to: '/model' },
-  'user-management': { title: '成员管理', to: '/user-management' },
+  'member-management': { title: '成员管理', to: '/member-management' },
   admin: { title: '管理员', to: '/admin' },
 };
 

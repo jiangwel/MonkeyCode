@@ -51,8 +51,8 @@ const ADMIN_MENUS = [
   },
   {
     label: '成员管理',
-    value: '/user-management',
-    pathname: 'user-management',
+    value: '/member-management',
+    pathname: 'member-management',
     icon: 'icon-yonghuguanli1',
     show: true,
     disabled: false,
