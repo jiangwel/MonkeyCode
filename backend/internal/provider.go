@@ -45,6 +45,7 @@ var Provider = wire.NewSet(
 	middleware.NewProxyMiddleware,
 	middleware.NewAuthMiddleware,
 	middleware.NewActiveMiddleware,
+	middleware.NewReadOnlyMiddleware,
 	userV1.NewUserHandler,
 	userrepo.NewUserRepo,
 	userusecase.NewUserUsecase,

@@ -49,6 +49,7 @@ func NewUserHandler(
 	buse domain.BillingUsecase,
 	auth *middleware.AuthMiddleware,
 	active *middleware.ActiveMiddleware,
+	readonly *middleware.ReadOnlyMiddleware,
 	session *session.Session,
 	logger *slog.Logger,
 	cfg *config.Config,
@@ -74,7 +75,7 @@ func NewUserHandler(
 	admin.POST("/login", web.BindHandler(u.AdminLogin))
 	admin.GET("/setting", web.BaseHandler(u.GetSetting))
 
-	admin.Use(auth.Auth(), active.Active("admin"))
+	admin.Use(auth.Auth(), active.Active("admin"), readonly.Guard())
 	admin.GET("/profile", web.BaseHandler(u.AdminProfile))
 	admin.GET("/list", web.BaseHandler(u.AdminList, web.WithPage()))
 	admin.GET("/login-history", web.BaseHandler(u.AdminLoginHistory, web.WithPage()))
@@ -91,6 +92,7 @@ func NewUserHandler(
 	g.POST("/register", web.BindHandler(u.Register))
 	g.POST("/login", web.BindHandler(u.Login))
 
+	g.Use(readonly.Guard())
 	g.GET("/profile", web.BaseHandler(u.Profile), auth.UserAuth())
 	g.PUT("/profile", web.BindHandler(u.UpdateProfile), auth.UserAuth())
 	g.POST("/logout", web.BaseHandler(u.Logout), auth.UserAuth())

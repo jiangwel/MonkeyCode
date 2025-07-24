@@ -20,12 +20,13 @@ func NewModelHandler(
 	usecase domain.ModelUsecase,
 	auth *middleware.AuthMiddleware,
 	active *middleware.ActiveMiddleware,
+	readonly *middleware.ReadOnlyMiddleware,
 	logger *slog.Logger,
 ) *ModelHandler {
 	m := &ModelHandler{usecase: usecase, logger: logger.With("handler", "model")}
 
 	g := w.Group("/api/v1/model")
-	g.Use(auth.Auth(), active.Active("admin"))
+	g.Use(auth.Auth(), active.Active("admin"), readonly.Guard())
 
 	g.GET("", web.BaseHandler(m.List))
 	g.GET("/provider/supported", web.BindHandler(m.GetProviderModelList))
