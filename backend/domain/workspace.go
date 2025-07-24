@@ -14,6 +14,7 @@ type WorkspaceFileUsecase interface {
 	Create(ctx context.Context, req *CreateWorkspaceFileReq) (*WorkspaceFile, error)
 	Update(ctx context.Context, req *UpdateWorkspaceFileReq) (*WorkspaceFile, error)
 	Delete(ctx context.Context, id string) error
+	GetAndSave(ctx context.Context, req *SaveAstReq) error 
 	GetByID(ctx context.Context, id string) (*WorkspaceFile, error)
 	GetByPath(ctx context.Context, userID, workspaceID, path string) (*WorkspaceFile, error)
 	List(ctx context.Context, req *ListWorkspaceFileReq) (*ListWorkspaceFileResp, error)
@@ -21,6 +22,7 @@ type WorkspaceFileUsecase interface {
 	BatchUpdate(ctx context.Context, req *BatchUpdateWorkspaceFileReq) ([]*WorkspaceFile, error)
 	Sync(ctx context.Context, req *SyncWorkspaceFileReq) (*SyncWorkspaceFileResp, error)
 }
+
 
 // WorkspaceFileRepo 定义 WorkspaceFile 数据访问接口
 type WorkspaceFileRepo interface {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/domain"
+	"github.com/chaitin/MonkeyCode/backend/pkg/cli"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 )
 
@@ -119,6 +121,31 @@ func (u *WorkspaceFileUsecase) GetByID(ctx context.Context, id string) (*domain.
 	}
 
 	return cvt.From(file, &domain.WorkspaceFile{}), nil
+}
+
+func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.SaveAstReq) (error) { 
+	results, err := cli.RunParseCLI("parse", "", req.Files...) 
+	if err != nil {
+		return err 
+	} 
+	for _, res := range results {
+		file, err := u.repo.GetByPath(ctx, req.UserID, req.ProjectID, res.FilePath) 
+		if err != nil {
+			return err 
+		} 
+
+		astData, err := json.Marshal(res.Definition) 
+		if err != nil {
+			return err 
+		} 
+		_, err = u.repo.Update(ctx, file.ID.String(), func(up *db.WorkspaceFileUpdateOne) error {
+			return up.SetContent(string(astData)).Exec(ctx)
+		})
+		if err != nil {
+			return err 
+		}
+	}
+	return nil 
 }
 
 func (u *WorkspaceFileUsecase) GetByPath(ctx context.Context, userID, workspaceID, path string) (*domain.WorkspaceFile, error) {
