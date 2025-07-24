@@ -83,7 +83,11 @@ func (c *Config) GetBaseURL(req *http.Request) string {
 	if proto := req.Header.Get("X-Forwarded-Proto"); proto != "" {
 		scheme = proto
 	}
-	return fmt.Sprintf("%s://%s:%s", scheme, req.Host, c.Server.Port)
+	baseurl := fmt.Sprintf("%s://%s", scheme, req.Host)
+	if c.Server.Port != "" {
+		baseurl = fmt.Sprintf("%s:%s", baseurl, c.Server.Port)
+	}
+	return baseurl
 }
 
 func Init() (*Config, error) {
