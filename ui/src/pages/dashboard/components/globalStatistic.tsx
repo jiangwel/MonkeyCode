@@ -205,6 +205,7 @@ const GlobalStatistic = ({ timeRange }: { timeRange: TimeRange }) => {
         <LineCharts
           title='补全任务采纳率'
           data={acceptedPerChartData}
+          formatValueTooltip={(value) => `${value.toFixed(2)}%`}
           extra={
             <>
               {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}平均采纳率为

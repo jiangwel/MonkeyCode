@@ -305,7 +305,7 @@ const MemberManage = () => {
     <Card sx={{ flex: 1, height: '100%' }}>
       <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={handleClose}>
         {currentUser?.status === ConstsUserStatus.UserStatusActive && (
-          <MenuItem onClick={onLockUser}>解锁成员</MenuItem>
+          <MenuItem onClick={onLockUser}>锁定成员</MenuItem>
         )}
         {currentUser?.status === ConstsUserStatus.UserStatusLocked && (
           <MenuItem onClick={onUnLockUser}>解锁成员</MenuItem>
