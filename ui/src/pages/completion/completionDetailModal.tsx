@@ -2,10 +2,16 @@ import Card from '@/components/card';
 import { getCompletionInfo } from '@/api/Billing';
 import { Modal } from '@c-x/ui';
 import MonacoEditor from '@monaco-editor/react';
+import { loader } from '@monaco-editor/react';
+import * as monaco from 'monaco-editor';
 
 import { useEffect, useState, useRef } from 'react';
 import { DomainCompletionRecord } from '@/api/types';
 import { getBaseLanguageId } from '@/utils';
+
+// 配置 Monaco Editor 从本地加载而不是 CDN
+// 禁用默认的 CDN 加载
+loader.config({ monaco });
 
 // 删除 <|im_start|> 和 <|im_end|> 及其间内容的工具函数
 const removeImBlocks = (text: string) => {

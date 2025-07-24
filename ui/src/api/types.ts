@@ -170,6 +170,49 @@ export interface DomainCheckModelReq {
   type: "llm" | "coder" | "embedding" | "rerank";
 }
 
+export interface DomainCompletionData {
+  /** 代码行数 */
+  code_lines?: number;
+  /** LLM生成的补全代码 */
+  completion?: string;
+  /** 创建时间戳 */
+  created_at?: number;
+  /** 光标位置 {"line": 10, "column": 5} */
+  cursor_position?: Record<string, any>;
+  /** 输入token数 */
+  input_tokens?: number;
+  /** 用户是否接受补全 */
+  is_accept?: boolean;
+  /** 是否为建议模式 */
+  is_suggested?: boolean;
+  /** 模型ID */
+  model_id?: string;
+  /** 模型名称 */
+  model_name?: string;
+  /** 模型类型 */
+  model_type?: string;
+  /** 输出token数 */
+  output_tokens?: number;
+  /** 编程语言 */
+  program_language?: string;
+  /** 用户输入的提示 */
+  prompt?: string;
+  /** 请求ID */
+  request_id?: string;
+  /** 当前文件原文 */
+  source_code?: string;
+  /** 任务ID */
+  task_id?: string;
+  /** 更新时间戳 */
+  updated_at?: number;
+  /** 用户ID */
+  user_id?: string;
+  /** 用户最终输入的内容 */
+  user_input?: string;
+  /** 工作模式 */
+  work_mode?: string;
+}
+
 export interface DomainCompletionInfo {
   content?: string;
   created_at?: number;
@@ -295,6 +338,13 @@ export interface DomainDingtalkOAuthReq {
   client_secret?: string;
   /** 钉钉OAuth开关 */
   enable?: boolean;
+}
+
+export interface DomainExportCompletionDataResp {
+  /** 补全数据列表 */
+  data?: DomainCompletionData[];
+  /** 总记录数 */
+  total_count?: number;
 }
 
 export interface DomainGetProviderModelListResp {
@@ -516,7 +566,7 @@ export interface DomainReportReq {
   /** 内容 */
   content?: string;
   /** 光标位置（用于reject action） */
-  cursor_position?: number;
+  cursor_position?: Record<string, any>;
   /** task_id or resp_id */
   id?: string;
   /** 当前文件的原文（用于reject action） */
