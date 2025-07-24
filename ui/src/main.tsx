@@ -7,6 +7,35 @@ import '@/assets/fonts/iconfont';
 import './index.css';
 import '@/assets/styles/markdown.css';
 import { ThemeProvider } from '@c-x/ui';
+
+// 配置 Monaco Editor 环境
+import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
+import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
+import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+
+window.MonacoEnvironment = {
+  getWorker: function (workerId: string, label: string) {
+    switch (label) {
+      case 'json':
+        return new jsonWorker();
+      case 'css':
+      case 'scss':
+      case 'less':
+        return new cssWorker();
+      case 'html':
+      case 'handlebars':
+      case 'razor':
+        return new htmlWorker();
+      case 'typescript':
+      case 'javascript':
+        return new tsWorker();
+      default:
+        return new editorWorker();
+    }
+  },
+};
 import { getUserProfile } from '@/api/UserManage';
 import { getAdminProfile } from '@/api/Admin';
 import { getMyModelList } from '@/api/Model';
