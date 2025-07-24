@@ -100,6 +100,12 @@ func (tru *TaskRecordUpdate) SetNillableCompletion(s *string) *TaskRecordUpdate 
 	return tru
 }
 
+// ClearCompletion clears the value of the "completion" field.
+func (tru *TaskRecordUpdate) ClearCompletion() *TaskRecordUpdate {
+	tru.mutation.ClearCompletion()
+	return tru
+}
+
 // SetOutputTokens sets the "output_tokens" field.
 func (tru *TaskRecordUpdate) SetOutputTokens(i int64) *TaskRecordUpdate {
 	tru.mutation.ResetOutputTokens()
@@ -261,6 +267,9 @@ func (tru *TaskRecordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := tru.mutation.Completion(); ok {
 		_spec.SetField(taskrecord.FieldCompletion, field.TypeString, value)
 	}
+	if tru.mutation.CompletionCleared() {
+		_spec.ClearField(taskrecord.FieldCompletion, field.TypeString)
+	}
 	if value, ok := tru.mutation.OutputTokens(); ok {
 		_spec.SetField(taskrecord.FieldOutputTokens, field.TypeInt64, value)
 	}
@@ -401,6 +410,12 @@ func (truo *TaskRecordUpdateOne) SetNillableCompletion(s *string) *TaskRecordUpd
 	if s != nil {
 		truo.SetCompletion(*s)
 	}
+	return truo
+}
+
+// ClearCompletion clears the value of the "completion" field.
+func (truo *TaskRecordUpdateOne) ClearCompletion() *TaskRecordUpdateOne {
+	truo.mutation.ClearCompletion()
 	return truo
 }
 
@@ -594,6 +609,9 @@ func (truo *TaskRecordUpdateOne) sqlSave(ctx context.Context) (_node *TaskRecord
 	}
 	if value, ok := truo.mutation.Completion(); ok {
 		_spec.SetField(taskrecord.FieldCompletion, field.TypeString, value)
+	}
+	if truo.mutation.CompletionCleared() {
+		_spec.ClearField(taskrecord.FieldCompletion, field.TypeString)
 	}
 	if value, ok := truo.mutation.OutputTokens(); ok {
 		_spec.SetField(taskrecord.FieldOutputTokens, field.TypeInt64, value)

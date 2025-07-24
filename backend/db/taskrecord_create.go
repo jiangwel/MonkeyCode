@@ -66,15 +66,39 @@ func (trc *TaskRecordCreate) SetCompletion(s string) *TaskRecordCreate {
 	return trc
 }
 
+// SetNillableCompletion sets the "completion" field if the given value is not nil.
+func (trc *TaskRecordCreate) SetNillableCompletion(s *string) *TaskRecordCreate {
+	if s != nil {
+		trc.SetCompletion(*s)
+	}
+	return trc
+}
+
 // SetOutputTokens sets the "output_tokens" field.
 func (trc *TaskRecordCreate) SetOutputTokens(i int64) *TaskRecordCreate {
 	trc.mutation.SetOutputTokens(i)
 	return trc
 }
 
+// SetNillableOutputTokens sets the "output_tokens" field if the given value is not nil.
+func (trc *TaskRecordCreate) SetNillableOutputTokens(i *int64) *TaskRecordCreate {
+	if i != nil {
+		trc.SetOutputTokens(*i)
+	}
+	return trc
+}
+
 // SetCodeLines sets the "code_lines" field.
 func (trc *TaskRecordCreate) SetCodeLines(i int64) *TaskRecordCreate {
 	trc.mutation.SetCodeLines(i)
+	return trc
+}
+
+// SetNillableCodeLines sets the "code_lines" field if the given value is not nil.
+func (trc *TaskRecordCreate) SetNillableCodeLines(i *int64) *TaskRecordCreate {
+	if i != nil {
+		trc.SetCodeLines(*i)
+	}
 	return trc
 }
 
@@ -166,6 +190,14 @@ func (trc *TaskRecordCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (trc *TaskRecordCreate) defaults() {
+	if _, ok := trc.mutation.OutputTokens(); !ok {
+		v := taskrecord.DefaultOutputTokens
+		trc.mutation.SetOutputTokens(v)
+	}
+	if _, ok := trc.mutation.CodeLines(); !ok {
+		v := taskrecord.DefaultCodeLines
+		trc.mutation.SetCodeLines(v)
+	}
 	if _, ok := trc.mutation.CreatedAt(); !ok {
 		v := taskrecord.DefaultCreatedAt()
 		trc.mutation.SetCreatedAt(v)
@@ -180,9 +212,6 @@ func (trc *TaskRecordCreate) defaults() {
 func (trc *TaskRecordCreate) check() error {
 	if _, ok := trc.mutation.Role(); !ok {
 		return &ValidationError{Name: "role", err: errors.New(`db: missing required field "TaskRecord.role"`)}
-	}
-	if _, ok := trc.mutation.Completion(); !ok {
-		return &ValidationError{Name: "completion", err: errors.New(`db: missing required field "TaskRecord.completion"`)}
 	}
 	if _, ok := trc.mutation.OutputTokens(); !ok {
 		return &ValidationError{Name: "output_tokens", err: errors.New(`db: missing required field "TaskRecord.output_tokens"`)}
@@ -393,6 +422,12 @@ func (u *TaskRecordUpsert) UpdateCompletion() *TaskRecordUpsert {
 	return u
 }
 
+// ClearCompletion clears the value of the "completion" field.
+func (u *TaskRecordUpsert) ClearCompletion() *TaskRecordUpsert {
+	u.SetNull(taskrecord.FieldCompletion)
+	return u
+}
+
 // SetOutputTokens sets the "output_tokens" field.
 func (u *TaskRecordUpsert) SetOutputTokens(v int64) *TaskRecordUpsert {
 	u.Set(taskrecord.FieldOutputTokens, v)
@@ -586,6 +621,13 @@ func (u *TaskRecordUpsertOne) SetCompletion(v string) *TaskRecordUpsertOne {
 func (u *TaskRecordUpsertOne) UpdateCompletion() *TaskRecordUpsertOne {
 	return u.Update(func(s *TaskRecordUpsert) {
 		s.UpdateCompletion()
+	})
+}
+
+// ClearCompletion clears the value of the "completion" field.
+func (u *TaskRecordUpsertOne) ClearCompletion() *TaskRecordUpsertOne {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.ClearCompletion()
 	})
 }
 
@@ -962,6 +1004,13 @@ func (u *TaskRecordUpsertBulk) SetCompletion(v string) *TaskRecordUpsertBulk {
 func (u *TaskRecordUpsertBulk) UpdateCompletion() *TaskRecordUpsertBulk {
 	return u.Update(func(s *TaskRecordUpsert) {
 		s.UpdateCompletion()
+	})
+}
+
+// ClearCompletion clears the value of the "completion" field.
+func (u *TaskRecordUpsertBulk) ClearCompletion() *TaskRecordUpsertBulk {
+	return u.Update(func(s *TaskRecordUpsert) {
+		s.ClearCompletion()
 	})
 }
 

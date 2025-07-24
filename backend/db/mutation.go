@@ -11994,9 +11994,22 @@ func (m *TaskRecordMutation) OldCompletion(ctx context.Context) (v string, err e
 	return oldValue.Completion, nil
 }
 
+// ClearCompletion clears the value of the "completion" field.
+func (m *TaskRecordMutation) ClearCompletion() {
+	m.completion = nil
+	m.clearedFields[taskrecord.FieldCompletion] = struct{}{}
+}
+
+// CompletionCleared returns if the "completion" field was cleared in this mutation.
+func (m *TaskRecordMutation) CompletionCleared() bool {
+	_, ok := m.clearedFields[taskrecord.FieldCompletion]
+	return ok
+}
+
 // ResetCompletion resets all changes to the "completion" field.
 func (m *TaskRecordMutation) ResetCompletion() {
 	m.completion = nil
+	delete(m.clearedFields, taskrecord.FieldCompletion)
 }
 
 // SetOutputTokens sets the "output_tokens" field.
@@ -12509,6 +12522,9 @@ func (m *TaskRecordMutation) ClearedFields() []string {
 	if m.FieldCleared(taskrecord.FieldPrompt) {
 		fields = append(fields, taskrecord.FieldPrompt)
 	}
+	if m.FieldCleared(taskrecord.FieldCompletion) {
+		fields = append(fields, taskrecord.FieldCompletion)
+	}
 	if m.FieldCleared(taskrecord.FieldCode) {
 		fields = append(fields, taskrecord.FieldCode)
 	}
@@ -12531,6 +12547,9 @@ func (m *TaskRecordMutation) ClearField(name string) error {
 		return nil
 	case taskrecord.FieldPrompt:
 		m.ClearPrompt()
+		return nil
+	case taskrecord.FieldCompletion:
+		m.ClearCompletion()
 		return nil
 	case taskrecord.FieldCode:
 		m.ClearCode()

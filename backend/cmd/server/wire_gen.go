@@ -61,7 +61,7 @@ func newServer() (*Server, error) {
 	redisClient := store.NewRedisCli(configConfig)
 	proxyRepo := repo.NewProxyRepo(client, redisClient)
 	modelRepo := repo2.NewModelRepo(client)
-	proxyUsecase := usecase.NewProxyUsecase(proxyRepo, modelRepo)
+	proxyUsecase := usecase.NewProxyUsecase(proxyRepo, modelRepo, slogLogger)
 	llmProxy := proxy.NewLLMProxy(slogLogger, configConfig, proxyUsecase)
 	openAIRepo := repo3.NewOpenAIRepo(client)
 	openAIUsecase := openai.NewOpenAIUsecase(configConfig, openAIRepo, slogLogger)
