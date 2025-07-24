@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/redis/go-redis/v9"
+
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/report"
 	"github.com/chaitin/MonkeyCode/backend/pkg/version"
@@ -15,21 +17,80 @@ type ReportUsecase struct {
 	repo     domain.ReportRepo
 	logger   *slog.Logger
 	reporter *report.Reporter
+	redis    *redis.Client
 }
 
-func NewReportUsecase(repo domain.ReportRepo, logger *slog.Logger, reporter *report.Reporter) domain.ReportUsecase {
-	r := &ReportUsecase{repo: repo, logger: logger, reporter: reporter}
+func NewReportUsecase(
+	repo domain.ReportRepo,
+	logger *slog.Logger,
+	reporter *report.Reporter,
+	redis *redis.Client,
+) domain.ReportUsecase {
+	r := &ReportUsecase{
+		repo:     repo,
+		logger:   logger,
+		reporter: reporter,
+		redis:    redis,
+	}
 	go r.Report()
 	return r
 }
 
 func (r *ReportUsecase) Report() {
-	ticker := time.NewTicker(24 * time.Hour)
-	for range ticker.C {
-		if err := r.innerReport(); err != nil {
-			r.logger.With("error", err).Error("report failed")
+	ticker := time.NewTicker(1 * time.Hour)
+	defer ticker.Stop()
+	report := func() {
+		ok, err := r.shouldReport()
+		if err != nil {
+			r.logger.With("error", err).Error("check report time failed")
+		}
+		if ok {
+			if err := r.innerReport(); err != nil {
+				r.logger.With("error", err).Error("report failed")
+			} else {
+				if err := r.recordReportTime(); err != nil {
+					r.logger.With("error", err).Error("record report time failed")
+				}
+			}
 		}
 	}
+	report()
+
+	for range ticker.C {
+		report()
+	}
+}
+
+func (r *ReportUsecase) shouldReport() (bool, error) {
+	ctx := context.Background()
+	key := "monkeycode:last_report_time"
+
+	ts, err := r.redis.Get(ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return true, nil
+		}
+		return false, fmt.Errorf("get last report time from redis failed: %w", err)
+	}
+
+	t, err := time.Parse(time.RFC3339, ts)
+	if err != nil {
+		return false, fmt.Errorf("parse last report time failed: %w", err)
+	}
+
+	return time.Since(t) >= 24*time.Hour, nil
+}
+
+func (r *ReportUsecase) recordReportTime() error {
+	ctx := context.Background()
+	key := "monkeycode:last_report_time"
+	now := time.Now().Format(time.RFC3339)
+
+	err := r.redis.Set(ctx, key, now, 48*time.Hour).Err()
+	if err != nil {
+		return fmt.Errorf("set last report time to redis failed: %w", err)
+	}
+	return nil
 }
 
 func (r *ReportUsecase) innerReport() error {
@@ -63,5 +124,7 @@ func (r *ReportUsecase) innerReport() error {
 	if err := r.reporter.Report("monkeycode-metrics", data); err != nil {
 		return fmt.Errorf("report failed: %w", err)
 	}
+
+	r.logger.With("data", data).Debug("上报数据成功")
 	return nil
 }
