@@ -17,7 +17,7 @@ const Header = () => {
       await postAdminLogout();
     }
     message.success('退出登录成功');
-    navigate(pathname.startsWith('/user') ? '/user/login' : '/login');
+    navigate(pathname.startsWith('/user') ? '/login/user' : '/login/admin');
   };
   return (
     <Stack
