@@ -104,7 +104,7 @@ func (h *WorkspaceFileHandler) GetAndSave(ctx *web.Context, req *domain.GetAndSa
 		h.logger.Error("failed to get and save workspace files", "error", err, "count", len(req.CodeFiles.Files))
 		return err 
 	}
-	return ctx.Success(nil) 
+	return ctx.Success(nil)
 }
 
 // Update 更新工作区文件

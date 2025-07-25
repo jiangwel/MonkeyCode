@@ -8,18 +8,140 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/chaitin/MonkeyCode/backend/db"
+	"github.com/chaitin/MonkeyCode/backend/db/workspace"
 	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
 )
 
+type WorkspaceRepo struct {
+	db *db.Client
+}
+
 type WorkspaceFileRepo struct {
 	db *db.Client
+}
+
+func NewWorkspaceRepo(db *db.Client) domain.WorkspaceRepo {
+	return &WorkspaceRepo{db: db}
 }
 
 func NewWorkspaceFileRepo(db *db.Client) domain.WorkspaceFileRepo {
 	return &WorkspaceFileRepo{db: db}
 }
+
+// WorkspaceRepo methods
+
+func (r *WorkspaceRepo) Create(ctx context.Context, req *domain.CreateWorkspaceReq) (*db.Workspace, error) {
+	userID, err := uuid.Parse(req.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID: %w", err)
+	}
+
+	return r.db.Workspace.Create().
+		SetUserID(userID).
+		SetName(req.Name).
+		SetDescription(req.Description).
+		SetRootPath(req.RootPath).
+		SetSettings(req.Settings).
+		Save(ctx)
+}
+
+func (r *WorkspaceRepo) Update(ctx context.Context, id string, fn func(*db.WorkspaceUpdateOne) error) (*db.Workspace, error) {
+	workspaceID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid workspace ID: %w", err)
+	}
+
+	var workspace *db.Workspace
+	err = entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		old, err := tx.Workspace.Get(ctx, workspaceID)
+		if err != nil {
+			return err
+		}
+
+		up := tx.Workspace.UpdateOneID(old.ID)
+		if err := fn(up); err != nil {
+			return err
+		}
+
+		if updated, err := up.Save(ctx); err != nil {
+			return err
+		} else {
+			workspace = updated
+		}
+		return nil
+	})
+	return workspace, err
+}
+
+func (r *WorkspaceRepo) Delete(ctx context.Context, id string) error {
+	workspaceID, err := uuid.Parse(id)
+	if err != nil {
+		return fmt.Errorf("invalid workspace ID: %w", err)
+	}
+
+	return r.db.Workspace.DeleteOneID(workspaceID).Exec(ctx)
+}
+
+func (r *WorkspaceRepo) GetByID(ctx context.Context, id string) (*db.Workspace, error) {
+	workspaceID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid workspace ID: %w", err)
+	}
+
+	return r.db.Workspace.Query().
+		Where(workspace.ID(workspaceID)).
+		Only(ctx)
+}
+
+func (r *WorkspaceRepo) GetByUserAndPath(ctx context.Context, userID, rootPath string) (*db.Workspace, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID: %w", err)
+	}
+
+	return r.db.Workspace.Query().
+		Where(
+			workspace.UserID(userUUID),
+			workspace.RootPath(rootPath),
+		).
+		Only(ctx)
+}
+
+func (r *WorkspaceRepo) List(ctx context.Context, req *domain.ListWorkspaceReq) ([]*db.Workspace, *db.PageInfo, error) {
+	q := r.db.Workspace.Query()
+
+	// 添加筛选条件
+	if req.UserID != "" {
+		userID, err := uuid.Parse(req.UserID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid user ID: %w", err)
+		}
+		q = q.Where(workspace.UserID(userID))
+	}
+
+	if req.Search != "" {
+		q = q.Where(
+			workspace.Or(
+				workspace.NameContains(req.Search),
+				workspace.DescriptionContains(req.Search),
+			),
+		)
+	}
+
+	if req.RootPath != "" {
+		q = q.Where(workspace.RootPath(req.RootPath))
+	}
+
+	// 排序
+	q = q.Order(workspace.ByLastAccessedAt(sql.OrderDesc()))
+
+	// 分页查询
+	return q.Page(ctx, req.Page, req.Size)
+}
+
+// WorkspaceFileRepo methods
 
 func (r *WorkspaceFileRepo) Create(ctx context.Context, req *domain.CreateWorkspaceFileReq) (*db.WorkspaceFile, error) {
 	userID, err := uuid.Parse(req.UserID)

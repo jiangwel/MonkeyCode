@@ -11,19 +11,20 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/domain"
+	"github.com/chaitin/MonkeyCode/backend/pkg/cli"
 	socketio "github.com/doquangtan/socket.io/v4"
 )
 
 type FileUpdateData struct {
-	ID           string `json:"id"`
-	FilePath     string `json:"filePath"`
-	Hash         string `json:"hash"`
-	Event        string `json:"event"`
-	Content      string `json:"content,omitempty"`
-	PreviousHash string `json:"previousHash,omitempty"`
-	Timestamp    int64  `json:"timestamp"`
-	ApiKey       string `json:"apiKey,omitempty"`
-	WorkspaceID  string `json:"workspaceId,omitempty"`
+	ID            string `json:"id"`
+	FilePath      string `json:"filePath"`
+	Hash          string `json:"hash"`
+	Event         string `json:"event"`
+	Content       string `json:"content,omitempty"`
+	PreviousHash  string `json:"previousHash,omitempty"`
+	Timestamp     int64  `json:"timestamp"`
+	ApiKey        string `json:"apiKey,omitempty"`
+	WorkspacePath string `json:"workspacePath,omitempty"`
 }
 
 type AckResponse struct {
@@ -48,12 +49,15 @@ type SocketHandler struct {
 	config           *config.Config
 	logger           *slog.Logger
 	workspaceService domain.WorkspaceFileUsecase
+	workspaceUsecase domain.WorkspaceUsecase
 	userService      domain.UserUsecase
 	io               *socketio.Io
 	mu               sync.Mutex
+	workspaceCache   map[string]*domain.Workspace
+	cacheMutex       sync.RWMutex
 }
 
-func NewSocketHandler(config *config.Config, logger *slog.Logger, workspaceService domain.WorkspaceFileUsecase, userService domain.UserUsecase) (*SocketHandler, error) {
+func NewSocketHandler(config *config.Config, logger *slog.Logger, workspaceService domain.WorkspaceFileUsecase, workspaceUsecase domain.WorkspaceUsecase, userService domain.UserUsecase) (*SocketHandler, error) {
 	// 创建Socket.IO服务器
 	io := socketio.New()
 
@@ -61,9 +65,12 @@ func NewSocketHandler(config *config.Config, logger *slog.Logger, workspaceServi
 		config:           config,
 		logger:           logger,
 		workspaceService: workspaceService,
+		workspaceUsecase: workspaceUsecase,
 		userService:      userService,
 		io:               io,
 		mu:               sync.Mutex{}, // 初始化互斥锁
+		workspaceCache:   make(map[string]*domain.Workspace),
+		cacheMutex:       sync.RWMutex{},
 	}
 
 	// 设置事件处理器
@@ -263,8 +270,11 @@ func (h *SocketHandler) handleFileUpdateFromObject(socket *socketio.Socket, data
 	if apiKey, ok := dataMap["apiKey"].(string); ok {
 		updateData.ApiKey = apiKey
 	}
-	if workspaceID, ok := dataMap["workspaceId"].(string); ok {
-		updateData.WorkspaceID = workspaceID
+	if workspacePath, ok := dataMap["workspacePath"].(string); ok {
+		updateData.WorkspacePath = workspacePath
+		h.logger.Debug("Extracted workspacePath from dataMap", "workspacePath", workspacePath)
+	} else {
+		h.logger.Debug("Failed to extract workspacePath from dataMap", "workspacePathType", fmt.Sprintf("%T", dataMap["workspacePath"]), "workspacePathValue", dataMap["workspacePath"])
 	}
 
 	h.logger.Info("Processing file update",
@@ -272,7 +282,7 @@ func (h *SocketHandler) handleFileUpdateFromObject(socket *socketio.Socket, data
 		"event", updateData.Event,
 		"file", updateData.FilePath,
 		"apiKey", updateData.ApiKey,
-		"workspaceId", updateData.WorkspaceID)
+		"workspacePath", updateData.WorkspacePath)
 
 	// 立即返回确认收到
 	immediateAck := AckResponse{
@@ -304,9 +314,21 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 
 	userID := user.ID.String()
 
+	// 确保workspace存在
+	workspaceID, err := h.ensureWorkspace(ctx, userID, updateData.WorkspacePath, updateData.FilePath)
+	if err != nil {
+		finalStatus = "error"
+		message = fmt.Sprintf("Failed to ensure workspace: %v", err)
+		h.logger.Error("Failed to ensure workspace", "error", err)
+		h.sendFinalResult(socket, updateData, finalStatus, message)
+		return
+	}
+
+	h.logger.Debug("Workspace ID obtained", "workspaceID", workspaceID, "filePath", updateData.FilePath)
+
 	switch updateData.Event {
 	case "initial_scan", "added":
-		existingFile, err := h.workspaceService.GetByPath(ctx, userID, updateData.WorkspaceID, updateData.FilePath)
+		existingFile, err := h.workspaceService.GetByPath(ctx, userID, workspaceID, updateData.FilePath)
 
 		if err != nil {
 			// "Not Found"，文件不存在，执行创建逻辑
@@ -316,7 +338,7 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 					Content:     updateData.Content,
 					Hash:        updateData.Hash,
 					UserID:      userID,
-					WorkspaceID: updateData.WorkspaceID,
+					WorkspaceID: workspaceID,
 				}
 				_, createErr := h.workspaceService.Create(ctx, createReq)
 				if createErr != nil {
@@ -361,7 +383,7 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 
 	case "modified":
 		// First, get the file by path to find its ID
-		file, err := h.workspaceService.GetByPath(ctx, userID, updateData.WorkspaceID, updateData.FilePath)
+		file, err := h.workspaceService.GetByPath(ctx, userID, workspaceID, updateData.FilePath)
 		if err != nil {
 			finalStatus = "error"
 			message = fmt.Sprintf("Failed to find file for update: %v", err)
@@ -387,7 +409,7 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 
 	case "deleted":
 		// First, get the file by path to find its ID
-		file, err := h.workspaceService.GetByPath(ctx, userID, updateData.WorkspaceID, updateData.FilePath)
+		file, err := h.workspaceService.GetByPath(ctx, userID, workspaceID, updateData.FilePath)
 		if err != nil {
 			finalStatus = "error"
 			message = fmt.Sprintf("Failed to find file for deletion: %v", err)
@@ -413,6 +435,27 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 
 	// 发送最终处理结果
 	h.sendFinalResult(socket, updateData, finalStatus, message)
+}
+
+// ensureWorkspace ensures that a workspace exists for the given workspacePath
+func (h *SocketHandler) ensureWorkspace(ctx context.Context, userID, workspacePath, filePath string) (string, error) {
+	h.logger.Debug("ensureWorkspace called", "userID", userID, "workspacePath", workspacePath, "filePath", filePath, "workspacePathLength", len(workspacePath))
+
+	if workspacePath != "" {
+		h.logger.Debug("Ensuring workspace for path", "path", workspacePath)
+		// Use EnsureWorkspace to create or update workspace based on path
+		workspace, err := h.workspaceUsecase.EnsureWorkspace(ctx, userID, workspacePath, "")
+		if err != nil {
+			h.logger.Error("Error ensuring workspace", "path", workspacePath, "error", err)
+			return "", fmt.Errorf("failed to ensure workspace: %w", err)
+		}
+		h.logger.Debug("Using existing or created workspace", "workspaceID", workspace.ID, "path", workspacePath)
+		return workspace.ID, nil
+	}
+
+	// If no workspacePath provided, return an error
+	h.logger.Debug("No workspace path provided, returning error")
+	return "", fmt.Errorf("no workspace path provided")
 }
 
 func (h *SocketHandler) handleTestPing(socket *socketio.Socket, data string) {
@@ -532,4 +575,44 @@ func (h *SocketHandler) sendFinalResult(socket *socketio.Socket, updateData File
 	h.mu.Lock()
 	socket.Emit("file:update:ack", finalResponse)
 	h.mu.Unlock()
+}
+
+// generateAST 生成文件的AST信息
+func (h *SocketHandler) generateAST(filePath, content string) string {
+	// 只对支持的编程语言生成AST
+	supportedLanguages := map[string]bool{
+		"go": true, "typescript": true, "javascript": true, "python": true,
+	}
+
+	// 简单判断文件扩展名
+	ext := ""
+	if len(filePath) > 0 {
+		for i := len(filePath) - 1; i >= 0; i-- {
+			if filePath[i] == '.' {
+				ext = filePath[i+1:]
+				break
+			}
+		}
+	}
+
+	// 如果不是支持的语言，返回空字符串
+	if !supportedLanguages[ext] {
+		return ""
+	}
+
+	// 创建临时文件来调用ctcode-cli
+	// 注意：这里是一个简化版本，实际使用时可能需要更复杂的临时文件处理
+	// 为了验证功能，我们直接调用cli，假设它能处理内容
+	results, err := cli.RunParseCLI("parse", "--successOnly", filePath)
+	if err != nil {
+		h.logger.Error("Failed to generate AST", "filePath", filePath, "error", err)
+		return ""
+	}
+
+	// 如果解析成功，返回第一个结果的definition
+	if len(results) > 0 && results[0].Success {
+		return results[0].Definition
+	}
+
+	return ""
 }

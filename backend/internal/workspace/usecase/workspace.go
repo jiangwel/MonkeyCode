@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db"
@@ -16,23 +17,170 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 )
 
-type WorkspaceFileUsecase struct {
-	repo   domain.WorkspaceFileRepo
+type WorkspaceUsecase struct {
+	repo   domain.WorkspaceRepo
 	config *config.Config
 	logger *slog.Logger
 }
 
+type WorkspaceFileUsecase struct {
+	repo         domain.WorkspaceFileRepo
+	workspaceSvc domain.WorkspaceUsecase
+	config       *config.Config
+	logger       *slog.Logger
+}
+
+func NewWorkspaceUsecase(
+	repo domain.WorkspaceRepo,
+	config *config.Config,
+	logger *slog.Logger,
+) domain.WorkspaceUsecase {
+	return &WorkspaceUsecase{
+		repo:   repo,
+		config: config,
+		logger: logger.With("usecase", "workspace"),
+	}
+}
+
 func NewWorkspaceFileUsecase(
 	repo domain.WorkspaceFileRepo,
+	workspaceSvc domain.WorkspaceUsecase,
 	config *config.Config,
 	logger *slog.Logger,
 ) domain.WorkspaceFileUsecase {
 	return &WorkspaceFileUsecase{
-		repo:   repo,
-		config: config,
-		logger: logger.With("usecase", "workspace_file"),
+		repo:         repo,
+		workspaceSvc: workspaceSvc,
+		config:       config,
+		logger:       logger.With("usecase", "workspace_file"),
 	}
 }
+
+// WorkspaceUsecase methods
+
+func (u *WorkspaceUsecase) Create(ctx context.Context, req *domain.CreateWorkspaceReq) (*domain.Workspace, error) {
+	workspace, err := u.repo.Create(ctx, req)
+	if err != nil {
+		u.logger.Error("failed to create workspace", "error", err, "name", req.Name, "root_path", req.RootPath)
+		return nil, fmt.Errorf("failed to create workspace: %w", err)
+	}
+
+	u.logger.Info("workspace created", "id", workspace.ID, "name", req.Name, "root_path", req.RootPath)
+	return cvt.From(workspace, &domain.Workspace{}), nil
+}
+
+func (u *WorkspaceUsecase) GetByID(ctx context.Context, id string) (*domain.Workspace, error) {
+	workspace, err := u.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get workspace: %w", err)
+	}
+
+	return cvt.From(workspace, &domain.Workspace{}), nil
+}
+
+func (u *WorkspaceUsecase) GetByUserAndPath(ctx context.Context, userID, rootPath string) (*domain.Workspace, error) {
+	workspace, err := u.repo.GetByUserAndPath(ctx, userID, rootPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get workspace by user and path: %w", err)
+	}
+
+	return cvt.From(workspace, &domain.Workspace{}), nil
+}
+
+func (u *WorkspaceUsecase) List(ctx context.Context, req *domain.ListWorkspaceReq) (*domain.ListWorkspaceResp, error) {
+	workspaces, pageInfo, err := u.repo.List(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list workspaces: %w", err)
+	}
+
+	return &domain.ListWorkspaceResp{
+		PageInfo:   pageInfo,
+		Workspaces: domain.FromWorkspaces(workspaces),
+	}, nil
+}
+
+func (u *WorkspaceUsecase) Update(ctx context.Context, req *domain.UpdateWorkspaceReq) (*domain.Workspace, error) {
+	workspace, err := u.repo.Update(ctx, req.ID, func(up *db.WorkspaceUpdateOne) error {
+		if req.Name != nil {
+			up.SetName(*req.Name)
+		}
+		if req.Description != nil {
+			up.SetDescription(*req.Description)
+		}
+		if req.Settings != nil {
+			up.SetSettings(req.Settings)
+		}
+		return nil
+	})
+	if err != nil {
+		u.logger.Error("failed to update workspace", "error", err, "id", req.ID)
+		return nil, fmt.Errorf("failed to update workspace: %w", err)
+	}
+
+	u.logger.Info("workspace updated", "id", req.ID)
+	return cvt.From(workspace, &domain.Workspace{}), nil
+}
+
+func (u *WorkspaceUsecase) Delete(ctx context.Context, id string) error {
+	err := u.repo.Delete(ctx, id)
+	if err != nil {
+		u.logger.Error("failed to delete workspace", "error", err, "id", id)
+		return fmt.Errorf("failed to delete workspace: %w", err)
+	}
+
+	u.logger.Info("workspace deleted", "id", id)
+	return nil
+}
+
+func (u *WorkspaceUsecase) EnsureWorkspace(ctx context.Context, userID, rootPath, name string) (*domain.Workspace, error) {
+	// 首先尝试获取已存在的工作区
+	workspace, err := u.repo.GetByUserAndPath(ctx, userID, rootPath)
+	if err == nil {
+		// 工作区已存在，更新最后访问时间
+		updated, err := u.repo.Update(ctx, workspace.ID.String(), func(up *db.WorkspaceUpdateOne) error {
+			up.SetLastAccessedAt(time.Now())
+			return nil
+		})
+		if err != nil {
+			u.logger.Warn("failed to update workspace last accessed time", "error", err, "id", workspace.ID)
+		}
+		return cvt.From(updated, &domain.Workspace{}), nil
+	}
+
+	// 如果工作区不存在，创建新的工作区
+	if !db.IsNotFound(err) {
+		return nil, fmt.Errorf("failed to check workspace existence: %w", err)
+	}
+
+	// 自动生成工作区名称（如果未提供）
+	if name == "" {
+		name = u.generateWorkspaceName(rootPath)
+	}
+
+	createReq := &domain.CreateWorkspaceReq{
+		UserID:      userID,
+		Name:        name,
+		Description: fmt.Sprintf("Auto-created workspace for %s", rootPath),
+		RootPath:    rootPath,
+		Settings:    map[string]interface{}{},
+	}
+
+	return u.Create(ctx, createReq)
+}
+
+func (u *WorkspaceUsecase) generateWorkspaceName(rootPath string) string {
+	// 从路径中提取最后一个目录名作为工作区名称
+	parts := strings.Split(rootPath, "/")
+	if len(parts) > 0 {
+		name := parts[len(parts)-1]
+		if name != "" {
+			return name
+		}
+	}
+	return "Untitled Workspace"
+}
+
+// WorkspaceFileUsecase methods
 
 func (u *WorkspaceFileUsecase) Create(ctx context.Context, req *domain.CreateWorkspaceFileReq) (*domain.WorkspaceFile, error) {
 	// 验证和计算哈希
@@ -50,6 +198,18 @@ func (u *WorkspaceFileUsecase) Create(ctx context.Context, req *domain.CreateWor
 	// 推断编程语言
 	if req.Language == "" {
 		req.Language = u.inferLanguage(req.Path)
+	}
+
+	// 确保工作区存在
+	// 首先通过workspace ID获取workspace信息，然后使用其root path来确保workspace存在
+	workspace, err := u.workspaceSvc.GetByID(ctx, req.WorkspaceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get workspace by ID: %w", err)
+	}
+	
+	_, err = u.workspaceSvc.EnsureWorkspace(ctx, req.UserID, workspace.RootPath, "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure workspace exists: %w", err)
 	}
 
 	file, err := u.repo.Create(ctx, req)
@@ -92,6 +252,8 @@ func (u *WorkspaceFileUsecase) Update(ctx context.Context, req *domain.UpdateWor
 			up.SetSize(*req.Size)
 		}
 
+		// AST field has been removed from the domain model
+
 		return nil
 	})
 	if err != nil {
@@ -126,13 +288,13 @@ func (u *WorkspaceFileUsecase) GetByID(ctx context.Context, id string) (*domain.
 func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAndSaveReq) (error) { 
 	results, err := cli.RunCli("index", "", req.CodeFiles) 
 	if err != nil {
-		return err 
-	} 
+		return err
+	}
 	for _, res := range results {
-		file, err := u.repo.GetByPath(ctx, req.UserID, req.ProjectID, res.FilePath) 
+		file, err := u.repo.GetByPath(ctx, req.UserID, req.ProjectID, res.FilePath)
 		if err != nil {
-			return err 
-		} 
+			return err
+		}
 
 		resString, err := json.Marshal(res) 
 		if err!= nil {
@@ -142,10 +304,10 @@ func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAn
 			return up.SetContent(string(resString)).Exec(ctx)
 		})
 		if err != nil {
-			return err 
+			return err
 		}
 	}
-	return nil 
+	return nil
 }
 
 func (u *WorkspaceFileUsecase) GetByPath(ctx context.Context, userID, workspaceID, path string) (*domain.WorkspaceFile, error) {
@@ -170,6 +332,18 @@ func (u *WorkspaceFileUsecase) List(ctx context.Context, req *domain.ListWorkspa
 }
 
 func (u *WorkspaceFileUsecase) BatchCreate(ctx context.Context, req *domain.BatchCreateWorkspaceFileReq) ([]*domain.WorkspaceFile, error) {
+	// 确保工作区存在
+	// 首先通过workspace ID获取workspace信息，然后使用其root path来确保workspace存在
+	workspace, err := u.workspaceSvc.GetByID(ctx, req.WorkspaceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get workspace by ID: %w", err)
+	}
+	
+	_, err = u.workspaceSvc.EnsureWorkspace(ctx, req.UserID, workspace.RootPath, "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure workspace exists: %w", err)
+	}
+
 	// 验证和预处理文件
 	for _, file := range req.Files {
 		if file.Hash == "" {
@@ -217,6 +391,18 @@ func (u *WorkspaceFileUsecase) BatchUpdate(ctx context.Context, req *domain.Batc
 }
 
 func (u *WorkspaceFileUsecase) Sync(ctx context.Context, req *domain.SyncWorkspaceFileReq) (*domain.SyncWorkspaceFileResp, error) {
+	// 确保工作区存在
+	// 首先通过workspace ID获取workspace信息，然后使用其root path来确保workspace存在
+	workspace, err := u.workspaceSvc.GetByID(ctx, req.WorkspaceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get workspace by ID: %w", err)
+	}
+	
+	_, err = u.workspaceSvc.EnsureWorkspace(ctx, req.UserID, workspace.RootPath, "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure workspace exists: %w", err)
+	}
+
 	// 获取要同步的文件哈希列表
 	var hashes []string
 	fileMap := make(map[string]*domain.CreateWorkspaceFileReq)
