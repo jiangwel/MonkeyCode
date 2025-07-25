@@ -123,12 +123,12 @@ const routerConfig = [
     path: '/auth',
     element: <Auth />,
   },
+  // {
+  //   path: '/user/login',
+  //   element: <UserLogin />,
+  // },
   {
-    path: '/user/login',
-    element: <UserLogin />,
-  },
-  {
-    path: '/login',
+    path: '/login/:tab?',
     element: <Login />,
   },
 ];

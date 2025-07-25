@@ -107,18 +107,26 @@ const App = () => {
 
   const getUser = () => {
     setLoading(true);
-    if (location.pathname.startsWith('/user')) {
+    if (
+      location.pathname.startsWith('/user') ||
+      location.pathname === '/login' ||
+      location.pathname === '/login/user'
+    ) {
       return getUserProfile()
         .then((res) => {
           setUser(res);
-          if (location.pathname.startsWith('/user/login')) {
+          if (location.pathname.startsWith('/login')) {
             onGotoRedirect('user');
           }
         })
         .finally(() => {
           setLoading(false);
         });
-    } else if (!location.pathname.startsWith('/auth')) {
+    } else if (
+      !location.pathname.startsWith('/auth') ||
+      !location.pathname.startsWith('/user') ||
+      location.pathname === '/login/admin'
+    ) {
       return getAdminProfile()
         .then((res) => {
           setUser(res);
