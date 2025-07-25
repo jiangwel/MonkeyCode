@@ -74,12 +74,14 @@ func (r *UserRepo) AdminByName(ctx context.Context, username string) (*db.Admin,
 }
 
 func (r *UserRepo) GetByName(ctx context.Context, username string) (*db.User, error) {
-	return r.db.User.Query().Where(
-		user.Or(
-			user.Username(username),
-			user.Email(username),
-		),
-	).Only(ctx)
+	return r.db.User.Query().
+		Where(
+			user.Or(
+				user.Username(username),
+				user.Email(username),
+			),
+		).
+		Only(ctx)
 }
 
 func (r *UserRepo) ValidateInviteCode(ctx context.Context, code string) (*db.InviteCode, error) {
@@ -167,12 +169,12 @@ func (r *UserRepo) CreateInviteCode(ctx context.Context, userID string, code str
 }
 
 func (r *UserRepo) AdminList(ctx context.Context, page *web.Pagination) ([]*db.Admin, *db.PageInfo, error) {
-	q := r.db.Admin.Query()
+	q := r.db.Admin.Query().Order(admin.ByCreatedAt(sql.OrderDesc()))
 	return q.Page(ctx, page.Page, page.Size)
 }
 
 func (r *UserRepo) List(ctx context.Context, page *web.Pagination) ([]*db.User, *db.PageInfo, error) {
-	q := r.db.User.Query()
+	q := r.db.User.Query().Order(user.ByCreatedAt(sql.OrderDesc()))
 	return q.Page(ctx, page.Page, page.Size)
 }
 
@@ -241,7 +243,7 @@ func (r *UserRepo) UpdateSetting(ctx context.Context, fn func(*db.Setting, *db.S
 	return res, err
 }
 
-func (r *UserRepo) Update(ctx context.Context, id string, fn func(*db.User, *db.UserUpdateOne) error) (*db.User, error) {
+func (r *UserRepo) Update(ctx context.Context, id string, fn func(*db.Tx, *db.User, *db.UserUpdateOne) error) (*db.User, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
@@ -254,7 +256,7 @@ func (r *UserRepo) Update(ctx context.Context, id string, fn func(*db.User, *db.
 			return err
 		}
 		up := tx.User.UpdateOneID(u.ID)
-		if err = fn(u, up); err != nil {
+		if err = fn(tx, u, up); err != nil {
 			return err
 		}
 		return up.Exec(ctx)
@@ -372,6 +374,9 @@ func (r *UserRepo) OAuthLogin(ctx context.Context, platform consts.UserPlatform,
 	if err != nil {
 		return nil, errcode.ErrNotInvited.Wrap(err)
 	}
+	if ui.Edges.User.Status != consts.UserStatusActive {
+		return nil, errcode.ErrUserLock
+	}
 	if ui.AvatarURL != req.AvatarURL {
 		if err = entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
 			return r.updateAvatar(ctx, tx, ui, req.AvatarURL)
@@ -409,6 +414,9 @@ func (r *UserRepo) SignUpOrIn(ctx context.Context, platform consts.UserPlatform,
 			First(ctx)
 		if err == nil {
 			u = ui.Edges.User
+			if u.Status != consts.UserStatusActive {
+				return errcode.ErrUserLock
+			}
 			if ui.AvatarURL != req.AvatarURL {
 				if err = r.updateAvatar(ctx, tx, ui, req.AvatarURL); err != nil {
 					return err
