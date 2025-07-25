@@ -2,32 +2,36 @@ package cli
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/chaitin/MonkeyCode/backend/domain"
 )
 
-// RunParseCLI
-//  @Description          ctcode-cli 支持通过 CLI 的方式获取文件的 AST 信息
-//	@param command        ["parse"] - 解析文件为 AST 树
-//	@param flag           ["-s", "--successOnly"] - 是否只返回成功的结果
-//	@param paths          要解析的文件路径
-//	@return []ParseResult 解析结果数组
-//	@return error         错误信息
-func RunParseCLI(command string, flag string, paths ...string) ([]domain.ParseResult, error) {
-	cmd := exec.Command("ctcode-cli", command, flag, strings.Join(paths, " "))
-	cmd.Env = os.Environ() 
-	output, err := cmd.CombinedOutput()
-	fmt.Printf(`err: %s, output: %s\n`, fmt.Sprint(err), string(output))
+// RunCli
+//  @Tags			                      WorkspaceFile
+//  @Description:                         运行ctcode-cli命令
+//	@param command                        命令
+//	@param flag	                          [ -m | --maxlines <int> ] 解析时允许的最大 CodeSnippet 行数
+//	@param codeFiles                      代码文件信息
+//	@return string                        输出结果
+//	@return error
+func RunCli(command string, flag string, codeFiles domain.CodeFiles) ([]domain.IndexResult, error) {
+	inputJson, err := json.Marshal(codeFiles) 
 	if err != nil {
-		return []domain.ParseResult{}, err
+		return []domain.IndexResult{}, err 
 	}
-	var results []domain.ParseResult
-	if err := json.Unmarshal(output, &results); err != nil {
-		panic(err)
+	cmd := exec.Command("ctcode-cli", command, flag, string(inputJson)) 
+	cmd.Env = os.Environ() 
+	output, err := cmd.CombinedOutput() 
+	
+	if err != nil {
+		return []domain.IndexResult{}, err 
 	}
-	return results, nil
+	var res []domain.IndexResult 
+	err = json.Unmarshal(output, &res) 
+	if err!= nil {
+		return []domain.IndexResult{}, err
+	} 
+	return res, nil 
 }

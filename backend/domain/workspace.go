@@ -14,7 +14,7 @@ type WorkspaceFileUsecase interface {
 	Create(ctx context.Context, req *CreateWorkspaceFileReq) (*WorkspaceFile, error)
 	Update(ctx context.Context, req *UpdateWorkspaceFileReq) (*WorkspaceFile, error)
 	Delete(ctx context.Context, id string) error
-	GetAndSave(ctx context.Context, req *SaveAstReq) error 
+	GetAndSave(ctx context.Context, req *GetAndSaveReq) error 
 	GetByID(ctx context.Context, id string) (*WorkspaceFile, error)
 	GetByPath(ctx context.Context, userID, workspaceID, path string) (*WorkspaceFile, error)
 	List(ctx context.Context, req *ListWorkspaceFileReq) (*ListWorkspaceFileResp, error)
@@ -82,6 +82,12 @@ type SyncWorkspaceFileReq struct {
 	Files       []*CreateWorkspaceFileReq `json:"files" validate:"required,dive"`   // 要同步的文件列表
 }
 
+type GetAndSaveReq struct {
+	CodeFiles CodeFiles `json:"code_files" validate:"required"` // 代码文件信息
+	UserID    string    `json:"user_id" validate:"required"`    // 用户ID
+	ProjectID string    `json:"project_id" validate:"required"`  // 项目ID 
+}
+
 // 响应结构体
 
 type ListWorkspaceFileResp struct {
@@ -109,6 +115,56 @@ type WorkspaceFile struct {
 	Size        int64  `json:"size"`         // 文件大小
 	CreatedAt   int64  `json:"created_at"`   // 创建时间
 	UpdatedAt   int64  `json:"updated_at"`   // 更新时间
+}
+
+type CodeLanguageType string 
+
+const (
+	CodeLanguageTypeGo         CodeLanguageType = "go"
+	CodeLanguageTypePython     CodeLanguageType = "python"
+	CodeLanguageTypeJava       CodeLanguageType = "java"
+	CodeLanguageTypeJavaScript CodeLanguageType = "javascript"
+	CodeLanguageTypeTypeScript CodeLanguageType = "typescript"
+	CodeLanguageTypeJSX        CodeLanguageType = "jsx"
+	CodeLanguageTypeTSX        CodeLanguageType = "tsx"
+	CodeLanguageTypeHTML       CodeLanguageType = "html"
+	CodeLanguageTypeCSS        CodeLanguageType = "css"
+	CodeLanguageTypePHP        CodeLanguageType = "php"
+	CodeLanguageTypeRust       CodeLanguageType = "rust"
+	CodeLanguageTypeSwift      CodeLanguageType = "swift"
+	CodeLanguageTypeKotlin     CodeLanguageType = "kotlin"
+	CodeLanguageTypeC          CodeLanguageType = "c"
+	CodeLanguageTypeCpp        CodeLanguageType = "cpp"
+)
+
+type CodeFiles struct { 
+	Files []FileMeta `json:"files"`
+}
+type FileMeta struct {
+	FilePath 	    string           `json:"filePath"`
+	FileExtension 	string           `json:"fileExtension"`
+	Language 	    CodeLanguageType `json:"language"` // 语言类型（可选）
+	FileHash 	    string           `json:"fileHash"` // 文件哈希（可选）
+	Content 	    string           `json:"content"`  // 文件内容（可选）
+}
+type IndexResult struct {
+	Name                  string      `json:"name"`
+	Type                  string      `json:"type"`
+	FilePath              string      `json:"filePath"`
+	StartLine             int         `json:"startLine"`
+	EndLine               int         `json:"endLine"`
+	RangeText             string      `json:"rangeText"`
+	DefinitionText        string      `json:"definitionText"`
+	Scope                 []struct{}  `json:"scope"`
+	FileHash              string      `json:"fileHash"`
+	Definition            struct {
+		Name       		  string      `json:"name"`
+		Type       		  string      `json:"type"`
+		ReturnType 		  string      `json:"returnType"`
+	} 								  `json:"definition"`
+	Signature             string      `json:"signature"`
+	Language              string      `json:"language"`
+	ImplementText         string      `json:"implementText"`
 }
 
 func (w *WorkspaceFile) From(e *db.WorkspaceFile) *WorkspaceFile {

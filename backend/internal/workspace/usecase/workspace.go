@@ -123,8 +123,8 @@ func (u *WorkspaceFileUsecase) GetByID(ctx context.Context, id string) (*domain.
 	return cvt.From(file, &domain.WorkspaceFile{}), nil
 }
 
-func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.SaveAstReq) (error) { 
-	results, err := cli.RunParseCLI("parse", "", req.Files...) 
+func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAndSaveReq) (error) { 
+	results, err := cli.RunCli("index", "", req.CodeFiles) 
 	if err != nil {
 		return err 
 	} 
@@ -134,12 +134,12 @@ func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.SaveA
 			return err 
 		} 
 
-		astData, err := json.Marshal(res.Definition) 
-		if err != nil {
-			return err 
-		} 
+		resString, err := json.Marshal(res) 
+		if err!= nil {
+			return err
+		}
 		_, err = u.repo.Update(ctx, file.ID.String(), func(up *db.WorkspaceFileUpdateOne) error {
-			return up.SetContent(string(astData)).Exec(ctx)
+			return up.SetContent(string(resString)).Exec(ctx)
 		})
 		if err != nil {
 			return err 
