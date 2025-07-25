@@ -91,8 +91,10 @@ func newServer() (*Server, error) {
 	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware, activeMiddleware)
 	billingHandler := v1_5.NewBillingHandler(web, billingUsecase, authMiddleware, activeMiddleware)
 	workspaceFileRepo := repo8.NewWorkspaceFileRepo(client)
-	workspaceFileUsecase := usecase7.NewWorkspaceFileUsecase(workspaceFileRepo, configConfig, slogLogger)
-	socketHandler, err := handler.NewSocketHandler(configConfig, slogLogger, workspaceFileUsecase, userUsecase)
+	workspaceRepo := repo8.NewWorkspaceRepo(client)
+	workspaceUsecase := usecase7.NewWorkspaceUsecase(workspaceRepo, configConfig, slogLogger)
+	workspaceFileUsecase := usecase7.NewWorkspaceFileUsecase(workspaceFileRepo, workspaceUsecase, configConfig, slogLogger)
+	socketHandler, err := handler.NewSocketHandler(configConfig, slogLogger, workspaceFileUsecase, workspaceUsecase, userUsecase)
 	if err != nil {
 		return nil, err
 	}

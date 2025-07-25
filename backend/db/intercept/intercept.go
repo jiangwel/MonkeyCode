@@ -15,6 +15,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
 	"github.com/chaitin/MonkeyCode/backend/db/billingrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
+	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/extension"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
@@ -274,6 +275,33 @@ func (f TraverseBillingUsage) Traverse(ctx context.Context, q db.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *db.BillingUsageQuery", q)
+}
+
+// The CodeSnippetFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CodeSnippetFunc func(context.Context, *db.CodeSnippetQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f CodeSnippetFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.CodeSnippetQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.CodeSnippetQuery", q)
+}
+
+// The TraverseCodeSnippet type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCodeSnippet func(context.Context, *db.CodeSnippetQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCodeSnippet) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCodeSnippet) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.CodeSnippetQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.CodeSnippetQuery", q)
 }
 
 // The ExtensionFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -644,6 +672,8 @@ func NewQuery(q db.Query) (Query, error) {
 		return &query[*db.BillingRecordQuery, predicate.BillingRecord, billingrecord.OrderOption]{typ: db.TypeBillingRecord, tq: q}, nil
 	case *db.BillingUsageQuery:
 		return &query[*db.BillingUsageQuery, predicate.BillingUsage, billingusage.OrderOption]{typ: db.TypeBillingUsage, tq: q}, nil
+	case *db.CodeSnippetQuery:
+		return &query[*db.CodeSnippetQuery, predicate.CodeSnippet, codesnippet.OrderOption]{typ: db.TypeCodeSnippet, tq: q}, nil
 	case *db.ExtensionQuery:
 		return &query[*db.ExtensionQuery, predicate.Extension, extension.OrderOption]{typ: db.TypeExtension, tq: q}, nil
 	case *db.InviteCodeQuery:

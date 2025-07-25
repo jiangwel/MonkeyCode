@@ -28,6 +28,8 @@ type Tx struct {
 	BillingRecord *BillingRecordClient
 	// BillingUsage is the client for interacting with the BillingUsage builders.
 	BillingUsage *BillingUsageClient
+	// CodeSnippet is the client for interacting with the CodeSnippet builders.
+	CodeSnippet *CodeSnippetClient
 	// Extension is the client for interacting with the Extension builders.
 	Extension *ExtensionClient
 	// InviteCode is the client for interacting with the InviteCode builders.
@@ -192,6 +194,7 @@ func (tx *Tx) init() {
 	tx.BillingQuota = NewBillingQuotaClient(tx.config)
 	tx.BillingRecord = NewBillingRecordClient(tx.config)
 	tx.BillingUsage = NewBillingUsageClient(tx.config)
+	tx.CodeSnippet = NewCodeSnippetClient(tx.config)
 	tx.Extension = NewExtensionClient(tx.config)
 	tx.InviteCode = NewInviteCodeClient(tx.config)
 	tx.Model = NewModelClient(tx.config)

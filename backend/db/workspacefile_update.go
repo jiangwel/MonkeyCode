@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/workspace"
@@ -171,6 +172,21 @@ func (wfu *WorkspaceFileUpdate) SetWorkspace(w *Workspace) *WorkspaceFileUpdate 
 	return wfu.SetWorkspaceID(w.ID)
 }
 
+// AddSnippetIDs adds the "snippets" edge to the CodeSnippet entity by IDs.
+func (wfu *WorkspaceFileUpdate) AddSnippetIDs(ids ...uuid.UUID) *WorkspaceFileUpdate {
+	wfu.mutation.AddSnippetIDs(ids...)
+	return wfu
+}
+
+// AddSnippets adds the "snippets" edges to the CodeSnippet entity.
+func (wfu *WorkspaceFileUpdate) AddSnippets(c ...*CodeSnippet) *WorkspaceFileUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wfu.AddSnippetIDs(ids...)
+}
+
 // Mutation returns the WorkspaceFileMutation object of the builder.
 func (wfu *WorkspaceFileUpdate) Mutation() *WorkspaceFileMutation {
 	return wfu.mutation
@@ -186,6 +202,27 @@ func (wfu *WorkspaceFileUpdate) ClearOwner() *WorkspaceFileUpdate {
 func (wfu *WorkspaceFileUpdate) ClearWorkspace() *WorkspaceFileUpdate {
 	wfu.mutation.ClearWorkspace()
 	return wfu
+}
+
+// ClearSnippets clears all "snippets" edges to the CodeSnippet entity.
+func (wfu *WorkspaceFileUpdate) ClearSnippets() *WorkspaceFileUpdate {
+	wfu.mutation.ClearSnippets()
+	return wfu
+}
+
+// RemoveSnippetIDs removes the "snippets" edge to CodeSnippet entities by IDs.
+func (wfu *WorkspaceFileUpdate) RemoveSnippetIDs(ids ...uuid.UUID) *WorkspaceFileUpdate {
+	wfu.mutation.RemoveSnippetIDs(ids...)
+	return wfu
+}
+
+// RemoveSnippets removes "snippets" edges to CodeSnippet entities.
+func (wfu *WorkspaceFileUpdate) RemoveSnippets(c ...*CodeSnippet) *WorkspaceFileUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wfu.RemoveSnippetIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -341,6 +378,51 @@ func (wfu *WorkspaceFileUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wfu.mutation.SnippetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspacefile.SnippetsTable,
+			Columns: []string{workspacefile.SnippetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(codesnippet.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wfu.mutation.RemovedSnippetsIDs(); len(nodes) > 0 && !wfu.mutation.SnippetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspacefile.SnippetsTable,
+			Columns: []string{workspacefile.SnippetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(codesnippet.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wfu.mutation.SnippetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspacefile.SnippetsTable,
+			Columns: []string{workspacefile.SnippetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(codesnippet.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -509,6 +591,21 @@ func (wfuo *WorkspaceFileUpdateOne) SetWorkspace(w *Workspace) *WorkspaceFileUpd
 	return wfuo.SetWorkspaceID(w.ID)
 }
 
+// AddSnippetIDs adds the "snippets" edge to the CodeSnippet entity by IDs.
+func (wfuo *WorkspaceFileUpdateOne) AddSnippetIDs(ids ...uuid.UUID) *WorkspaceFileUpdateOne {
+	wfuo.mutation.AddSnippetIDs(ids...)
+	return wfuo
+}
+
+// AddSnippets adds the "snippets" edges to the CodeSnippet entity.
+func (wfuo *WorkspaceFileUpdateOne) AddSnippets(c ...*CodeSnippet) *WorkspaceFileUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wfuo.AddSnippetIDs(ids...)
+}
+
 // Mutation returns the WorkspaceFileMutation object of the builder.
 func (wfuo *WorkspaceFileUpdateOne) Mutation() *WorkspaceFileMutation {
 	return wfuo.mutation
@@ -524,6 +621,27 @@ func (wfuo *WorkspaceFileUpdateOne) ClearOwner() *WorkspaceFileUpdateOne {
 func (wfuo *WorkspaceFileUpdateOne) ClearWorkspace() *WorkspaceFileUpdateOne {
 	wfuo.mutation.ClearWorkspace()
 	return wfuo
+}
+
+// ClearSnippets clears all "snippets" edges to the CodeSnippet entity.
+func (wfuo *WorkspaceFileUpdateOne) ClearSnippets() *WorkspaceFileUpdateOne {
+	wfuo.mutation.ClearSnippets()
+	return wfuo
+}
+
+// RemoveSnippetIDs removes the "snippets" edge to CodeSnippet entities by IDs.
+func (wfuo *WorkspaceFileUpdateOne) RemoveSnippetIDs(ids ...uuid.UUID) *WorkspaceFileUpdateOne {
+	wfuo.mutation.RemoveSnippetIDs(ids...)
+	return wfuo
+}
+
+// RemoveSnippets removes "snippets" edges to CodeSnippet entities.
+func (wfuo *WorkspaceFileUpdateOne) RemoveSnippets(c ...*CodeSnippet) *WorkspaceFileUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wfuo.RemoveSnippetIDs(ids...)
 }
 
 // Where appends a list predicates to the WorkspaceFileUpdate builder.
@@ -709,6 +827,51 @@ func (wfuo *WorkspaceFileUpdateOne) sqlSave(ctx context.Context) (_node *Workspa
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wfuo.mutation.SnippetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspacefile.SnippetsTable,
+			Columns: []string{workspacefile.SnippetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(codesnippet.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wfuo.mutation.RemovedSnippetsIDs(); len(nodes) > 0 && !wfuo.mutation.SnippetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspacefile.SnippetsTable,
+			Columns: []string{workspacefile.SnippetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(codesnippet.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wfuo.mutation.SnippetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspacefile.SnippetsTable,
+			Columns: []string{workspacefile.SnippetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(codesnippet.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

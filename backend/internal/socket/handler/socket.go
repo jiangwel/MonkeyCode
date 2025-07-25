@@ -600,18 +600,32 @@ func (h *SocketHandler) generateAST(filePath, content string) string {
 		return ""
 	}
 
-	// 创建临时文件来调用ctcode-cli
-	// 注意：这里是一个简化版本，实际使用时可能需要更复杂的临时文件处理
-	// 为了验证功能，我们直接调用cli，假设它能处理内容
-	results, err := cli.RunParseCLI("parse", "--successOnly", filePath)
+	// 准备代码文件信息
+	codeFiles := domain.CodeFiles{
+		Files: []domain.FileMeta{
+			{
+				FilePath:      filePath,
+				FileExtension: ext,
+				Content:       content,
+			},
+		},
+	}
+
+	// 调用CLI工具生成AST
+	results, err := cli.RunCli("parse", "--successOnly", codeFiles)
 	if err != nil {
 		h.logger.Error("Failed to generate AST", "filePath", filePath, "error", err)
 		return ""
 	}
 
 	// 如果解析成功，返回第一个结果的definition
-	if len(results) > 0 && results[0].Success {
-		return results[0].Definition
+	if len(results) > 0 {
+		resultBytes, err := json.Marshal(results[0])
+		if err != nil {
+			h.logger.Error("Failed to marshal AST result", "filePath", filePath, "error", err)
+			return ""
+		}
+		return string(resultBytes)
 	}
 
 	return ""

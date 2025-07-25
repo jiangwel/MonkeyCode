@@ -587,6 +587,29 @@ func HasWorkspaceWith(preds ...predicate.Workspace) predicate.WorkspaceFile {
 	})
 }
 
+// HasSnippets applies the HasEdge predicate on the "snippets" edge.
+func HasSnippets() predicate.WorkspaceFile {
+	return predicate.WorkspaceFile(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SnippetsTable, SnippetsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSnippetsWith applies the HasEdge predicate on the "snippets" edge with a given conditions (other predicates).
+func HasSnippetsWith(preds ...predicate.CodeSnippet) predicate.WorkspaceFile {
+	return predicate.WorkspaceFile(func(s *sql.Selector) {
+		step := newSnippetsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.WorkspaceFile) predicate.WorkspaceFile {
 	return predicate.WorkspaceFile(sql.AndPredicates(predicates...))

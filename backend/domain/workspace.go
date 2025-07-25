@@ -6,15 +6,35 @@ import (
 	"github.com/GoYoko/web"
 
 	"github.com/chaitin/MonkeyCode/backend/db"
-	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 )
+
+// WorkspaceUsecase 定义 Workspace 业务逻辑接口
+type WorkspaceUsecase interface {
+	Create(ctx context.Context, req *CreateWorkspaceReq) (*Workspace, error)
+	GetByID(ctx context.Context, id string) (*Workspace, error)
+	GetByUserAndPath(ctx context.Context, userID, rootPath string) (*Workspace, error)
+	List(ctx context.Context, req *ListWorkspaceReq) (*ListWorkspaceResp, error)
+	Update(ctx context.Context, req *UpdateWorkspaceReq) (*Workspace, error)
+	Delete(ctx context.Context, id string) error
+	EnsureWorkspace(ctx context.Context, userID, rootPath, name string) (*Workspace, error)
+}
+
+// WorkspaceRepo 定义 Workspace 数据访问接口
+type WorkspaceRepo interface {
+	Create(ctx context.Context, req *CreateWorkspaceReq) (*db.Workspace, error)
+	GetByID(ctx context.Context, id string) (*db.Workspace, error)
+	GetByUserAndPath(ctx context.Context, userID, rootPath string) (*db.Workspace, error)
+	List(ctx context.Context, req *ListWorkspaceReq) ([]*db.Workspace, *db.PageInfo, error)
+	Update(ctx context.Context, id string, fn func(*db.WorkspaceUpdateOne) error) (*db.Workspace, error)
+	Delete(ctx context.Context, id string) error
+}
 
 // WorkspaceFileUsecase 定义 WorkspaceFile 业务逻辑接口
 type WorkspaceFileUsecase interface {
 	Create(ctx context.Context, req *CreateWorkspaceFileReq) (*WorkspaceFile, error)
 	Update(ctx context.Context, req *UpdateWorkspaceFileReq) (*WorkspaceFile, error)
 	Delete(ctx context.Context, id string) error
-	GetAndSave(ctx context.Context, req *GetAndSaveReq) error 
+	GetAndSave(ctx context.Context, req *GetAndSaveReq) error
 	GetByID(ctx context.Context, id string) (*WorkspaceFile, error)
 	GetByPath(ctx context.Context, userID, workspaceID, path string) (*WorkspaceFile, error)
 	List(ctx context.Context, req *ListWorkspaceFileReq) (*ListWorkspaceFileResp, error)
@@ -22,7 +42,6 @@ type WorkspaceFileUsecase interface {
 	BatchUpdate(ctx context.Context, req *BatchUpdateWorkspaceFileReq) ([]*WorkspaceFile, error)
 	Sync(ctx context.Context, req *SyncWorkspaceFileReq) (*SyncWorkspaceFileResp, error)
 }
-
 
 // WorkspaceFileRepo 定义 WorkspaceFile 数据访问接口
 type WorkspaceFileRepo interface {
@@ -39,6 +58,28 @@ type WorkspaceFileRepo interface {
 }
 
 // 请求结构体
+
+type CreateWorkspaceReq struct {
+	UserID      string                 `json:"user_id" validate:"required"`   // 用户ID
+	Name        string                 `json:"name" validate:"required"`      // 工作区名称
+	Description string                 `json:"description"`                   // 工作区描述
+	RootPath    string                 `json:"root_path" validate:"required"` // 工作区根路径
+	Settings    map[string]interface{} `json:"settings"`                      // 工作区设置
+}
+
+type UpdateWorkspaceReq struct {
+	ID          string                 `json:"id" validate:"required"` // 工作区ID
+	Name        *string                `json:"name"`                   // 工作区名称
+	Description *string                `json:"description"`            // 工作区描述
+	Settings    map[string]interface{} `json:"settings"`               // 工作区设置
+}
+
+type ListWorkspaceReq struct {
+	*web.Pagination
+	UserID   string `json:"user_id" query:"user_id"`     // 用户ID
+	Search   string `json:"search" query:"search"`       // 搜索关键词（工作区名称或描述）
+	RootPath string `json:"root_path" query:"root_path"` // 根路径筛选
+}
 
 type CreateWorkspaceFileReq struct {
 	UserID      string `json:"user_id" validate:"required"`      // 用户ID
@@ -85,10 +126,15 @@ type SyncWorkspaceFileReq struct {
 type GetAndSaveReq struct {
 	CodeFiles CodeFiles `json:"code_files" validate:"required"` // 代码文件信息
 	UserID    string    `json:"user_id" validate:"required"`    // 用户ID
-	ProjectID string    `json:"project_id" validate:"required"`  // 项目ID 
+	ProjectID string    `json:"project_id" validate:"required"` // 项目ID
 }
 
 // 响应结构体
+
+type ListWorkspaceResp struct {
+	*db.PageInfo
+	Workspaces []*Workspace `json:"workspaces"`
+}
 
 type ListWorkspaceFileResp struct {
 	*db.PageInfo
@@ -104,6 +150,18 @@ type SyncWorkspaceFileResp struct {
 
 // 数据模型
 
+type Workspace struct {
+	ID             string                 `json:"id"`               // 工作区ID
+	UserID         string                 `json:"user_id"`          // 用户ID
+	Name           string                 `json:"name"`             // 工作区名称
+	Description    string                 `json:"description"`      // 工作区描述
+	RootPath       string                 `json:"root_path"`        // 工作区根路径
+	Settings       map[string]interface{} `json:"settings"`         // 工作区设置
+	LastAccessedAt int64                  `json:"last_accessed_at"` // 最后访问时间
+	CreatedAt      int64                  `json:"created_at"`       // 创建时间
+	UpdatedAt      int64                  `json:"updated_at"`       // 更新时间
+}
+
 type WorkspaceFile struct {
 	ID          string `json:"id"`           // 文件ID
 	UserID      string `json:"user_id"`      // 用户ID
@@ -117,7 +175,7 @@ type WorkspaceFile struct {
 	UpdatedAt   int64  `json:"updated_at"`   // 更新时间
 }
 
-type CodeLanguageType string 
+type CodeLanguageType string
 
 const (
 	CodeLanguageTypeGo         CodeLanguageType = "go"
@@ -137,34 +195,52 @@ const (
 	CodeLanguageTypeCpp        CodeLanguageType = "cpp"
 )
 
-type CodeFiles struct { 
+type CodeFiles struct {
 	Files []FileMeta `json:"files"`
 }
 type FileMeta struct {
-	FilePath 	    string           `json:"filePath"`
-	FileExtension 	string           `json:"fileExtension"`
-	Language 	    CodeLanguageType `json:"language"` // 语言类型（可选）
-	FileHash 	    string           `json:"fileHash"` // 文件哈希（可选）
-	Content 	    string           `json:"content"`  // 文件内容（可选）
+	FilePath      string           `json:"filePath"`
+	FileExtension string           `json:"fileExtension"`
+	Language      CodeLanguageType `json:"language"` // 语言类型（可选）
+	FileHash      string           `json:"fileHash"` // 文件哈希（可选）
+	Content       string           `json:"content"`  // 文件内容（可选）
 }
 type IndexResult struct {
-	Name                  string      `json:"name"`
-	Type                  string      `json:"type"`
-	FilePath              string      `json:"filePath"`
-	StartLine             int         `json:"startLine"`
-	EndLine               int         `json:"endLine"`
-	RangeText             string      `json:"rangeText"`
-	DefinitionText        string      `json:"definitionText"`
-	Scope                 []struct{}  `json:"scope"`
-	FileHash              string      `json:"fileHash"`
-	Definition            struct {
-		Name       		  string      `json:"name"`
-		Type       		  string      `json:"type"`
-		ReturnType 		  string      `json:"returnType"`
-	} 								  `json:"definition"`
-	Signature             string      `json:"signature"`
-	Language              string      `json:"language"`
-	ImplementText         string      `json:"implementText"`
+	Name           string     `json:"name"`
+	Type           string     `json:"type"`
+	FilePath       string     `json:"filePath"`
+	StartLine      int        `json:"startLine"`
+	EndLine        int        `json:"endLine"`
+	RangeText      string     `json:"rangeText"`
+	DefinitionText string     `json:"definitionText"`
+	Scope          []struct{} `json:"scope"`
+	FileHash       string     `json:"fileHash"`
+	Definition     struct {
+		Name       string `json:"name"`
+		Type       string `json:"type"`
+		ReturnType string `json:"returnType"`
+	} `json:"definition"`
+	Signature     string `json:"signature"`
+	Language      string `json:"language"`
+	ImplementText string `json:"implementText"`
+}
+
+func (w *Workspace) From(e *db.Workspace) *Workspace {
+	if e == nil {
+		return w
+	}
+
+	w.ID = e.ID.String()
+	w.UserID = e.UserID.String()
+	w.Name = e.Name
+	w.Description = e.Description
+	w.RootPath = e.RootPath
+	w.Settings = e.Settings
+	w.LastAccessedAt = e.LastAccessedAt.Unix()
+	w.CreatedAt = e.CreatedAt.Unix()
+	w.UpdatedAt = e.UpdatedAt.Unix()
+
+	return w
 }
 
 func (w *WorkspaceFile) From(e *db.WorkspaceFile) *WorkspaceFile {
@@ -187,8 +263,18 @@ func (w *WorkspaceFile) From(e *db.WorkspaceFile) *WorkspaceFile {
 }
 
 // 工具函数
+func FromWorkspaces(workspaces []*db.Workspace) []*Workspace {
+	result := make([]*Workspace, len(workspaces))
+	for i, e := range workspaces {
+		result[i] = (&Workspace{}).From(e)
+	}
+	return result
+}
+
 func FromWorkspaceFiles(files []*db.WorkspaceFile) []*WorkspaceFile {
-	return cvt.Iter(files, func(_ int, e *db.WorkspaceFile) *WorkspaceFile {
-		return cvt.From(e, &WorkspaceFile{})
-	})
+	result := make([]*WorkspaceFile, len(files))
+	for i, e := range files {
+		result[i] = (&WorkspaceFile{}).From(e)
+	}
+	return result
 }

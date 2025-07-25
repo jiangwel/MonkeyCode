@@ -148,6 +148,64 @@ var (
 		Columns:    BillingUsagesColumns,
 		PrimaryKey: []*schema.Column{BillingUsagesColumns[0]},
 	}
+	// CodeSnippetsColumns holds the columns for the "code_snippets" table.
+	CodeSnippetsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "snippet_type", Type: field.TypeString},
+		{Name: "language", Type: field.TypeString},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "hash", Type: field.TypeString},
+		{Name: "start_line", Type: field.TypeInt},
+		{Name: "end_line", Type: field.TypeInt},
+		{Name: "start_column", Type: field.TypeInt},
+		{Name: "end_column", Type: field.TypeInt},
+		{Name: "namespace", Type: field.TypeString, Nullable: true},
+		{Name: "container_name", Type: field.TypeString, Nullable: true},
+		{Name: "scope", Type: field.TypeJSON, Nullable: true},
+		{Name: "dependencies", Type: field.TypeJSON, Nullable: true},
+		{Name: "parameters", Type: field.TypeJSON, Nullable: true},
+		{Name: "signature", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "definition_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "structured_info", Type: field.TypeJSON, Nullable: true},
+		{Name: "workspace_file_id", Type: field.TypeUUID},
+	}
+	// CodeSnippetsTable holds the schema information for the "code_snippets" table.
+	CodeSnippetsTable = &schema.Table{
+		Name:       "code_snippets",
+		Columns:    CodeSnippetsColumns,
+		PrimaryKey: []*schema.Column{CodeSnippetsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "code_snippets_workspace_files_snippets",
+				Columns:    []*schema.Column{CodeSnippetsColumns[18]},
+				RefColumns: []*schema.Column{WorkspaceFilesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "codesnippet_hash",
+				Unique:  false,
+				Columns: []*schema.Column{CodeSnippetsColumns[5]},
+			},
+			{
+				Name:    "codesnippet_workspace_file_id",
+				Unique:  false,
+				Columns: []*schema.Column{CodeSnippetsColumns[18]},
+			},
+			{
+				Name:    "codesnippet_language_snippet_type",
+				Unique:  false,
+				Columns: []*schema.Column{CodeSnippetsColumns[3], CodeSnippetsColumns[2]},
+			},
+			{
+				Name:    "codesnippet_language_name",
+				Unique:  false,
+				Columns: []*schema.Column{CodeSnippetsColumns[3], CodeSnippetsColumns[1]},
+			},
+		},
+	}
 	// ExtensionsColumns holds the columns for the "extensions" table.
 	ExtensionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -544,6 +602,7 @@ var (
 		BillingQuotasTable,
 		BillingRecordsTable,
 		BillingUsagesTable,
+		CodeSnippetsTable,
 		ExtensionsTable,
 		InviteCodesTable,
 		ModelsTable,
@@ -583,6 +642,10 @@ func init() {
 	}
 	BillingUsagesTable.Annotation = &entsql.Annotation{
 		Table: "billing_usages",
+	}
+	CodeSnippetsTable.ForeignKeys[0].RefTable = WorkspaceFilesTable
+	CodeSnippetsTable.Annotation = &entsql.Annotation{
+		Table: "code_snippets",
 	}
 	ExtensionsTable.Annotation = &entsql.Annotation{
 		Table: "extensions",

@@ -36,6 +36,8 @@ const (
 	EdgeOwner = "owner"
 	// EdgeWorkspace holds the string denoting the workspace edge name in mutations.
 	EdgeWorkspace = "workspace"
+	// EdgeSnippets holds the string denoting the snippets edge name in mutations.
+	EdgeSnippets = "snippets"
 	// Table holds the table name of the workspacefile in the database.
 	Table = "workspace_files"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -52,6 +54,13 @@ const (
 	WorkspaceInverseTable = "workspaces"
 	// WorkspaceColumn is the table column denoting the workspace relation/edge.
 	WorkspaceColumn = "workspace_id"
+	// SnippetsTable is the table that holds the snippets relation/edge.
+	SnippetsTable = "code_snippets"
+	// SnippetsInverseTable is the table name for the CodeSnippet entity.
+	// It exists in this package in order to avoid circular dependency with the "codesnippet" package.
+	SnippetsInverseTable = "code_snippets"
+	// SnippetsColumn is the table column denoting the snippets relation/edge.
+	SnippetsColumn = "workspace_file_id"
 )
 
 // Columns holds all SQL columns for workspacefile fields.
@@ -159,6 +168,20 @@ func ByWorkspaceField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newWorkspaceStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// BySnippetsCount orders the results by snippets count.
+func BySnippetsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSnippetsStep(), opts...)
+	}
+}
+
+// BySnippets orders the results by snippets terms.
+func BySnippets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSnippetsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOwnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -171,5 +194,12 @@ func newWorkspaceStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(WorkspaceInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, WorkspaceTable, WorkspaceColumn),
+	)
+}
+func newSnippetsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SnippetsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SnippetsTable, SnippetsColumn),
 	)
 }

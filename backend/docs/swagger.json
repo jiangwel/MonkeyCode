@@ -689,6 +689,62 @@
                 }
             }
         },
+        "/api/v1/cli/{command}": {
+            "post": {
+                "description": "运行ctcode-cli命令",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CLI"
+                ],
+                "summary": "运行ctcode-cli命令",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "命令",
+                        "name": "command",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "标志",
+                        "name": "flag",
+                        "in": "query"
+                    },
+                    {
+                        "description": "代码文件信息",
+                        "name": "codeFiles",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CodeFiles"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "输出结果",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.IndexResult"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/dashboard/category-stat": {
             "get": {
                 "description": "获取分类统计信息",
@@ -2878,6 +2934,39 @@
                 }
             }
         },
+        "/api/v1/workspace/files/get-and-save": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceFile"
+                ],
+                "summary": "获取并保存工作区文件",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetAndSaveReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/workspace/files/sync": {
             "post": {
                 "description": "同步本地文件到工作区，智能检测新增、修改和删除",
@@ -3654,6 +3743,54 @@
                 }
             }
         },
+        "domain.CodeFiles": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.FileMeta"
+                    }
+                }
+            }
+        },
+        "domain.CodeLanguageType": {
+            "type": "string",
+            "enum": [
+                "go",
+                "python",
+                "java",
+                "javascript",
+                "typescript",
+                "jsx",
+                "tsx",
+                "html",
+                "css",
+                "php",
+                "rust",
+                "swift",
+                "kotlin",
+                "c",
+                "cpp"
+            ],
+            "x-enum-varnames": [
+                "CodeLanguageTypeGo",
+                "CodeLanguageTypePython",
+                "CodeLanguageTypeJava",
+                "CodeLanguageTypeJavaScript",
+                "CodeLanguageTypeTypeScript",
+                "CodeLanguageTypeJSX",
+                "CodeLanguageTypeTSX",
+                "CodeLanguageTypeHTML",
+                "CodeLanguageTypeCSS",
+                "CodeLanguageTypePHP",
+                "CodeLanguageTypeRust",
+                "CodeLanguageTypeSwift",
+                "CodeLanguageTypeKotlin",
+                "CodeLanguageTypeC",
+                "CodeLanguageTypeCpp"
+            ]
+        },
         "domain.CompletionData": {
             "type": "object",
             "properties": {
@@ -4061,6 +4198,59 @@
                 }
             }
         },
+        "domain.FileMeta": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "文件内容（可选）",
+                    "type": "string"
+                },
+                "fileExtension": {
+                    "type": "string"
+                },
+                "fileHash": {
+                    "description": "文件哈希（可选）",
+                    "type": "string"
+                },
+                "filePath": {
+                    "type": "string"
+                },
+                "language": {
+                    "description": "语言类型（可选）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.CodeLanguageType"
+                        }
+                    ]
+                }
+            }
+        },
+        "domain.GetAndSaveReq": {
+            "type": "object",
+            "required": [
+                "code_files",
+                "project_id",
+                "user_id"
+            ],
+            "properties": {
+                "code_files": {
+                    "description": "代码文件信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.CodeFiles"
+                        }
+                    ]
+                },
+                "project_id": {
+                    "description": "项目ID",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "string"
+                }
+            }
+        },
         "domain.GetProviderModelListResp": {
             "type": "object",
             "properties": {
@@ -4097,6 +4287,64 @@
                 },
                 "province": {
                     "description": "省份",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.IndexResult": {
+            "type": "object",
+            "properties": {
+                "definition": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "returnType": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "definitionText": {
+                    "type": "string"
+                },
+                "endLine": {
+                    "type": "integer"
+                },
+                "fileHash": {
+                    "type": "string"
+                },
+                "filePath": {
+                    "type": "string"
+                },
+                "implementText": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rangeText": {
+                    "type": "string"
+                },
+                "scope": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                },
+                "signature": {
+                    "type": "string"
+                },
+                "startLine": {
+                    "type": "integer"
+                },
+                "type": {
                     "type": "string"
                 }
             }

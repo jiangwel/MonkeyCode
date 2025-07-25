@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/workspace"
 	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
@@ -140,6 +141,21 @@ func (wfc *WorkspaceFileCreate) SetOwner(u *User) *WorkspaceFileCreate {
 // SetWorkspace sets the "workspace" edge to the Workspace entity.
 func (wfc *WorkspaceFileCreate) SetWorkspace(w *Workspace) *WorkspaceFileCreate {
 	return wfc.SetWorkspaceID(w.ID)
+}
+
+// AddSnippetIDs adds the "snippets" edge to the CodeSnippet entity by IDs.
+func (wfc *WorkspaceFileCreate) AddSnippetIDs(ids ...uuid.UUID) *WorkspaceFileCreate {
+	wfc.mutation.AddSnippetIDs(ids...)
+	return wfc
+}
+
+// AddSnippets adds the "snippets" edges to the CodeSnippet entity.
+func (wfc *WorkspaceFileCreate) AddSnippets(c ...*CodeSnippet) *WorkspaceFileCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wfc.AddSnippetIDs(ids...)
 }
 
 // Mutation returns the WorkspaceFileMutation object of the builder.
@@ -326,6 +342,22 @@ func (wfc *WorkspaceFileCreate) createSpec() (*WorkspaceFile, *sqlgraph.CreateSp
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.WorkspaceID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wfc.mutation.SnippetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspacefile.SnippetsTable,
+			Columns: []string{workspacefile.SnippetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(codesnippet.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

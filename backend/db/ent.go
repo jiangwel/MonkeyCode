@@ -19,6 +19,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
 	"github.com/chaitin/MonkeyCode/backend/db/billingrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
+	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/extension"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
@@ -99,6 +100,7 @@ func checkColumn(table, column string) error {
 			billingquota.Table:       billingquota.ValidColumn,
 			billingrecord.Table:      billingrecord.ValidColumn,
 			billingusage.Table:       billingusage.ValidColumn,
+			codesnippet.Table:        codesnippet.ValidColumn,
 			extension.Table:          extension.ValidColumn,
 			invitecode.Table:         invitecode.ValidColumn,
 			model.Table:              model.ValidColumn,

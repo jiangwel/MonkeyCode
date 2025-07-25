@@ -19,6 +19,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
 	"github.com/chaitin/MonkeyCode/backend/db/billingrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
+	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/extension"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
@@ -53,6 +54,7 @@ const (
 	TypeBillingQuota       = "BillingQuota"
 	TypeBillingRecord      = "BillingRecord"
 	TypeBillingUsage       = "BillingUsage"
+	TypeCodeSnippet        = "CodeSnippet"
 	TypeExtension          = "Extension"
 	TypeInviteCode         = "InviteCode"
 	TypeModel              = "Model"
@@ -5492,6 +5494,1664 @@ func (m *BillingUsageMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *BillingUsageMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown BillingUsage edge %s", name)
+}
+
+// CodeSnippetMutation represents an operation that mutates the CodeSnippet nodes in the graph.
+type CodeSnippetMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	name               *string
+	snippet_type       *string
+	language           *string
+	content            *string
+	hash               *string
+	start_line         *int
+	addstart_line      *int
+	end_line           *int
+	addend_line        *int
+	start_column       *int
+	addstart_column    *int
+	end_column         *int
+	addend_column      *int
+	namespace          *string
+	container_name     *string
+	scope              *[]string
+	appendscope        []string
+	dependencies       *[]string
+	appenddependencies []string
+	parameters         *[]map[string]interface{}
+	appendparameters   []map[string]interface{}
+	signature          *string
+	definition_text    *string
+	structured_info    *map[string]interface{}
+	clearedFields      map[string]struct{}
+	source_file        *uuid.UUID
+	clearedsource_file bool
+	done               bool
+	oldValue           func(context.Context) (*CodeSnippet, error)
+	predicates         []predicate.CodeSnippet
+}
+
+var _ ent.Mutation = (*CodeSnippetMutation)(nil)
+
+// codesnippetOption allows management of the mutation configuration using functional options.
+type codesnippetOption func(*CodeSnippetMutation)
+
+// newCodeSnippetMutation creates new mutation for the CodeSnippet entity.
+func newCodeSnippetMutation(c config, op Op, opts ...codesnippetOption) *CodeSnippetMutation {
+	m := &CodeSnippetMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCodeSnippet,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCodeSnippetID sets the ID field of the mutation.
+func withCodeSnippetID(id uuid.UUID) codesnippetOption {
+	return func(m *CodeSnippetMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CodeSnippet
+		)
+		m.oldValue = func(ctx context.Context) (*CodeSnippet, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CodeSnippet.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCodeSnippet sets the old CodeSnippet of the mutation.
+func withCodeSnippet(node *CodeSnippet) codesnippetOption {
+	return func(m *CodeSnippetMutation) {
+		m.oldValue = func(context.Context) (*CodeSnippet, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CodeSnippetMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CodeSnippetMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CodeSnippet entities.
+func (m *CodeSnippetMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CodeSnippetMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CodeSnippetMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CodeSnippet.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorkspaceFileID sets the "workspace_file_id" field.
+func (m *CodeSnippetMutation) SetWorkspaceFileID(u uuid.UUID) {
+	m.source_file = &u
+}
+
+// WorkspaceFileID returns the value of the "workspace_file_id" field in the mutation.
+func (m *CodeSnippetMutation) WorkspaceFileID() (r uuid.UUID, exists bool) {
+	v := m.source_file
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceFileID returns the old "workspace_file_id" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldWorkspaceFileID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceFileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceFileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceFileID: %w", err)
+	}
+	return oldValue.WorkspaceFileID, nil
+}
+
+// ResetWorkspaceFileID resets all changes to the "workspace_file_id" field.
+func (m *CodeSnippetMutation) ResetWorkspaceFileID() {
+	m.source_file = nil
+}
+
+// SetName sets the "name" field.
+func (m *CodeSnippetMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CodeSnippetMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CodeSnippetMutation) ResetName() {
+	m.name = nil
+}
+
+// SetSnippetType sets the "snippet_type" field.
+func (m *CodeSnippetMutation) SetSnippetType(s string) {
+	m.snippet_type = &s
+}
+
+// SnippetType returns the value of the "snippet_type" field in the mutation.
+func (m *CodeSnippetMutation) SnippetType() (r string, exists bool) {
+	v := m.snippet_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSnippetType returns the old "snippet_type" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldSnippetType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSnippetType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSnippetType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSnippetType: %w", err)
+	}
+	return oldValue.SnippetType, nil
+}
+
+// ResetSnippetType resets all changes to the "snippet_type" field.
+func (m *CodeSnippetMutation) ResetSnippetType() {
+	m.snippet_type = nil
+}
+
+// SetLanguage sets the "language" field.
+func (m *CodeSnippetMutation) SetLanguage(s string) {
+	m.language = &s
+}
+
+// Language returns the value of the "language" field in the mutation.
+func (m *CodeSnippetMutation) Language() (r string, exists bool) {
+	v := m.language
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLanguage returns the old "language" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldLanguage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLanguage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLanguage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLanguage: %w", err)
+	}
+	return oldValue.Language, nil
+}
+
+// ResetLanguage resets all changes to the "language" field.
+func (m *CodeSnippetMutation) ResetLanguage() {
+	m.language = nil
+}
+
+// SetContent sets the "content" field.
+func (m *CodeSnippetMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *CodeSnippetMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *CodeSnippetMutation) ResetContent() {
+	m.content = nil
+}
+
+// SetHash sets the "hash" field.
+func (m *CodeSnippetMutation) SetHash(s string) {
+	m.hash = &s
+}
+
+// Hash returns the value of the "hash" field in the mutation.
+func (m *CodeSnippetMutation) Hash() (r string, exists bool) {
+	v := m.hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHash returns the old "hash" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHash: %w", err)
+	}
+	return oldValue.Hash, nil
+}
+
+// ResetHash resets all changes to the "hash" field.
+func (m *CodeSnippetMutation) ResetHash() {
+	m.hash = nil
+}
+
+// SetStartLine sets the "start_line" field.
+func (m *CodeSnippetMutation) SetStartLine(i int) {
+	m.start_line = &i
+	m.addstart_line = nil
+}
+
+// StartLine returns the value of the "start_line" field in the mutation.
+func (m *CodeSnippetMutation) StartLine() (r int, exists bool) {
+	v := m.start_line
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartLine returns the old "start_line" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldStartLine(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartLine is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartLine requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartLine: %w", err)
+	}
+	return oldValue.StartLine, nil
+}
+
+// AddStartLine adds i to the "start_line" field.
+func (m *CodeSnippetMutation) AddStartLine(i int) {
+	if m.addstart_line != nil {
+		*m.addstart_line += i
+	} else {
+		m.addstart_line = &i
+	}
+}
+
+// AddedStartLine returns the value that was added to the "start_line" field in this mutation.
+func (m *CodeSnippetMutation) AddedStartLine() (r int, exists bool) {
+	v := m.addstart_line
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStartLine resets all changes to the "start_line" field.
+func (m *CodeSnippetMutation) ResetStartLine() {
+	m.start_line = nil
+	m.addstart_line = nil
+}
+
+// SetEndLine sets the "end_line" field.
+func (m *CodeSnippetMutation) SetEndLine(i int) {
+	m.end_line = &i
+	m.addend_line = nil
+}
+
+// EndLine returns the value of the "end_line" field in the mutation.
+func (m *CodeSnippetMutation) EndLine() (r int, exists bool) {
+	v := m.end_line
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndLine returns the old "end_line" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldEndLine(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndLine is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndLine requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndLine: %w", err)
+	}
+	return oldValue.EndLine, nil
+}
+
+// AddEndLine adds i to the "end_line" field.
+func (m *CodeSnippetMutation) AddEndLine(i int) {
+	if m.addend_line != nil {
+		*m.addend_line += i
+	} else {
+		m.addend_line = &i
+	}
+}
+
+// AddedEndLine returns the value that was added to the "end_line" field in this mutation.
+func (m *CodeSnippetMutation) AddedEndLine() (r int, exists bool) {
+	v := m.addend_line
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEndLine resets all changes to the "end_line" field.
+func (m *CodeSnippetMutation) ResetEndLine() {
+	m.end_line = nil
+	m.addend_line = nil
+}
+
+// SetStartColumn sets the "start_column" field.
+func (m *CodeSnippetMutation) SetStartColumn(i int) {
+	m.start_column = &i
+	m.addstart_column = nil
+}
+
+// StartColumn returns the value of the "start_column" field in the mutation.
+func (m *CodeSnippetMutation) StartColumn() (r int, exists bool) {
+	v := m.start_column
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartColumn returns the old "start_column" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldStartColumn(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartColumn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartColumn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartColumn: %w", err)
+	}
+	return oldValue.StartColumn, nil
+}
+
+// AddStartColumn adds i to the "start_column" field.
+func (m *CodeSnippetMutation) AddStartColumn(i int) {
+	if m.addstart_column != nil {
+		*m.addstart_column += i
+	} else {
+		m.addstart_column = &i
+	}
+}
+
+// AddedStartColumn returns the value that was added to the "start_column" field in this mutation.
+func (m *CodeSnippetMutation) AddedStartColumn() (r int, exists bool) {
+	v := m.addstart_column
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStartColumn resets all changes to the "start_column" field.
+func (m *CodeSnippetMutation) ResetStartColumn() {
+	m.start_column = nil
+	m.addstart_column = nil
+}
+
+// SetEndColumn sets the "end_column" field.
+func (m *CodeSnippetMutation) SetEndColumn(i int) {
+	m.end_column = &i
+	m.addend_column = nil
+}
+
+// EndColumn returns the value of the "end_column" field in the mutation.
+func (m *CodeSnippetMutation) EndColumn() (r int, exists bool) {
+	v := m.end_column
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndColumn returns the old "end_column" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldEndColumn(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndColumn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndColumn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndColumn: %w", err)
+	}
+	return oldValue.EndColumn, nil
+}
+
+// AddEndColumn adds i to the "end_column" field.
+func (m *CodeSnippetMutation) AddEndColumn(i int) {
+	if m.addend_column != nil {
+		*m.addend_column += i
+	} else {
+		m.addend_column = &i
+	}
+}
+
+// AddedEndColumn returns the value that was added to the "end_column" field in this mutation.
+func (m *CodeSnippetMutation) AddedEndColumn() (r int, exists bool) {
+	v := m.addend_column
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEndColumn resets all changes to the "end_column" field.
+func (m *CodeSnippetMutation) ResetEndColumn() {
+	m.end_column = nil
+	m.addend_column = nil
+}
+
+// SetNamespace sets the "namespace" field.
+func (m *CodeSnippetMutation) SetNamespace(s string) {
+	m.namespace = &s
+}
+
+// Namespace returns the value of the "namespace" field in the mutation.
+func (m *CodeSnippetMutation) Namespace() (r string, exists bool) {
+	v := m.namespace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespace returns the old "namespace" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldNamespace(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespace is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespace requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespace: %w", err)
+	}
+	return oldValue.Namespace, nil
+}
+
+// ClearNamespace clears the value of the "namespace" field.
+func (m *CodeSnippetMutation) ClearNamespace() {
+	m.namespace = nil
+	m.clearedFields[codesnippet.FieldNamespace] = struct{}{}
+}
+
+// NamespaceCleared returns if the "namespace" field was cleared in this mutation.
+func (m *CodeSnippetMutation) NamespaceCleared() bool {
+	_, ok := m.clearedFields[codesnippet.FieldNamespace]
+	return ok
+}
+
+// ResetNamespace resets all changes to the "namespace" field.
+func (m *CodeSnippetMutation) ResetNamespace() {
+	m.namespace = nil
+	delete(m.clearedFields, codesnippet.FieldNamespace)
+}
+
+// SetContainerName sets the "container_name" field.
+func (m *CodeSnippetMutation) SetContainerName(s string) {
+	m.container_name = &s
+}
+
+// ContainerName returns the value of the "container_name" field in the mutation.
+func (m *CodeSnippetMutation) ContainerName() (r string, exists bool) {
+	v := m.container_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContainerName returns the old "container_name" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldContainerName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContainerName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContainerName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContainerName: %w", err)
+	}
+	return oldValue.ContainerName, nil
+}
+
+// ClearContainerName clears the value of the "container_name" field.
+func (m *CodeSnippetMutation) ClearContainerName() {
+	m.container_name = nil
+	m.clearedFields[codesnippet.FieldContainerName] = struct{}{}
+}
+
+// ContainerNameCleared returns if the "container_name" field was cleared in this mutation.
+func (m *CodeSnippetMutation) ContainerNameCleared() bool {
+	_, ok := m.clearedFields[codesnippet.FieldContainerName]
+	return ok
+}
+
+// ResetContainerName resets all changes to the "container_name" field.
+func (m *CodeSnippetMutation) ResetContainerName() {
+	m.container_name = nil
+	delete(m.clearedFields, codesnippet.FieldContainerName)
+}
+
+// SetScope sets the "scope" field.
+func (m *CodeSnippetMutation) SetScope(s []string) {
+	m.scope = &s
+	m.appendscope = nil
+}
+
+// Scope returns the value of the "scope" field in the mutation.
+func (m *CodeSnippetMutation) Scope() (r []string, exists bool) {
+	v := m.scope
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScope returns the old "scope" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldScope(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScope is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScope requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScope: %w", err)
+	}
+	return oldValue.Scope, nil
+}
+
+// AppendScope adds s to the "scope" field.
+func (m *CodeSnippetMutation) AppendScope(s []string) {
+	m.appendscope = append(m.appendscope, s...)
+}
+
+// AppendedScope returns the list of values that were appended to the "scope" field in this mutation.
+func (m *CodeSnippetMutation) AppendedScope() ([]string, bool) {
+	if len(m.appendscope) == 0 {
+		return nil, false
+	}
+	return m.appendscope, true
+}
+
+// ClearScope clears the value of the "scope" field.
+func (m *CodeSnippetMutation) ClearScope() {
+	m.scope = nil
+	m.appendscope = nil
+	m.clearedFields[codesnippet.FieldScope] = struct{}{}
+}
+
+// ScopeCleared returns if the "scope" field was cleared in this mutation.
+func (m *CodeSnippetMutation) ScopeCleared() bool {
+	_, ok := m.clearedFields[codesnippet.FieldScope]
+	return ok
+}
+
+// ResetScope resets all changes to the "scope" field.
+func (m *CodeSnippetMutation) ResetScope() {
+	m.scope = nil
+	m.appendscope = nil
+	delete(m.clearedFields, codesnippet.FieldScope)
+}
+
+// SetDependencies sets the "dependencies" field.
+func (m *CodeSnippetMutation) SetDependencies(s []string) {
+	m.dependencies = &s
+	m.appenddependencies = nil
+}
+
+// Dependencies returns the value of the "dependencies" field in the mutation.
+func (m *CodeSnippetMutation) Dependencies() (r []string, exists bool) {
+	v := m.dependencies
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDependencies returns the old "dependencies" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldDependencies(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDependencies is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDependencies requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDependencies: %w", err)
+	}
+	return oldValue.Dependencies, nil
+}
+
+// AppendDependencies adds s to the "dependencies" field.
+func (m *CodeSnippetMutation) AppendDependencies(s []string) {
+	m.appenddependencies = append(m.appenddependencies, s...)
+}
+
+// AppendedDependencies returns the list of values that were appended to the "dependencies" field in this mutation.
+func (m *CodeSnippetMutation) AppendedDependencies() ([]string, bool) {
+	if len(m.appenddependencies) == 0 {
+		return nil, false
+	}
+	return m.appenddependencies, true
+}
+
+// ClearDependencies clears the value of the "dependencies" field.
+func (m *CodeSnippetMutation) ClearDependencies() {
+	m.dependencies = nil
+	m.appenddependencies = nil
+	m.clearedFields[codesnippet.FieldDependencies] = struct{}{}
+}
+
+// DependenciesCleared returns if the "dependencies" field was cleared in this mutation.
+func (m *CodeSnippetMutation) DependenciesCleared() bool {
+	_, ok := m.clearedFields[codesnippet.FieldDependencies]
+	return ok
+}
+
+// ResetDependencies resets all changes to the "dependencies" field.
+func (m *CodeSnippetMutation) ResetDependencies() {
+	m.dependencies = nil
+	m.appenddependencies = nil
+	delete(m.clearedFields, codesnippet.FieldDependencies)
+}
+
+// SetParameters sets the "parameters" field.
+func (m *CodeSnippetMutation) SetParameters(value []map[string]interface{}) {
+	m.parameters = &value
+	m.appendparameters = nil
+}
+
+// Parameters returns the value of the "parameters" field in the mutation.
+func (m *CodeSnippetMutation) Parameters() (r []map[string]interface{}, exists bool) {
+	v := m.parameters
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParameters returns the old "parameters" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldParameters(ctx context.Context) (v []map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParameters is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParameters requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParameters: %w", err)
+	}
+	return oldValue.Parameters, nil
+}
+
+// AppendParameters adds value to the "parameters" field.
+func (m *CodeSnippetMutation) AppendParameters(value []map[string]interface{}) {
+	m.appendparameters = append(m.appendparameters, value...)
+}
+
+// AppendedParameters returns the list of values that were appended to the "parameters" field in this mutation.
+func (m *CodeSnippetMutation) AppendedParameters() ([]map[string]interface{}, bool) {
+	if len(m.appendparameters) == 0 {
+		return nil, false
+	}
+	return m.appendparameters, true
+}
+
+// ClearParameters clears the value of the "parameters" field.
+func (m *CodeSnippetMutation) ClearParameters() {
+	m.parameters = nil
+	m.appendparameters = nil
+	m.clearedFields[codesnippet.FieldParameters] = struct{}{}
+}
+
+// ParametersCleared returns if the "parameters" field was cleared in this mutation.
+func (m *CodeSnippetMutation) ParametersCleared() bool {
+	_, ok := m.clearedFields[codesnippet.FieldParameters]
+	return ok
+}
+
+// ResetParameters resets all changes to the "parameters" field.
+func (m *CodeSnippetMutation) ResetParameters() {
+	m.parameters = nil
+	m.appendparameters = nil
+	delete(m.clearedFields, codesnippet.FieldParameters)
+}
+
+// SetSignature sets the "signature" field.
+func (m *CodeSnippetMutation) SetSignature(s string) {
+	m.signature = &s
+}
+
+// Signature returns the value of the "signature" field in the mutation.
+func (m *CodeSnippetMutation) Signature() (r string, exists bool) {
+	v := m.signature
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSignature returns the old "signature" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldSignature(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSignature is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSignature requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSignature: %w", err)
+	}
+	return oldValue.Signature, nil
+}
+
+// ClearSignature clears the value of the "signature" field.
+func (m *CodeSnippetMutation) ClearSignature() {
+	m.signature = nil
+	m.clearedFields[codesnippet.FieldSignature] = struct{}{}
+}
+
+// SignatureCleared returns if the "signature" field was cleared in this mutation.
+func (m *CodeSnippetMutation) SignatureCleared() bool {
+	_, ok := m.clearedFields[codesnippet.FieldSignature]
+	return ok
+}
+
+// ResetSignature resets all changes to the "signature" field.
+func (m *CodeSnippetMutation) ResetSignature() {
+	m.signature = nil
+	delete(m.clearedFields, codesnippet.FieldSignature)
+}
+
+// SetDefinitionText sets the "definition_text" field.
+func (m *CodeSnippetMutation) SetDefinitionText(s string) {
+	m.definition_text = &s
+}
+
+// DefinitionText returns the value of the "definition_text" field in the mutation.
+func (m *CodeSnippetMutation) DefinitionText() (r string, exists bool) {
+	v := m.definition_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefinitionText returns the old "definition_text" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldDefinitionText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefinitionText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefinitionText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefinitionText: %w", err)
+	}
+	return oldValue.DefinitionText, nil
+}
+
+// ClearDefinitionText clears the value of the "definition_text" field.
+func (m *CodeSnippetMutation) ClearDefinitionText() {
+	m.definition_text = nil
+	m.clearedFields[codesnippet.FieldDefinitionText] = struct{}{}
+}
+
+// DefinitionTextCleared returns if the "definition_text" field was cleared in this mutation.
+func (m *CodeSnippetMutation) DefinitionTextCleared() bool {
+	_, ok := m.clearedFields[codesnippet.FieldDefinitionText]
+	return ok
+}
+
+// ResetDefinitionText resets all changes to the "definition_text" field.
+func (m *CodeSnippetMutation) ResetDefinitionText() {
+	m.definition_text = nil
+	delete(m.clearedFields, codesnippet.FieldDefinitionText)
+}
+
+// SetStructuredInfo sets the "structured_info" field.
+func (m *CodeSnippetMutation) SetStructuredInfo(value map[string]interface{}) {
+	m.structured_info = &value
+}
+
+// StructuredInfo returns the value of the "structured_info" field in the mutation.
+func (m *CodeSnippetMutation) StructuredInfo() (r map[string]interface{}, exists bool) {
+	v := m.structured_info
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStructuredInfo returns the old "structured_info" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldStructuredInfo(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStructuredInfo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStructuredInfo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStructuredInfo: %w", err)
+	}
+	return oldValue.StructuredInfo, nil
+}
+
+// ClearStructuredInfo clears the value of the "structured_info" field.
+func (m *CodeSnippetMutation) ClearStructuredInfo() {
+	m.structured_info = nil
+	m.clearedFields[codesnippet.FieldStructuredInfo] = struct{}{}
+}
+
+// StructuredInfoCleared returns if the "structured_info" field was cleared in this mutation.
+func (m *CodeSnippetMutation) StructuredInfoCleared() bool {
+	_, ok := m.clearedFields[codesnippet.FieldStructuredInfo]
+	return ok
+}
+
+// ResetStructuredInfo resets all changes to the "structured_info" field.
+func (m *CodeSnippetMutation) ResetStructuredInfo() {
+	m.structured_info = nil
+	delete(m.clearedFields, codesnippet.FieldStructuredInfo)
+}
+
+// SetSourceFileID sets the "source_file" edge to the WorkspaceFile entity by id.
+func (m *CodeSnippetMutation) SetSourceFileID(id uuid.UUID) {
+	m.source_file = &id
+}
+
+// ClearSourceFile clears the "source_file" edge to the WorkspaceFile entity.
+func (m *CodeSnippetMutation) ClearSourceFile() {
+	m.clearedsource_file = true
+	m.clearedFields[codesnippet.FieldWorkspaceFileID] = struct{}{}
+}
+
+// SourceFileCleared reports if the "source_file" edge to the WorkspaceFile entity was cleared.
+func (m *CodeSnippetMutation) SourceFileCleared() bool {
+	return m.clearedsource_file
+}
+
+// SourceFileID returns the "source_file" edge ID in the mutation.
+func (m *CodeSnippetMutation) SourceFileID() (id uuid.UUID, exists bool) {
+	if m.source_file != nil {
+		return *m.source_file, true
+	}
+	return
+}
+
+// SourceFileIDs returns the "source_file" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SourceFileID instead. It exists only for internal usage by the builders.
+func (m *CodeSnippetMutation) SourceFileIDs() (ids []uuid.UUID) {
+	if id := m.source_file; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSourceFile resets all changes to the "source_file" edge.
+func (m *CodeSnippetMutation) ResetSourceFile() {
+	m.source_file = nil
+	m.clearedsource_file = false
+}
+
+// Where appends a list predicates to the CodeSnippetMutation builder.
+func (m *CodeSnippetMutation) Where(ps ...predicate.CodeSnippet) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CodeSnippetMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CodeSnippetMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CodeSnippet, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CodeSnippetMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CodeSnippetMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CodeSnippet).
+func (m *CodeSnippetMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CodeSnippetMutation) Fields() []string {
+	fields := make([]string, 0, 18)
+	if m.source_file != nil {
+		fields = append(fields, codesnippet.FieldWorkspaceFileID)
+	}
+	if m.name != nil {
+		fields = append(fields, codesnippet.FieldName)
+	}
+	if m.snippet_type != nil {
+		fields = append(fields, codesnippet.FieldSnippetType)
+	}
+	if m.language != nil {
+		fields = append(fields, codesnippet.FieldLanguage)
+	}
+	if m.content != nil {
+		fields = append(fields, codesnippet.FieldContent)
+	}
+	if m.hash != nil {
+		fields = append(fields, codesnippet.FieldHash)
+	}
+	if m.start_line != nil {
+		fields = append(fields, codesnippet.FieldStartLine)
+	}
+	if m.end_line != nil {
+		fields = append(fields, codesnippet.FieldEndLine)
+	}
+	if m.start_column != nil {
+		fields = append(fields, codesnippet.FieldStartColumn)
+	}
+	if m.end_column != nil {
+		fields = append(fields, codesnippet.FieldEndColumn)
+	}
+	if m.namespace != nil {
+		fields = append(fields, codesnippet.FieldNamespace)
+	}
+	if m.container_name != nil {
+		fields = append(fields, codesnippet.FieldContainerName)
+	}
+	if m.scope != nil {
+		fields = append(fields, codesnippet.FieldScope)
+	}
+	if m.dependencies != nil {
+		fields = append(fields, codesnippet.FieldDependencies)
+	}
+	if m.parameters != nil {
+		fields = append(fields, codesnippet.FieldParameters)
+	}
+	if m.signature != nil {
+		fields = append(fields, codesnippet.FieldSignature)
+	}
+	if m.definition_text != nil {
+		fields = append(fields, codesnippet.FieldDefinitionText)
+	}
+	if m.structured_info != nil {
+		fields = append(fields, codesnippet.FieldStructuredInfo)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CodeSnippetMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case codesnippet.FieldWorkspaceFileID:
+		return m.WorkspaceFileID()
+	case codesnippet.FieldName:
+		return m.Name()
+	case codesnippet.FieldSnippetType:
+		return m.SnippetType()
+	case codesnippet.FieldLanguage:
+		return m.Language()
+	case codesnippet.FieldContent:
+		return m.Content()
+	case codesnippet.FieldHash:
+		return m.Hash()
+	case codesnippet.FieldStartLine:
+		return m.StartLine()
+	case codesnippet.FieldEndLine:
+		return m.EndLine()
+	case codesnippet.FieldStartColumn:
+		return m.StartColumn()
+	case codesnippet.FieldEndColumn:
+		return m.EndColumn()
+	case codesnippet.FieldNamespace:
+		return m.Namespace()
+	case codesnippet.FieldContainerName:
+		return m.ContainerName()
+	case codesnippet.FieldScope:
+		return m.Scope()
+	case codesnippet.FieldDependencies:
+		return m.Dependencies()
+	case codesnippet.FieldParameters:
+		return m.Parameters()
+	case codesnippet.FieldSignature:
+		return m.Signature()
+	case codesnippet.FieldDefinitionText:
+		return m.DefinitionText()
+	case codesnippet.FieldStructuredInfo:
+		return m.StructuredInfo()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CodeSnippetMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case codesnippet.FieldWorkspaceFileID:
+		return m.OldWorkspaceFileID(ctx)
+	case codesnippet.FieldName:
+		return m.OldName(ctx)
+	case codesnippet.FieldSnippetType:
+		return m.OldSnippetType(ctx)
+	case codesnippet.FieldLanguage:
+		return m.OldLanguage(ctx)
+	case codesnippet.FieldContent:
+		return m.OldContent(ctx)
+	case codesnippet.FieldHash:
+		return m.OldHash(ctx)
+	case codesnippet.FieldStartLine:
+		return m.OldStartLine(ctx)
+	case codesnippet.FieldEndLine:
+		return m.OldEndLine(ctx)
+	case codesnippet.FieldStartColumn:
+		return m.OldStartColumn(ctx)
+	case codesnippet.FieldEndColumn:
+		return m.OldEndColumn(ctx)
+	case codesnippet.FieldNamespace:
+		return m.OldNamespace(ctx)
+	case codesnippet.FieldContainerName:
+		return m.OldContainerName(ctx)
+	case codesnippet.FieldScope:
+		return m.OldScope(ctx)
+	case codesnippet.FieldDependencies:
+		return m.OldDependencies(ctx)
+	case codesnippet.FieldParameters:
+		return m.OldParameters(ctx)
+	case codesnippet.FieldSignature:
+		return m.OldSignature(ctx)
+	case codesnippet.FieldDefinitionText:
+		return m.OldDefinitionText(ctx)
+	case codesnippet.FieldStructuredInfo:
+		return m.OldStructuredInfo(ctx)
+	}
+	return nil, fmt.Errorf("unknown CodeSnippet field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CodeSnippetMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case codesnippet.FieldWorkspaceFileID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceFileID(v)
+		return nil
+	case codesnippet.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case codesnippet.FieldSnippetType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSnippetType(v)
+		return nil
+	case codesnippet.FieldLanguage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLanguage(v)
+		return nil
+	case codesnippet.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case codesnippet.FieldHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHash(v)
+		return nil
+	case codesnippet.FieldStartLine:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartLine(v)
+		return nil
+	case codesnippet.FieldEndLine:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndLine(v)
+		return nil
+	case codesnippet.FieldStartColumn:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartColumn(v)
+		return nil
+	case codesnippet.FieldEndColumn:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndColumn(v)
+		return nil
+	case codesnippet.FieldNamespace:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespace(v)
+		return nil
+	case codesnippet.FieldContainerName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContainerName(v)
+		return nil
+	case codesnippet.FieldScope:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScope(v)
+		return nil
+	case codesnippet.FieldDependencies:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDependencies(v)
+		return nil
+	case codesnippet.FieldParameters:
+		v, ok := value.([]map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParameters(v)
+		return nil
+	case codesnippet.FieldSignature:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSignature(v)
+		return nil
+	case codesnippet.FieldDefinitionText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefinitionText(v)
+		return nil
+	case codesnippet.FieldStructuredInfo:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStructuredInfo(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSnippet field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CodeSnippetMutation) AddedFields() []string {
+	var fields []string
+	if m.addstart_line != nil {
+		fields = append(fields, codesnippet.FieldStartLine)
+	}
+	if m.addend_line != nil {
+		fields = append(fields, codesnippet.FieldEndLine)
+	}
+	if m.addstart_column != nil {
+		fields = append(fields, codesnippet.FieldStartColumn)
+	}
+	if m.addend_column != nil {
+		fields = append(fields, codesnippet.FieldEndColumn)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CodeSnippetMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case codesnippet.FieldStartLine:
+		return m.AddedStartLine()
+	case codesnippet.FieldEndLine:
+		return m.AddedEndLine()
+	case codesnippet.FieldStartColumn:
+		return m.AddedStartColumn()
+	case codesnippet.FieldEndColumn:
+		return m.AddedEndColumn()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CodeSnippetMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case codesnippet.FieldStartLine:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStartLine(v)
+		return nil
+	case codesnippet.FieldEndLine:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEndLine(v)
+		return nil
+	case codesnippet.FieldStartColumn:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStartColumn(v)
+		return nil
+	case codesnippet.FieldEndColumn:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEndColumn(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSnippet numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CodeSnippetMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(codesnippet.FieldNamespace) {
+		fields = append(fields, codesnippet.FieldNamespace)
+	}
+	if m.FieldCleared(codesnippet.FieldContainerName) {
+		fields = append(fields, codesnippet.FieldContainerName)
+	}
+	if m.FieldCleared(codesnippet.FieldScope) {
+		fields = append(fields, codesnippet.FieldScope)
+	}
+	if m.FieldCleared(codesnippet.FieldDependencies) {
+		fields = append(fields, codesnippet.FieldDependencies)
+	}
+	if m.FieldCleared(codesnippet.FieldParameters) {
+		fields = append(fields, codesnippet.FieldParameters)
+	}
+	if m.FieldCleared(codesnippet.FieldSignature) {
+		fields = append(fields, codesnippet.FieldSignature)
+	}
+	if m.FieldCleared(codesnippet.FieldDefinitionText) {
+		fields = append(fields, codesnippet.FieldDefinitionText)
+	}
+	if m.FieldCleared(codesnippet.FieldStructuredInfo) {
+		fields = append(fields, codesnippet.FieldStructuredInfo)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CodeSnippetMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CodeSnippetMutation) ClearField(name string) error {
+	switch name {
+	case codesnippet.FieldNamespace:
+		m.ClearNamespace()
+		return nil
+	case codesnippet.FieldContainerName:
+		m.ClearContainerName()
+		return nil
+	case codesnippet.FieldScope:
+		m.ClearScope()
+		return nil
+	case codesnippet.FieldDependencies:
+		m.ClearDependencies()
+		return nil
+	case codesnippet.FieldParameters:
+		m.ClearParameters()
+		return nil
+	case codesnippet.FieldSignature:
+		m.ClearSignature()
+		return nil
+	case codesnippet.FieldDefinitionText:
+		m.ClearDefinitionText()
+		return nil
+	case codesnippet.FieldStructuredInfo:
+		m.ClearStructuredInfo()
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSnippet nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CodeSnippetMutation) ResetField(name string) error {
+	switch name {
+	case codesnippet.FieldWorkspaceFileID:
+		m.ResetWorkspaceFileID()
+		return nil
+	case codesnippet.FieldName:
+		m.ResetName()
+		return nil
+	case codesnippet.FieldSnippetType:
+		m.ResetSnippetType()
+		return nil
+	case codesnippet.FieldLanguage:
+		m.ResetLanguage()
+		return nil
+	case codesnippet.FieldContent:
+		m.ResetContent()
+		return nil
+	case codesnippet.FieldHash:
+		m.ResetHash()
+		return nil
+	case codesnippet.FieldStartLine:
+		m.ResetStartLine()
+		return nil
+	case codesnippet.FieldEndLine:
+		m.ResetEndLine()
+		return nil
+	case codesnippet.FieldStartColumn:
+		m.ResetStartColumn()
+		return nil
+	case codesnippet.FieldEndColumn:
+		m.ResetEndColumn()
+		return nil
+	case codesnippet.FieldNamespace:
+		m.ResetNamespace()
+		return nil
+	case codesnippet.FieldContainerName:
+		m.ResetContainerName()
+		return nil
+	case codesnippet.FieldScope:
+		m.ResetScope()
+		return nil
+	case codesnippet.FieldDependencies:
+		m.ResetDependencies()
+		return nil
+	case codesnippet.FieldParameters:
+		m.ResetParameters()
+		return nil
+	case codesnippet.FieldSignature:
+		m.ResetSignature()
+		return nil
+	case codesnippet.FieldDefinitionText:
+		m.ResetDefinitionText()
+		return nil
+	case codesnippet.FieldStructuredInfo:
+		m.ResetStructuredInfo()
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSnippet field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CodeSnippetMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.source_file != nil {
+		edges = append(edges, codesnippet.EdgeSourceFile)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CodeSnippetMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case codesnippet.EdgeSourceFile:
+		if id := m.source_file; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CodeSnippetMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CodeSnippetMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CodeSnippetMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedsource_file {
+		edges = append(edges, codesnippet.EdgeSourceFile)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CodeSnippetMutation) EdgeCleared(name string) bool {
+	switch name {
+	case codesnippet.EdgeSourceFile:
+		return m.clearedsource_file
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CodeSnippetMutation) ClearEdge(name string) error {
+	switch name {
+	case codesnippet.EdgeSourceFile:
+		m.ClearSourceFile()
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSnippet unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CodeSnippetMutation) ResetEdge(name string) error {
+	switch name {
+	case codesnippet.EdgeSourceFile:
+		m.ResetSourceFile()
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSnippet edge %s", name)
 }
 
 // ExtensionMutation represents an operation that mutates the Extension nodes in the graph.
@@ -17237,6 +18897,9 @@ type WorkspaceFileMutation struct {
 	clearedowner     bool
 	workspace        *uuid.UUID
 	clearedworkspace bool
+	snippets         map[uuid.UUID]struct{}
+	removedsnippets  map[uuid.UUID]struct{}
+	clearedsnippets  bool
 	done             bool
 	oldValue         func(context.Context) (*WorkspaceFile, error)
 	predicates       []predicate.WorkspaceFile
@@ -17783,6 +19446,60 @@ func (m *WorkspaceFileMutation) ResetWorkspace() {
 	m.clearedworkspace = false
 }
 
+// AddSnippetIDs adds the "snippets" edge to the CodeSnippet entity by ids.
+func (m *WorkspaceFileMutation) AddSnippetIDs(ids ...uuid.UUID) {
+	if m.snippets == nil {
+		m.snippets = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.snippets[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSnippets clears the "snippets" edge to the CodeSnippet entity.
+func (m *WorkspaceFileMutation) ClearSnippets() {
+	m.clearedsnippets = true
+}
+
+// SnippetsCleared reports if the "snippets" edge to the CodeSnippet entity was cleared.
+func (m *WorkspaceFileMutation) SnippetsCleared() bool {
+	return m.clearedsnippets
+}
+
+// RemoveSnippetIDs removes the "snippets" edge to the CodeSnippet entity by IDs.
+func (m *WorkspaceFileMutation) RemoveSnippetIDs(ids ...uuid.UUID) {
+	if m.removedsnippets == nil {
+		m.removedsnippets = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.snippets, ids[i])
+		m.removedsnippets[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSnippets returns the removed IDs of the "snippets" edge to the CodeSnippet entity.
+func (m *WorkspaceFileMutation) RemovedSnippetsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsnippets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SnippetsIDs returns the "snippets" edge IDs in the mutation.
+func (m *WorkspaceFileMutation) SnippetsIDs() (ids []uuid.UUID) {
+	for id := range m.snippets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSnippets resets all changes to the "snippets" edge.
+func (m *WorkspaceFileMutation) ResetSnippets() {
+	m.snippets = nil
+	m.clearedsnippets = false
+	m.removedsnippets = nil
+}
+
 // Where appends a list predicates to the WorkspaceFileMutation builder.
 func (m *WorkspaceFileMutation) Where(ps ...predicate.WorkspaceFile) {
 	m.predicates = append(m.predicates, ps...)
@@ -18082,12 +19799,15 @@ func (m *WorkspaceFileMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *WorkspaceFileMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.owner != nil {
 		edges = append(edges, workspacefile.EdgeOwner)
 	}
 	if m.workspace != nil {
 		edges = append(edges, workspacefile.EdgeWorkspace)
+	}
+	if m.snippets != nil {
+		edges = append(edges, workspacefile.EdgeSnippets)
 	}
 	return edges
 }
@@ -18104,30 +19824,50 @@ func (m *WorkspaceFileMutation) AddedIDs(name string) []ent.Value {
 		if id := m.workspace; id != nil {
 			return []ent.Value{*id}
 		}
+	case workspacefile.EdgeSnippets:
+		ids := make([]ent.Value, 0, len(m.snippets))
+		for id := range m.snippets {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *WorkspaceFileMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removedsnippets != nil {
+		edges = append(edges, workspacefile.EdgeSnippets)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *WorkspaceFileMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case workspacefile.EdgeSnippets:
+		ids := make([]ent.Value, 0, len(m.removedsnippets))
+		for id := range m.removedsnippets {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *WorkspaceFileMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedowner {
 		edges = append(edges, workspacefile.EdgeOwner)
 	}
 	if m.clearedworkspace {
 		edges = append(edges, workspacefile.EdgeWorkspace)
+	}
+	if m.clearedsnippets {
+		edges = append(edges, workspacefile.EdgeSnippets)
 	}
 	return edges
 }
@@ -18140,6 +19880,8 @@ func (m *WorkspaceFileMutation) EdgeCleared(name string) bool {
 		return m.clearedowner
 	case workspacefile.EdgeWorkspace:
 		return m.clearedworkspace
+	case workspacefile.EdgeSnippets:
+		return m.clearedsnippets
 	}
 	return false
 }
@@ -18167,6 +19909,9 @@ func (m *WorkspaceFileMutation) ResetEdge(name string) error {
 		return nil
 	case workspacefile.EdgeWorkspace:
 		m.ResetWorkspace()
+		return nil
+	case workspacefile.EdgeSnippets:
+		m.ResetSnippets()
 		return nil
 	}
 	return fmt.Errorf("unknown WorkspaceFile edge %s", name)

@@ -92,17 +92,20 @@ func (h *WorkspaceFileHandler) GetByID(c *web.Context, req struct {
 	return c.Success(file)
 }
 
-// GetAndSave 
-//  @Tags			WorkspaceFile
-//  @Summary		获取并保存工作区文件
-//	@param ctx 		
-//	@param req 
-//	@return error 
+// GetAndSave
+//
+//	@Tags		WorkspaceFile
+//	@Summary	获取并保存工作区文件
+//	@Accept		json
+//	@Produce	json
+//	@Param		req	body		domain.GetAndSaveReq	true	"请求参数"
+//	@Success	200	{object}	web.Resp{}
+//	@Router		/api/v1/workspace/files/get-and-save [post]
 func (h *WorkspaceFileHandler) GetAndSave(ctx *web.Context, req *domain.GetAndSaveReq) error {
-	err := h.usecase.GetAndSave(ctx.Request().Context(), req) 
+	err := h.usecase.GetAndSave(ctx.Request().Context(), req)
 	if err != nil {
 		h.logger.Error("failed to get and save workspace files", "error", err, "count", len(req.CodeFiles.Files))
-		return err 
+		return err
 	}
 	return ctx.Success(nil)
 }

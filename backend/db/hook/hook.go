@@ -93,6 +93,18 @@ func (f BillingUsageFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.BillingUsageMutation", m)
 }
 
+// The CodeSnippetFunc type is an adapter to allow the use of ordinary
+// function as CodeSnippet mutator.
+type CodeSnippetFunc func(context.Context, *db.CodeSnippetMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CodeSnippetFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CodeSnippetMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CodeSnippetMutation", m)
+}
+
 // The ExtensionFunc type is an adapter to allow the use of ordinary
 // function as Extension mutator.
 type ExtensionFunc func(context.Context, *db.ExtensionMutation) (db.Value, error)

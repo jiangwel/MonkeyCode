@@ -57,6 +57,7 @@ func (WorkspaceFile) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("owner", User.Type).Ref("workspace_files").Field("user_id").Unique().Required(),
 		edge.From("workspace", Workspace.Type).Ref("files").Field("workspace_id").Unique().Required(),
+		edge.To("snippets", CodeSnippet.Type),
 	}
 }
 

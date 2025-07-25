@@ -4,6 +4,7 @@ package db
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -12,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/workspace"
@@ -28,6 +30,7 @@ type WorkspaceFileQuery struct {
 	predicates    []predicate.WorkspaceFile
 	withOwner     *UserQuery
 	withWorkspace *WorkspaceQuery
+	withSnippets  *CodeSnippetQuery
 	modifiers     []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -102,6 +105,28 @@ func (wfq *WorkspaceFileQuery) QueryWorkspace() *WorkspaceQuery {
 			sqlgraph.From(workspacefile.Table, workspacefile.FieldID, selector),
 			sqlgraph.To(workspace.Table, workspace.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, workspacefile.WorkspaceTable, workspacefile.WorkspaceColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wfq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySnippets chains the current query on the "snippets" edge.
+func (wfq *WorkspaceFileQuery) QuerySnippets() *CodeSnippetQuery {
+	query := (&CodeSnippetClient{config: wfq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wfq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := wfq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspacefile.Table, workspacefile.FieldID, selector),
+			sqlgraph.To(codesnippet.Table, codesnippet.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workspacefile.SnippetsTable, workspacefile.SnippetsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(wfq.driver.Dialect(), step)
 		return fromU, nil
@@ -303,6 +328,7 @@ func (wfq *WorkspaceFileQuery) Clone() *WorkspaceFileQuery {
 		predicates:    append([]predicate.WorkspaceFile{}, wfq.predicates...),
 		withOwner:     wfq.withOwner.Clone(),
 		withWorkspace: wfq.withWorkspace.Clone(),
+		withSnippets:  wfq.withSnippets.Clone(),
 		// clone intermediate query.
 		sql:       wfq.sql.Clone(),
 		path:      wfq.path,
@@ -329,6 +355,17 @@ func (wfq *WorkspaceFileQuery) WithWorkspace(opts ...func(*WorkspaceQuery)) *Wor
 		opt(query)
 	}
 	wfq.withWorkspace = query
+	return wfq
+}
+
+// WithSnippets tells the query-builder to eager-load the nodes that are connected to
+// the "snippets" edge. The optional arguments are used to configure the query builder of the edge.
+func (wfq *WorkspaceFileQuery) WithSnippets(opts ...func(*CodeSnippetQuery)) *WorkspaceFileQuery {
+	query := (&CodeSnippetClient{config: wfq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	wfq.withSnippets = query
 	return wfq
 }
 
@@ -410,9 +447,10 @@ func (wfq *WorkspaceFileQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*WorkspaceFile{}
 		_spec       = wfq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			wfq.withOwner != nil,
 			wfq.withWorkspace != nil,
+			wfq.withSnippets != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -445,6 +483,13 @@ func (wfq *WorkspaceFileQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if query := wfq.withWorkspace; query != nil {
 		if err := wfq.loadWorkspace(ctx, query, nodes, nil,
 			func(n *WorkspaceFile, e *Workspace) { n.Edges.Workspace = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := wfq.withSnippets; query != nil {
+		if err := wfq.loadSnippets(ctx, query, nodes,
+			func(n *WorkspaceFile) { n.Edges.Snippets = []*CodeSnippet{} },
+			func(n *WorkspaceFile, e *CodeSnippet) { n.Edges.Snippets = append(n.Edges.Snippets, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -506,6 +551,36 @@ func (wfq *WorkspaceFileQuery) loadWorkspace(ctx context.Context, query *Workspa
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (wfq *WorkspaceFileQuery) loadSnippets(ctx context.Context, query *CodeSnippetQuery, nodes []*WorkspaceFile, init func(*WorkspaceFile), assign func(*WorkspaceFile, *CodeSnippet)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*WorkspaceFile)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(codesnippet.FieldWorkspaceFileID)
+	}
+	query.Where(predicate.CodeSnippet(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(workspacefile.SnippetsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.WorkspaceFileID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "workspace_file_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

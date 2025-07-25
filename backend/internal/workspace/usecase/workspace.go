@@ -14,7 +14,6 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cli"
-	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 )
 
 type WorkspaceUsecase struct {
@@ -66,7 +65,7 @@ func (u *WorkspaceUsecase) Create(ctx context.Context, req *domain.CreateWorkspa
 	}
 
 	u.logger.Info("workspace created", "id", workspace.ID, "name", req.Name, "root_path", req.RootPath)
-	return cvt.From(workspace, &domain.Workspace{}), nil
+	return (&domain.Workspace{}).From(workspace), nil
 }
 
 func (u *WorkspaceUsecase) GetByID(ctx context.Context, id string) (*domain.Workspace, error) {
@@ -75,7 +74,7 @@ func (u *WorkspaceUsecase) GetByID(ctx context.Context, id string) (*domain.Work
 		return nil, fmt.Errorf("failed to get workspace: %w", err)
 	}
 
-	return cvt.From(workspace, &domain.Workspace{}), nil
+	return (&domain.Workspace{}).From(workspace), nil
 }
 
 func (u *WorkspaceUsecase) GetByUserAndPath(ctx context.Context, userID, rootPath string) (*domain.Workspace, error) {
@@ -84,7 +83,7 @@ func (u *WorkspaceUsecase) GetByUserAndPath(ctx context.Context, userID, rootPat
 		return nil, fmt.Errorf("failed to get workspace by user and path: %w", err)
 	}
 
-	return cvt.From(workspace, &domain.Workspace{}), nil
+	return (&domain.Workspace{}).From(workspace), nil
 }
 
 func (u *WorkspaceUsecase) List(ctx context.Context, req *domain.ListWorkspaceReq) (*domain.ListWorkspaceResp, error) {
@@ -118,7 +117,7 @@ func (u *WorkspaceUsecase) Update(ctx context.Context, req *domain.UpdateWorkspa
 	}
 
 	u.logger.Info("workspace updated", "id", req.ID)
-	return cvt.From(workspace, &domain.Workspace{}), nil
+	return (&domain.Workspace{}).From(workspace), nil
 }
 
 func (u *WorkspaceUsecase) Delete(ctx context.Context, id string) error {
@@ -144,7 +143,7 @@ func (u *WorkspaceUsecase) EnsureWorkspace(ctx context.Context, userID, rootPath
 		if err != nil {
 			u.logger.Warn("failed to update workspace last accessed time", "error", err, "id", workspace.ID)
 		}
-		return cvt.From(updated, &domain.Workspace{}), nil
+		return (&domain.Workspace{}).From(updated), nil
 	}
 
 	// 如果工作区不存在，创建新的工作区
@@ -206,7 +205,7 @@ func (u *WorkspaceFileUsecase) Create(ctx context.Context, req *domain.CreateWor
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workspace by ID: %w", err)
 	}
-	
+
 	_, err = u.workspaceSvc.EnsureWorkspace(ctx, req.UserID, workspace.RootPath, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to ensure workspace exists: %w", err)
@@ -219,7 +218,7 @@ func (u *WorkspaceFileUsecase) Create(ctx context.Context, req *domain.CreateWor
 	}
 
 	u.logger.Info("workspace file created", "id", file.ID, "path", req.Path)
-	return cvt.From(file, &domain.WorkspaceFile{}), nil
+	return (&domain.WorkspaceFile{}).From(file), nil
 }
 
 func (u *WorkspaceFileUsecase) Update(ctx context.Context, req *domain.UpdateWorkspaceFileReq) (*domain.WorkspaceFile, error) {
@@ -262,7 +261,7 @@ func (u *WorkspaceFileUsecase) Update(ctx context.Context, req *domain.UpdateWor
 	}
 
 	u.logger.Info("workspace file updated", "id", req.ID)
-	return cvt.From(file, &domain.WorkspaceFile{}), nil
+	return (&domain.WorkspaceFile{}).From(file), nil
 }
 
 func (u *WorkspaceFileUsecase) Delete(ctx context.Context, id string) error {
@@ -282,11 +281,11 @@ func (u *WorkspaceFileUsecase) GetByID(ctx context.Context, id string) (*domain.
 		return nil, fmt.Errorf("failed to get file: %w", err)
 	}
 
-	return cvt.From(file, &domain.WorkspaceFile{}), nil
+	return (&domain.WorkspaceFile{}).From(file), nil
 }
 
-func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAndSaveReq) (error) { 
-	results, err := cli.RunCli("index", "", req.CodeFiles) 
+func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAndSaveReq) error {
+	results, err := cli.RunCli("index", "", req.CodeFiles)
 	if err != nil {
 		return err
 	}
@@ -296,12 +295,13 @@ func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAn
 			return err
 		}
 
-		resString, err := json.Marshal(res) 
-		if err!= nil {
+		resString, err := json.Marshal(res)
+		if err != nil {
 			return err
 		}
 		_, err = u.repo.Update(ctx, file.ID.String(), func(up *db.WorkspaceFileUpdateOne) error {
-			return up.SetContent(string(resString)).Exec(ctx)
+			up.SetContent(string(resString))
+			return nil
 		})
 		if err != nil {
 			return err
@@ -316,7 +316,7 @@ func (u *WorkspaceFileUsecase) GetByPath(ctx context.Context, userID, workspaceI
 		return nil, fmt.Errorf("failed to get file by path: %w", err)
 	}
 
-	return cvt.From(file, &domain.WorkspaceFile{}), nil
+	return (&domain.WorkspaceFile{}).From(file), nil
 }
 
 func (u *WorkspaceFileUsecase) List(ctx context.Context, req *domain.ListWorkspaceFileReq) (*domain.ListWorkspaceFileResp, error) {
@@ -338,7 +338,7 @@ func (u *WorkspaceFileUsecase) BatchCreate(ctx context.Context, req *domain.Batc
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workspace by ID: %w", err)
 	}
-	
+
 	_, err = u.workspaceSvc.EnsureWorkspace(ctx, req.UserID, workspace.RootPath, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to ensure workspace exists: %w", err)
@@ -397,7 +397,7 @@ func (u *WorkspaceFileUsecase) Sync(ctx context.Context, req *domain.SyncWorkspa
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workspace by ID: %w", err)
 	}
-	
+
 	_, err = u.workspaceSvc.EnsureWorkspace(ctx, req.UserID, workspace.RootPath, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to ensure workspace exists: %w", err)

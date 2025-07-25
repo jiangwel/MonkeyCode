@@ -50,9 +50,11 @@ type WorkspaceFileEdges struct {
 	Owner *User `json:"owner,omitempty"`
 	// Workspace holds the value of the workspace edge.
 	Workspace *Workspace `json:"workspace,omitempty"`
+	// Snippets holds the value of the snippets edge.
+	Snippets []*CodeSnippet `json:"snippets,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -75,6 +77,15 @@ func (e WorkspaceFileEdges) WorkspaceOrErr() (*Workspace, error) {
 		return nil, &NotFoundError{label: workspace.Label}
 	}
 	return nil, &NotLoadedError{edge: "workspace"}
+}
+
+// SnippetsOrErr returns the Snippets value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkspaceFileEdges) SnippetsOrErr() ([]*CodeSnippet, error) {
+	if e.loadedTypes[2] {
+		return e.Snippets, nil
+	}
+	return nil, &NotLoadedError{edge: "snippets"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -186,6 +197,11 @@ func (wf *WorkspaceFile) QueryOwner() *UserQuery {
 // QueryWorkspace queries the "workspace" edge of the WorkspaceFile entity.
 func (wf *WorkspaceFile) QueryWorkspace() *WorkspaceQuery {
 	return NewWorkspaceFileClient(wf.config).QueryWorkspace(wf)
+}
+
+// QuerySnippets queries the "snippets" edge of the WorkspaceFile entity.
+func (wf *WorkspaceFile) QuerySnippets() *CodeSnippetQuery {
+	return NewWorkspaceFileClient(wf.config).QuerySnippets(wf)
 }
 
 // Update returns a builder for updating this WorkspaceFile.
