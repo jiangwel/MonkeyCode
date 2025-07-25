@@ -18,7 +18,6 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/diff"
-	"github.com/chaitin/MonkeyCode/backend/pkg/promptparser"
 )
 
 type Recorder struct {
@@ -219,8 +218,12 @@ func (r *Recorder) handleJson(rc *domain.RecordParam) {
 		}
 		if len(resp.Choices) > 0 {
 			rc.Completion = resp.Choices[0].Message.Content
-			rc.InputTokens = int64(resp.Usage.PromptTokens)
-			rc.OutputTokens = int64(resp.Usage.CompletionTokens)
+			if input := resp.Usage.PromptTokens; input > 0 {
+				rc.InputTokens = int64(input)
+			}
+			if output := resp.Usage.CompletionTokens; output > 0 {
+				rc.OutputTokens = int64(output)
+			}
 		}
 
 	case consts.ModelTypeCoder:
@@ -232,8 +235,12 @@ func (r *Recorder) handleJson(rc *domain.RecordParam) {
 		if rc.TaskID == "" {
 			rc.TaskID = resp.ID
 		}
-		rc.InputTokens = int64(resp.Usage.PromptTokens)
-		rc.OutputTokens = int64(resp.Usage.CompletionTokens)
+		if input := resp.Usage.PromptTokens; input > 0 {
+			rc.InputTokens = int64(input)
+		}
+		if output := resp.Usage.CompletionTokens; output > 0 {
+			rc.OutputTokens = int64(output)
+		}
 		if len(resp.Choices) > 0 {
 			rc.Completion = resp.Choices[0].Text
 			rc.CodeLines = int64(strings.Count(resp.Choices[0].Text, "\n"))
@@ -290,8 +297,12 @@ func (r *Recorder) processSSELine(ctx context.Context, line string, rc *domain.R
 			return nil
 		}
 		if resp.Usage != nil {
-			rc.InputTokens = int64(resp.Usage.PromptTokens)
-			rc.OutputTokens += int64(resp.Usage.CompletionTokens)
+			if input := resp.Usage.PromptTokens; input > 0 {
+				rc.InputTokens = int64(input)
+			}
+			if output := resp.Usage.CompletionTokens; output > 0 {
+				rc.OutputTokens = int64(output)
+			}
 		}
 		if len(resp.Choices) > 0 {
 			content := resp.Choices[0].Delta.Content
@@ -310,8 +321,12 @@ func (r *Recorder) processSSELine(ctx context.Context, line string, rc *domain.R
 		if rc.TaskID == "" {
 			rc.TaskID = resp.ID
 		}
-		rc.InputTokens = int64(resp.Usage.PromptTokens)
-		rc.OutputTokens += int64(resp.Usage.CompletionTokens)
+		if input := resp.Usage.PromptTokens; input > 0 {
+			rc.InputTokens = int64(input)
+		}
+		if output := resp.Usage.CompletionTokens; output > 0 {
+			rc.OutputTokens = int64(output)
+		}
 		if len(resp.Choices) > 0 {
 			rc.Completion += resp.Choices[0].Text
 			rc.CodeLines += int64(strings.Count(resp.Choices[0].Text, "\n"))
@@ -344,37 +359,4 @@ func (r *Recorder) Read(p []byte) (n int, err error) {
 		return
 	}
 	return
-}
-
-func (r *Recorder) getPrompt(ctx context.Context, req *openai.ChatCompletionRequest) string {
-	prompt := ""
-	parse := promptparser.New(promptparser.KindTask)
-	for _, message := range req.Messages {
-		if message.Role == "system" {
-			continue
-		}
-
-		if strings.Contains(message.Content, "<task>") ||
-			strings.Contains(message.Content, "<feedback>") ||
-			strings.Contains(message.Content, "<user_message>") {
-			if info, err := parse.Parse(message.Content); err == nil {
-				prompt = info.Prompt
-			} else {
-				r.logger.With("message", message.Content).WarnContext(ctx, "解析Prompt失败", "error", err)
-			}
-		}
-
-		for _, m := range message.MultiContent {
-			if strings.Contains(m.Text, "<task>") ||
-				strings.Contains(m.Text, "<feedback>") ||
-				strings.Contains(m.Text, "<user_message>") {
-				if info, err := parse.Parse(m.Text); err == nil {
-					prompt = info.Prompt
-				} else {
-					r.logger.With("message", m.Text).WarnContext(ctx, "解析Prompt失败", "error", err)
-				}
-			}
-		}
-	}
-	return prompt
 }
