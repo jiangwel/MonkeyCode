@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -288,33 +287,27 @@ func (u *WorkspaceFileUsecase) GetByID(ctx context.Context, id string) (*domain.
 }
 
 func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAndSaveReq) error {
-	results, err := cli.RunCli("index", "", req.CodeFiles)
+	results, err := cli.RunCli("index", "", req.FileMetas)
 	if err != nil {
 		return err
 	}
 	for _, res := range results {
-		file, err := u.repo.GetByPath(ctx, req.UserID, req.ProjectID, res.FilePath)
+		file, err := u.repo.GetByPath(ctx, req.UserID, req.WorkspaceID, res.FilePath)
 		if err != nil {
 			return err
 		}
 
-		// 创建codesnippet记录
-		_, err = u.codeSnippetSvc.CreateFromIndexResult(ctx, file.ID.String(), &res)
-		if err != nil {
-			u.logger.Error("failed to create code snippet from index result", "error", err, "filePath", res.FilePath)
-			// 继续处理其他结果，不因单个错误而中断整个流程
-		}
-
-		resString, err := json.Marshal(res)
-		if err != nil {
-			return err
-		}
-		_, err = u.repo.Update(ctx, file.ID.String(), func(up *db.WorkspaceFileUpdateOne) error {
-			up.SetContent(string(resString))
-			return nil
-		})
-		if err != nil {
-			return err
+		// 判断是否已经保存了相同的CodeSnippet
+		// 目前不需要更新已有的CodeSnippet
+		if _, err := u.codeSnippetSvc.GetByID(ctx, ""); err != nil {
+			u.logger.Info("code snippet already exists, updating content")
+		} else {
+			// 创建新的CodeSnippet
+			_, err = u.codeSnippetSvc.CreateFromIndexResult(ctx, file.ID.String(), &res)
+			if err != nil {
+				u.logger.Error("failed to create code snippet from index result", "error", err, "filePath", res.FilePath)
+				// 继续处理其他结果，不因单个错误而中断整个流程
+			}
 		}
 	}
 	return nil

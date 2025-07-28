@@ -21,12 +21,19 @@ import (
 //	@Success		200		{object}	[]domain.IndexResult	"输出结果"
 //	@Failure		500		{object}	web.Resp			"内部错误"
 //	@Router			/api/v1/cli/{command} [post]
-func RunCli(command string, flag string, codeFiles domain.CodeFiles) ([]domain.IndexResult, error) {
-	inputJson, err := json.Marshal(codeFiles)
+func RunCli(command string, flag string, fileMetas []domain.FileMeta) ([]domain.IndexResult, error) {
+	inputJson, err := json.Marshal(fileMetas)
 	if err != nil {
 		return []domain.IndexResult{}, err
 	}
-	cmd := exec.Command("monkeycode-cli", command, flag, string(inputJson))
+
+	var cmd *exec.Cmd
+	if flag == "" {
+		cmd = exec.Command("monkeycode-cli", command, string(inputJson))
+	} else {
+		cmd = exec.Command("monkeycode-cli", command, flag, string(inputJson))
+	}
+
 	cmd.Env = os.Environ()
 	output, err := cmd.CombinedOutput()
 	if err != nil {

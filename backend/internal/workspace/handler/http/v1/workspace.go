@@ -104,7 +104,7 @@ func (h *WorkspaceFileHandler) GetByID(c *web.Context, req struct {
 func (h *WorkspaceFileHandler) GetAndSave(ctx *web.Context, req *domain.GetAndSaveReq) error {
 	err := h.usecase.GetAndSave(ctx.Request().Context(), req)
 	if err != nil {
-		h.logger.Error("failed to get and save workspace files", "error", err, "count", len(req.CodeFiles.Files))
+		h.logger.Error("failed to get and save workspace files", "error", err, "count", len(req.FileMetas))
 		return err
 	}
 	return ctx.Success(nil)

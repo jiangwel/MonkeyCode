@@ -124,9 +124,9 @@ type SyncWorkspaceFileReq struct {
 }
 
 type GetAndSaveReq struct {
-	CodeFiles CodeFiles `json:"code_files" validate:"required"` // 代码文件信息
-	UserID    string    `json:"user_id" validate:"required"`    // 用户ID
-	ProjectID string    `json:"project_id" validate:"required"` // 项目ID
+	FileMetas   []FileMeta `json:"code_files"   validate:"required"` // 代码文件信息
+	UserID      string     `json:"user_id"      validate:"required"` // 用户ID
+	WorkspaceID string     `json:"workspace_id" validate:"required"` // 项目ID
 }
 
 // 响应结构体

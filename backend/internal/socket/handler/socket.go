@@ -358,9 +358,9 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 						},
 					}
 					getAndSaveReq := &domain.GetAndSaveReq{
-						UserID:    userID,
-						ProjectID: workspaceID,
-						CodeFiles: codeFiles,
+						UserID:      userID,
+						WorkspaceID: workspaceID,
+						FileMetas:   codeFiles.Files,
 					}
 					err = h.workspaceService.GetAndSave(ctx, getAndSaveReq)
 					if err != nil {
@@ -440,9 +440,9 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 				},
 			}
 			getAndSaveReq := &domain.GetAndSaveReq{
-				UserID:    userID,
-				ProjectID: workspaceID,
-				CodeFiles: codeFiles,
+				UserID:      userID,
+				WorkspaceID: workspaceID,
+				FileMetas:   codeFiles.Files,
 			}
 			err = h.workspaceService.GetAndSave(ctx, getAndSaveReq)
 			if err != nil {

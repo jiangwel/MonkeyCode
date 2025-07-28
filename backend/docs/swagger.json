@@ -4235,24 +4235,23 @@
             "type": "object",
             "required": [
                 "code_files",
-                "project_id",
-                "user_id"
+                "user_id",
+                "workspace_id"
             ],
             "properties": {
                 "code_files": {
                     "description": "代码文件信息",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/domain.CodeFiles"
-                        }
-                    ]
-                },
-                "project_id": {
-                    "description": "项目ID",
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.FileMeta"
+                    }
                 },
                 "user_id": {
                     "description": "用户ID",
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "description": "项目ID",
                     "type": "string"
                 }
             }
