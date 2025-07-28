@@ -6,6 +6,8 @@ import (
 	billingv1 "github.com/chaitin/MonkeyCode/backend/internal/billing/handler/http/v1"
 	billingrepo "github.com/chaitin/MonkeyCode/backend/internal/billing/repo"
 	billingusecase "github.com/chaitin/MonkeyCode/backend/internal/billing/usecase"
+	codesnippetrepo "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/repo"
+	codesnippetusecase "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/usecase"
 	dashv1 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/handler/v1"
 	dashrepo "github.com/chaitin/MonkeyCode/backend/internal/dashboard/repo"
 	dashusecase "github.com/chaitin/MonkeyCode/backend/internal/dashboard/usecase"
@@ -66,4 +68,6 @@ var Provider = wire.NewSet(
 	version.NewVersionInfo,
 	reportuse.NewReportUsecase,
 	reportrepo.NewReportRepo,
+	codesnippetrepo.NewCodeSnippetRepo,
+	codesnippetusecase.NewCodeSnippetUsecase,
 )

@@ -14,6 +14,8 @@ import (
 	v1_5 "github.com/chaitin/MonkeyCode/backend/internal/billing/handler/http/v1"
 	repo7 "github.com/chaitin/MonkeyCode/backend/internal/billing/repo"
 	usecase6 "github.com/chaitin/MonkeyCode/backend/internal/billing/usecase"
+	repo9 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/repo"
+	usecase8 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/usecase"
 	v1_4 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/handler/v1"
 	repo6 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/repo"
 	usecase5 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/usecase"
@@ -29,8 +31,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/repo"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/usecase"
-	repo9 "github.com/chaitin/MonkeyCode/backend/internal/report/repo"
-	usecase8 "github.com/chaitin/MonkeyCode/backend/internal/report/usecase"
+	repo10 "github.com/chaitin/MonkeyCode/backend/internal/report/repo"
+	usecase9 "github.com/chaitin/MonkeyCode/backend/internal/report/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/socket/handler"
 	v1_3 "github.com/chaitin/MonkeyCode/backend/internal/user/handler/v1"
 	repo5 "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
@@ -93,15 +95,17 @@ func newServer() (*Server, error) {
 	workspaceFileRepo := repo8.NewWorkspaceFileRepo(client)
 	workspaceRepo := repo8.NewWorkspaceRepo(client)
 	workspaceUsecase := usecase7.NewWorkspaceUsecase(workspaceRepo, configConfig, slogLogger)
-	workspaceFileUsecase := usecase7.NewWorkspaceFileUsecase(workspaceFileRepo, workspaceUsecase, configConfig, slogLogger)
+	codeSnippetRepo := repo9.NewCodeSnippetRepo(client, slogLogger)
+	codeSnippetUsecase := usecase8.NewCodeSnippetUsecase(codeSnippetRepo, slogLogger)
+	workspaceFileUsecase := usecase7.NewWorkspaceFileUsecase(workspaceFileRepo, workspaceUsecase, codeSnippetUsecase, configConfig, slogLogger)
 	socketHandler, err := handler.NewSocketHandler(configConfig, slogLogger, workspaceFileUsecase, workspaceUsecase, userUsecase)
 	if err != nil {
 		return nil, err
 	}
 	versionInfo := version.NewVersionInfo()
 	reporter := report.NewReport(slogLogger, configConfig, versionInfo)
-	reportRepo := repo9.NewReportRepo(client)
-	reportUsecase := usecase8.NewReportUsecase(reportRepo, slogLogger, reporter)
+	reportRepo := repo10.NewReportRepo(client)
+	reportUsecase := usecase9.NewReportUsecase(reportRepo, slogLogger, reporter)
 	server := &Server{
 		config:      configConfig,
 		web:         web,

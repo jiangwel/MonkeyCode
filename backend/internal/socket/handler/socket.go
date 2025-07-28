@@ -11,7 +11,6 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/domain"
-	"github.com/chaitin/MonkeyCode/backend/pkg/cli"
 	socketio "github.com/doquangtan/socket.io/v4"
 )
 
@@ -346,6 +345,28 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 					message = fmt.Sprintf("Failed to create file: %v", createErr)
 					h.logger.Error("Failed to create file", "path", updateData.FilePath, "error", createErr)
 				} else {
+					// 调用GetAndSave处理新创建的文件
+					fileExtension := h.getFileExtension(updateData.FilePath)
+					codeFiles := domain.CodeFiles{
+						Files: []domain.FileMeta{
+							{
+								FilePath:      updateData.FilePath,
+								FileExtension: fileExtension,
+								Language:      h.getFileLanguage(fileExtension),
+								Content:       updateData.Content,
+							},
+						},
+					}
+					getAndSaveReq := &domain.GetAndSaveReq{
+						UserID:    userID,
+						ProjectID: workspaceID,
+						CodeFiles: codeFiles,
+					}
+					err = h.workspaceService.GetAndSave(ctx, getAndSaveReq)
+					if err != nil {
+						h.logger.Error("Failed to process file with GetAndSave", "path", updateData.FilePath, "error", err)
+					}
+
 					finalStatus = "success"
 					message = "File created successfully"
 					h.logger.Info("File created successfully", "path", updateData.FilePath)
@@ -405,6 +426,28 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 			finalStatus = "success"
 			message = "File updated successfully"
 			h.logger.Info("File updated successfully", "path", updateData.FilePath)
+
+			// 调用GetAndSave处理更新的文件
+			fileExtension := h.getFileExtension(updateData.FilePath)
+			codeFiles := domain.CodeFiles{
+				Files: []domain.FileMeta{
+					{
+						FilePath:      updateData.FilePath,
+						FileExtension: fileExtension,
+						Language:      h.getFileLanguage(fileExtension),
+						Content:       updateData.Content,
+					},
+				},
+			}
+			getAndSaveReq := &domain.GetAndSaveReq{
+				UserID:    userID,
+				ProjectID: workspaceID,
+				CodeFiles: codeFiles,
+			}
+			err = h.workspaceService.GetAndSave(ctx, getAndSaveReq)
+			if err != nil {
+				h.logger.Error("Failed to process file with GetAndSave", "path", updateData.FilePath, "error", err)
+			}
 		}
 
 	case "deleted":
@@ -577,14 +620,8 @@ func (h *SocketHandler) sendFinalResult(socket *socketio.Socket, updateData File
 	h.mu.Unlock()
 }
 
-// generateAST 生成文件的AST信息
-func (h *SocketHandler) generateAST(filePath, content string) string {
-	// 只对支持的编程语言生成AST
-	supportedLanguages := map[string]bool{
-		"go": true, "typescript": true, "javascript": true, "python": true,
-	}
-
-	// 简单判断文件扩展名
+// getFileExtension 获取文件扩展名
+func (h *SocketHandler) getFileExtension(filePath string) string {
 	ext := ""
 	if len(filePath) > 0 {
 		for i := len(filePath) - 1; i >= 0; i-- {
@@ -594,39 +631,43 @@ func (h *SocketHandler) generateAST(filePath, content string) string {
 			}
 		}
 	}
+	return ext
+}
 
-	// 如果不是支持的语言，返回空字符串
-	if !supportedLanguages[ext] {
+// getFileLanguage 根据文件扩展名获取编程语言类型
+func (h *SocketHandler) getFileLanguage(fileExtension string) domain.CodeLanguageType {
+	switch fileExtension {
+	case "go":
+		return domain.CodeLanguageTypeGo
+	case "py":
+		return domain.CodeLanguageTypePython
+	case "java":
+		return domain.CodeLanguageTypeJava
+	case "js":
+		return domain.CodeLanguageTypeJavaScript
+	case "ts":
+		return domain.CodeLanguageTypeTypeScript
+	case "jsx":
+		return domain.CodeLanguageTypeJSX
+	case "tsx":
+		return domain.CodeLanguageTypeTSX
+	case "html":
+		return domain.CodeLanguageTypeHTML
+	case "css":
+		return domain.CodeLanguageTypeCSS
+	case "php":
+		return domain.CodeLanguageTypePHP
+	case "rs":
+		return domain.CodeLanguageTypeRust
+	case "swift":
+		return domain.CodeLanguageTypeSwift
+	case "kt":
+		return domain.CodeLanguageTypeKotlin
+	case "c":
+		return domain.CodeLanguageTypeC
+	case "cpp", "cc", "cxx":
+		return domain.CodeLanguageTypeCpp
+	default:
 		return ""
 	}
-
-	// 准备代码文件信息
-	codeFiles := domain.CodeFiles{
-		Files: []domain.FileMeta{
-			{
-				FilePath:      filePath,
-				FileExtension: ext,
-				Content:       content,
-			},
-		},
-	}
-
-	// 调用CLI工具生成AST
-	results, err := cli.RunCli("parse", "--successOnly", codeFiles)
-	if err != nil {
-		h.logger.Error("Failed to generate AST", "filePath", filePath, "error", err)
-		return ""
-	}
-
-	// 如果解析成功，返回第一个结果的definition
-	if len(results) > 0 {
-		resultBytes, err := json.Marshal(results[0])
-		if err != nil {
-			h.logger.Error("Failed to marshal AST result", "filePath", filePath, "error", err)
-			return ""
-		}
-		return string(resultBytes)
-	}
-
-	return ""
 }

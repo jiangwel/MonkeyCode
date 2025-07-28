@@ -8,11 +8,11 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/domain"
 )
 
-// RunCli 运行ctcode-cli命令
+// RunCli 运行monkeycode-cli命令
 //
 //	@Tags			CLI
-//	@Summary		运行ctcode-cli命令
-//	@Description	运行ctcode-cli命令
+//	@Summary		运行monkeycode-cli命令
+//	@Description	运行monkeycode-cli命令
 //	@Accept			json
 //	@Produce		json
 //	@Param			command	path		string				true	"命令"
@@ -26,7 +26,7 @@ func RunCli(command string, flag string, codeFiles domain.CodeFiles) ([]domain.I
 	if err != nil {
 		return []domain.IndexResult{}, err
 	}
-	cmd := exec.Command("ctcode-cli", command, flag, string(inputJson))
+	cmd := exec.Command("monkeycode-cli", command, flag, string(inputJson))
 	cmd.Env = os.Environ()
 	output, err := cmd.CombinedOutput()
 	if err != nil {

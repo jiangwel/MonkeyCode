@@ -23,10 +23,11 @@ type WorkspaceUsecase struct {
 }
 
 type WorkspaceFileUsecase struct {
-	repo         domain.WorkspaceFileRepo
-	workspaceSvc domain.WorkspaceUsecase
-	config       *config.Config
-	logger       *slog.Logger
+	repo           domain.WorkspaceFileRepo
+	workspaceSvc   domain.WorkspaceUsecase
+	codeSnippetSvc domain.CodeSnippetUsecase
+	config         *config.Config
+	logger         *slog.Logger
 }
 
 func NewWorkspaceUsecase(
@@ -44,14 +45,16 @@ func NewWorkspaceUsecase(
 func NewWorkspaceFileUsecase(
 	repo domain.WorkspaceFileRepo,
 	workspaceSvc domain.WorkspaceUsecase,
+	codeSnippetSvc domain.CodeSnippetUsecase,
 	config *config.Config,
 	logger *slog.Logger,
 ) domain.WorkspaceFileUsecase {
 	return &WorkspaceFileUsecase{
-		repo:         repo,
-		workspaceSvc: workspaceSvc,
-		config:       config,
-		logger:       logger.With("usecase", "workspace_file"),
+		repo:           repo,
+		workspaceSvc:   workspaceSvc,
+		codeSnippetSvc: codeSnippetSvc,
+		config:         config,
+		logger:         logger.With("usecase", "workspace_file"),
 	}
 }
 
@@ -293,6 +296,13 @@ func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAn
 		file, err := u.repo.GetByPath(ctx, req.UserID, req.ProjectID, res.FilePath)
 		if err != nil {
 			return err
+		}
+
+		// 创建codesnippet记录
+		_, err = u.codeSnippetSvc.CreateFromIndexResult(ctx, file.ID.String(), &res)
+		if err != nil {
+			u.logger.Error("failed to create code snippet from index result", "error", err, "filePath", res.FilePath)
+			// 继续处理其他结果，不因单个错误而中断整个流程
 		}
 
 		resString, err := json.Marshal(res)

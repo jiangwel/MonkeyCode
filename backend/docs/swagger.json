@@ -691,7 +691,7 @@
         },
         "/api/v1/cli/{command}": {
             "post": {
-                "description": "运行ctcode-cli命令",
+                "description": "运行monkeycode-cli命令",
                 "consumes": [
                     "application/json"
                 ],
@@ -701,7 +701,7 @@
                 "tags": [
                     "CLI"
                 ],
-                "summary": "运行ctcode-cli命令",
+                "summary": "运行monkeycode-cli命令",
                 "parameters": [
                     {
                         "type": "string",
