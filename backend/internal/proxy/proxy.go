@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/chaitin/MonkeyCode/backend/config"
@@ -86,22 +87,30 @@ func (l *LLMProxy) rewrite(r *httputil.ProxyRequest) {
 	l.logger.DebugContext(r.In.Context(), "rewrite request", slog.String("path", r.In.URL.Path))
 	mt, ok := modelType[r.In.URL.Path]
 	if !ok {
-		l.logger.Error("model type not found", slog.String("path", r.In.URL.Path))
+		l.logger.ErrorContext(r.In.Context(), "model type not found", slog.String("path", r.In.URL.Path))
 		return
 	}
 
 	m, err := l.usecase.SelectModelWithLoadBalancing("", mt)
 	if err != nil {
-		l.logger.Error("select model with load balancing failed", slog.String("path", r.In.URL.Path), slog.Any("err", err))
+		l.logger.ErrorContext(r.In.Context(), "select model with load balancing failed", slog.String("path", r.In.URL.Path), slog.Any("err", err))
+		return
+	}
+	ul, err := url.Parse(m.APIBase)
+	if err != nil {
+		l.logger.ErrorContext(r.In.Context(), "parse model api base failed", slog.String("path", r.In.URL.Path), slog.Any("err", err))
 		return
 	}
 
+	path := r.In.URL.Path
+	path = strings.ReplaceAll(path, "/v1", "")
+	path = ul.Path + path
 	if r.In.ContentLength > 0 {
 		tee := tee.NewReqTeeWithMaxSize(r.In.Body, 10*1024*1024)
 		r.Out.Body = tee
 		ctx := context.WithValue(r.In.Context(), CtxKey{}, &ProxyCtx{
 			ctx:       r.In.Context(),
-			Path:      r.In.URL.Path,
+			Path:      path,
 			Model:     m,
 			ReqTee:    tee,
 			RequestID: r.In.Context().Value(logger.RequestIDKey{}).(string),
@@ -119,7 +128,7 @@ func (l *LLMProxy) rewrite(r *httputil.ProxyRequest) {
 
 	r.Out.URL.Scheme = u.Scheme
 	r.Out.URL.Host = u.Host
-	r.Out.URL.Path = r.In.URL.Path
+	r.Out.URL.Path = path
 	r.Out.Header.Set("Authorization", "Bearer "+m.APIKey)
 	r.SetXForwarded()
 	r.Out.Host = u.Host
@@ -127,6 +136,11 @@ func (l *LLMProxy) rewrite(r *httputil.ProxyRequest) {
 }
 
 func (l *LLMProxy) modifyResponse(resp *http.Response) error {
+	if resp.StatusCode != http.StatusOK {
+		resp.Body = NewRespLog(resp.Request.Context(), l.logger, resp.Body)
+		return nil
+	}
+
 	ctx := resp.Request.Context()
 	if pctx, ok := ctx.Value(CtxKey{}).(*ProxyCtx); ok {
 		pctx.ctx = ctx
