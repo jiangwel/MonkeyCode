@@ -37,6 +37,7 @@ type Server struct {
 	version     *version.VersionInfo
 	report      *report.Reporter
 	reportuse   domain.ReportUsecase
+	euse        domain.ExtensionUsecase
 }
 
 func newServer() (*Server, error) {

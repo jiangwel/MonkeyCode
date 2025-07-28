@@ -29,7 +29,7 @@ type ProxyRepo interface {
 	Record(ctx context.Context, record *RecordParam) error
 	UpdateByTaskID(ctx context.Context, taskID string, fn func(*db.TaskUpdateOne)) error
 	AcceptCompletion(ctx context.Context, req *AcceptCompletionReq) error
-	Report(ctx context.Context, req *ReportReq) error
+	Report(ctx context.Context, model *db.Model, req *ReportReq) error
 	SelectModelWithLoadBalancing(modelName string, modelType consts.ModelType) (*db.Model, error)
 	ValidateApiKey(ctx context.Context, key string) (*db.ApiKey, error)
 }
@@ -52,6 +52,8 @@ type ReportReq struct {
 	UserInput      string              `json:"user_input"`      // 用户输入的新文本（用于reject action）
 	SourceCode     string              `json:"source_code"`     // 当前文件的原文（用于reject action）
 	CursorPosition map[string]any      `json:"cursor_position"` // 光标位置（用于reject action）
+	Mode           string              `json:"mode"`            // 模式
+	UserID         string              `json:"-"`
 }
 
 type RecordParam struct {

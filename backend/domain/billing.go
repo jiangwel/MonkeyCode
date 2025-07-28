@@ -118,7 +118,7 @@ func (c *CompletionInfo) From(e *db.Task) *CompletionInfo {
 }
 
 type ChatContent struct {
-	Role      consts.ChatRole `json:"role"`    // 角色，如user: 用户的提问 assistant: 机器人回复
+	Role      consts.ChatRole `json:"role"`    // 角色，如user: 用户的提问 assistant: 机器人回复 system: 系统消息
 	Content   string          `json:"content"` // 内容
 	CreatedAt int64           `json:"created_at"`
 }
@@ -132,6 +132,8 @@ func (c *ChatContent) From(e *db.TaskRecord) *ChatContent {
 	case consts.ChatRoleUser:
 		c.Content = e.Prompt
 	case consts.ChatRoleAssistant:
+		c.Content = e.Completion
+	case consts.ChatRoleSystem:
 		c.Content = e.Completion
 	}
 	c.CreatedAt = e.CreatedAt.Unix()
@@ -150,6 +152,9 @@ func (c *ChatInfo) From(e *db.Task) *ChatInfo {
 	c.ID = e.TaskID
 	c.Contents = cvt.Iter(e.Edges.TaskRecords, func(_ int, r *db.TaskRecord) *ChatContent {
 		return cvt.From(r, &ChatContent{})
+	})
+	c.Contents = cvt.Filter(c.Contents, func(_ int, r *ChatContent) (*ChatContent, bool) {
+		return r, r.Content != ""
 	})
 	return c
 }

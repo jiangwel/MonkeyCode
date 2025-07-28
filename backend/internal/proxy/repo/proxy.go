@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -76,6 +77,9 @@ func (r *ProxyRepo) ValidateApiKey(ctx context.Context, key string) (*db.ApiKey,
 }
 
 func (r *ProxyRepo) Record(ctx context.Context, record *domain.RecordParam) error {
+	if record.TaskID == "" {
+		return fmt.Errorf("task_id is empty")
+	}
 	userID, err := uuid.Parse(record.UserID)
 	if err != nil {
 		return err
@@ -212,14 +216,52 @@ func abs(x int64) int64 {
 	return x
 }
 
-func (r *ProxyRepo) Report(ctx context.Context, req *domain.ReportReq) error {
+func (r *ProxyRepo) Report(ctx context.Context, model *db.Model, req *domain.ReportReq) error {
 	return entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
 		rc, err := tx.Task.Query().Where(task.TaskID(req.ID)).Only(ctx)
 		if err != nil {
-			return err
+			if req.Action == consts.ReportActionNewTask && db.IsNotFound(err) {
+				uid, err := uuid.Parse(req.UserID)
+				if err != nil {
+					return err
+				}
+				newTask, err := tx.Task.Create().
+					SetTaskID(req.ID).
+					SetRequestID(uuid.NewString()).
+					SetUserID(uid).
+					SetModelID(model.ID).
+					SetModelType(model.ModelType).
+					SetWorkMode(req.Mode).
+					SetPrompt(req.Content).
+					Save(ctx)
+				if err != nil {
+					return err
+				}
+				rc = newTask
+			} else {
+				return err
+			}
 		}
 
 		switch req.Action {
+		case consts.ReportActionNewTask, consts.ReportActionFeedbackTask:
+			if err := tx.TaskRecord.Create().
+				SetTaskID(rc.ID).
+				SetRole(consts.ChatRoleUser).
+				SetPrompt(req.Content).
+				Exec(ctx); err != nil {
+				return err
+			}
+
+		case consts.ReportActionAbortTask:
+			if err := tx.TaskRecord.Create().
+				SetTaskID(rc.ID).
+				SetRole(consts.ChatRoleSystem).
+				SetCompletion(req.Content).
+				Exec(ctx); err != nil {
+				return err
+			}
+
 		case consts.ReportActionAccept:
 			if err := tx.Task.UpdateOneID(rc.ID).
 				SetIsAccept(true).

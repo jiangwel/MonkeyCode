@@ -347,6 +347,16 @@ func CompletionHasSuffix(v string) predicate.TaskRecord {
 	return predicate.TaskRecord(sql.FieldHasSuffix(FieldCompletion, v))
 }
 
+// CompletionIsNil applies the IsNil predicate on the "completion" field.
+func CompletionIsNil() predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldIsNull(FieldCompletion))
+}
+
+// CompletionNotNil applies the NotNil predicate on the "completion" field.
+func CompletionNotNil() predicate.TaskRecord {
+	return predicate.TaskRecord(sql.FieldNotNull(FieldCompletion))
+}
+
 // CompletionEqualFold applies the EqualFold predicate on the "completion" field.
 func CompletionEqualFold(v string) predicate.TaskRecord {
 	return predicate.TaskRecord(sql.FieldEqualFold(FieldCompletion, v))

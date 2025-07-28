@@ -87,6 +87,7 @@ const Dashboard = () => {
           size='small'
           onChange={(e) => setTimeRange(e.target.value as TimeRange)}
           sx={{ fontSize: 14 }}
+          disabled
         >
           <MenuItem value='24h'>最近 24 小时</MenuItem>
           <MenuItem value='90d'>最近 90 天</MenuItem>

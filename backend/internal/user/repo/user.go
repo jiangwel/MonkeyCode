@@ -12,6 +12,7 @@ import (
 
 	"github.com/GoYoko/web"
 
+	"github.com/chaitin/MonkeyCode/backend/config"
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
@@ -32,10 +33,16 @@ type UserRepo struct {
 	db    *db.Client
 	ipdb  *ipdb.IPDB
 	redis *redis.Client
+	cfg   *config.Config
 }
 
-func NewUserRepo(db *db.Client, ipdb *ipdb.IPDB, redis *redis.Client) domain.UserRepo {
-	return &UserRepo{db: db, ipdb: ipdb, redis: redis}
+func NewUserRepo(
+	db *db.Client,
+	ipdb *ipdb.IPDB,
+	redis *redis.Client,
+	cfg *config.Config,
+) domain.UserRepo {
+	return &UserRepo{db: db, ipdb: ipdb, redis: redis, cfg: cfg}
 }
 
 func (r *UserRepo) InitAdmin(ctx context.Context, username, password string) error {
@@ -66,12 +73,14 @@ func (r *UserRepo) AdminByName(ctx context.Context, username string) (*db.Admin,
 }
 
 func (r *UserRepo) GetByName(ctx context.Context, username string) (*db.User, error) {
-	return r.db.User.Query().Where(
-		user.Or(
-			user.Username(username),
-			user.Email(username),
-		),
-	).Only(ctx)
+	return r.db.User.Query().
+		Where(
+			user.Or(
+				user.Username(username),
+				user.Email(username),
+			),
+		).
+		Only(ctx)
 }
 
 func (r *UserRepo) ValidateInviteCode(ctx context.Context, code string) (*db.InviteCode, error) {
@@ -111,13 +120,25 @@ func (r *UserRepo) innerValidateInviteCode(ctx context.Context, tx *db.Tx, code 
 }
 
 func (r *UserRepo) CreateUser(ctx context.Context, user *db.User) (*db.User, error) {
-	return r.db.User.Create().
-		SetUsername(user.Username).
-		SetEmail(user.Email).
-		SetPassword(user.Password).
-		SetStatus(user.Status).
-		SetPlatform(user.Platform).
-		Save(ctx)
+	var res *db.User
+	err := entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		if err := r.checkLimit(ctx, tx); err != nil {
+			return err
+		}
+		u, err := tx.User.Create().
+			SetUsername(user.Username).
+			SetEmail(user.Email).
+			SetPassword(user.Password).
+			SetStatus(user.Status).
+			SetPlatform(user.Platform).
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+		res = u
+		return nil
+	})
+	return res, err
 }
 
 func (r *UserRepo) UserLoginHistory(ctx context.Context, page *web.Pagination) ([]*db.UserLoginHistory, *db.PageInfo, error) {
@@ -143,6 +164,16 @@ func (r *UserRepo) CreateInviteCode(ctx context.Context, userID string, code str
 		SetStatus(consts.InviteCodeStatusPending).
 		SetExpiredAt(time.Now().Add(15 * time.Minute)).
 		Save(ctx)
+}
+
+func (r *UserRepo) AdminList(ctx context.Context, page *web.Pagination) ([]*db.Admin, *db.PageInfo, error) {
+	q := r.db.Admin.Query().Order(admin.ByCreatedAt(sql.OrderDesc()))
+	return q.Page(ctx, page.Page, page.Size)
+}
+
+func (r *UserRepo) List(ctx context.Context, page *web.Pagination) ([]*db.User, *db.PageInfo, error) {
+	q := r.db.User.Query().Order(user.ByCreatedAt(sql.OrderDesc()))
+	return q.Page(ctx, page.Page, page.Size)
 }
 
 func (r *UserRepo) GetOrCreateApiKey(ctx context.Context, userID string) (*db.ApiKey, error) {
@@ -193,16 +224,6 @@ func (r *UserRepo) GetUserByApiKey(ctx context.Context, apiKey string) (*db.User
 	return key.Edges.User, nil
 }
 
-func (r *UserRepo) AdminList(ctx context.Context, page *web.Pagination) ([]*db.Admin, *db.PageInfo, error) {
-	q := r.db.Admin.Query()
-	return q.Page(ctx, page.Page, page.Size)
-}
-
-func (r *UserRepo) List(ctx context.Context, page *web.Pagination) ([]*db.User, *db.PageInfo, error) {
-	q := r.db.User.Query()
-	return q.Page(ctx, page.Page, page.Size)
-}
-
 func (r *UserRepo) GetSetting(ctx context.Context) (*db.Setting, error) {
 	s, err := r.db.Setting.Query().First(ctx)
 	if db.IsNotFound(err) {
@@ -237,7 +258,7 @@ func (r *UserRepo) UpdateSetting(ctx context.Context, fn func(*db.Setting, *db.S
 	return res, err
 }
 
-func (r *UserRepo) Update(ctx context.Context, id string, fn func(*db.User, *db.UserUpdateOne) error) (*db.User, error) {
+func (r *UserRepo) Update(ctx context.Context, id string, fn func(*db.Tx, *db.User, *db.UserUpdateOne) error) (*db.User, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
@@ -249,10 +270,11 @@ func (r *UserRepo) Update(ctx context.Context, id string, fn func(*db.User, *db.
 		if err != nil {
 			return err
 		}
-		if err := fn(u, u.Update()); err != nil {
+		up := tx.User.UpdateOneID(u.ID)
+		if err = fn(tx, u, up); err != nil {
 			return err
 		}
-		return u.Update().Exec(ctx)
+		return up.Exec(ctx)
 	})
 	return u, err
 }
@@ -312,6 +334,10 @@ func (r *UserRepo) DeleteAdmin(ctx context.Context, id string) error {
 func (r *UserRepo) OAuthRegister(ctx context.Context, platform consts.UserPlatform, inviteCode string, req *domain.OAuthUserInfo) (*db.User, error) {
 	var u *db.User
 	err := entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
+		if err := r.checkLimit(ctx, tx); err != nil {
+			return err
+		}
+
 		if _, err := r.innerValidateInviteCode(ctx, tx, inviteCode); err != nil {
 			return errcode.ErrInviteCodeInvalid.Wrap(err)
 		}
@@ -363,6 +389,9 @@ func (r *UserRepo) OAuthLogin(ctx context.Context, platform consts.UserPlatform,
 	if err != nil {
 		return nil, errcode.ErrNotInvited.Wrap(err)
 	}
+	if ui.Edges.User.Status != consts.UserStatusActive {
+		return nil, errcode.ErrUserLock
+	}
 	if ui.AvatarURL != req.AvatarURL {
 		if err = entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
 			return r.updateAvatar(ctx, tx, ui, req.AvatarURL)
@@ -380,6 +409,17 @@ func (r *UserRepo) updateAvatar(ctx context.Context, tx *db.Tx, ui *db.UserIdent
 	return tx.User.UpdateOneID(ui.UserID).SetAvatarURL(avatar).Exec(ctx)
 }
 
+func (r *UserRepo) checkLimit(ctx context.Context, tx *db.Tx) error {
+	count, err := tx.User.Query().Count(ctx)
+	if err != nil {
+		return err
+	}
+	if count >= r.cfg.Admin.Limit {
+		return errcode.ErrUserLimit.Wrap(err)
+	}
+	return nil
+}
+
 func (r *UserRepo) SignUpOrIn(ctx context.Context, platform consts.UserPlatform, req *domain.OAuthUserInfo) (*db.User, error) {
 	var u *db.User
 	err := entx.WithTx(ctx, r.db, func(tx *db.Tx) error {
@@ -389,6 +429,9 @@ func (r *UserRepo) SignUpOrIn(ctx context.Context, platform consts.UserPlatform,
 			First(ctx)
 		if err == nil {
 			u = ui.Edges.User
+			if u.Status != consts.UserStatusActive {
+				return errcode.ErrUserLock
+			}
 			if ui.AvatarURL != req.AvatarURL {
 				if err = r.updateAvatar(ctx, tx, ui, req.AvatarURL); err != nil {
 					return err
@@ -397,6 +440,9 @@ func (r *UserRepo) SignUpOrIn(ctx context.Context, platform consts.UserPlatform,
 			return nil
 		}
 		if !db.IsNotFound(err) {
+			return err
+		}
+		if err = r.checkLimit(ctx, tx); err != nil {
 			return err
 		}
 		user, err := tx.User.Create().

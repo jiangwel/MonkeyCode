@@ -12,6 +12,7 @@ var LocalFS embed.FS
 var (
 	ErrPermission          = web.NewBadRequestErr("err-permission")
 	ErrUserNotFound        = web.NewBadRequestErr("err-user-not-found")
+	ErrUserLock            = web.NewBadRequestErr("err-user-lock")
 	ErrPassword            = web.NewBadRequestErr("err-password")
 	ErrInviteCodeInvalid   = web.NewBadRequestErr("err-invite-code-invalid")
 	ErrEmailInvalid        = web.NewBadRequestErr("err-email-invalid")
@@ -20,4 +21,5 @@ var (
 	ErrNotInvited          = web.NewBadRequestErr("err-not-invited")
 	ErrDingtalkNotEnabled  = web.NewBadRequestErr("err-dingtalk-not-enabled")
 	ErrCustomNotEnabled    = web.NewBadRequestErr("err-custom-not-enabled")
+	ErrUserLimit           = web.NewBadRequestErr("err-user-limit")
 )

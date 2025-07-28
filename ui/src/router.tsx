@@ -32,7 +32,7 @@ const Dashboard = LazyLoadable(lazy(() => import('@/pages/dashboard')));
 const Chat = LazyLoadable(lazy(() => import('@/pages/chat')));
 const Completion = LazyLoadable(lazy(() => import('@/pages/completion')));
 const Model = LazyLoadable(lazy(() => import('@/pages/model')));
-const User = LazyLoadable(lazy(() => import('@/pages/user-management')));
+const MemberManage = LazyLoadable(lazy(() => import('@/pages/memberManage')));
 const Admin = LazyLoadable(lazy(() => import('@/pages/admin')));
 const Invite = LazyLoadable(lazy(() => import('@/pages/invite')));
 const Auth = LazyLoadable(lazy(() => import('@/pages/auth')));
@@ -79,8 +79,8 @@ const routerConfig = [
         element: <Model />,
       },
       {
-        path: 'user-management',
-        element: <User />,
+        path: 'member-management',
+        element: <MemberManage />,
       },
       {
         path: 'admin',
@@ -123,12 +123,12 @@ const routerConfig = [
     path: '/auth',
     element: <Auth />,
   },
+  // {
+  //   path: '/user/login',
+  //   element: <UserLogin />,
+  // },
   {
-    path: '/user/login',
-    element: <UserLogin />,
-  },
-  {
-    path: '/login',
+    path: '/login/:tab?',
     element: <Login />,
   },
 ];

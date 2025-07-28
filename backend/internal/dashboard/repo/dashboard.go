@@ -110,7 +110,7 @@ func (d *DashboardRepo) TimeStat(ctx context.Context, req domain.StatisticsFilte
 				sql.As(fmt.Sprintf("date_trunc('%s', created_at)", req.Precision), "date"),
 				sql.As("COUNT(DISTINCT user_id)", "user_count"),
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'llm')", "llm_count"),
-				sql.As("COUNT(*) FILTER (WHERE model_type = 'coder')", "code_count"),
+				sql.As("COUNT(*) FILTER (WHERE is_suggested = true AND model_type = 'coder')", "code_count"),
 				sql.As("COUNT(*) FILTER (WHERE is_accept = true AND model_type = 'coder')", "accepted_count"),
 				sql.As(sql.Sum(task.FieldCodeLines), "code_lines"),
 			).GroupBy("date").
@@ -154,7 +154,10 @@ func (d *DashboardRepo) TimeStat(ctx context.Context, req domain.StatisticsFilte
 		})
 	}
 
+	totalAccepted, totalSuggested := int64(0), int64(0)
 	for _, v := range ds {
+		totalAccepted += v.AcceptedCount
+		totalSuggested += v.CodeCount
 		ts.TotalChats += v.LlmCount
 		ts.TotalCompletions += v.CodeCount
 		ts.TotalLinesOfCode += v.CodeLines
@@ -180,6 +183,10 @@ func (d *DashboardRepo) TimeStat(ctx context.Context, req domain.StatisticsFilte
 				Value:     float64(v.AcceptedCount) / float64(v.CodeCount) * 100,
 			})
 		}
+	}
+
+	if totalSuggested > 0 {
+		ts.TotalAcceptedPer = float64(totalAccepted) / float64(totalSuggested) * 100
 	}
 
 	return ts, nil
@@ -280,7 +287,7 @@ func (d *DashboardRepo) UserStat(ctx context.Context, req domain.StatisticsFilte
 				sql.As(fmt.Sprintf("date_trunc('%s', created_at)", req.Precision), "date"),
 				sql.As("COUNT(DISTINCT user_id)", "user_count"),
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'llm')", "llm_count"),
-				sql.As("COUNT(*) FILTER (WHERE model_type = 'coder')", "code_count"),
+				sql.As("COUNT(*) FILTER (WHERE is_suggested = true AND model_type = 'coder')", "code_count"),
 				sql.As("COUNT(*) FILTER (WHERE is_accept = true AND model_type = 'coder')", "accepted_count"),
 				sql.As(sql.Sum(task.FieldCodeLines), "code_lines"),
 			).GroupBy("date").

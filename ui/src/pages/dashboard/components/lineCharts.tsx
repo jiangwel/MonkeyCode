@@ -9,9 +9,15 @@ interface ILineChartsProps {
     xData: (string | number)[];
     yData: number[];
   };
+  formatValueTooltip?: (value: number) => string;
 }
 
-const LineCharts: React.FC<ILineChartsProps> = ({ title, data, extra }) => {
+const LineCharts: React.FC<ILineChartsProps> = ({
+  title,
+  data,
+  extra,
+  formatValueTooltip,
+}) => {
   const { xData, yData } = data;
   const domRef = useRef(null);
   const echartsRef = useRef<echarts.ECharts>(null);
@@ -75,7 +81,9 @@ const LineCharts: React.FC<ILineChartsProps> = ({ title, data, extra }) => {
         ) => {
           if (params[0]) {
             const { name, seriesName, value } = params[0];
-            return `<div style="font-family: G;">${name}<div>${seriesName} ${value}</div></div>`;
+            return `<div style="font-family: G;">${name}<div>${seriesName} ${
+              formatValueTooltip ? formatValueTooltip(value) : value
+            }</div></div>`;
           }
           return '';
         },

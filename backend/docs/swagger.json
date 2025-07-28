@@ -3418,13 +3418,19 @@
                 "accept",
                 "suggest",
                 "file_written",
-                "reject"
+                "reject",
+                "new_task",
+                "feedback_task",
+                "abort_task"
             ],
             "x-enum-varnames": [
                 "ReportActionAccept",
                 "ReportActionSuggest",
                 "ReportActionFileWritten",
-                "ReportActionReject"
+                "ReportActionReject",
+                "ReportActionNewTask",
+                "ReportActionFeedbackTask",
+                "ReportActionAbortTask"
             ]
         },
         "consts.UserPlatform": {
@@ -3623,7 +3629,7 @@
                     "type": "integer"
                 },
                 "role": {
-                    "description": "角色，如user: 用户的提问 assistant: 机器人回复",
+                    "description": "角色，如user: 用户的提问 assistant: 机器人回复 system: 系统消息",
                     "allOf": [
                         {
                             "$ref": "#/definitions/consts.ChatRole"
@@ -4845,6 +4851,10 @@
                 },
                 "id": {
                     "description": "task_id or resp_id",
+                    "type": "string"
+                },
+                "mode": {
+                    "description": "模式",
                     "type": "string"
                 },
                 "source_code": {

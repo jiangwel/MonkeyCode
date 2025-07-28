@@ -13,7 +13,6 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/internal/middleware"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy"
-	"github.com/chaitin/MonkeyCode/backend/pkg/request"
 )
 
 type V1Handler struct {
@@ -76,7 +75,7 @@ func (h *V1Handler) Version(c *web.Context) error {
 
 	return c.JSON(http.StatusOK, domain.VersionInfo{
 		Version: v.Version,
-		URL:     fmt.Sprintf("%s/api/v1/static/vsix/%s", request.GetBaseURL(c.Request()), v.Version),
+		URL:     fmt.Sprintf("%s/api/v1/static/vsix/%s", h.config.GetBaseURL(c.Request()), v.Version),
 	})
 }
 
@@ -111,6 +110,7 @@ func (h *V1Handler) AcceptCompletion(c *web.Context, req domain.AcceptCompletion
 //	@Router			/v1/report [post]
 func (h *V1Handler) Report(c *web.Context, req domain.ReportReq) error {
 	h.logger.DebugContext(c.Request().Context(), "Report", slog.Any("req", req))
+	req.UserID = middleware.GetApiKey(c).UserID
 	if err := h.proxyUse.Report(c.Request().Context(), &req); err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func (h *V1Handler) Embeddings(c *web.Context) error {
 func (h *V1Handler) GetConfig(c *web.Context, req domain.ConfigReq) error {
 	key := middleware.GetApiKey(c)
 	req.Key = key.Key
-	req.BaseURL = request.GetBaseURL(c.Request())
+	req.BaseURL = h.config.GetBaseURL(c.Request())
 	resp, err := h.usecase.GetConfig(c.Request().Context(), &req)
 	if err != nil {
 		return err

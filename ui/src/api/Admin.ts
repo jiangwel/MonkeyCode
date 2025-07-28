@@ -15,6 +15,7 @@ import {
   DeleteDeleteAdminParams,
   DomainAdminUser,
   DomainCreateAdminReq,
+  DomainExportCompletionDataResp,
   DomainListAdminLoginHistoryResp,
   DomainListAdminUserResp,
   DomainLoginReq,
@@ -80,6 +81,29 @@ export const deleteDeleteAdmin = (
     path: `/api/v1/admin/delete`,
     method: "DELETE",
     query: query,
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
+ * @description 管理员导出所有补全相关数据
+ *
+ * @tags admin
+ * @name V1AdminExportCompletionDataList
+ * @summary 导出补全数据
+ * @request GET:/api/v1/admin/export-completion-data
+ * @secure
+ * @response `200` `DomainExportCompletionDataResp` OK
+ * @response `401` `WebResp` Unauthorized
+ * @response `500` `WebResp` Internal Server Error
+ */
+
+export const v1AdminExportCompletionDataList = (params: RequestParams = {}) =>
+  request<DomainExportCompletionDataResp>({
+    path: `/api/v1/admin/export-completion-data`,
+    method: "GET",
+    secure: true,
     type: ContentType.Json,
     format: "json",
     ...params,

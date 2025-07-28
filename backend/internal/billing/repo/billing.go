@@ -29,7 +29,6 @@ func (b *BillingRepo) ChatInfo(ctx context.Context, id, userID string) (*domain.
 	q := b.db.Task.Query().
 		WithTaskRecords(func(trq *db.TaskRecordQuery) {
 			trq.Order(taskrecord.ByCreatedAt(sql.OrderAsc()))
-			trq.Where(taskrecord.RoleNEQ(consts.ChatRoleSystem))
 		}).
 		Where(task.TaskID(id))
 	if userID != "" {

@@ -66,7 +66,7 @@ func newServer() (*Server, error) {
 	redisClient := store.NewRedisCli(configConfig)
 	proxyRepo := repo.NewProxyRepo(client, redisClient)
 	modelRepo := repo2.NewModelRepo(client)
-	proxyUsecase := usecase.NewProxyUsecase(proxyRepo, modelRepo)
+	proxyUsecase := usecase.NewProxyUsecase(proxyRepo, modelRepo, slogLogger)
 	llmProxy := proxy.NewLLMProxy(slogLogger, configConfig, proxyUsecase)
 	openAIRepo := repo3.NewOpenAIRepo(client)
 	openAIUsecase := openai.NewOpenAIUsecase(configConfig, openAIRepo, slogLogger)
@@ -78,18 +78,19 @@ func newServer() (*Server, error) {
 	modelUsecase := usecase3.NewModelUsecase(slogLogger, modelRepo, configConfig)
 	sessionSession := session.NewSession(configConfig)
 	authMiddleware := middleware.NewAuthMiddleware(sessionSession, slogLogger)
-	modelHandler := v1_2.NewModelHandler(web, modelUsecase, authMiddleware, activeMiddleware, slogLogger)
+	readOnlyMiddleware := middleware.NewReadOnlyMiddleware(configConfig)
+	modelHandler := v1_2.NewModelHandler(web, modelUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, slogLogger)
 	ipdbIPDB, err := ipdb.NewIPDB(slogLogger)
 	if err != nil {
 		return nil, err
 	}
-	userRepo := repo5.NewUserRepo(client, ipdbIPDB, redisClient)
+	userRepo := repo5.NewUserRepo(client, ipdbIPDB, redisClient, configConfig)
 	userUsecase := usecase4.NewUserUsecase(configConfig, redisClient, userRepo, slogLogger, sessionSession)
 	dashboardRepo := repo6.NewDashboardRepo(client)
 	dashboardUsecase := usecase5.NewDashboardUsecase(dashboardRepo)
 	billingRepo := repo7.NewBillingRepo(client)
 	billingUsecase := usecase6.NewBillingUsecase(billingRepo)
-	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, dashboardUsecase, billingUsecase, authMiddleware, activeMiddleware, sessionSession, slogLogger, configConfig)
+	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, dashboardUsecase, billingUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, sessionSession, slogLogger, configConfig)
 	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware, activeMiddleware)
 	billingHandler := v1_5.NewBillingHandler(web, billingUsecase, authMiddleware, activeMiddleware)
 	workspaceFileRepo := repo8.NewWorkspaceFileRepo(client)
@@ -105,7 +106,7 @@ func newServer() (*Server, error) {
 	versionInfo := version.NewVersionInfo()
 	reporter := report.NewReport(slogLogger, configConfig, versionInfo)
 	reportRepo := repo10.NewReportRepo(client)
-	reportUsecase := usecase9.NewReportUsecase(reportRepo, slogLogger, reporter)
+	reportUsecase := usecase9.NewReportUsecase(reportRepo, slogLogger, reporter, redisClient)
 	server := &Server{
 		config:      configConfig,
 		web:         web,
@@ -120,6 +121,7 @@ func newServer() (*Server, error) {
 		version:     versionInfo,
 		report:      reporter,
 		reportuse:   reportUsecase,
+		euse:        extensionUsecase,
 	}
 	return server, nil
 }
@@ -140,4 +142,5 @@ type Server struct {
 	version     *version.VersionInfo
 	report      *report.Reporter
 	reportuse   domain.ReportUsecase
+	euse        domain.ExtensionUsecase
 }

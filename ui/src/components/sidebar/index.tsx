@@ -6,6 +6,7 @@ import { Modal } from '@c-x/ui';
 import { useMemo, useState } from 'react';
 import Qrcode from '@/assets/images/qrcode.png';
 import Version from './version';
+import { useCommonContext } from '@/hooks/context';
 
 const ADMIN_MENUS = [
   {
@@ -14,6 +15,7 @@ const ADMIN_MENUS = [
     pathname: 'dashboard',
     icon: 'icon-yibiaopan',
     show: true,
+    disabled: false,
   },
   {
     label: '对话记录',
@@ -21,6 +23,7 @@ const ADMIN_MENUS = [
     pathname: 'chat',
     icon: 'icon-duihuajilu1',
     show: true,
+    disabled: false,
   },
   {
     label: '补全记录',
@@ -28,6 +31,7 @@ const ADMIN_MENUS = [
     pathname: 'completion',
     icon: 'icon-buquanjilu',
     show: true,
+    disabled: false,
   },
   {
     label: '代码安全',
@@ -35,6 +39,7 @@ const ADMIN_MENUS = [
     pathname: 'code-security',
     icon: 'icon-daimaanquan1',
     show: true,
+    disabled: false,
   },
   {
     label: '模型管理',
@@ -42,13 +47,15 @@ const ADMIN_MENUS = [
     pathname: 'model',
     icon: 'icon-moxingguanli',
     show: true,
+    disabled: false,
   },
   {
     label: '成员管理',
-    value: '/user-management',
-    pathname: 'user-management',
+    value: '/member-management',
+    pathname: 'member-management',
     icon: 'icon-yonghuguanli1',
     show: true,
+    disabled: false,
   },
   {
     label: '管理员',
@@ -56,6 +63,7 @@ const ADMIN_MENUS = [
     pathname: 'admin',
     icon: 'icon-guanliyuan1',
     show: true,
+    disabled: false,
   },
 ];
 
@@ -66,6 +74,7 @@ const USER_MENUS = [
     pathname: '/user/dashboard',
     icon: 'icon-yibiaopan',
     show: true,
+    disabled: false,
   },
   {
     label: '对话记录',
@@ -73,6 +82,7 @@ const USER_MENUS = [
     pathname: '/user/chat',
     icon: 'icon-duihuajilu1',
     show: true,
+    disabled: false,
   },
   {
     label: '补全记录',
@@ -80,6 +90,7 @@ const USER_MENUS = [
     pathname: '/user/completion',
     icon: 'icon-buquanjilu',
     show: true,
+    disabled: false,
   },
   // {
   //   label: '设置',
@@ -111,12 +122,15 @@ const Sidebar = () => {
   const { pathname } = useLocation();
   const theme = useTheme();
   const [showQrcode, setShowQrcode] = useState(false);
+  const { isConfigModel } = useCommonContext();
   const menus = useMemo(() => {
     if (pathname.startsWith('/user/')) {
       return USER_MENUS;
     }
-    return ADMIN_MENUS;
-  }, [pathname]);
+    return isConfigModel
+      ? ADMIN_MENUS.map((item) => ({ ...item, disabled: false }))
+      : ADMIN_MENUS.map((item) => ({ ...item, disabled: true }));
+  }, [pathname, isConfigModel]);
 
   return (
     <Stack
@@ -178,9 +192,15 @@ const Sidebar = () => {
                 zIndex: isActive ? 2 : 1,
                 color: isActive ? '#FFFFFF' : 'text.primary',
               }}
+              onClick={(e) => {
+                if (it.disabled) {
+                  e.preventDefault();
+                }
+              }}
             >
               <Button
                 variant={isActive ? 'contained' : 'text'}
+                disabled={it.pathname === 'model' ? false : it.disabled}
                 sx={{
                   width: '100%',
                   height: 50,

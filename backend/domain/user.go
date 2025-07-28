@@ -37,7 +37,7 @@ type UserUsecase interface {
 
 type UserRepo interface {
 	List(ctx context.Context, page *web.Pagination) ([]*db.User, *db.PageInfo, error)
-	Update(ctx context.Context, id string, fn func(*db.User, *db.UserUpdateOne) error) (*db.User, error)
+	Update(ctx context.Context, id string, fn func(*db.Tx, *db.User, *db.UserUpdateOne) error) (*db.User, error)
 	Delete(ctx context.Context, id string) error
 	InitAdmin(ctx context.Context, username, password string) error
 	CreateUser(ctx context.Context, user *db.User) (*db.User, error)

@@ -58,16 +58,16 @@ export enum ContentType {
   Text = "text/plain",
 }
 
-const whitePathnameList = ["/user/login", "/login", "/auth"];
+const whitePathnameList = ["/user/login", "/login", "/auth", "/invite"];
 const whiteApiList = ["/api/v1/user/profile", "/api/v1/admin/profile"];
 
 const redirectToLogin = () => {
   const redirectAfterLogin = encodeURIComponent(location.href);
   const search = `redirect=${redirectAfterLogin}`;
   const pathname = location.pathname.startsWith("/user")
-    ? "/user/login"
-    : "/login";
-  window.location.href = `${pathname}?${search}`;
+    ? "/login"
+    : "/login/admin";
+  window.location.href = `${pathname}`;
 };
 
 type ExtractDataProp<T> = T extends { data?: infer U } ? U : never;
@@ -104,7 +104,9 @@ export class HttpClient<SecurityDataType = unknown> {
       },
       (err) => {
         if (err?.response?.status === 401) {
-          if (whitePathnameList.includes(location.pathname)) {
+          if (
+            whitePathnameList.find((item) => location.pathname.startsWith(item))
+          ) {
             return Promise.reject("尚未登录");
           }
           Message.error("尚未登录");

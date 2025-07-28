@@ -62,3 +62,6 @@ MonkeyCode 充分考虑了隐私和安全，支持**完全私有化和离线使�
 - 如果你通过网络提供服务，也必须开源你的代码
 - 商业使用需要遵守相同的开源要求
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=chaitin/MonkeyCode&type=Timeline)](https://www.star-history.com/#chaitin/MonkeyCode&Timeline)

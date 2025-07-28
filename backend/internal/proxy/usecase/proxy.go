@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"log/slog"
 
+	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
@@ -12,10 +14,19 @@ import (
 type ProxyUsecase struct {
 	repo      domain.ProxyRepo
 	modelRepo domain.ModelRepo
+	logger    *slog.Logger
 }
 
-func NewProxyUsecase(repo domain.ProxyRepo, modelRepo domain.ModelRepo) domain.ProxyUsecase {
-	return &ProxyUsecase{repo: repo, modelRepo: modelRepo}
+func NewProxyUsecase(
+	repo domain.ProxyRepo,
+	modelRepo domain.ModelRepo,
+	logger *slog.Logger,
+) domain.ProxyUsecase {
+	return &ProxyUsecase{
+		repo:      repo,
+		modelRepo: modelRepo,
+		logger:    logger.With("module", "ProxyUsecase"),
+	}
 }
 
 func (p *ProxyUsecase) Record(ctx context.Context, record *domain.RecordParam) error {
@@ -44,5 +55,14 @@ func (p *ProxyUsecase) AcceptCompletion(ctx context.Context, req *domain.AcceptC
 }
 
 func (p *ProxyUsecase) Report(ctx context.Context, req *domain.ReportReq) error {
-	return p.repo.Report(ctx, req)
+	var model *db.Model
+	var err error
+	if req.Action == consts.ReportActionNewTask {
+		model, err = p.modelRepo.GetWithCache(context.Background(), consts.ModelTypeLLM)
+		if err != nil {
+			p.logger.With("fn", "Report").With("error", err).ErrorContext(ctx, "failed to get model")
+			return err
+		}
+	}
+	return p.repo.Report(ctx, model, req)
 }

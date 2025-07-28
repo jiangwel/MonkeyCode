@@ -2,6 +2,8 @@ package config
 
 import (
 	_ "embed"
+	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -15,15 +17,19 @@ var ConfigTmpl []byte
 type Config struct {
 	Debug bool `mapstructure:"debug"`
 
+	ReadOnly bool `mapstructure:"read_only"`
+
 	Logger *logger.Config `mapstructure:"logger"`
 
 	Server struct {
 		Addr string `mapstructure:"addr"`
+		Port string `mapstructure:"port"`
 	} `mapstructure:"server"`
 
 	Admin struct {
 		User     string `mapstructure:"user"`
 		Password string `mapstructure:"password"`
+		Limit    int    `mapstructure:"limit"`
 	} `mapstructure:"admin"`
 
 	Session struct {
@@ -71,6 +77,21 @@ type Config struct {
 	} `mapstructure:"data_report"`
 }
 
+func (c *Config) GetBaseURL(req *http.Request) string {
+	scheme := "http"
+	if req.TLS != nil {
+		scheme = "https"
+	}
+	if proto := req.Header.Get("X-Forwarded-Proto"); proto != "" {
+		scheme = proto
+	}
+	baseurl := fmt.Sprintf("%s://%s", scheme, req.Host)
+	if c.Server.Port != "" {
+		baseurl = fmt.Sprintf("%s:%s", baseurl, c.Server.Port)
+	}
+	return baseurl
+}
+
 func Init() (*Config, error) {
 	v := viper.New()
 	v.AutomaticEnv()
@@ -78,10 +99,13 @@ func Init() (*Config, error) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	v.SetDefault("debug", false)
+	v.SetDefault("read_only", false)
 	v.SetDefault("logger.level", "info")
 	v.SetDefault("server.addr", ":8888")
+	v.SetDefault("server.port", "")
 	v.SetDefault("admin.user", "admin")
 	v.SetDefault("admin.password", "")
+	v.SetDefault("admin.limit", 100)
 	v.SetDefault("session.expire_day", 30)
 	v.SetDefault("database.master", "")
 	v.SetDefault("database.slave", "")

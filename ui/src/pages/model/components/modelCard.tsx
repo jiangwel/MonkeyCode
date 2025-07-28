@@ -48,7 +48,7 @@ const ModelItem = ({
       },
     });
   };
-  
+
   const onRemoveModel = () => {
     Modal.confirm({
       title: '删除模型',
@@ -114,18 +114,6 @@ const ModelItem = ({
           boxShadow:
             'rgba(54, 59, 76, 0.3) 0px 10px 30px 0px, rgba(54, 59, 76, 0.03) 0px 0px 1px 1px',
         },
-        // '&::before': {
-        //   content: '""',
-        //   position: 'absolute',
-        //   top: 0,
-        //   left: 0,
-        //   right: 0,
-        //   height: 3,
-        //   background: data.is_active
-        //     ? 'linear-gradient(90deg, #4CAF50, #66BB6A)'
-        //     : 'linear-gradient(90deg, #E0E0E0, #BDBDBD)',
-        //   transition: 'all 0.3s ease',
-        // },
       }}
     >
       <Stack
@@ -141,11 +129,30 @@ const ModelItem = ({
             }
             sx={{ fontSize: 24 }}
           />
-          <Stack direction='row' alignItems='center' gap={1} sx={{ fontSize: 14, minWidth: 0 }}>
-            <Box sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <Stack
+            direction='row'
+            alignItems='center'
+            gap={1}
+            sx={{ fontSize: 14, minWidth: 0 }}
+          >
+            <Box
+              sx={{
+                fontWeight: 700,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {data.show_name || '未命名'}
             </Box>
-            <Box sx={{ color: 'text.tertiary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <Box
+              sx={{
+                color: 'text.tertiary',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               / {data.model_name}
             </Box>
           </Stack>
@@ -187,13 +194,11 @@ const ModelItem = ({
         sx={{ mt: 2 }}
       >
         <Stack direction='row' alignItems='center'>
-          {data.is_active && <StyledLabel color='success'>正在使用</StyledLabel>}
+          {data.is_active && (
+            <StyledLabel color='success'>正在使用</StyledLabel>
+          )}
         </Stack>
-        <Stack
-          direction='row'
-          sx={{ button: { minWidth: 0 } }}
-          gap={2}
-        >
+        <Stack direction='row' sx={{ button: { minWidth: 0 } }} gap={2}>
           {!data.is_active && (
             <ButtonBase
               disableRipple
@@ -206,15 +211,17 @@ const ModelItem = ({
             </ButtonBase>
           )}
 
-          {!data.is_internal && <ButtonBase
-            disableRipple
-            sx={{
-              color: 'info.main',
-            }}
-            onClick={() => onEdit(data)}
-          >
-            编辑
-          </ButtonBase>}
+          {!data.is_internal && (
+            <ButtonBase
+              disableRipple
+              sx={{
+                color: 'info.main',
+              }}
+              onClick={() => onEdit(data)}
+            >
+              编辑
+            </ButtonBase>
+          )}
 
           {data.is_active && (
             <ButtonBase
@@ -248,9 +255,16 @@ const ModelItem = ({
 interface IModelCardProps {
   title: string;
   modelType: ConstsModelType;
+  data: DomainModel[];
+  refreshModel: () => void;
 }
 
-const ModelCard: React.FC<IModelCardProps> = ({ title, modelType }) => {
+const ModelCard: React.FC<IModelCardProps> = ({
+  title,
+  modelType,
+  data,
+  refreshModel,
+}) => {
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState<DomainModel | null>(null);
 
@@ -258,12 +272,6 @@ const ModelCard: React.FC<IModelCardProps> = ({ title, modelType }) => {
     setOpen(true);
     setEditData(data);
   };
-
-  const { data: modelList = [], refresh } = useRequest(() =>
-    getMyModelList({
-      model_type: modelType,
-    })
-  );
 
   return (
     <Card>
@@ -277,21 +285,18 @@ const ModelCard: React.FC<IModelCardProps> = ({ title, modelType }) => {
           添加模型
         </Button>
       </Stack>
-      {modelList?.length > 0 ? (
+      {data?.length > 0 ? (
         <Grid container spacing={2} sx={{ mt: 2 }}>
-          {modelList.map((item) => (
-            <Grid
-              size={{ xs: 12, sm: 12, md: 12, lg: 6, xl: 4 }}
-              key={item.id}
-            >
-              <ModelItem data={item} onEdit={onEdit} refresh={refresh} />
+          {data.map((item) => (
+            <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6, xl: 4 }} key={item.id}>
+              <ModelItem data={item} onEdit={onEdit} refresh={refreshModel} />
             </Grid>
           ))}
         </Grid>
       ) : (
-        <Stack alignItems={'center'} sx={{ mt: 2 }}>
+        <Stack alignItems={'center'} sx={{ my: 2 }}>
           <img src={NoData} width={150} alt='empty' />
-          <Box sx={{ color: 'text.tertiary', fontSize: 12 }}>
+          <Box sx={{ color: 'error.main', fontSize: 12 }}>
             暂无模型，请先添加模型
           </Box>
         </Stack>
@@ -303,7 +308,7 @@ const ModelCard: React.FC<IModelCardProps> = ({ title, modelType }) => {
           setOpen(false);
           setEditData(null);
         }}
-        refresh={refresh}
+        refresh={refreshModel}
         data={editData}
         type={modelType}
       />

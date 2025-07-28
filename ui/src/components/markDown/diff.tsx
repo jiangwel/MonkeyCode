@@ -1,5 +1,11 @@
 import React, { useRef, useEffect } from 'react';
 import { DiffEditor } from '@monaco-editor/react';
+import { loader } from '@monaco-editor/react';
+import * as monaco from 'monaco-editor';
+
+// 配置 Monaco Editor 从本地加载而不是 CDN
+// 禁用默认的 CDN 加载
+loader.config({ monaco });
 
 interface DiffProps {
   original: string;

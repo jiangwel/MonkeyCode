@@ -115,8 +115,9 @@ const User = () => {
                 color='info'
                 sx={{ gap: 2 }}
                 onClick={() => setThirdPartyLoginSettingModalOpen(true)}
+                disabled
               >
-                配置
+                配置 (敬请期待)
               </Button>
             </StyledCard>
             <LoginHistory />
