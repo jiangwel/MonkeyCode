@@ -55,5 +55,8 @@ func (User) Edges() []ent.Edge {
 		edge.To("models", Model.Type),
 		edge.To("tasks", Task.Type),
 		edge.To("identities", UserIdentity.Type),
+		edge.To("workspaces", Workspace.Type),
+		edge.To("workspace_files", WorkspaceFile.Type),
+		edge.To("api_keys", ApiKey.Type),
 	}
 }

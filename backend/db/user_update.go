@@ -12,12 +12,15 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chaitin/MonkeyCode/backend/consts"
+	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
+	"github.com/chaitin/MonkeyCode/backend/db/workspace"
+	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 	"github.com/google/uuid"
 )
 
@@ -251,6 +254,51 @@ func (uu *UserUpdate) AddIdentities(u ...*UserIdentity) *UserUpdate {
 	return uu.AddIdentityIDs(ids...)
 }
 
+// AddWorkspaceIDs adds the "workspaces" edge to the Workspace entity by IDs.
+func (uu *UserUpdate) AddWorkspaceIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddWorkspaceIDs(ids...)
+	return uu
+}
+
+// AddWorkspaces adds the "workspaces" edges to the Workspace entity.
+func (uu *UserUpdate) AddWorkspaces(w ...*Workspace) *UserUpdate {
+	ids := make([]uuid.UUID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uu.AddWorkspaceIDs(ids...)
+}
+
+// AddWorkspaceFileIDs adds the "workspace_files" edge to the WorkspaceFile entity by IDs.
+func (uu *UserUpdate) AddWorkspaceFileIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddWorkspaceFileIDs(ids...)
+	return uu
+}
+
+// AddWorkspaceFiles adds the "workspace_files" edges to the WorkspaceFile entity.
+func (uu *UserUpdate) AddWorkspaceFiles(w ...*WorkspaceFile) *UserUpdate {
+	ids := make([]uuid.UUID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uu.AddWorkspaceFileIDs(ids...)
+}
+
+// AddAPIKeyIDs adds the "api_keys" edge to the ApiKey entity by IDs.
+func (uu *UserUpdate) AddAPIKeyIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddAPIKeyIDs(ids...)
+	return uu
+}
+
+// AddAPIKeys adds the "api_keys" edges to the ApiKey entity.
+func (uu *UserUpdate) AddAPIKeys(a ...*ApiKey) *UserUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uu.AddAPIKeyIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -338,6 +386,69 @@ func (uu *UserUpdate) RemoveIdentities(u ...*UserIdentity) *UserUpdate {
 		ids[i] = u[i].ID
 	}
 	return uu.RemoveIdentityIDs(ids...)
+}
+
+// ClearWorkspaces clears all "workspaces" edges to the Workspace entity.
+func (uu *UserUpdate) ClearWorkspaces() *UserUpdate {
+	uu.mutation.ClearWorkspaces()
+	return uu
+}
+
+// RemoveWorkspaceIDs removes the "workspaces" edge to Workspace entities by IDs.
+func (uu *UserUpdate) RemoveWorkspaceIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveWorkspaceIDs(ids...)
+	return uu
+}
+
+// RemoveWorkspaces removes "workspaces" edges to Workspace entities.
+func (uu *UserUpdate) RemoveWorkspaces(w ...*Workspace) *UserUpdate {
+	ids := make([]uuid.UUID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uu.RemoveWorkspaceIDs(ids...)
+}
+
+// ClearWorkspaceFiles clears all "workspace_files" edges to the WorkspaceFile entity.
+func (uu *UserUpdate) ClearWorkspaceFiles() *UserUpdate {
+	uu.mutation.ClearWorkspaceFiles()
+	return uu
+}
+
+// RemoveWorkspaceFileIDs removes the "workspace_files" edge to WorkspaceFile entities by IDs.
+func (uu *UserUpdate) RemoveWorkspaceFileIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveWorkspaceFileIDs(ids...)
+	return uu
+}
+
+// RemoveWorkspaceFiles removes "workspace_files" edges to WorkspaceFile entities.
+func (uu *UserUpdate) RemoveWorkspaceFiles(w ...*WorkspaceFile) *UserUpdate {
+	ids := make([]uuid.UUID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uu.RemoveWorkspaceFileIDs(ids...)
+}
+
+// ClearAPIKeys clears all "api_keys" edges to the ApiKey entity.
+func (uu *UserUpdate) ClearAPIKeys() *UserUpdate {
+	uu.mutation.ClearAPIKeys()
+	return uu
+}
+
+// RemoveAPIKeyIDs removes the "api_keys" edge to ApiKey entities by IDs.
+func (uu *UserUpdate) RemoveAPIKeyIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveAPIKeyIDs(ids...)
+	return uu
+}
+
+// RemoveAPIKeys removes "api_keys" edges to ApiKey entities.
+func (uu *UserUpdate) RemoveAPIKeys(a ...*ApiKey) *UserUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uu.RemoveAPIKeyIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -604,6 +715,141 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.WorkspacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspacesTable,
+			Columns: []string{user.WorkspacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedWorkspacesIDs(); len(nodes) > 0 && !uu.mutation.WorkspacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspacesTable,
+			Columns: []string{user.WorkspacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.WorkspacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspacesTable,
+			Columns: []string{user.WorkspacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.WorkspaceFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspaceFilesTable,
+			Columns: []string{user.WorkspaceFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacefile.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedWorkspaceFilesIDs(); len(nodes) > 0 && !uu.mutation.WorkspaceFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspaceFilesTable,
+			Columns: []string{user.WorkspaceFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacefile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.WorkspaceFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspaceFilesTable,
+			Columns: []string{user.WorkspaceFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacefile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.APIKeysCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.APIKeysTable,
+			Columns: []string{user.APIKeysColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedAPIKeysIDs(); len(nodes) > 0 && !uu.mutation.APIKeysCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.APIKeysTable,
+			Columns: []string{user.APIKeysColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.APIKeysIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.APIKeysTable,
+			Columns: []string{user.APIKeysColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(uu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -842,6 +1088,51 @@ func (uuo *UserUpdateOne) AddIdentities(u ...*UserIdentity) *UserUpdateOne {
 	return uuo.AddIdentityIDs(ids...)
 }
 
+// AddWorkspaceIDs adds the "workspaces" edge to the Workspace entity by IDs.
+func (uuo *UserUpdateOne) AddWorkspaceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddWorkspaceIDs(ids...)
+	return uuo
+}
+
+// AddWorkspaces adds the "workspaces" edges to the Workspace entity.
+func (uuo *UserUpdateOne) AddWorkspaces(w ...*Workspace) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uuo.AddWorkspaceIDs(ids...)
+}
+
+// AddWorkspaceFileIDs adds the "workspace_files" edge to the WorkspaceFile entity by IDs.
+func (uuo *UserUpdateOne) AddWorkspaceFileIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddWorkspaceFileIDs(ids...)
+	return uuo
+}
+
+// AddWorkspaceFiles adds the "workspace_files" edges to the WorkspaceFile entity.
+func (uuo *UserUpdateOne) AddWorkspaceFiles(w ...*WorkspaceFile) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uuo.AddWorkspaceFileIDs(ids...)
+}
+
+// AddAPIKeyIDs adds the "api_keys" edge to the ApiKey entity by IDs.
+func (uuo *UserUpdateOne) AddAPIKeyIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddAPIKeyIDs(ids...)
+	return uuo
+}
+
+// AddAPIKeys adds the "api_keys" edges to the ApiKey entity.
+func (uuo *UserUpdateOne) AddAPIKeys(a ...*ApiKey) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uuo.AddAPIKeyIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -929,6 +1220,69 @@ func (uuo *UserUpdateOne) RemoveIdentities(u ...*UserIdentity) *UserUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return uuo.RemoveIdentityIDs(ids...)
+}
+
+// ClearWorkspaces clears all "workspaces" edges to the Workspace entity.
+func (uuo *UserUpdateOne) ClearWorkspaces() *UserUpdateOne {
+	uuo.mutation.ClearWorkspaces()
+	return uuo
+}
+
+// RemoveWorkspaceIDs removes the "workspaces" edge to Workspace entities by IDs.
+func (uuo *UserUpdateOne) RemoveWorkspaceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveWorkspaceIDs(ids...)
+	return uuo
+}
+
+// RemoveWorkspaces removes "workspaces" edges to Workspace entities.
+func (uuo *UserUpdateOne) RemoveWorkspaces(w ...*Workspace) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uuo.RemoveWorkspaceIDs(ids...)
+}
+
+// ClearWorkspaceFiles clears all "workspace_files" edges to the WorkspaceFile entity.
+func (uuo *UserUpdateOne) ClearWorkspaceFiles() *UserUpdateOne {
+	uuo.mutation.ClearWorkspaceFiles()
+	return uuo
+}
+
+// RemoveWorkspaceFileIDs removes the "workspace_files" edge to WorkspaceFile entities by IDs.
+func (uuo *UserUpdateOne) RemoveWorkspaceFileIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveWorkspaceFileIDs(ids...)
+	return uuo
+}
+
+// RemoveWorkspaceFiles removes "workspace_files" edges to WorkspaceFile entities.
+func (uuo *UserUpdateOne) RemoveWorkspaceFiles(w ...*WorkspaceFile) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uuo.RemoveWorkspaceFileIDs(ids...)
+}
+
+// ClearAPIKeys clears all "api_keys" edges to the ApiKey entity.
+func (uuo *UserUpdateOne) ClearAPIKeys() *UserUpdateOne {
+	uuo.mutation.ClearAPIKeys()
+	return uuo
+}
+
+// RemoveAPIKeyIDs removes the "api_keys" edge to ApiKey entities by IDs.
+func (uuo *UserUpdateOne) RemoveAPIKeyIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveAPIKeyIDs(ids...)
+	return uuo
+}
+
+// RemoveAPIKeys removes "api_keys" edges to ApiKey entities.
+func (uuo *UserUpdateOne) RemoveAPIKeys(a ...*ApiKey) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uuo.RemoveAPIKeyIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1218,6 +1572,141 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(useridentity.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.WorkspacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspacesTable,
+			Columns: []string{user.WorkspacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedWorkspacesIDs(); len(nodes) > 0 && !uuo.mutation.WorkspacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspacesTable,
+			Columns: []string{user.WorkspacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.WorkspacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspacesTable,
+			Columns: []string{user.WorkspacesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.WorkspaceFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspaceFilesTable,
+			Columns: []string{user.WorkspaceFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacefile.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedWorkspaceFilesIDs(); len(nodes) > 0 && !uuo.mutation.WorkspaceFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspaceFilesTable,
+			Columns: []string{user.WorkspaceFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacefile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.WorkspaceFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.WorkspaceFilesTable,
+			Columns: []string{user.WorkspaceFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspacefile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.APIKeysCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.APIKeysTable,
+			Columns: []string{user.APIKeysColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedAPIKeysIDs(); len(nodes) > 0 && !uuo.mutation.APIKeysCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.APIKeysTable,
+			Columns: []string{user.APIKeysColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.APIKeysIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.APIKeysTable,
+			Columns: []string{user.APIKeysColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

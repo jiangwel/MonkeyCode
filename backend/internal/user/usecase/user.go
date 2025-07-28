@@ -633,6 +633,11 @@ func (u *UserUsecase) WithOAuthCallback(ctx context.Context, req *domain.OAuthCa
 	return user, redirect, nil
 }
 
+// GetUserByApiKey implements domain.UserUsecase.
+func (u *UserUsecase) GetUserByApiKey(ctx context.Context, apiKey string) (*db.User, error) {
+	return u.repo.GetUserByApiKey(ctx, apiKey)
+}
+
 func (u *UserUsecase) ProfileUpdate(ctx context.Context, req *domain.ProfileUpdateReq) (*domain.User, error) {
 	user, err := u.repo.Update(ctx, req.UID, func(_ *db.Tx, old *db.User, uuo *db.UserUpdateOne) error {
 		if req.Avatar != nil {

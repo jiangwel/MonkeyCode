@@ -109,6 +109,20 @@ func (bu *BillingUsageQuery) Page(ctx context.Context, page, size int) ([]*Billi
 	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
 }
 
+func (cs *CodeSnippetQuery) Page(ctx context.Context, page, size int) ([]*CodeSnippet, *PageInfo, error) {
+	cnt, err := cs.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := cs.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
 func (e *ExtensionQuery) Page(ctx context.Context, page, size int) ([]*Extension, *PageInfo, error) {
 	cnt, err := e.Count(ctx)
 	if err != nil {
@@ -256,6 +270,34 @@ func (ulh *UserLoginHistoryQuery) Page(ctx context.Context, page, size int) ([]*
 	}
 	offset := size * (page - 1)
 	rs, err := ulh.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
+func (w *WorkspaceQuery) Page(ctx context.Context, page, size int) ([]*Workspace, *PageInfo, error) {
+	cnt, err := w.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := w.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
+func (wf *WorkspaceFileQuery) Page(ctx context.Context, page, size int) ([]*WorkspaceFile, *PageInfo, error) {
+	cnt, err := wf.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := wf.Offset(offset).Limit(size).All(ctx)
 	if err != nil {
 		return nil, nil, err
 	}

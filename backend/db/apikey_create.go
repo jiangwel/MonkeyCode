@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
+	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/google/uuid"
 )
 
@@ -105,6 +106,11 @@ func (akc *ApiKeyCreate) SetID(u uuid.UUID) *ApiKeyCreate {
 	return akc
 }
 
+// SetUser sets the "user" edge to the User entity.
+func (akc *ApiKeyCreate) SetUser(u *User) *ApiKeyCreate {
+	return akc.SetUserID(u.ID)
+}
+
 // Mutation returns the ApiKeyMutation object of the builder.
 func (akc *ApiKeyCreate) Mutation() *ApiKeyMutation {
 	return akc.mutation
@@ -174,6 +180,9 @@ func (akc *ApiKeyCreate) check() error {
 	if _, ok := akc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`db: missing required field "ApiKey.updated_at"`)}
 	}
+	if len(akc.mutation.UserIDs()) == 0 {
+		return &ValidationError{Name: "user", err: errors.New(`db: missing required edge "ApiKey.user"`)}
+	}
 	return nil
 }
 
@@ -210,10 +219,6 @@ func (akc *ApiKeyCreate) createSpec() (*ApiKey, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := akc.mutation.UserID(); ok {
-		_spec.SetField(apikey.FieldUserID, field.TypeUUID, value)
-		_node.UserID = value
-	}
 	if value, ok := akc.mutation.Key(); ok {
 		_spec.SetField(apikey.FieldKey, field.TypeString, value)
 		_node.Key = value
@@ -237,6 +242,23 @@ func (akc *ApiKeyCreate) createSpec() (*ApiKey, *sqlgraph.CreateSpec) {
 	if value, ok := akc.mutation.UpdatedAt(); ok {
 		_spec.SetField(apikey.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if nodes := akc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   apikey.UserTable,
+			Columns: []string{apikey.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.UserID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

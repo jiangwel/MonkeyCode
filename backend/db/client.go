@@ -23,6 +23,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
 	"github.com/chaitin/MonkeyCode/backend/db/billingrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
+	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/extension"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
@@ -34,6 +35,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
+	"github.com/chaitin/MonkeyCode/backend/db/workspace"
+	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 
 	stdsql "database/sql"
 )
@@ -57,6 +60,8 @@ type Client struct {
 	BillingRecord *BillingRecordClient
 	// BillingUsage is the client for interacting with the BillingUsage builders.
 	BillingUsage *BillingUsageClient
+	// CodeSnippet is the client for interacting with the CodeSnippet builders.
+	CodeSnippet *CodeSnippetClient
 	// Extension is the client for interacting with the Extension builders.
 	Extension *ExtensionClient
 	// InviteCode is the client for interacting with the InviteCode builders.
@@ -79,6 +84,10 @@ type Client struct {
 	UserIdentity *UserIdentityClient
 	// UserLoginHistory is the client for interacting with the UserLoginHistory builders.
 	UserLoginHistory *UserLoginHistoryClient
+	// Workspace is the client for interacting with the Workspace builders.
+	Workspace *WorkspaceClient
+	// WorkspaceFile is the client for interacting with the WorkspaceFile builders.
+	WorkspaceFile *WorkspaceFileClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -97,6 +106,7 @@ func (c *Client) init() {
 	c.BillingQuota = NewBillingQuotaClient(c.config)
 	c.BillingRecord = NewBillingRecordClient(c.config)
 	c.BillingUsage = NewBillingUsageClient(c.config)
+	c.CodeSnippet = NewCodeSnippetClient(c.config)
 	c.Extension = NewExtensionClient(c.config)
 	c.InviteCode = NewInviteCodeClient(c.config)
 	c.Model = NewModelClient(c.config)
@@ -108,6 +118,8 @@ func (c *Client) init() {
 	c.User = NewUserClient(c.config)
 	c.UserIdentity = NewUserIdentityClient(c.config)
 	c.UserLoginHistory = NewUserLoginHistoryClient(c.config)
+	c.Workspace = NewWorkspaceClient(c.config)
+	c.WorkspaceFile = NewWorkspaceFileClient(c.config)
 }
 
 type (
@@ -207,6 +219,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		BillingQuota:       NewBillingQuotaClient(cfg),
 		BillingRecord:      NewBillingRecordClient(cfg),
 		BillingUsage:       NewBillingUsageClient(cfg),
+		CodeSnippet:        NewCodeSnippetClient(cfg),
 		Extension:          NewExtensionClient(cfg),
 		InviteCode:         NewInviteCodeClient(cfg),
 		Model:              NewModelClient(cfg),
@@ -218,6 +231,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		User:               NewUserClient(cfg),
 		UserIdentity:       NewUserIdentityClient(cfg),
 		UserLoginHistory:   NewUserLoginHistoryClient(cfg),
+		Workspace:          NewWorkspaceClient(cfg),
+		WorkspaceFile:      NewWorkspaceFileClient(cfg),
 	}, nil
 }
 
@@ -244,6 +259,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		BillingQuota:       NewBillingQuotaClient(cfg),
 		BillingRecord:      NewBillingRecordClient(cfg),
 		BillingUsage:       NewBillingUsageClient(cfg),
+		CodeSnippet:        NewCodeSnippetClient(cfg),
 		Extension:          NewExtensionClient(cfg),
 		InviteCode:         NewInviteCodeClient(cfg),
 		Model:              NewModelClient(cfg),
@@ -255,6 +271,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		User:               NewUserClient(cfg),
 		UserIdentity:       NewUserIdentityClient(cfg),
 		UserLoginHistory:   NewUserLoginHistoryClient(cfg),
+		Workspace:          NewWorkspaceClient(cfg),
+		WorkspaceFile:      NewWorkspaceFileClient(cfg),
 	}, nil
 }
 
@@ -285,9 +303,10 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Admin, c.AdminLoginHistory, c.ApiKey, c.BillingPlan, c.BillingQuota,
-		c.BillingRecord, c.BillingUsage, c.Extension, c.InviteCode, c.Model,
-		c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task, c.TaskRecord, c.User,
-		c.UserIdentity, c.UserLoginHistory,
+		c.BillingRecord, c.BillingUsage, c.CodeSnippet, c.Extension, c.InviteCode,
+		c.Model, c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task,
+		c.TaskRecord, c.User, c.UserIdentity, c.UserLoginHistory, c.Workspace,
+		c.WorkspaceFile,
 	} {
 		n.Use(hooks...)
 	}
@@ -298,9 +317,10 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Admin, c.AdminLoginHistory, c.ApiKey, c.BillingPlan, c.BillingQuota,
-		c.BillingRecord, c.BillingUsage, c.Extension, c.InviteCode, c.Model,
-		c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task, c.TaskRecord, c.User,
-		c.UserIdentity, c.UserLoginHistory,
+		c.BillingRecord, c.BillingUsage, c.CodeSnippet, c.Extension, c.InviteCode,
+		c.Model, c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task,
+		c.TaskRecord, c.User, c.UserIdentity, c.UserLoginHistory, c.Workspace,
+		c.WorkspaceFile,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -323,6 +343,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.BillingRecord.mutate(ctx, m)
 	case *BillingUsageMutation:
 		return c.BillingUsage.mutate(ctx, m)
+	case *CodeSnippetMutation:
+		return c.CodeSnippet.mutate(ctx, m)
 	case *ExtensionMutation:
 		return c.Extension.mutate(ctx, m)
 	case *InviteCodeMutation:
@@ -345,6 +367,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UserIdentity.mutate(ctx, m)
 	case *UserLoginHistoryMutation:
 		return c.UserLoginHistory.mutate(ctx, m)
+	case *WorkspaceMutation:
+		return c.Workspace.mutate(ctx, m)
+	case *WorkspaceFileMutation:
+		return c.WorkspaceFile.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("db: unknown mutation type %T", m)
 	}
@@ -754,6 +780,22 @@ func (c *ApiKeyClient) GetX(ctx context.Context, id uuid.UUID) *ApiKey {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryUser queries the user edge of a ApiKey.
+func (c *ApiKeyClient) QueryUser(ak *ApiKey) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ak.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(apikey.Table, apikey.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, apikey.UserTable, apikey.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(ak.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -1314,6 +1356,155 @@ func (c *BillingUsageClient) mutate(ctx context.Context, m *BillingUsageMutation
 		return (&BillingUsageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown BillingUsage mutation op: %q", m.Op())
+	}
+}
+
+// CodeSnippetClient is a client for the CodeSnippet schema.
+type CodeSnippetClient struct {
+	config
+}
+
+// NewCodeSnippetClient returns a client for the CodeSnippet from the given config.
+func NewCodeSnippetClient(c config) *CodeSnippetClient {
+	return &CodeSnippetClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `codesnippet.Hooks(f(g(h())))`.
+func (c *CodeSnippetClient) Use(hooks ...Hook) {
+	c.hooks.CodeSnippet = append(c.hooks.CodeSnippet, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `codesnippet.Intercept(f(g(h())))`.
+func (c *CodeSnippetClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CodeSnippet = append(c.inters.CodeSnippet, interceptors...)
+}
+
+// Create returns a builder for creating a CodeSnippet entity.
+func (c *CodeSnippetClient) Create() *CodeSnippetCreate {
+	mutation := newCodeSnippetMutation(c.config, OpCreate)
+	return &CodeSnippetCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CodeSnippet entities.
+func (c *CodeSnippetClient) CreateBulk(builders ...*CodeSnippetCreate) *CodeSnippetCreateBulk {
+	return &CodeSnippetCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CodeSnippetClient) MapCreateBulk(slice any, setFunc func(*CodeSnippetCreate, int)) *CodeSnippetCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CodeSnippetCreateBulk{err: fmt.Errorf("calling to CodeSnippetClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CodeSnippetCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CodeSnippetCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CodeSnippet.
+func (c *CodeSnippetClient) Update() *CodeSnippetUpdate {
+	mutation := newCodeSnippetMutation(c.config, OpUpdate)
+	return &CodeSnippetUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CodeSnippetClient) UpdateOne(cs *CodeSnippet) *CodeSnippetUpdateOne {
+	mutation := newCodeSnippetMutation(c.config, OpUpdateOne, withCodeSnippet(cs))
+	return &CodeSnippetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CodeSnippetClient) UpdateOneID(id uuid.UUID) *CodeSnippetUpdateOne {
+	mutation := newCodeSnippetMutation(c.config, OpUpdateOne, withCodeSnippetID(id))
+	return &CodeSnippetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CodeSnippet.
+func (c *CodeSnippetClient) Delete() *CodeSnippetDelete {
+	mutation := newCodeSnippetMutation(c.config, OpDelete)
+	return &CodeSnippetDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CodeSnippetClient) DeleteOne(cs *CodeSnippet) *CodeSnippetDeleteOne {
+	return c.DeleteOneID(cs.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CodeSnippetClient) DeleteOneID(id uuid.UUID) *CodeSnippetDeleteOne {
+	builder := c.Delete().Where(codesnippet.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CodeSnippetDeleteOne{builder}
+}
+
+// Query returns a query builder for CodeSnippet.
+func (c *CodeSnippetClient) Query() *CodeSnippetQuery {
+	return &CodeSnippetQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCodeSnippet},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CodeSnippet entity by its id.
+func (c *CodeSnippetClient) Get(ctx context.Context, id uuid.UUID) (*CodeSnippet, error) {
+	return c.Query().Where(codesnippet.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CodeSnippetClient) GetX(ctx context.Context, id uuid.UUID) *CodeSnippet {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySourceFile queries the source_file edge of a CodeSnippet.
+func (c *CodeSnippetClient) QuerySourceFile(cs *CodeSnippet) *WorkspaceFileQuery {
+	query := (&WorkspaceFileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(codesnippet.Table, codesnippet.FieldID, id),
+			sqlgraph.To(workspacefile.Table, workspacefile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, codesnippet.SourceFileTable, codesnippet.SourceFileColumn),
+		)
+		fromV = sqlgraph.Neighbors(cs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CodeSnippetClient) Hooks() []Hook {
+	return c.hooks.CodeSnippet
+}
+
+// Interceptors returns the client interceptors.
+func (c *CodeSnippetClient) Interceptors() []Interceptor {
+	return c.inters.CodeSnippet
+}
+
+func (c *CodeSnippetClient) mutate(ctx context.Context, m *CodeSnippetMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CodeSnippetCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CodeSnippetUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CodeSnippetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CodeSnippetDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CodeSnippet mutation op: %q", m.Op())
 	}
 }
 
@@ -2681,6 +2872,54 @@ func (c *UserClient) QueryIdentities(u *User) *UserIdentityQuery {
 	return query
 }
 
+// QueryWorkspaces queries the workspaces edge of a User.
+func (c *UserClient) QueryWorkspaces(u *User) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.WorkspacesTable, user.WorkspacesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkspaceFiles queries the workspace_files edge of a User.
+func (c *UserClient) QueryWorkspaceFiles(u *User) *WorkspaceFileQuery {
+	query := (&WorkspaceFileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(workspacefile.Table, workspacefile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.WorkspaceFilesTable, user.WorkspaceFilesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAPIKeys queries the api_keys edge of a User.
+func (c *UserClient) QueryAPIKeys(u *User) *ApiKeyQuery {
+	query := (&ApiKeyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(apikey.Table, apikey.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.APIKeysTable, user.APIKeysColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	hooks := c.hooks.User
@@ -3008,18 +3247,365 @@ func (c *UserLoginHistoryClient) mutate(ctx context.Context, m *UserLoginHistory
 	}
 }
 
+// WorkspaceClient is a client for the Workspace schema.
+type WorkspaceClient struct {
+	config
+}
+
+// NewWorkspaceClient returns a client for the Workspace from the given config.
+func NewWorkspaceClient(c config) *WorkspaceClient {
+	return &WorkspaceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `workspace.Hooks(f(g(h())))`.
+func (c *WorkspaceClient) Use(hooks ...Hook) {
+	c.hooks.Workspace = append(c.hooks.Workspace, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `workspace.Intercept(f(g(h())))`.
+func (c *WorkspaceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Workspace = append(c.inters.Workspace, interceptors...)
+}
+
+// Create returns a builder for creating a Workspace entity.
+func (c *WorkspaceClient) Create() *WorkspaceCreate {
+	mutation := newWorkspaceMutation(c.config, OpCreate)
+	return &WorkspaceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Workspace entities.
+func (c *WorkspaceClient) CreateBulk(builders ...*WorkspaceCreate) *WorkspaceCreateBulk {
+	return &WorkspaceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *WorkspaceClient) MapCreateBulk(slice any, setFunc func(*WorkspaceCreate, int)) *WorkspaceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &WorkspaceCreateBulk{err: fmt.Errorf("calling to WorkspaceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*WorkspaceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &WorkspaceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Workspace.
+func (c *WorkspaceClient) Update() *WorkspaceUpdate {
+	mutation := newWorkspaceMutation(c.config, OpUpdate)
+	return &WorkspaceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WorkspaceClient) UpdateOne(w *Workspace) *WorkspaceUpdateOne {
+	mutation := newWorkspaceMutation(c.config, OpUpdateOne, withWorkspace(w))
+	return &WorkspaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WorkspaceClient) UpdateOneID(id uuid.UUID) *WorkspaceUpdateOne {
+	mutation := newWorkspaceMutation(c.config, OpUpdateOne, withWorkspaceID(id))
+	return &WorkspaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Workspace.
+func (c *WorkspaceClient) Delete() *WorkspaceDelete {
+	mutation := newWorkspaceMutation(c.config, OpDelete)
+	return &WorkspaceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *WorkspaceClient) DeleteOne(w *Workspace) *WorkspaceDeleteOne {
+	return c.DeleteOneID(w.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *WorkspaceClient) DeleteOneID(id uuid.UUID) *WorkspaceDeleteOne {
+	builder := c.Delete().Where(workspace.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WorkspaceDeleteOne{builder}
+}
+
+// Query returns a query builder for Workspace.
+func (c *WorkspaceClient) Query() *WorkspaceQuery {
+	return &WorkspaceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeWorkspace},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Workspace entity by its id.
+func (c *WorkspaceClient) Get(ctx context.Context, id uuid.UUID) (*Workspace, error) {
+	return c.Query().Where(workspace.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WorkspaceClient) GetX(ctx context.Context, id uuid.UUID) *Workspace {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOwner queries the owner edge of a Workspace.
+func (c *WorkspaceClient) QueryOwner(w *Workspace) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspace.Table, workspace.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, workspace.OwnerTable, workspace.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFiles queries the files edge of a Workspace.
+func (c *WorkspaceClient) QueryFiles(w *Workspace) *WorkspaceFileQuery {
+	query := (&WorkspaceFileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspace.Table, workspace.FieldID, id),
+			sqlgraph.To(workspacefile.Table, workspacefile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workspace.FilesTable, workspace.FilesColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *WorkspaceClient) Hooks() []Hook {
+	return c.hooks.Workspace
+}
+
+// Interceptors returns the client interceptors.
+func (c *WorkspaceClient) Interceptors() []Interceptor {
+	return c.inters.Workspace
+}
+
+func (c *WorkspaceClient) mutate(ctx context.Context, m *WorkspaceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WorkspaceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WorkspaceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WorkspaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WorkspaceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Workspace mutation op: %q", m.Op())
+	}
+}
+
+// WorkspaceFileClient is a client for the WorkspaceFile schema.
+type WorkspaceFileClient struct {
+	config
+}
+
+// NewWorkspaceFileClient returns a client for the WorkspaceFile from the given config.
+func NewWorkspaceFileClient(c config) *WorkspaceFileClient {
+	return &WorkspaceFileClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `workspacefile.Hooks(f(g(h())))`.
+func (c *WorkspaceFileClient) Use(hooks ...Hook) {
+	c.hooks.WorkspaceFile = append(c.hooks.WorkspaceFile, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `workspacefile.Intercept(f(g(h())))`.
+func (c *WorkspaceFileClient) Intercept(interceptors ...Interceptor) {
+	c.inters.WorkspaceFile = append(c.inters.WorkspaceFile, interceptors...)
+}
+
+// Create returns a builder for creating a WorkspaceFile entity.
+func (c *WorkspaceFileClient) Create() *WorkspaceFileCreate {
+	mutation := newWorkspaceFileMutation(c.config, OpCreate)
+	return &WorkspaceFileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of WorkspaceFile entities.
+func (c *WorkspaceFileClient) CreateBulk(builders ...*WorkspaceFileCreate) *WorkspaceFileCreateBulk {
+	return &WorkspaceFileCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *WorkspaceFileClient) MapCreateBulk(slice any, setFunc func(*WorkspaceFileCreate, int)) *WorkspaceFileCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &WorkspaceFileCreateBulk{err: fmt.Errorf("calling to WorkspaceFileClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*WorkspaceFileCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &WorkspaceFileCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for WorkspaceFile.
+func (c *WorkspaceFileClient) Update() *WorkspaceFileUpdate {
+	mutation := newWorkspaceFileMutation(c.config, OpUpdate)
+	return &WorkspaceFileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WorkspaceFileClient) UpdateOne(wf *WorkspaceFile) *WorkspaceFileUpdateOne {
+	mutation := newWorkspaceFileMutation(c.config, OpUpdateOne, withWorkspaceFile(wf))
+	return &WorkspaceFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WorkspaceFileClient) UpdateOneID(id uuid.UUID) *WorkspaceFileUpdateOne {
+	mutation := newWorkspaceFileMutation(c.config, OpUpdateOne, withWorkspaceFileID(id))
+	return &WorkspaceFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for WorkspaceFile.
+func (c *WorkspaceFileClient) Delete() *WorkspaceFileDelete {
+	mutation := newWorkspaceFileMutation(c.config, OpDelete)
+	return &WorkspaceFileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *WorkspaceFileClient) DeleteOne(wf *WorkspaceFile) *WorkspaceFileDeleteOne {
+	return c.DeleteOneID(wf.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *WorkspaceFileClient) DeleteOneID(id uuid.UUID) *WorkspaceFileDeleteOne {
+	builder := c.Delete().Where(workspacefile.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WorkspaceFileDeleteOne{builder}
+}
+
+// Query returns a query builder for WorkspaceFile.
+func (c *WorkspaceFileClient) Query() *WorkspaceFileQuery {
+	return &WorkspaceFileQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeWorkspaceFile},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a WorkspaceFile entity by its id.
+func (c *WorkspaceFileClient) Get(ctx context.Context, id uuid.UUID) (*WorkspaceFile, error) {
+	return c.Query().Where(workspacefile.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WorkspaceFileClient) GetX(ctx context.Context, id uuid.UUID) *WorkspaceFile {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOwner queries the owner edge of a WorkspaceFile.
+func (c *WorkspaceFileClient) QueryOwner(wf *WorkspaceFile) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := wf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspacefile.Table, workspacefile.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, workspacefile.OwnerTable, workspacefile.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(wf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkspace queries the workspace edge of a WorkspaceFile.
+func (c *WorkspaceFileClient) QueryWorkspace(wf *WorkspaceFile) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := wf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspacefile.Table, workspacefile.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, workspacefile.WorkspaceTable, workspacefile.WorkspaceColumn),
+		)
+		fromV = sqlgraph.Neighbors(wf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySnippets queries the snippets edge of a WorkspaceFile.
+func (c *WorkspaceFileClient) QuerySnippets(wf *WorkspaceFile) *CodeSnippetQuery {
+	query := (&CodeSnippetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := wf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspacefile.Table, workspacefile.FieldID, id),
+			sqlgraph.To(codesnippet.Table, codesnippet.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workspacefile.SnippetsTable, workspacefile.SnippetsColumn),
+		)
+		fromV = sqlgraph.Neighbors(wf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *WorkspaceFileClient) Hooks() []Hook {
+	return c.hooks.WorkspaceFile
+}
+
+// Interceptors returns the client interceptors.
+func (c *WorkspaceFileClient) Interceptors() []Interceptor {
+	return c.inters.WorkspaceFile
+}
+
+func (c *WorkspaceFileClient) mutate(ctx context.Context, m *WorkspaceFileMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WorkspaceFileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WorkspaceFileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WorkspaceFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WorkspaceFileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown WorkspaceFile mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
 		Admin, AdminLoginHistory, ApiKey, BillingPlan, BillingQuota, BillingRecord,
-		BillingUsage, Extension, InviteCode, Model, ModelProvider, ModelProviderModel,
-		Setting, Task, TaskRecord, User, UserIdentity, UserLoginHistory []ent.Hook
+		BillingUsage, CodeSnippet, Extension, InviteCode, Model, ModelProvider,
+		ModelProviderModel, Setting, Task, TaskRecord, User, UserIdentity,
+		UserLoginHistory, Workspace, WorkspaceFile []ent.Hook
 	}
 	inters struct {
 		Admin, AdminLoginHistory, ApiKey, BillingPlan, BillingQuota, BillingRecord,
-		BillingUsage, Extension, InviteCode, Model, ModelProvider, ModelProviderModel,
-		Setting, Task, TaskRecord, User, UserIdentity,
-		UserLoginHistory []ent.Interceptor
+		BillingUsage, CodeSnippet, Extension, InviteCode, Model, ModelProvider,
+		ModelProviderModel, Setting, Task, TaskRecord, User, UserIdentity,
+		UserLoginHistory, Workspace, WorkspaceFile []ent.Interceptor
 	}
 )
 

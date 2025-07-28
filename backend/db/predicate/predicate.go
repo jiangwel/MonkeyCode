@@ -27,6 +27,9 @@ type BillingRecord func(*sql.Selector)
 // BillingUsage is the predicate function for billingusage builders.
 type BillingUsage func(*sql.Selector)
 
+// CodeSnippet is the predicate function for codesnippet builders.
+type CodeSnippet func(*sql.Selector)
+
 // Extension is the predicate function for extension builders.
 type Extension func(*sql.Selector)
 
@@ -59,3 +62,9 @@ type UserIdentity func(*sql.Selector)
 
 // UserLoginHistory is the predicate function for userloginhistory builders.
 type UserLoginHistory func(*sql.Selector)
+
+// Workspace is the predicate function for workspace builders.
+type Workspace func(*sql.Selector)
+
+// WorkspaceFile is the predicate function for workspacefile builders.
+type WorkspaceFile func(*sql.Selector)

@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 
@@ -41,5 +42,11 @@ func (ApiKey) Fields() []ent.Field {
 
 // Edges of the ApiKey.
 func (ApiKey) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("user", User.Type).
+			Ref("api_keys").
+			Field("user_id").
+			Required().
+			Unique(),
+	}
 }

@@ -56,19 +56,27 @@ var (
 	// APIKeysColumns holds the columns for the "api_keys" table.
 	APIKeysColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "user_id", Type: field.TypeUUID},
 		{Name: "key", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "status", Type: field.TypeString, Default: "active"},
 		{Name: "last_used", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// APIKeysTable holds the schema information for the "api_keys" table.
 	APIKeysTable = &schema.Table{
 		Name:       "api_keys",
 		Columns:    APIKeysColumns,
 		PrimaryKey: []*schema.Column{APIKeysColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "api_keys_users_api_keys",
+				Columns:    []*schema.Column{APIKeysColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
 	}
 	// BillingPlansColumns holds the columns for the "billing_plans" table.
 	BillingPlansColumns = []*schema.Column{
@@ -139,6 +147,64 @@ var (
 		Name:       "billing_usages",
 		Columns:    BillingUsagesColumns,
 		PrimaryKey: []*schema.Column{BillingUsagesColumns[0]},
+	}
+	// CodeSnippetsColumns holds the columns for the "code_snippets" table.
+	CodeSnippetsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "snippet_type", Type: field.TypeString},
+		{Name: "language", Type: field.TypeString},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "hash", Type: field.TypeString},
+		{Name: "start_line", Type: field.TypeInt},
+		{Name: "end_line", Type: field.TypeInt},
+		{Name: "start_column", Type: field.TypeInt},
+		{Name: "end_column", Type: field.TypeInt},
+		{Name: "namespace", Type: field.TypeString, Nullable: true},
+		{Name: "container_name", Type: field.TypeString, Nullable: true},
+		{Name: "scope", Type: field.TypeJSON, Nullable: true},
+		{Name: "dependencies", Type: field.TypeJSON, Nullable: true},
+		{Name: "parameters", Type: field.TypeJSON, Nullable: true},
+		{Name: "signature", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "definition_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "structured_info", Type: field.TypeJSON, Nullable: true},
+		{Name: "workspace_file_id", Type: field.TypeUUID},
+	}
+	// CodeSnippetsTable holds the schema information for the "code_snippets" table.
+	CodeSnippetsTable = &schema.Table{
+		Name:       "code_snippets",
+		Columns:    CodeSnippetsColumns,
+		PrimaryKey: []*schema.Column{CodeSnippetsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "code_snippets_workspace_files_snippets",
+				Columns:    []*schema.Column{CodeSnippetsColumns[18]},
+				RefColumns: []*schema.Column{WorkspaceFilesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "codesnippet_hash",
+				Unique:  false,
+				Columns: []*schema.Column{CodeSnippetsColumns[5]},
+			},
+			{
+				Name:    "codesnippet_workspace_file_id",
+				Unique:  false,
+				Columns: []*schema.Column{CodeSnippetsColumns[18]},
+			},
+			{
+				Name:    "codesnippet_language_snippet_type",
+				Unique:  false,
+				Columns: []*schema.Column{CodeSnippetsColumns[3], CodeSnippetsColumns[2]},
+			},
+			{
+				Name:    "codesnippet_language_name",
+				Unique:  false,
+				Columns: []*schema.Column{CodeSnippetsColumns[3], CodeSnippetsColumns[1]},
+			},
+		},
 	}
 	// ExtensionsColumns holds the columns for the "extensions" table.
 	ExtensionsColumns = []*schema.Column{
@@ -404,6 +470,129 @@ var (
 			},
 		},
 	}
+	// WorkspacesColumns holds the columns for the "workspaces" table.
+	WorkspacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString, Nullable: true},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "root_path", Type: field.TypeString},
+		{Name: "settings", Type: field.TypeJSON, Nullable: true},
+		{Name: "last_accessed_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// WorkspacesTable holds the schema information for the "workspaces" table.
+	WorkspacesTable = &schema.Table{
+		Name:       "workspaces",
+		Columns:    WorkspacesColumns,
+		PrimaryKey: []*schema.Column{WorkspacesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workspaces_users_workspaces",
+				Columns:    []*schema.Column{WorkspacesColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workspace_user_id_root_path",
+				Unique:  true,
+				Columns: []*schema.Column{WorkspacesColumns[8], WorkspacesColumns[3]},
+			},
+			{
+				Name:    "workspace_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspacesColumns[8]},
+			},
+			{
+				Name:    "workspace_last_accessed_at",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspacesColumns[5]},
+			},
+			{
+				Name:    "workspace_name",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspacesColumns[1]},
+			},
+			{
+				Name:    "workspace_root_path",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspacesColumns[3]},
+			},
+		},
+	}
+	// WorkspaceFilesColumns holds the columns for the "workspace_files" table.
+	WorkspaceFilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "path", Type: field.TypeString},
+		{Name: "content", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "hash", Type: field.TypeString},
+		{Name: "language", Type: field.TypeString, Nullable: true},
+		{Name: "size", Type: field.TypeInt64, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "workspace_id", Type: field.TypeUUID},
+	}
+	// WorkspaceFilesTable holds the schema information for the "workspace_files" table.
+	WorkspaceFilesTable = &schema.Table{
+		Name:       "workspace_files",
+		Columns:    WorkspaceFilesColumns,
+		PrimaryKey: []*schema.Column{WorkspaceFilesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workspace_files_users_workspace_files",
+				Columns:    []*schema.Column{WorkspaceFilesColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspace_files_workspaces_files",
+				Columns:    []*schema.Column{WorkspaceFilesColumns[9]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workspacefile_user_id_workspace_id_path",
+				Unique:  true,
+				Columns: []*schema.Column{WorkspaceFilesColumns[8], WorkspaceFilesColumns[9], WorkspaceFilesColumns[1]},
+			},
+			{
+				Name:    "workspacefile_hash",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspaceFilesColumns[3]},
+			},
+			{
+				Name:    "workspacefile_workspace_id_hash",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspaceFilesColumns[9], WorkspaceFilesColumns[3]},
+			},
+			{
+				Name:    "workspacefile_language",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspaceFilesColumns[4]},
+			},
+			{
+				Name:    "workspacefile_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspaceFilesColumns[7]},
+			},
+			{
+				Name:    "workspacefile_size",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspaceFilesColumns[5]},
+			},
+			{
+				Name:    "workspacefile_workspace_id",
+				Unique:  false,
+				Columns: []*schema.Column{WorkspaceFilesColumns[9]},
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AdminsTable,
@@ -413,6 +602,7 @@ var (
 		BillingQuotasTable,
 		BillingRecordsTable,
 		BillingUsagesTable,
+		CodeSnippetsTable,
 		ExtensionsTable,
 		InviteCodesTable,
 		ModelsTable,
@@ -424,6 +614,8 @@ var (
 		UsersTable,
 		UserIdentitiesTable,
 		UserLoginHistoriesTable,
+		WorkspacesTable,
+		WorkspaceFilesTable,
 	}
 )
 
@@ -435,6 +627,7 @@ func init() {
 	AdminLoginHistoriesTable.Annotation = &entsql.Annotation{
 		Table: "admin_login_histories",
 	}
+	APIKeysTable.ForeignKeys[0].RefTable = UsersTable
 	APIKeysTable.Annotation = &entsql.Annotation{
 		Table: "api_keys",
 	}
@@ -449,6 +642,10 @@ func init() {
 	}
 	BillingUsagesTable.Annotation = &entsql.Annotation{
 		Table: "billing_usages",
+	}
+	CodeSnippetsTable.ForeignKeys[0].RefTable = WorkspaceFilesTable
+	CodeSnippetsTable.Annotation = &entsql.Annotation{
+		Table: "code_snippets",
 	}
 	ExtensionsTable.Annotation = &entsql.Annotation{
 		Table: "extensions",
@@ -489,5 +686,14 @@ func init() {
 	UserLoginHistoriesTable.ForeignKeys[0].RefTable = UsersTable
 	UserLoginHistoriesTable.Annotation = &entsql.Annotation{
 		Table: "user_login_histories",
+	}
+	WorkspacesTable.ForeignKeys[0].RefTable = UsersTable
+	WorkspacesTable.Annotation = &entsql.Annotation{
+		Table: "workspaces",
+	}
+	WorkspaceFilesTable.ForeignKeys[0].RefTable = UsersTable
+	WorkspaceFilesTable.ForeignKeys[1].RefTable = WorkspacesTable
+	WorkspaceFilesTable.Annotation = &entsql.Annotation{
+		Table: "workspace_files",
 	}
 }

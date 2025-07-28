@@ -53,9 +53,15 @@ type UserEdges struct {
 	Tasks []*Task `json:"tasks,omitempty"`
 	// Identities holds the value of the identities edge.
 	Identities []*UserIdentity `json:"identities,omitempty"`
+	// Workspaces holds the value of the workspaces edge.
+	Workspaces []*Workspace `json:"workspaces,omitempty"`
+	// WorkspaceFiles holds the value of the workspace_files edge.
+	WorkspaceFiles []*WorkspaceFile `json:"workspace_files,omitempty"`
+	// APIKeys holds the value of the api_keys edge.
+	APIKeys []*ApiKey `json:"api_keys,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [7]bool
 }
 
 // LoginHistoriesOrErr returns the LoginHistories value or an error if the edge
@@ -92,6 +98,33 @@ func (e UserEdges) IdentitiesOrErr() ([]*UserIdentity, error) {
 		return e.Identities, nil
 	}
 	return nil, &NotLoadedError{edge: "identities"}
+}
+
+// WorkspacesOrErr returns the Workspaces value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) WorkspacesOrErr() ([]*Workspace, error) {
+	if e.loadedTypes[4] {
+		return e.Workspaces, nil
+	}
+	return nil, &NotLoadedError{edge: "workspaces"}
+}
+
+// WorkspaceFilesOrErr returns the WorkspaceFiles value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) WorkspaceFilesOrErr() ([]*WorkspaceFile, error) {
+	if e.loadedTypes[5] {
+		return e.WorkspaceFiles, nil
+	}
+	return nil, &NotLoadedError{edge: "workspace_files"}
+}
+
+// APIKeysOrErr returns the APIKeys value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) APIKeysOrErr() ([]*ApiKey, error) {
+	if e.loadedTypes[6] {
+		return e.APIKeys, nil
+	}
+	return nil, &NotLoadedError{edge: "api_keys"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -211,6 +244,21 @@ func (u *User) QueryTasks() *TaskQuery {
 // QueryIdentities queries the "identities" edge of the User entity.
 func (u *User) QueryIdentities() *UserIdentityQuery {
 	return NewUserClient(u.config).QueryIdentities(u)
+}
+
+// QueryWorkspaces queries the "workspaces" edge of the User entity.
+func (u *User) QueryWorkspaces() *WorkspaceQuery {
+	return NewUserClient(u.config).QueryWorkspaces(u)
+}
+
+// QueryWorkspaceFiles queries the "workspace_files" edge of the User entity.
+func (u *User) QueryWorkspaceFiles() *WorkspaceFileQuery {
+	return NewUserClient(u.config).QueryWorkspaceFiles(u)
+}
+
+// QueryAPIKeys queries the "api_keys" edge of the User entity.
+func (u *User) QueryAPIKeys() *ApiKeyQuery {
+	return NewUserClient(u.config).QueryAPIKeys(u)
 }
 
 // Update returns a builder for updating this User.

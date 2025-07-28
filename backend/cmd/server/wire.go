@@ -17,6 +17,7 @@ import (
 	dashv1 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/handler/v1"
 	v1 "github.com/chaitin/MonkeyCode/backend/internal/model/handler/http/v1"
 	openaiV1 "github.com/chaitin/MonkeyCode/backend/internal/openai/handler/v1"
+	sockethandler "github.com/chaitin/MonkeyCode/backend/internal/socket/handler"
 	userV1 "github.com/chaitin/MonkeyCode/backend/internal/user/handler/v1"
 	"github.com/chaitin/MonkeyCode/backend/pkg/report"
 	"github.com/chaitin/MonkeyCode/backend/pkg/version"
@@ -32,6 +33,7 @@ type Server struct {
 	userV1      *userV1.UserHandler
 	dashboardV1 *dashv1.DashboardHandler
 	billingV1   *billingv1.BillingHandler
+	socketH     *sockethandler.SocketHandler
 	version     *version.VersionInfo
 	report      *report.Reporter
 	reportuse   domain.ReportUsecase

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
+	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/google/uuid"
 )
 
@@ -32,8 +33,31 @@ type ApiKey struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ApiKeyQuery when eager-loading is set.
+	Edges        ApiKeyEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// ApiKeyEdges holds the relations/edges for other nodes in the graph.
+type ApiKeyEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ApiKeyEdges) UserOrErr() (*User, error) {
+	if e.User != nil {
+		return e.User, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -121,6 +145,11 @@ func (ak *ApiKey) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (ak *ApiKey) Value(name string) (ent.Value, error) {
 	return ak.selectValues.Get(name)
+}
+
+// QueryUser queries the "user" edge of the ApiKey entity.
+func (ak *ApiKey) QueryUser() *UserQuery {
+	return NewApiKeyClient(ak.config).QueryUser(ak)
 }
 
 // Update returns a builder for updating this ApiKey.

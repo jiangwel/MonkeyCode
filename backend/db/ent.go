@@ -19,6 +19,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
 	"github.com/chaitin/MonkeyCode/backend/db/billingrecord"
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
+	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/extension"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
@@ -30,6 +31,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
 	"github.com/chaitin/MonkeyCode/backend/db/userloginhistory"
+	"github.com/chaitin/MonkeyCode/backend/db/workspace"
+	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -97,6 +100,7 @@ func checkColumn(table, column string) error {
 			billingquota.Table:       billingquota.ValidColumn,
 			billingrecord.Table:      billingrecord.ValidColumn,
 			billingusage.Table:       billingusage.ValidColumn,
+			codesnippet.Table:        codesnippet.ValidColumn,
 			extension.Table:          extension.ValidColumn,
 			invitecode.Table:         invitecode.ValidColumn,
 			model.Table:              model.ValidColumn,
@@ -108,6 +112,8 @@ func checkColumn(table, column string) error {
 			user.Table:               user.ValidColumn,
 			useridentity.Table:       useridentity.ValidColumn,
 			userloginhistory.Table:   userloginhistory.ValidColumn,
+			workspace.Table:          workspace.ValidColumn,
+			workspacefile.Table:      workspacefile.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)
