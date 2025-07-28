@@ -23,10 +23,12 @@ export const CommonContext = createContext<{
   coderModel: DomainModel[];
   llmModel: DomainModel[];
   isConfigModel: boolean;
+  modelLoading: boolean;
   refreshModel: () => void;
 }>({
   coderModel: [],
   llmModel: [],
   isConfigModel: false,
+  modelLoading: false,
   refreshModel: () => {},
 });
