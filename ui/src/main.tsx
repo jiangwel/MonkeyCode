@@ -55,6 +55,7 @@ dayjs.extend(relativeTime);
 const App = () => {
   const [user, setUser] = useState<DomainUser | DomainAdminUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [modelLoading, setModelLoading] = useState(true);
   const [coderModel, setCoderModel] = useState<DomainModel[]>([]);
   const [llmModel, setLlmModel] = useState<DomainModel[]>([]);
   const [isConfigModel, setIsConfigModel] = useState(false);
@@ -65,6 +66,7 @@ const App = () => {
   };
 
   const getModelList = () => {
+    setModelLoading(true);
     return Promise.all([
       getMyModelList({
         model_type: 'coder',
@@ -78,7 +80,10 @@ const App = () => {
         setLlmModel(res[1] || []);
         return res;
       })
-      .then(handleModelConfig);
+      .then(handleModelConfig)
+      .finally(() => {
+        setModelLoading(false);
+      });
   };
 
   const handleModelConfig = (res: [DomainModel[], DomainModel[]]) => {
@@ -160,6 +165,7 @@ const App = () => {
         value={{
           coderModel,
           llmModel,
+          modelLoading,
           isConfigModel,
           refreshModel: getModelList,
         }}

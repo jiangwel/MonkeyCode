@@ -7,11 +7,11 @@ import { useCommonContext } from '@/hooks/context';
 import { Modal } from '@c-x/ui';
 
 const Model = () => {
-  const { coderModel, llmModel, refreshModel, isConfigModel } =
+  const { coderModel, llmModel, refreshModel, isConfigModel, modelLoading } =
     useCommonContext();
   const isFirst = useRef(true);
   useEffect(() => {
-    if (isFirst.current && !isConfigModel) {
+    if (isFirst.current && !isConfigModel && !modelLoading) {
       isFirst.current = false;
       let text = '';
       if (
@@ -34,7 +34,7 @@ const Model = () => {
         okText: '去配置',
       });
     }
-  }, [isConfigModel, coderModel, llmModel]);
+  }, [isConfigModel, coderModel, llmModel, modelLoading]);
 
   return (
     <Stack gap={2}>
