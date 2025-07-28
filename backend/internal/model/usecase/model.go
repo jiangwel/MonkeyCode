@@ -332,6 +332,10 @@ func (m *ModelUsecase) GetProviderModelList(ctx context.Context, req *domain.Get
 		if err != nil {
 			return nil, err
 		}
+		st := string(req.Type)
+		if req.Type == consts.ModelTypeLLM {
+			st = "chat"
+		}
 		client := request.NewClient(u.Scheme, u.Host, m.client.Timeout, request.WithClient(m.client))
 		resp, err := request.Get[domain.OpenAIResp](client, "/v1/models", request.WithHeader(
 			request.Header{
@@ -339,7 +343,7 @@ func (m *ModelUsecase) GetProviderModelList(ctx context.Context, req *domain.Get
 			},
 		), request.WithQuery(request.Query{
 			"type":     "text",
-			"sub_type": "chat",
+			"sub_type": st,
 		}))
 		if err != nil {
 			return nil, err
