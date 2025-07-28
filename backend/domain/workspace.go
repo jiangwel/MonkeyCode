@@ -60,18 +60,18 @@ type WorkspaceFileRepo interface {
 // 请求结构体
 
 type CreateWorkspaceReq struct {
-	UserID      string                 `json:"user_id" validate:"required"`   // 用户ID
-	Name        string                 `json:"name" validate:"required"`      // 工作区名称
-	Description string                 `json:"description"`                   // 工作区描述
-	RootPath    string                 `json:"root_path" validate:"required"` // 工作区根路径
-	Settings    map[string]interface{} `json:"settings"`                      // 工作区设置
+	UserID      string         `json:"user_id" validate:"required"`   // 用户ID
+	Name        string         `json:"name" validate:"required"`      // 工作区名称
+	Description string         `json:"description"`                   // 工作区描述
+	RootPath    string         `json:"root_path" validate:"required"` // 工作区根路径
+	Settings    map[string]any `json:"settings"`                      // 工作区设置
 }
 
 type UpdateWorkspaceReq struct {
-	ID          string                 `json:"id" validate:"required"` // 工作区ID
-	Name        *string                `json:"name"`                   // 工作区名称
-	Description *string                `json:"description"`            // 工作区描述
-	Settings    map[string]interface{} `json:"settings"`               // 工作区设置
+	ID          string         `json:"id" validate:"required"` // 工作区ID
+	Name        *string        `json:"name"`                   // 工作区名称
+	Description *string        `json:"description"`            // 工作区描述
+	Settings    map[string]any `json:"settings"`               // 工作区设置
 }
 
 type ListWorkspaceReq struct {
@@ -151,15 +151,15 @@ type SyncWorkspaceFileResp struct {
 // 数据模型
 
 type Workspace struct {
-	ID             string                 `json:"id"`               // 工作区ID
-	UserID         string                 `json:"user_id"`          // 用户ID
-	Name           string                 `json:"name"`             // 工作区名称
-	Description    string                 `json:"description"`      // 工作区描述
-	RootPath       string                 `json:"root_path"`        // 工作区根路径
-	Settings       map[string]interface{} `json:"settings"`         // 工作区设置
-	LastAccessedAt int64                  `json:"last_accessed_at"` // 最后访问时间
-	CreatedAt      int64                  `json:"created_at"`       // 创建时间
-	UpdatedAt      int64                  `json:"updated_at"`       // 更新时间
+	ID             string         `json:"id"`               // 工作区ID
+	UserID         string         `json:"user_id"`          // 用户ID
+	Name           string         `json:"name"`             // 工作区名称
+	Description    string         `json:"description"`      // 工作区描述
+	RootPath       string         `json:"root_path"`        // 工作区根路径
+	Settings       map[string]any `json:"settings"`         // 工作区设置
+	LastAccessedAt int64          `json:"last_accessed_at"` // 最后访问时间
+	CreatedAt      int64          `json:"created_at"`       // 创建时间
+	UpdatedAt      int64          `json:"updated_at"`       // 更新时间
 }
 
 type WorkspaceFile struct {

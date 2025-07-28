@@ -24,47 +24,47 @@ type CodeSnippetRepo interface {
 
 // 请求结构体
 type CreateCodeSnippetReq struct {
-	WorkspaceFileID string                   `json:"workspace_file_id" validate:"required"` // 关联的workspace file ID
-	Name            string                   `json:"name"`                                  // 代码片段名称
-	SnippetType     string                   `json:"snippet_type"`                          // 代码片段类型 (function, class, variable, etc.)
-	Language        string                   `json:"language"`                              // 编程语言
-	Content         string                   `json:"content"`                               // 代码片段内容
-	Hash            string                   `json:"hash"`                                  // 内容哈希
-	StartLine       int                      `json:"start_line"`                            // 起始行号
-	EndLine         int                      `json:"end_line"`                              // 结束行号
-	StartColumn     int                      `json:"start_column"`                          // 起始列号
-	EndColumn       int                      `json:"end_column"`                            // 结束列号
-	Namespace       string                   `json:"namespace"`                             // 命名空间
-	ContainerName   string                   `json:"container_name"`                        // 容器名称 (类名、模块名等)
-	Scope           []string                 `json:"scope"`                                 // 作用域信息
-	Dependencies    []string                 `json:"dependencies"`                          // 依赖项
-	Parameters      []map[string]interface{} `json:"parameters"`                            // 参数列表
-	Signature       string                   `json:"signature"`                             // 函数签名
-	DefinitionText  string                   `json:"definition_text"`                       // 定义文本
-	StructuredInfo  map[string]interface{}   `json:"structured_info"`                       // 结构化信息
+	WorkspaceFileID string           `json:"workspace_file_id" validate:"required"` // 关联的workspace file ID
+	Name            string           `json:"name"`                                  // 代码片段名称
+	SnippetType     string           `json:"snippet_type"`                          // 代码片段类型 (function, class, variable, etc.)
+	Language        string           `json:"language"`                              // 编程语言
+	Content         string           `json:"content"`                               // 代码片段内容
+	Hash            string           `json:"hash"`                                  // 内容哈希
+	StartLine       int              `json:"start_line"`                            // 起始行号
+	EndLine         int              `json:"end_line"`                              // 结束行号
+	StartColumn     int              `json:"start_column"`                          // 起始列号
+	EndColumn       int              `json:"end_column"`                            // 结束列号
+	Namespace       string           `json:"namespace"`                             // 命名空间
+	ContainerName   string           `json:"container_name"`                        // 容器名称 (类名、模块名等)
+	Scope           []string         `json:"scope"`                                 // 作用域信息
+	Dependencies    []string         `json:"dependencies"`                          // 依赖项
+	Parameters      []map[string]any `json:"parameters"`                            // 参数列表
+	Signature       string           `json:"signature"`                             // 函数签名
+	DefinitionText  string           `json:"definition_text"`                       // 定义文本
+	StructuredInfo  map[string]any   `json:"structured_info"`                       // 结构化信息
 }
 
 // 数据模型
 type CodeSnippet struct {
-	ID              string                   `json:"id"`                // 代码片段ID
-	WorkspaceFileID string                   `json:"workspace_file_id"` // 关联的workspace file ID
-	Name            string                   `json:"name"`              // 代码片段名称
-	SnippetType     string                   `json:"snippet_type"`      // 代码片段类型
-	Language        string                   `json:"language"`          // 编程语言
-	Content         string                   `json:"content"`           // 代码片段内容
-	Hash            string                   `json:"hash"`              // 内容哈希
-	StartLine       int                      `json:"start_line"`        // 起始行号
-	EndLine         int                      `json:"end_line"`          // 结束行号
-	StartColumn     int                      `json:"start_column"`      // 起始列号
-	EndColumn       int                      `json:"end_column"`        // 结束列号
-	Namespace       string                   `json:"namespace"`         // 命名空间
-	ContainerName   string                   `json:"container_name"`    // 容器名称
-	Scope           []string                 `json:"scope"`             // 作用域信息
-	Dependencies    []string                 `json:"dependencies"`      // 依赖项
-	Parameters      []map[string]interface{} `json:"parameters"`        // 参数列表
-	Signature       string                   `json:"signature"`         // 函数签名
-	DefinitionText  string                   `json:"definition_text"`   // 定义文本
-	StructuredInfo  map[string]interface{}   `json:"structured_info"`   // 结构化信息
+	ID              string           `json:"id"`                // 代码片段ID
+	WorkspaceFileID string           `json:"workspace_file_id"` // 关联的workspace file ID
+	Name            string           `json:"name"`              // 代码片段名称
+	SnippetType     string           `json:"snippet_type"`      // 代码片段类型
+	Language        string           `json:"language"`          // 编程语言
+	Content         string           `json:"content"`           // 代码片段内容
+	Hash            string           `json:"hash"`              // 内容哈希
+	StartLine       int              `json:"start_line"`        // 起始行号
+	EndLine         int              `json:"end_line"`          // 结束行号
+	StartColumn     int              `json:"start_column"`      // 起始列号
+	EndColumn       int              `json:"end_column"`        // 结束列号
+	Namespace       string           `json:"namespace"`         // 命名空间
+	ContainerName   string           `json:"container_name"`    // 容器名称
+	Scope           []string         `json:"scope"`             // 作用域信息
+	Dependencies    []string         `json:"dependencies"`      // 依赖项
+	Parameters      []map[string]any `json:"parameters"`        // 参数列表
+	Signature       string           `json:"signature"`         // 函数签名
+	DefinitionText  string           `json:"definition_text"`   // 定义文本
+	StructuredInfo  map[string]any   `json:"structured_info"`   // 结构化信息
 }
 
 func (c *CodeSnippet) From(e *db.CodeSnippet) *CodeSnippet {

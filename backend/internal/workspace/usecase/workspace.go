@@ -163,7 +163,7 @@ func (u *WorkspaceUsecase) EnsureWorkspace(ctx context.Context, userID, rootPath
 		Name:        name,
 		Description: fmt.Sprintf("Auto-created workspace for %s", rootPath),
 		RootPath:    rootPath,
-		Settings:    map[string]interface{}{},
+		Settings:    map[string]any{},
 	}
 
 	return u.Create(ctx, createReq)

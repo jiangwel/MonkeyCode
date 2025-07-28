@@ -33,7 +33,7 @@ func (Workspace) Fields() []ent.Field {
 		field.String("name").Optional().Comment("工作区名称"),
 		field.String("description").Optional().Comment("工作区描述"),
 		field.String("root_path").NotEmpty().Comment("工作区根路径"),
-		field.JSON("settings", map[string]interface{}{}).Optional().Comment("工作区设置"),
+		field.JSON("settings", map[string]any{}).Optional().Comment("工作区设置"),
 		field.Time("last_accessed_at").Default(time.Now).Comment("最后访问时间"),
 		field.Time("created_at").Default(time.Now).Immutable().Comment("创建时间"),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now).Comment("更新时间"),

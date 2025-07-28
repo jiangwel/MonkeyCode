@@ -38,13 +38,13 @@ func (u *CodeSnippetUsecase) CreateFromIndexResult(ctx context.Context, workspac
 		// StartColumn 和 EndColumn 在 IndexResult 中没有直接对应字段，暂时设置为 0
 		StartColumn:    0,
 		EndColumn:      0,
-		Namespace:      "",                         // IndexResult 中没有直接对应字段
-		ContainerName:  "",                         // IndexResult 中没有直接对应字段
-		Dependencies:   []string{},                 // IndexResult 中没有直接对应字段
-		Parameters:     []map[string]interface{}{}, // IndexResult 中没有直接对应字段
+		Namespace:      "",                 // IndexResult 中没有直接对应字段
+		ContainerName:  "",                 // IndexResult 中没有直接对应字段
+		Dependencies:   []string{},         // IndexResult 中没有直接对应字段
+		Parameters:     []map[string]any{}, // IndexResult 中没有直接对应字段
 		Signature:      indexResult.Signature,
 		DefinitionText: indexResult.DefinitionText,
-		StructuredInfo: map[string]interface{}{
+		StructuredInfo: map[string]any{
 			"definition": indexResult.Definition,
 		},
 	}

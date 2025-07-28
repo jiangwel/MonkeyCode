@@ -350,10 +350,10 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 					codeFiles := domain.CodeFiles{
 						Files: []domain.FileMeta{
 							{
-								FilePath:      updateData.FilePath,
-								FileExtension: fileExtension,
-								Language:      h.getFileLanguage(fileExtension),
-								Content:       updateData.Content,
+								FilePath: updateData.FilePath,
+								// FileExtension: fileExtension,
+								Language: h.getFileLanguage(fileExtension),
+								Content:  updateData.Content,
 							},
 						},
 					}
@@ -432,10 +432,10 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 			codeFiles := domain.CodeFiles{
 				Files: []domain.FileMeta{
 					{
-						FilePath:      updateData.FilePath,
-						FileExtension: fileExtension,
-						Language:      h.getFileLanguage(fileExtension),
-						Content:       updateData.Content,
+						FilePath: updateData.FilePath,
+						// FileExtension: fileExtension,
+						Language: h.getFileLanguage(fileExtension),
+						Content:  updateData.Content,
 					},
 				},
 			}
