@@ -12,6 +12,8 @@ type CodeSnippetUsecase interface {
 	ListByWorkspaceFile(ctx context.Context, workspaceFileID string) ([]*CodeSnippet, error)
 	GetByID(ctx context.Context, id string) (*CodeSnippet, error)
 	Delete(ctx context.Context, id string) error
+	Search(ctx context.Context, name, snippetType, language string) ([]*CodeSnippet, error)
+	SearchByWorkspace(ctx context.Context, userID, workspacePath, name, snippetType, language string) ([]*CodeSnippet, error)
 }
 
 // CodeSnippetRepo 定义 CodeSnippet 数据访问接口
@@ -20,6 +22,8 @@ type CodeSnippetRepo interface {
 	ListByWorkspaceFile(ctx context.Context, workspaceFileID string) ([]*db.CodeSnippet, error)
 	GetByID(ctx context.Context, id string) (*db.CodeSnippet, error)
 	Delete(ctx context.Context, id string) error
+	Search(ctx context.Context, name, snippetType, language string) ([]*db.CodeSnippet, error)
+	SearchByWorkspace(ctx context.Context, userID, workspacePath, name, snippetType, language string) ([]*db.CodeSnippet, error)
 }
 
 // 请求结构体

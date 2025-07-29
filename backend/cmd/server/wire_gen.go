@@ -14,6 +14,7 @@ import (
 	v1_5 "github.com/chaitin/MonkeyCode/backend/internal/billing/handler/http/v1"
 	repo7 "github.com/chaitin/MonkeyCode/backend/internal/billing/repo"
 	usecase6 "github.com/chaitin/MonkeyCode/backend/internal/billing/usecase"
+	v1_6 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/handler/http/v1"
 	repo9 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/repo"
 	usecase8 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/usecase"
 	v1_4 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/handler/v1"
@@ -107,21 +108,23 @@ func newServer() (*Server, error) {
 	reporter := report.NewReport(slogLogger, configConfig, versionInfo)
 	reportRepo := repo10.NewReportRepo(client)
 	reportUsecase := usecase9.NewReportUsecase(reportRepo, slogLogger, reporter, redisClient)
+	codeSnippetHandler := v1_6.NewCodeSnippetHandler(web, codeSnippetUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, proxyMiddleware, slogLogger)
 	server := &Server{
-		config:      configConfig,
-		web:         web,
-		ent:         client,
-		logger:      slogLogger,
-		openaiV1:    v1Handler,
-		modelV1:     modelHandler,
-		userV1:      userHandler,
-		dashboardV1: dashboardHandler,
-		billingV1:   billingHandler,
-		socketH:     socketHandler,
-		version:     versionInfo,
-		report:      reporter,
-		reportuse:   reportUsecase,
-		euse:        extensionUsecase,
+		config:        configConfig,
+		web:           web,
+		ent:           client,
+		logger:        slogLogger,
+		openaiV1:      v1Handler,
+		modelV1:       modelHandler,
+		userV1:        userHandler,
+		dashboardV1:   dashboardHandler,
+		billingV1:     billingHandler,
+		socketH:       socketHandler,
+		version:       versionInfo,
+		report:        reporter,
+		reportuse:     reportUsecase,
+		euse:          extensionUsecase,
+		codeSnippetV1: codeSnippetHandler,
 	}
 	return server, nil
 }
@@ -129,18 +132,19 @@ func newServer() (*Server, error) {
 // wire.go:
 
 type Server struct {
-	config      *config.Config
-	web         *web.Web
-	ent         *db.Client
-	logger      *slog.Logger
-	openaiV1    *v1.V1Handler
-	modelV1     *v1_2.ModelHandler
-	userV1      *v1_3.UserHandler
-	dashboardV1 *v1_4.DashboardHandler
-	billingV1   *v1_5.BillingHandler
-	socketH     *handler.SocketHandler
-	version     *version.VersionInfo
-	report      *report.Reporter
-	reportuse   domain.ReportUsecase
-	euse        domain.ExtensionUsecase
+	config        *config.Config
+	web           *web.Web
+	ent           *db.Client
+	logger        *slog.Logger
+	openaiV1      *v1.V1Handler
+	modelV1       *v1_2.ModelHandler
+	userV1        *v1_3.UserHandler
+	dashboardV1   *v1_4.DashboardHandler
+	billingV1     *v1_5.BillingHandler
+	socketH       *handler.SocketHandler
+	version       *version.VersionInfo
+	report        *report.Reporter
+	reportuse     domain.ReportUsecase
+	euse          domain.ExtensionUsecase
+	codeSnippetV1 *v1_6.CodeSnippetHandler
 }
