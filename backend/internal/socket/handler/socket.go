@@ -83,7 +83,7 @@ func (h *SocketHandler) setupEventHandlers() {
 }
 
 func (h *SocketHandler) handleConnection(socket *socketio.Socket) {
-	h.logger.Info("Client connected", "socketId", socket.Id)
+	h.logger.Debug("Client connected", "socketId", socket.Id)
 	h.sendServerStatus(socket, "ready", "Server is ready to receive updates")
 
 	// 注册事件处理器
@@ -102,7 +102,7 @@ func (h *SocketHandler) registerDisconnectHandler(socket *socketio.Socket) {
 				reason = r
 			}
 		}
-		h.logger.Info("Client disconnected", "socketId", socket.Id, "reason", reason)
+		h.logger.Debug("Client disconnected", "socketId", socket.Id, "reason", reason)
 	})
 }
 
@@ -110,9 +110,7 @@ func (h *SocketHandler) registerFileUpdateHandler(socket *socketio.Socket) {
 	socket.On("file:update", func(data *socketio.EventPayload) {
 		h.logger.Debug("Received file:update event",
 			"socketId", socket.Id,
-			"eventName", data.Name,
-			"dataCount", len(data.Data),
-			"hasAck", data.Ack != nil)
+			"dataCount", len(data.Data))
 
 		if len(data.Data) == 0 {
 			h.sendErrorACK(data, "No data provided")
@@ -141,9 +139,8 @@ func (h *SocketHandler) processFileUpdateData(socket *socketio.Socket, data *soc
 
 func (h *SocketHandler) registerTestPingHandler(socket *socketio.Socket) {
 	socket.On("test:ping", func(data *socketio.EventPayload) {
-		h.logger.Info("Received test:ping event",
+		h.logger.Debug("Received test:ping event",
 			"socketId", socket.Id,
-			"hasAck", data.Ack != nil,
 			"dataCount", len(data.Data))
 
 		if len(data.Data) > 0 {
@@ -176,9 +173,8 @@ func (h *SocketHandler) registerHeartbeatHandler(socket *socketio.Socket) {
 
 func (h *SocketHandler) registerWorkspaceStatsHandler(socket *socketio.Socket) {
 	socket.On("workspace:stats", func(data *socketio.EventPayload) {
-		h.logger.Info("Received workspace:stats event",
-			"socketId", socket.Id,
-			"hasAck", data.Ack != nil)
+		h.logger.Debug("Received workspace:stats event",
+			"socketId", socket.Id)
 
 		// Note: GetWorkspaceStats is not in the new interface.
 		// This will need to be implemented or removed.
@@ -187,9 +183,8 @@ func (h *SocketHandler) registerWorkspaceStatsHandler(socket *socketio.Socket) {
 			"status":  "not_implemented",
 			"message": "Workspace stats functionality is not available.",
 		}
-		h.logger.Info("Sending workspace stats ACK",
-			"socketId", socket.Id,
-			"response", response)
+		h.logger.Debug("Sending workspace stats ACK",
+			"socketId", socket.Id)
 
 		if data.Ack != nil {
 			data.Ack(response)
@@ -207,8 +202,7 @@ func (h *SocketHandler) handleFileUpdate(socket *socketio.Socket, data string) i
 		}
 	}
 
-	h.logger.Info("Processing file update",
-		"socketId", socket.Id,
+	h.logger.Debug("Processing file update",
 		"event", updateData.Event,
 		"file", updateData.FilePath)
 
@@ -271,17 +265,11 @@ func (h *SocketHandler) handleFileUpdateFromObject(socket *socketio.Socket, data
 	}
 	if workspacePath, ok := dataMap["workspacePath"].(string); ok {
 		updateData.WorkspacePath = workspacePath
-		h.logger.Debug("Extracted workspacePath from dataMap", "workspacePath", workspacePath)
-	} else {
-		h.logger.Debug("Failed to extract workspacePath from dataMap", "workspacePathType", fmt.Sprintf("%T", dataMap["workspacePath"]), "workspacePathValue", dataMap["workspacePath"])
 	}
 
-	h.logger.Info("Processing file update",
-		"socketId", socket.Id,
+	h.logger.Debug("Processing file update",
 		"event", updateData.Event,
-		"file", updateData.FilePath,
-		"apiKey", updateData.ApiKey,
-		"workspacePath", updateData.WorkspacePath)
+		"file", updateData.FilePath)
 
 	// 立即返回确认收到
 	immediateAck := AckResponse{
@@ -323,7 +311,7 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 		return
 	}
 
-	h.logger.Debug("Workspace ID obtained", "workspaceID", workspaceID, "filePath", updateData.FilePath)
+	// Workspace ID obtained
 
 	switch updateData.Event {
 	case "initial_scan", "added":
@@ -364,12 +352,12 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 					}
 					err = h.workspaceService.GetAndSave(ctx, getAndSaveReq)
 					if err != nil {
-						h.logger.Error("Failed to process file with GetAndSave", "path", updateData.FilePath, "error", err)
+						h.logger.Debug("Failed to process file with GetAndSave", "path", updateData.FilePath, "error", err)
 					}
 
 					finalStatus = "success"
 					message = "File created successfully"
-					h.logger.Info("File created successfully", "path", updateData.FilePath)
+					h.logger.Debug("File created successfully", "path", updateData.FilePath)
 				}
 			} else {
 				// 其他错误
@@ -382,7 +370,7 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 			if existingFile.Hash == updateData.Hash {
 				finalStatus = "success"
 				message = "File is already up-to-date"
-				h.logger.Info("Skipping update for unchanged file", "path", updateData.FilePath)
+				h.logger.Debug("Skipping update for unchanged file", "path", updateData.FilePath)
 			} else {
 				updateReq := &domain.UpdateWorkspaceFileReq{
 					ID:      existingFile.ID,
@@ -397,7 +385,7 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 				} else {
 					finalStatus = "success"
 					message = "File updated successfully"
-					h.logger.Info("File updated successfully", "path", updateData.FilePath)
+					h.logger.Debug("File updated successfully", "path", updateData.FilePath)
 				}
 			}
 		}
@@ -425,7 +413,7 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 		} else {
 			finalStatus = "success"
 			message = "File updated successfully"
-			h.logger.Info("File updated successfully", "path", updateData.FilePath)
+			h.logger.Debug("File updated successfully", "path", updateData.FilePath)
 
 			// 调用GetAndSave处理更新的文件
 			fileExtension := h.getFileExtension(updateData.FilePath)
@@ -446,7 +434,7 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 			}
 			err = h.workspaceService.GetAndSave(ctx, getAndSaveReq)
 			if err != nil {
-				h.logger.Error("Failed to process file with GetAndSave", "path", updateData.FilePath, "error", err)
+				h.logger.Debug("Failed to process file with GetAndSave", "path", updateData.FilePath, "error", err)
 			}
 		}
 
@@ -468,7 +456,7 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 		} else {
 			finalStatus = "success"
 			message = "File deleted successfully"
-			h.logger.Info("File deleted successfully", "path", updateData.FilePath)
+			h.logger.Debug("File deleted successfully", "path", updateData.FilePath)
 		}
 
 	default:
@@ -482,22 +470,17 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 
 // ensureWorkspace ensures that a workspace exists for the given workspacePath
 func (h *SocketHandler) ensureWorkspace(ctx context.Context, userID, workspacePath, filePath string) (string, error) {
-	h.logger.Debug("ensureWorkspace called", "userID", userID, "workspacePath", workspacePath, "filePath", filePath, "workspacePathLength", len(workspacePath))
-
 	if workspacePath != "" {
-		h.logger.Debug("Ensuring workspace for path", "path", workspacePath)
 		// Use EnsureWorkspace to create or update workspace based on path
 		workspace, err := h.workspaceUsecase.EnsureWorkspace(ctx, userID, workspacePath, "")
 		if err != nil {
 			h.logger.Error("Error ensuring workspace", "path", workspacePath, "error", err)
 			return "", fmt.Errorf("failed to ensure workspace: %w", err)
 		}
-		h.logger.Debug("Using existing or created workspace", "workspaceID", workspace.ID, "path", workspacePath)
 		return workspace.ID, nil
 	}
 
 	// If no workspacePath provided, return an error
-	h.logger.Debug("No workspace path provided, returning error")
 	return "", fmt.Errorf("no workspace path provided")
 }
 
@@ -538,9 +521,7 @@ func (h *SocketHandler) handleHeartbeat(socket *socketio.Socket, data string) in
 	}
 
 	// 记录心跳
-	if h.config.Debug {
-		h.logger.Debug("Heartbeat received", "socketId", socket.Id, "clientId", heartbeatData.ClientID)
-	}
+	h.logger.Debug("Heartbeat received", "socketId", socket.Id)
 
 	// 返回心跳响应
 	response := map[string]interface{}{
@@ -610,9 +591,12 @@ func (h *SocketHandler) sendFinalResult(socket *socketio.Socket, updateData File
 		"file":    updateData.FilePath,
 	}
 
+	// 记录发送的最终处理结果
 	h.logger.Debug("Sending final processing result",
 		"socketId", socket.Id,
-		"response", finalResponse)
+		"file", updateData.FilePath,
+		"status", status,
+		"message", message)
 
 	// 使用互斥锁保护Socket写入
 	h.mu.Lock()

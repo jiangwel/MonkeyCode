@@ -84,6 +84,12 @@ func (r *CodeSnippetRepo) ListByWorkspaceFile(ctx context.Context, workspaceFile
 }
 
 func (r *CodeSnippetRepo) GetByID(ctx context.Context, id string) (*db.CodeSnippet, error) {
+	// 检查ID是否为空
+	if id == "" {
+		r.logger.Error("code snippet ID is empty", "id", id)
+		return nil, fmt.Errorf("invalid code snippet ID: empty ID")
+	}
+
 	// 将 id 字符串转换为 UUID
 	uuid, err := uuid.Parse(id)
 	if err != nil {
@@ -102,6 +108,12 @@ func (r *CodeSnippetRepo) GetByID(ctx context.Context, id string) (*db.CodeSnipp
 }
 
 func (r *CodeSnippetRepo) Delete(ctx context.Context, id string) error {
+	// 检查ID是否为空
+	if id == "" {
+		r.logger.Error("code snippet ID is empty", "id", id)
+		return fmt.Errorf("invalid code snippet ID: empty ID")
+	}
+
 	// 将 id 字符串转换为 UUID
 	uuid, err := uuid.Parse(id)
 	if err != nil {
@@ -198,9 +210,10 @@ func (r *CodeSnippetRepo) SearchByWorkspace(ctx context.Context, userID, workspa
 		fileIDs = append(fileIDs, file.ID)
 	}
 
-	// 构建代码片段查询
+	// 构建代码片段查询，包含WorkspaceFile信息
 	query := r.client.CodeSnippet.Query().
-		Where(codesnippet.WorkspaceFileIDIn(fileIDs...))
+		Where(codesnippet.WorkspaceFileIDIn(fileIDs...)).
+		WithSourceFile() // 预加载WorkspaceFile信息
 
 	// 创建一个切片来存储所有谓词
 	var predicates []predicate.CodeSnippet

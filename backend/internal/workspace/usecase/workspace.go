@@ -297,17 +297,31 @@ func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAn
 			return err
 		}
 
-		// 判断是否已经保存了相同的CodeSnippet
-		// 目前不需要更新已有的CodeSnippet
-		if _, err := u.codeSnippetSvc.GetByID(ctx, ""); err != nil {
-			u.logger.Info("code snippet already exists, updating content")
+		// 先删除与该文件关联的所有旧代码片段
+		existingSnippets, err := u.codeSnippetSvc.ListByWorkspaceFile(ctx, file.ID.String())
+		if err != nil {
+			u.logger.Error("failed to list existing code snippets", "error", err, "fileID", file.ID)
+			// 继续处理，不因错误而中断整个流程
 		} else {
-			// 创建新的CodeSnippet
-			_, err = u.codeSnippetSvc.CreateFromIndexResult(ctx, file.ID.String(), &res)
-			if err != nil {
-				u.logger.Error("failed to create code snippet from index result", "error", err, "filePath", res.FilePath)
-				// 继续处理其他结果，不因单个错误而中断整个流程
+			for _, snippet := range existingSnippets {
+				// 检查snippet ID是否为空
+				if snippet.ID == "" {
+					u.logger.Warn("skipping deletion of code snippet with empty ID", "fileID", file.ID)
+					continue
+				}
+				err := u.codeSnippetSvc.Delete(ctx, snippet.ID)
+				if err != nil {
+					u.logger.Error("failed to delete existing code snippet", "error", err, "snippetID", snippet.ID)
+					// 继续处理其他片段，不因单个错误而中断整个流程
+				}
 			}
+		}
+
+		// 创建新的CodeSnippet
+		_, err = u.codeSnippetSvc.CreateFromIndexResult(ctx, file.ID.String(), &res)
+		if err != nil {
+			u.logger.Error("failed to create code snippet from index result", "error", err, "filePath", res.FilePath)
+			// 继续处理其他结果，不因单个错误而中断整个流程
 		}
 	}
 	return nil

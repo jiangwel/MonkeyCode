@@ -135,7 +135,7 @@ func (u *CodeSnippetUsecase) SearchByWorkspace(ctx context.Context, userID, work
 	// 将数据库模型转换为领域模型
 	var snippets []*domain.CodeSnippet
 	for _, dbSnippet := range dbSnippets {
-		snippet := (&domain.CodeSnippet{}).From(dbSnippet)
+		snippet := (&domain.CodeSnippet{}).FromWithFile(dbSnippet)
 		snippets = append(snippets, snippet)
 	}
 

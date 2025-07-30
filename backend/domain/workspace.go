@@ -206,15 +206,15 @@ type FileMeta struct {
 	Content       string           `json:"content"`  // 文件内容（可选）
 }
 type IndexResult struct {
-	Name           string     `json:"name"`
-	Type           string     `json:"type"`
-	FilePath       string     `json:"filePath"`
-	StartLine      int        `json:"startLine"`
-	EndLine        int        `json:"endLine"`
-	RangeText      string     `json:"rangeText"`
-	DefinitionText string     `json:"definitionText"`
-	Scope          []struct{} `json:"scope"`
-	FileHash       string     `json:"fileHash"`
+	Name           string `json:"name"`
+	Type           string `json:"type"`
+	FilePath       string `json:"filePath"`
+	StartLine      int    `json:"startLine"`
+	EndLine        int    `json:"endLine"`
+	RangeText      string `json:"rangeText"`
+	DefinitionText string `json:"definitionText"`
+	Scope          any    `json:"scope"`
+	FileHash       string `json:"fileHash"`
 	Definition     struct {
 		Name       string `json:"name"`
 		Type       string `json:"type"`

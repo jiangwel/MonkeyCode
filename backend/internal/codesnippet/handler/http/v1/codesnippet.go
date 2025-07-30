@@ -48,15 +48,15 @@ type GetContextReq struct {
 	// 单个查询参数
 	Query Query `json:"query,omitempty"` // 单个查询条件
 
-	Limit         int    `json:"limit"`          // 返回结果数量限制，默认10
-	WorkspacePath string `json:"workspace_path"` // 工作区路径（必填）
+	Limit         int    `json:"limit"`         // 返回结果数量限制，默认10
+	WorkspacePath string `json:"workspacePath"` // 工作区路径（必填）
 }
 
 // Query 批量查询条件
 type Query struct {
-	Name     string `json:"name,omitempty"`     // 代码片段名称（可选）
-	Type     string `json:"type,omitempty"`     // 代码片段类型（可选）
-	Language string `json:"language,omitempty"` // 编程语言（可选）
+	Name        string `json:"name,omitempty"`        // 代码片段名称（可选）
+	SnippetType string `json:"snippetType,omitempty"` // 代码片段类型（可选）
+	Language    string `json:"language,omitempty"`    // 编程语言（可选）
 }
 
 // GetContext IDE端上下文检索接口
@@ -72,17 +72,23 @@ type Query struct {
 //	@Router			/api/v1/ide/codesnippet/context [post]
 //	@Security		ApiKeyAuth
 func (h *CodeSnippetHandler) GetContext(c *web.Context, req GetContextReq) error {
+	h.logger.Info("GetContext called", "request", req)
+
 	// 设置默认限制
 	if req.Limit <= 0 {
 		req.Limit = 10
 	}
 	if req.Limit > 50 {
-		req.Limit = 50 // 最大限制50个结果
+		req.Limit = 50
 	}
 
-	// 如果没有提供workspace_path，则返回空结果
-	if req.WorkspacePath == "" {
-		return c.Success([]*domain.CodeSnippet{})
+	// 提取workspacePath变量
+	workspacePath := req.WorkspacePath
+
+	// 如果没有提供workspacePath，则返回错误
+	if workspacePath == "" {
+		h.logger.Warn("Workspace path is required but not provided")
+		return fmt.Errorf("workspacePath is required")
 	}
 
 	// 获取用户ID，主要使用API Key认证
@@ -100,7 +106,7 @@ func (h *CodeSnippetHandler) GetContext(c *web.Context, req GetContextReq) error
 	if len(req.Queries) > 0 {
 		// 执行批量查询
 		for _, query := range req.Queries {
-			snippets, err := h.usecase.SearchByWorkspace(c.Request().Context(), userID, req.WorkspacePath, query.Name, query.Type, query.Language)
+			snippets, err := h.usecase.SearchByWorkspace(c.Request().Context(), userID, workspacePath, query.Name, query.SnippetType, query.Language)
 			if err != nil {
 				h.logger.Error("failed to get context for IDE", "error", err)
 				return err
@@ -109,7 +115,7 @@ func (h *CodeSnippetHandler) GetContext(c *web.Context, req GetContextReq) error
 		}
 	} else {
 		// 执行单个查询
-		snippets, err := h.usecase.SearchByWorkspace(c.Request().Context(), userID, req.WorkspacePath, req.Query.Name, req.Query.Type, req.Query.Language)
+		snippets, err := h.usecase.SearchByWorkspace(c.Request().Context(), userID, workspacePath, req.Query.Name, req.Query.SnippetType, req.Query.Language)
 		if err != nil {
 			h.logger.Error("failed to get context for IDE", "error", err)
 			return err
@@ -121,19 +127,6 @@ func (h *CodeSnippetHandler) GetContext(c *web.Context, req GetContextReq) error
 	if len(allSnippets) > req.Limit {
 		allSnippets = allSnippets[:req.Limit]
 	}
-
-	h.logger.Info("IDE context retrieval completed",
-		"userID", c.Request().Context().Value(logger.UserIDKey{}),
-		"resultCount", len(allSnippets),
-		"filters", map[string]interface{}{
-			"singleQuery": map[string]string{
-				"name":     req.Query.Name,
-				"type":     req.Query.Type,
-				"language": req.Query.Language,
-			},
-			"batchQueryCount": len(req.Queries),
-			"workspace_path":  req.WorkspacePath,
-		})
-
+	h.logger.Info("Returning context for IDE", "count", allSnippets)
 	return c.Success(allSnippets)
 }

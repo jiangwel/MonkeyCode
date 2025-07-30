@@ -3855,15 +3855,12 @@
         "domain.CodeSnippet": {
             "type": "object",
             "properties": {
-                "container_name": {
-                    "description": "容器名称",
-                    "type": "string"
+                "definition": {
+                    "description": "结构化信息",
+                    "type": "object",
+                    "additionalProperties": {}
                 },
-                "content": {
-                    "description": "代码片段内容",
-                    "type": "string"
-                },
-                "definition_text": {
+                "definitionText": {
                     "description": "定义文本",
                     "type": "string"
                 },
@@ -3874,16 +3871,24 @@
                         "type": "string"
                     }
                 },
-                "end_column": {
+                "endColumn": {
                     "description": "结束列号",
                     "type": "integer"
                 },
-                "end_line": {
+                "endLine": {
                     "description": "结束行号",
                     "type": "integer"
                 },
-                "hash": {
+                "field": {
+                    "description": "容器名称",
+                    "type": "string"
+                },
+                "fileHash": {
                     "description": "内容哈希",
+                    "type": "string"
+                },
+                "filePath": {
+                    "description": "文件路径",
                     "type": "string"
                 },
                 "id": {
@@ -3910,6 +3915,10 @@
                         "additionalProperties": {}
                     }
                 },
+                "rangeText": {
+                    "description": "代码片段内容",
+                    "type": "string"
+                },
                 "scope": {
                     "description": "作用域信息",
                     "type": "array",
@@ -3921,22 +3930,17 @@
                     "description": "函数签名",
                     "type": "string"
                 },
-                "snippet_type": {
-                    "description": "代码片段类型",
-                    "type": "string"
-                },
-                "start_column": {
+                "startColumn": {
                     "description": "起始列号",
                     "type": "integer"
                 },
-                "start_line": {
+                "startLine": {
                     "description": "起始行号",
                     "type": "integer"
                 },
-                "structured_info": {
-                    "description": "结构化信息",
-                    "type": "object",
-                    "additionalProperties": {}
+                "type": {
+                    "description": "代码片段类型",
+                    "type": "string"
                 },
                 "workspace_file_id": {
                     "description": "关联的workspace file ID",
@@ -4484,12 +4488,7 @@
                 "rangeText": {
                     "type": "string"
                 },
-                "scope": {
-                    "type": "array",
-                    "items": {
-                        "type": "object"
-                    }
-                },
+                "scope": {},
                 "signature": {
                     "type": "string"
                 },
@@ -5724,7 +5723,7 @@
                         }
                     ]
                 },
-                "workspace_path": {
+                "workspacePath": {
                     "description": "工作区路径（必填）",
                     "type": "string"
                 }
@@ -5741,7 +5740,7 @@
                     "description": "代码片段名称（可选）",
                     "type": "string"
                 },
-                "type": {
+                "snippetType": {
                     "description": "代码片段类型（可选）",
                     "type": "string"
                 }
