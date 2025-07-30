@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"log/slog"
+	"strings"
 
 	"github.com/GoYoko/web"
 
@@ -112,6 +113,7 @@ func (h *ModelHandler) MyModelList(c *web.Context, req domain.MyModelListReq) er
 func (h *ModelHandler) Create(c *web.Context, req domain.CreateModelReq) error {
 	user := middleware.GetAdmin(c)
 	req.UserID = user.ID
+	req.APIBase = strings.TrimSuffix(req.APIBase, "/")
 	m, err := h.usecase.Create(c.Request().Context(), &req)
 	if err != nil {
 		return err
