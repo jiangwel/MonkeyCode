@@ -161,13 +161,17 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 1,
                         "description": "分页",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 10,
                         "description": "每页多少条记录",
                         "name": "size",
                         "in": "query"
@@ -264,13 +268,17 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 1,
                         "description": "分页",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 10,
                         "description": "每页多少条记录",
                         "name": "size",
                         "in": "query"
@@ -524,13 +532,17 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 1,
                         "description": "分页",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 10,
                         "description": "每页多少条记录",
                         "name": "size",
                         "in": "query"
@@ -649,13 +661,17 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 1,
                         "description": "分页",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 10,
                         "description": "每页多少条记录",
                         "name": "size",
                         "in": "query"
@@ -1693,13 +1709,17 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 1,
                         "description": "分页",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 10,
                         "description": "每页多少条记录",
                         "name": "size",
                         "in": "query"
@@ -1830,13 +1850,17 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 1,
                         "description": "分页",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 10,
                         "description": "每页多少条记录",
                         "name": "size",
                         "in": "query"
@@ -2166,13 +2190,17 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 1,
                         "description": "分页",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 10,
                         "description": "每页多少条记录",
                         "name": "size",
                         "in": "query"
@@ -2269,13 +2297,17 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 1,
                         "description": "分页",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 10,
                         "description": "每页多少条记录",
                         "name": "size",
                         "in": "query"
@@ -2681,7 +2713,9 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 1,
                         "description": "分页",
                         "name": "page",
                         "in": "query"
@@ -2693,7 +2727,9 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 10,
                         "description": "每页多少条记录",
                         "name": "size",
                         "in": "query"
@@ -3984,6 +4020,14 @@
                         }
                     ]
                 },
+                "param": {
+                    "description": "高级参数",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.ModelParam"
+                        }
+                    ]
+                },
                 "provider": {
                     "description": "提供商",
                     "enum": [
@@ -4604,6 +4648,14 @@
                     "description": "输出token数",
                     "type": "integer"
                 },
+                "param": {
+                    "description": "高级参数",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.ModelParam"
+                        }
+                    ]
+                },
                 "provider": {
                     "description": "提供商",
                     "allOf": [
@@ -4710,6 +4762,29 @@
                 },
                 "object": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.ModelParam": {
+            "type": "object",
+            "properties": {
+                "context_window": {
+                    "type": "integer"
+                },
+                "max_tokens": {
+                    "type": "integer"
+                },
+                "r1_enabled": {
+                    "type": "boolean"
+                },
+                "support_computer_use": {
+                    "type": "boolean"
+                },
+                "support_images": {
+                    "type": "boolean"
+                },
+                "support_prompt_cache": {
+                    "type": "boolean"
                 }
             }
         },
@@ -5137,6 +5212,14 @@
                 "model_name": {
                     "description": "模型名称",
                     "type": "string"
+                },
+                "param": {
+                    "description": "高级参数",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.ModelParam"
+                        }
+                    ]
                 },
                 "provider": {
                     "description": "提供商",

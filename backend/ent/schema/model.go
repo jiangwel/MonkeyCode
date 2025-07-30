@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/chaitin/MonkeyCode/backend/consts"
+	"github.com/chaitin/MonkeyCode/backend/ent/types"
 )
 
 // Model holds the schema definition for the Model entity.
@@ -42,6 +43,7 @@ func (Model) Fields() []ent.Field {
 		field.Bool("is_internal").Default(false),
 		field.String("provider").GoType(consts.ModelProvider("")),
 		field.String("status").GoType(consts.ModelStatus("")).Default(string(consts.ModelStatusActive)),
+		field.JSON("parameters", &types.ModelParam{}).Optional(),
 		field.Int("context_length").Optional(),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

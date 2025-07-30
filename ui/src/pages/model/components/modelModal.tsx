@@ -15,10 +15,16 @@ import {
   TextField,
   useTheme,
   alpha as addOpacityToColor,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import { Icon, message, Modal } from '@c-x/ui';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 interface AddModelProps {
   open: boolean;
   data: DomainModel | null;
@@ -37,6 +43,13 @@ interface AddModelForm {
   api_header_value: string;
   type: ConstsModelType;
   show_name: string;
+  // 高级设置字段
+  context_window_size: number;
+  max_output_tokens: number;
+  enable_r1_params: boolean;
+  support_image: boolean;
+  support_compute: boolean;
+  support_prompt_caching: boolean;
 }
 
 const titleMap = {
@@ -76,6 +89,13 @@ const ModelAdd = ({
       api_header_key: '',
       api_header_value: '',
       show_name: '',
+      // 高级设置默认值
+      context_window_size: 64000,
+      max_output_tokens: 8192,
+      enable_r1_params: false,
+      support_image: false,
+      support_compute: false,
+      support_prompt_caching: false,
     },
   });
 
@@ -87,6 +107,7 @@ const ModelAdd = ({
   const [modelLoading, setModelLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [expandAdvanced, setExpandAdvanced] = useState(false);
 
   const handleReset = () => {
     onClose();
@@ -99,12 +120,21 @@ const ModelAdd = ({
       api_version: '',
       api_header_key: '',
       api_header_value: '',
+      // 重置高级设置
+      context_window_size: 64000,
+      max_output_tokens: 8192,
+      enable_r1_params: false,
+      support_image: false,
+      support_compute: false,
+      support_prompt_caching: false,
     });
     setModelUserList([]);
     setSuccess(false);
     setLoading(false);
     setModelLoading(false);
     setError('');
+    // 重置高级设置的展开状态
+    setExpandAdvanced(false);
     refresh();
   };
 
@@ -171,6 +201,15 @@ const ModelAdd = ({
             id: data.id,
             provider: value.provider as Exclude<typeof value.provider, 'Other'>,
             show_name: value.show_name,
+            // 添加高级设置字段到 param 对象中
+            param: {
+              context_window: value.context_window_size,
+              max_tokens: value.max_output_tokens,
+              r1_enabled: value.enable_r1_params,
+              support_images: value.support_image,
+              support_computer_use: value.support_compute,
+              support_prompt_cache: value.support_prompt_caching,
+            },
           })
             .then(() => {
               message.success('修改成功');
@@ -188,6 +227,15 @@ const ModelAdd = ({
             api_header: header,
             provider: value.provider as Exclude<typeof value.provider, 'Other'>,
             show_name: value.show_name,
+            // 添加高级设置字段到 param 对象中
+            param: {
+              context_window: value.context_window_size,
+              max_tokens: value.max_output_tokens,
+              r1_enabled: value.enable_r1_params,
+              support_images: value.support_image,
+              support_computer_use: value.support_compute,
+              support_prompt_cache: value.support_prompt_caching,
+            },
           })
             .then(() => {
               message.success('添加成功');
@@ -216,6 +264,12 @@ const ModelAdd = ({
         api_header_value: value.api_header?.split('=')[1] || '',
         type,
         show_name: value.show_name || '',
+        context_window_size: 64000,
+        max_output_tokens: 8192,
+        enable_r1_params: false,
+        support_image: false,
+        support_compute: false,
+        support_prompt_caching: false
       });
     }
     reset({
@@ -228,6 +282,12 @@ const ModelAdd = ({
       api_header_key: value.api_header?.split('=')[0] || '',
       api_header_value: value.api_header?.split('=')[1] || '',
       show_name: value.show_name || '',
+      context_window_size: value.param?.context_window || 64000,
+      max_output_tokens: value.param?.max_tokens || 8192,
+      enable_r1_params: value.param?.r1_enabled || false,
+      support_image: value.param?.support_images || false,
+      support_compute: value.param?.support_computer_use || false,
+      support_prompt_caching: value.param?.support_prompt_cache || false
     });
   };
 
@@ -247,8 +307,17 @@ const ModelAdd = ({
           api_header_key: '',
           api_header_value: '',
           show_name: '',
+          // 高级设置默认值
+          context_window_size: 64000,
+          max_output_tokens: 8192,
+          enable_r1_params: false,
+          support_image: false,
+          support_compute: false,
+          support_prompt_caching: false,
         });
       }
+      // 确保每次打开时高级设置都是折叠的
+      setExpandAdvanced(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, open]);
@@ -322,6 +391,13 @@ const ModelAdd = ({
                     api_header_key: '',
                     api_header_value: '',
                     show_name: '',
+                    // 重置高级设置
+                    context_window_size: 64000,
+                    max_output_tokens: 8192,
+                    enable_r1_params: false,
+                    support_image: false,
+                    support_compute: false,
+                    support_prompt_caching: false,
                   });
                 }
               }}
@@ -589,6 +665,219 @@ const ModelAdd = ({
                   </Stack>
                 </>
               )}
+              
+              {/* 高级设置部分 */}
+              <Box sx={{ mt: 2 }}>
+                <Accordion 
+                  sx={{ 
+                    boxShadow: 'none',
+                    bgcolor: 'transparent',
+                    '&:before': {
+                      display: 'none',
+                    },
+                    '& .MuiAccordionSummary-root': {
+                      padding: 0,
+                      minHeight: 'auto',
+                      '& .MuiAccordionSummary-content': {
+                        margin: 0,
+                      },
+                    },
+                    '& .MuiAccordionDetails-root': {
+                      padding: 0,
+                      paddingTop: 1.5,
+                    },
+                  }}
+                  expanded={expandAdvanced}
+                  onChange={() => setExpandAdvanced(!expandAdvanced)}
+                >
+                  <AccordionSummary
+                    sx={{ 
+                      fontSize: 14, 
+                      fontWeight: 500,
+                      lineHeight: '32px',
+                      color: 'blue',
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        opacity: 0.8,
+                      },
+                    }}
+                  >
+                    高级设置
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Stack spacing={2}>
+                      <Box>
+                        <Box sx={{ fontSize: 14, lineHeight: '32px' }}>
+                          上下文窗口大小
+                        </Box>
+                        <Controller
+                          control={control}
+                          name='context_window_size'
+                          render={({ field }) => (
+                            <>
+                              <TextField
+                                {...field}
+                                fullWidth
+                                size='small'
+                                placeholder='例如：16000'
+                                type='number'
+                              />
+                              <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
+                                {[
+                                  { label: '128k', value: 128000 },
+                                  { label: '256k', value: 256000 },
+                                  { label: '512k', value: 512000 },
+                                  { label: '1m', value: 1_000_000 }
+                                ].map((option) => (
+                                  <Box 
+                                    key={option.label}
+                                    sx={{ 
+                                      fontSize: 12, 
+                                      color: 'blue',
+                                      cursor: 'pointer',
+                                      padding: '2px 4px',
+                                      '&:hover': {
+                                        textDecoration: 'underline'
+                                      }
+                                    }}
+                                    onClick={() => field.onChange(option.value)}
+                                  >
+                                    {option.label}
+                                  </Box>
+                                ))}
+                              </Box>
+                            </>
+                          )}
+                        />
+                      </Box>
+                      
+                      <Box>
+                        <Box sx={{ fontSize: 14, lineHeight: '32px' }}>
+                          最大输出 Token
+                        </Box>
+                        <Controller
+                          control={control}
+                          name='max_output_tokens'
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              size='small'
+                              placeholder='例如：4000'
+                              type='number'
+                            />
+                          )}
+                        />
+                      </Box>
+                      
+                      {/* 复选框组 - 使用更紧凑的布局 */}
+                      <Stack spacing={0}>
+                        <Controller
+                          control={control}
+                          name='enable_r1_params'
+                          render={({ field }) => (
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={field.value}
+                                  onChange={(e) => field.onChange(e.target.checked)}
+                                  size='small'
+                                />
+                              }
+                              label={
+                                <Box sx={{ fontSize: 12 }}>
+                                  启用 R1 模型参数
+                                  <Box component="span" sx={{ ml: 1, color: 'text.secondary', fontSize: 11 }}>
+                                    (使用 QWQ 等 R1 系列模型时必须启用，避免出现 400 错误)
+                                  </Box>
+                                </Box>
+                              }
+                              sx={{ margin: 0 }}
+                            />
+                          )}
+                        />
+                        
+                        <Controller
+                          control={control}
+                          name='support_image'
+                          render={({ field }) => (
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={field.value}
+                                  onChange={(e) => field.onChange(e.target.checked)}
+                                  size='small'
+                                />
+                              }
+                              label={
+                                <Box sx={{ fontSize: 12 }}>
+                                  图像支持
+                                  <Box component="span" sx={{ ml: 1, color: 'text.secondary', fontSize: 11 }}>
+                                    (此模型是否能够处理和理解图像？)
+                                  </Box>
+                                </Box>
+                              }
+                              sx={{ margin: 0 }}
+                            />
+                          )}
+                        />
+                        
+                        <Controller
+                          control={control}
+                          name='support_compute'
+                          render={({ field }) => (
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={field.value}
+                                  onChange={(e) => field.onChange(e.target.checked)}
+                                  size='small'
+                                />
+                              }
+                              label={
+                                <Box sx={{ fontSize: 12 }}>
+                                  计算机功能调用
+                                  <Box component="span" sx={{ ml: 1, color: 'text.secondary', fontSize: 11 }}>
+                                    (此模型是否能够与浏览器交互？)
+                                  </Box>
+                                </Box>
+                              }
+                              sx={{ margin: 0 }}
+                            />
+                          )}
+                        />
+                        
+                        <Controller
+                          control={control}
+                          name='support_prompt_caching'
+                          render={({ field }) => (
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={field.value}
+                                  onChange={(e) => field.onChange(e.target.checked)}
+                                  size='small'
+                                />
+                              }
+                              label={
+                                <Box sx={{ fontSize: 12 }}>
+                                  提示缓存
+                                  <Box component="span" sx={{ ml: 1, color: 'text.secondary', fontSize: 11 }}>
+                                    (此模型是否能够缓存提示？)
+                                  </Box>
+                                </Box>
+                              }
+                              sx={{ margin: 0 }}
+                            />
+                          )}
+                        />
+                      </Stack>
+                    </Stack>
+                  </AccordionDetails>
+                </Accordion>
+              </Box>
             </>
           )}
           {error && (

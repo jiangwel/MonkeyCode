@@ -3,9 +3,10 @@ package openai
 import (
 	"bytes"
 	"context"
+	"html/template"
 	"log/slog"
-	"text/template"
 
+	"github.com/chaitin/MonkeyCode/backend/ent/types"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 
 	"github.com/chaitin/MonkeyCode/backend/config"
@@ -15,16 +16,23 @@ import (
 )
 
 type OpenAIUsecase struct {
-	repo   domain.OpenAIRepo
-	cfg    *config.Config
-	logger *slog.Logger
+	repo      domain.OpenAIRepo
+	modelRepo domain.ModelRepo
+	cfg       *config.Config
+	logger    *slog.Logger
 }
 
-func NewOpenAIUsecase(cfg *config.Config, repo domain.OpenAIRepo, logger *slog.Logger) domain.OpenAIUsecase {
+func NewOpenAIUsecase(
+	cfg *config.Config,
+	repo domain.OpenAIRepo,
+	modelRepo domain.ModelRepo,
+	logger *slog.Logger,
+) domain.OpenAIUsecase {
 	return &OpenAIUsecase{
-		repo:   repo,
-		cfg:    cfg,
-		logger: logger,
+		repo:      repo,
+		modelRepo: modelRepo,
+		cfg:       cfg,
+		logger:    logger,
 	}
 }
 
@@ -53,21 +61,17 @@ func (u *OpenAIUsecase) GetConfig(ctx context.Context, req *domain.ConfigReq) (*
 	if err != nil {
 		return nil, err
 	}
-
-	model, err := u.repo.ModelList(ctx)
+	llm, err := u.modelRepo.GetWithCache(ctx, consts.ModelTypeLLM)
+	if err != nil {
+		return nil, err
+	}
+	coder, err := u.modelRepo.GetWithCache(ctx, consts.ModelTypeCoder)
 	if err != nil {
 		return nil, err
 	}
 
-	chatModel := ""
-	codeModel := ""
-	for _, m := range model {
-		switch m.ModelType {
-		case consts.ModelTypeLLM:
-			chatModel = m.ModelName
-		case consts.ModelTypeCoder:
-			codeModel = m.ModelName
-		}
+	if llm.Parameters == nil {
+		llm.Parameters = types.DefaultModelParam()
 	}
 
 	t, err := template.New("config").Parse(string(config.ConfigTmpl))
@@ -75,13 +79,21 @@ func (u *OpenAIUsecase) GetConfig(ctx context.Context, req *domain.ConfigReq) (*
 		return nil, err
 	}
 
+	u.logger.With("param", llm.Parameters).DebugContext(ctx, "get config")
 	cnt := bytes.NewBuffer(nil)
-	if err := t.Execute(cnt, map[string]string{
-		"apiBase":   req.BaseURL,
-		"apikey":    apiKey.Key,
-		"chatModel": chatModel,
-		"codeModel": codeModel,
-	}); err != nil {
+	data := map[string]any{
+		"apiBase":             req.BaseURL,
+		"apikey":              apiKey.Key,
+		"chatModel":           llm.ModelName,
+		"codeModel":           coder.ModelName,
+		"r1Enabled":           llm.Parameters.R1Enabled,
+		"maxTokens":           llm.Parameters.MaxTokens,
+		"contextWindow":       llm.Parameters.ContextWindow,
+		"supportsImages":      llm.Parameters.SupprtImages,
+		"supportsComputerUse": llm.Parameters.SupportComputerUse,
+		"supportsPromptCache": llm.Parameters.SupportPromptCache,
+	}
+	if err := t.Execute(cnt, data); err != nil {
 		return nil, err
 	}
 

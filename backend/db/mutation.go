@@ -8213,6 +8213,7 @@ type ModelMutation struct {
 	is_internal       *bool
 	provider          *consts.ModelProvider
 	status            *consts.ModelStatus
+	parameters        **types.ModelParam
 	context_length    *int
 	addcontext_length *int
 	created_at        *time.Time
@@ -8829,6 +8830,55 @@ func (m *ModelMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetParameters sets the "parameters" field.
+func (m *ModelMutation) SetParameters(tp *types.ModelParam) {
+	m.parameters = &tp
+}
+
+// Parameters returns the value of the "parameters" field in the mutation.
+func (m *ModelMutation) Parameters() (r *types.ModelParam, exists bool) {
+	v := m.parameters
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParameters returns the old "parameters" field's value of the Model entity.
+// If the Model object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelMutation) OldParameters(ctx context.Context) (v *types.ModelParam, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParameters is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParameters requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParameters: %w", err)
+	}
+	return oldValue.Parameters, nil
+}
+
+// ClearParameters clears the value of the "parameters" field.
+func (m *ModelMutation) ClearParameters() {
+	m.parameters = nil
+	m.clearedFields[model.FieldParameters] = struct{}{}
+}
+
+// ParametersCleared returns if the "parameters" field was cleared in this mutation.
+func (m *ModelMutation) ParametersCleared() bool {
+	_, ok := m.clearedFields[model.FieldParameters]
+	return ok
+}
+
+// ResetParameters resets all changes to the "parameters" field.
+func (m *ModelMutation) ResetParameters() {
+	m.parameters = nil
+	delete(m.clearedFields, model.FieldParameters)
+}
+
 // SetContextLength sets the "context_length" field.
 func (m *ModelMutation) SetContextLength(i int) {
 	m.context_length = &i
@@ -9086,7 +9136,7 @@ func (m *ModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ModelMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 16)
 	if m.user != nil {
 		fields = append(fields, model.FieldUserID)
 	}
@@ -9122,6 +9172,9 @@ func (m *ModelMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, model.FieldStatus)
+	}
+	if m.parameters != nil {
+		fields = append(fields, model.FieldParameters)
 	}
 	if m.context_length != nil {
 		fields = append(fields, model.FieldContextLength)
@@ -9164,6 +9217,8 @@ func (m *ModelMutation) Field(name string) (ent.Value, bool) {
 		return m.Provider()
 	case model.FieldStatus:
 		return m.Status()
+	case model.FieldParameters:
+		return m.Parameters()
 	case model.FieldContextLength:
 		return m.ContextLength()
 	case model.FieldCreatedAt:
@@ -9203,6 +9258,8 @@ func (m *ModelMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldProvider(ctx)
 	case model.FieldStatus:
 		return m.OldStatus(ctx)
+	case model.FieldParameters:
+		return m.OldParameters(ctx)
 	case model.FieldContextLength:
 		return m.OldContextLength(ctx)
 	case model.FieldCreatedAt:
@@ -9302,6 +9359,13 @@ func (m *ModelMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case model.FieldParameters:
+		v, ok := value.(*types.ModelParam)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParameters(v)
+		return nil
 	case model.FieldContextLength:
 		v, ok := value.(int)
 		if !ok {
@@ -9383,6 +9447,9 @@ func (m *ModelMutation) ClearedFields() []string {
 	if m.FieldCleared(model.FieldDescription) {
 		fields = append(fields, model.FieldDescription)
 	}
+	if m.FieldCleared(model.FieldParameters) {
+		fields = append(fields, model.FieldParameters)
+	}
 	if m.FieldCleared(model.FieldContextLength) {
 		fields = append(fields, model.FieldContextLength)
 	}
@@ -9414,6 +9481,9 @@ func (m *ModelMutation) ClearField(name string) error {
 		return nil
 	case model.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case model.FieldParameters:
+		m.ClearParameters()
 		return nil
 	case model.FieldContextLength:
 		m.ClearContextLength()
@@ -9461,6 +9531,9 @@ func (m *ModelMutation) ResetField(name string) error {
 		return nil
 	case model.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case model.FieldParameters:
+		m.ResetParameters()
 		return nil
 	case model.FieldContextLength:
 		m.ResetContextLength()

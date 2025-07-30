@@ -10,6 +10,24 @@
  * ---------------------------------------------------------------
  */
 
+export enum DomainCodeLanguageType {
+  CodeLanguageTypeGo = "go",
+  CodeLanguageTypePython = "python",
+  CodeLanguageTypeJava = "java",
+  CodeLanguageTypeJavaScript = "javascript",
+  CodeLanguageTypeTypeScript = "typescript",
+  CodeLanguageTypeJSX = "jsx",
+  CodeLanguageTypeTSX = "tsx",
+  CodeLanguageTypeHTML = "html",
+  CodeLanguageTypeCSS = "css",
+  CodeLanguageTypePHP = "php",
+  CodeLanguageTypeRust = "rust",
+  CodeLanguageTypeSwift = "swift",
+  CodeLanguageTypeKotlin = "kotlin",
+  CodeLanguageTypeC = "c",
+  CodeLanguageTypeCpp = "cpp",
+}
+
 export enum ConstsUserStatus {
   UserStatusActive = "active",
   UserStatusInactive = "inactive",
@@ -27,6 +45,9 @@ export enum ConstsReportAction {
   ReportActionSuggest = "suggest",
   ReportActionFileWritten = "file_written",
   ReportActionReject = "reject",
+  ReportActionNewTask = "new_task",
+  ReportActionFeedbackTask = "feedback_task",
+  ReportActionAbortTask = "abort_task",
 }
 
 export enum ConstsModelType {
@@ -109,6 +130,20 @@ export interface DomainAllModelResp {
   providers?: DomainProviderModel[];
 }
 
+export interface DomainBatchCreateWorkspaceFileReq {
+  /** 文件列表 */
+  files: DomainCreateWorkspaceFileReq[];
+  /** 用户ID */
+  user_id: string;
+  /** 工作区ID */
+  workspace_id: string;
+}
+
+export interface DomainBatchUpdateWorkspaceFileReq {
+  /** 文件列表 */
+  files: DomainUpdateWorkspaceFileReq[];
+}
+
 export interface DomainCategoryPoint {
   /** 分类 */
   category?: string;
@@ -127,7 +162,7 @@ export interface DomainChatContent {
   /** 内容 */
   content?: string;
   created_at?: number;
-  /** 角色，如user: 用户的提问 assistant: 机器人回复 */
+  /** 角色，如user: 用户的提问 assistant: 机器人回复 system: 系统消息 */
   role?: ConstsChatRole;
 }
 
@@ -168,6 +203,10 @@ export interface DomainCheckModelReq {
   /** 提供商 */
   provider: ConstsModelProvider;
   type: "llm" | "coder" | "embedding" | "rerank";
+}
+
+export interface DomainCodeFiles {
+  files?: DomainFileMeta[];
 }
 
 export interface DomainCompletionData {
@@ -255,6 +294,8 @@ export interface DomainCreateModelReq {
   model_name: string;
   /** 模型类型 llm:对话模型 coder:代码模型 */
   model_type?: ConstsModelType;
+  /** 高级参数 */
+  param?: DomainModelParam;
   /** 提供商 */
   provider:
     | "SiliconFlow"
@@ -270,6 +311,23 @@ export interface DomainCreateModelReq {
     | "Other";
   /** 模型显示名称 */
   show_name?: string;
+}
+
+export interface DomainCreateWorkspaceFileReq {
+  /** 文件内容 */
+  content?: string;
+  /** 文件哈希 */
+  hash: string;
+  /** 编程语言 */
+  language?: string;
+  /** 文件路径 */
+  path: string;
+  /** 文件大小 */
+  size?: number;
+  /** 用户ID */
+  user_id: string;
+  /** 工作区ID */
+  workspace_id: string;
 }
 
 export interface DomainCustomOAuth {
@@ -347,6 +405,26 @@ export interface DomainExportCompletionDataResp {
   total_count?: number;
 }
 
+export interface DomainFileMeta {
+  /** 文件内容（可选） */
+  content?: string;
+  fileExtension?: string;
+  /** 文件哈希（可选） */
+  fileHash?: string;
+  filePath?: string;
+  /** 语言类型（可选） */
+  language?: DomainCodeLanguageType;
+}
+
+export interface DomainGetAndSaveReq {
+  /** 代码文件信息 */
+  code_files: DomainFileMeta[];
+  /** 用户ID */
+  user_id: string;
+  /** 项目ID */
+  workspace_id: string;
+}
+
 export interface DomainGetProviderModelListResp {
   models?: DomainProviderModelListItem[];
 }
@@ -364,6 +442,26 @@ export interface DomainIPInfo {
   isp?: string;
   /** 省份 */
   province?: string;
+}
+
+export interface DomainIndexResult {
+  definition?: {
+    name?: string;
+    returnType?: string;
+    type?: string;
+  };
+  definitionText?: string;
+  endLine?: number;
+  fileHash?: string;
+  filePath?: string;
+  implementText?: string;
+  language?: string;
+  name?: string;
+  rangeText?: string;
+  scope?: Record<string, any>[];
+  signature?: string;
+  startLine?: number;
+  type?: string;
 }
 
 export interface DomainInviteResp {
@@ -413,6 +511,13 @@ export interface DomainListUserResp {
   users?: DomainUser[];
 }
 
+export interface DomainListWorkspaceFileResp {
+  files?: DomainWorkspaceFile[];
+  has_next_page?: boolean;
+  next_token?: string;
+  total_count?: number;
+}
+
 export interface DomainLoginReq {
   /** 密码 */
   password?: string;
@@ -459,6 +564,8 @@ export interface DomainModel {
   model_type?: ConstsModelType;
   /** 输出token数 */
   output?: number;
+  /** 高级参数 */
+  param?: DomainModelParam;
   /** 提供商 */
   provider?: ConstsModelProvider;
   /** 模型显示名称 */
@@ -504,6 +611,15 @@ export interface DomainModelData {
 export interface DomainModelListResp {
   data?: DomainModelData[];
   object?: string;
+}
+
+export interface DomainModelParam {
+  context_window?: number;
+  max_tokens?: number;
+  r1_enabled?: boolean;
+  support_computer_use?: boolean;
+  support_images?: boolean;
+  support_prompt_cache?: boolean;
 }
 
 export interface DomainModelTokenUsage {
@@ -569,6 +685,8 @@ export interface DomainReportReq {
   cursor_position?: Record<string, any>;
   /** task_id or resp_id */
   id?: string;
+  /** 模式 */
+  mode?: string;
   /** 当前文件的原文（用于reject action） */
   source_code?: string;
   /** 工具 */
@@ -601,6 +719,26 @@ export interface DomainStatistics {
   disabled_users?: number;
   /** 总用户数 */
   total_users?: number;
+}
+
+export interface DomainSyncWorkspaceFileReq {
+  /** 要同步的文件列表 */
+  files: DomainCreateWorkspaceFileReq[];
+  /** 用户ID */
+  user_id: string;
+  /** 工作区ID */
+  workspace_id: string;
+}
+
+export interface DomainSyncWorkspaceFileResp {
+  /** 新创建的文件 */
+  created?: DomainWorkspaceFile[];
+  /** 删除的文件ID */
+  deleted?: string[];
+  /** 处理的文件总数 */
+  total?: number;
+  /** 更新的文件 */
+  updated?: DomainWorkspaceFile[];
 }
 
 export interface DomainTimeStat {
@@ -669,6 +807,8 @@ export interface DomainUpdateModelReq {
   id?: string;
   /** 模型名称 */
   model_name?: string;
+  /** 高级参数 */
+  param?: DomainModelParam;
   /** 提供商 */
   provider:
     | "SiliconFlow"
@@ -710,6 +850,19 @@ export interface DomainUpdateUserReq {
   password?: string;
   /** 用户状态 active: 正常 locked: 锁定 inactive: 禁用 */
   status?: ConstsUserStatus;
+}
+
+export interface DomainUpdateWorkspaceFileReq {
+  /** 文件内容 */
+  content?: string;
+  /** 文件哈希 */
+  hash?: string;
+  /** 文件ID */
+  id: string;
+  /** 编程语言 */
+  language?: string;
+  /** 文件大小 */
+  size?: number;
 }
 
 export interface DomainUser {
@@ -819,6 +972,29 @@ export interface DomainUserStat {
   work_mode?: DomainCategoryPoint[];
 }
 
+export interface DomainWorkspaceFile {
+  /** 文件内容 */
+  content?: string;
+  /** 创建时间 */
+  created_at?: number;
+  /** 文件哈希 */
+  hash?: string;
+  /** 文件ID */
+  id?: string;
+  /** 编程语言 */
+  language?: string;
+  /** 文件路径 */
+  path?: string;
+  /** 文件大小 */
+  size?: number;
+  /** 更新时间 */
+  updated_at?: number;
+  /** 用户ID */
+  user_id?: string;
+  /** 工作区ID */
+  workspace_id?: string;
+}
+
 export interface WebResp {
   code?: number;
   data?: unknown;
@@ -833,18 +1009,34 @@ export interface DeleteDeleteAdminParams {
 export interface GetListAdminUserParams {
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
 export interface GetAdminLoginHistoryParams {
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
@@ -862,9 +1054,17 @@ export interface GetListChatRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
@@ -884,12 +1084,27 @@ export interface GetListCompletionRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
+}
+
+export interface V1CliCreateParams {
+  /** 标志 */
+  flag?: string;
+  /** 命令 */
+  command: string;
 }
 
 export interface GetCategoryStatDashboardParams {
@@ -1029,9 +1244,17 @@ export interface GetUserListChatRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
@@ -1051,9 +1274,17 @@ export interface GetUserListCompletionRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
@@ -1101,18 +1332,34 @@ export interface DeleteDeleteUserParams {
 export interface GetListUserParams {
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
 export interface GetLoginHistoryParams {
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
@@ -1135,4 +1382,38 @@ export interface GetUserOauthSignupOrInParams {
    * @default "plugin"
    */
   source: "plugin" | "browser";
+}
+
+export interface GetListWorkspaceFilesParams {
+  /** 编程语言筛选 */
+  language?: string;
+  /** 下一页标识 */
+  next_token?: string;
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
+  page?: number;
+  /** 搜索关键词（文件路径） */
+  search?: string;
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
+  size?: number;
+  /** 用户ID */
+  user_id?: string;
+  /** 工作区ID */
+  workspace_id?: string;
+}
+
+export interface GetGetWorkspaceFileByPathParams {
+  /** 用户ID */
+  user_id?: string;
+  /** 项目ID */
+  project_id: string;
+  /** 文件路径 */
+  path: string;
 }
