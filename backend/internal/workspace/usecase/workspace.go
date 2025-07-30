@@ -134,6 +134,11 @@ func (u *WorkspaceUsecase) Delete(ctx context.Context, id string) error {
 }
 
 func (u *WorkspaceUsecase) EnsureWorkspace(ctx context.Context, userID, rootPath, name string) (*domain.Workspace, error) {
+	// 自动生成工作区名称（如果未提供）
+	if name == "" {
+		name = u.generateWorkspaceName(rootPath)
+	}
+
 	// 首先尝试获取已存在的工作区
 	workspace, err := u.repo.GetByUserAndPath(ctx, userID, rootPath)
 	if err == nil {
@@ -153,20 +158,48 @@ func (u *WorkspaceUsecase) EnsureWorkspace(ctx context.Context, userID, rootPath
 		return nil, fmt.Errorf("failed to check workspace existence: %w", err)
 	}
 
-	// 自动生成工作区名称（如果未提供）
-	if name == "" {
-		name = u.generateWorkspaceName(rootPath)
+	// 使用重试机制来处理并发创建的情况
+	maxRetries := 3
+	for i := range maxRetries {
+		createReq := &domain.CreateWorkspaceReq{
+			UserID:      userID,
+			Name:        name,
+			Description: fmt.Sprintf("Auto-created workspace for %s", rootPath),
+			RootPath:    rootPath,
+			Settings:    map[string]any{},
+		}
+
+		workspace, err := u.Create(ctx, createReq)
+		if err == nil {
+			return workspace, nil
+		}
+
+		// 如果是唯一约束错误，说明工作区已经被其他请求创建了
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			// 等待一小段时间，然后尝试获取已创建的工作区
+			time.Sleep(10 * time.Millisecond)
+
+			existing, err := u.repo.GetByUserAndPath(ctx, userID, rootPath)
+			if err == nil {
+				// 更新最后访问时间
+				updated, err := u.repo.Update(ctx, existing.ID.String(), func(up *db.WorkspaceUpdateOne) error {
+					up.SetLastAccessedAt(time.Now())
+					return nil
+				})
+				if err != nil {
+					u.logger.Warn("failed to update workspace last accessed time", "error", err, "id", existing.ID)
+				}
+				return (&domain.Workspace{}).From(updated), nil
+			}
+		}
+
+		// 如果不是唯一约束错误，直接返回错误
+		if i == maxRetries-1 {
+			return nil, err
+		}
 	}
 
-	createReq := &domain.CreateWorkspaceReq{
-		UserID:      userID,
-		Name:        name,
-		Description: fmt.Sprintf("Auto-created workspace for %s", rootPath),
-		RootPath:    rootPath,
-		Settings:    map[string]any{},
-	}
-
-	return u.Create(ctx, createReq)
+	return nil, fmt.Errorf("failed to create workspace after %d retries", maxRetries)
 }
 
 func (u *WorkspaceUsecase) generateWorkspaceName(rootPath string) string {

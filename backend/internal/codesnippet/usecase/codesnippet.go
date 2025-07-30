@@ -31,7 +31,7 @@ func (u *CodeSnippetUsecase) CreateFromIndexResult(ctx context.Context, workspac
 		Name:            indexResult.Name,
 		SnippetType:     indexResult.Type,
 		Language:        indexResult.Language,
-		Content:         indexResult.RangeText,
+		Content:         indexResult.ImplementText,
 		Hash:            indexResult.FileHash,
 		StartLine:       indexResult.StartLine,
 		EndLine:         indexResult.EndLine,
