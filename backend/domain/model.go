@@ -124,6 +124,27 @@ type CreateModelReq struct {
 	APIVersion string               `json:"api_version"`
 	APIHeader  string               `json:"api_header"`
 	ModelType  consts.ModelType     `json:"model_type"` // 模型类型 llm:对话模型 coder:代码模型
+	Param      *ModelParam          `json:"param"`      // 高级参数
+}
+
+type ModelParam struct {
+	R1Enabled          bool `json:"r1_enabled"`
+	MaxTokens          int  `json:"max_tokens"`
+	ContextWindow      int  `json:"context_window"`
+	SupprtImages       bool `json:"support_images"`
+	SupportComputerUse bool `json:"support_computer_use"`
+	SupportPromptCache bool `json:"support_prompt_cache"`
+}
+
+func DefaultModelParam() *ModelParam {
+	return &ModelParam{
+		R1Enabled:          false,
+		MaxTokens:          8192,
+		ContextWindow:      64000,
+		SupprtImages:       false,
+		SupportComputerUse: false,
+		SupportPromptCache: false,
+	}
 }
 
 type UpdateModelReq struct {
@@ -135,7 +156,8 @@ type UpdateModelReq struct {
 	APIKey     *string               `json:"api_key"`                                                                                                                                 // 接口密钥 如：sk-xxxx
 	APIVersion *string               `json:"api_version"`
 	APIHeader  *string               `json:"api_header"`
-	Status     *consts.ModelStatus   `json:"status"` // 状态 active:启用 inactive:禁用
+	Status     *consts.ModelStatus   `json:"status"`          // 状态 active:启用 inactive:禁用
+	Param      *ModelParam           `json:"param,omitempty"` // 高级参数
 }
 
 type ModelTokenUsageResp struct {
@@ -176,6 +198,7 @@ type Model struct {
 	IsActive   bool                 `json:"is_active"`   // 是否启用
 	Input      int64                `json:"input"`       // 输入token数
 	Output     int64                `json:"output"`      // 输出token数
+	Param      ModelParam           `json:"param"`       // 高级参数
 	IsInternal bool                 `json:"is_internal"` // 是否内部模型
 	CreatedAt  int64                `json:"created_at"`  // 创建时间
 	UpdatedAt  int64                `json:"updated_at"`  // 更新时间
@@ -198,6 +221,16 @@ func (m *Model) From(e *db.Model) *Model {
 	m.Status = e.Status
 	m.IsInternal = e.IsInternal
 	m.IsActive = e.Status == consts.ModelStatusActive
+	if p := e.Parameters; p != nil {
+		m.Param = ModelParam{
+			R1Enabled:          p.R1Enabled,
+			MaxTokens:          p.MaxTokens,
+			ContextWindow:      p.ContextWindow,
+			SupprtImages:       p.SupprtImages,
+			SupportComputerUse: p.SupportComputerUse,
+			SupportPromptCache: p.SupportPromptCache,
+		}
+	}
 	m.CreatedAt = e.CreatedAt.Unix()
 	m.UpdatedAt = e.UpdatedAt.Unix()
 

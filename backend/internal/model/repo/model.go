@@ -15,6 +15,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/domain"
+	"github.com/chaitin/MonkeyCode/backend/ent/types"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 	"github.com/chaitin/MonkeyCode/backend/pkg/entx"
 )
@@ -62,7 +63,7 @@ func (r *ModelRepo) Create(ctx context.Context, m *domain.CreateModelReq) (*db.M
 	}
 
 	r.cache.Delete(string(m.ModelType))
-	return r.db.Model.Create().
+	create := r.db.Model.Create().
 		SetUserID(uid).
 		SetShowName(m.ShowName).
 		SetModelName(m.ModelName).
@@ -72,8 +73,20 @@ func (r *ModelRepo) Create(ctx context.Context, m *domain.CreateModelReq) (*db.M
 		SetAPIVersion(m.APIVersion).
 		SetAPIHeader(m.APIHeader).
 		SetModelType(m.ModelType).
-		SetStatus(status).
-		Save(ctx)
+		SetStatus(status)
+	if m.Param != nil {
+		create.SetParameters(&types.ModelParam{
+			R1Enabled:          m.Param.R1Enabled,
+			MaxTokens:          m.Param.MaxTokens,
+			ContextWindow:      m.Param.ContextWindow,
+			SupprtImages:       m.Param.SupprtImages,
+			SupportComputerUse: m.Param.SupportComputerUse,
+			SupportPromptCache: m.Param.SupportPromptCache,
+		})
+	} else {
+		create.SetParameters(types.DefaultModelParam())
+	}
+	return create.Save(ctx)
 }
 
 func (r *ModelRepo) Update(ctx context.Context, id string, fn func(tx *db.Tx, old *db.Model, up *db.ModelUpdateOne) error) (*db.Model, error) {

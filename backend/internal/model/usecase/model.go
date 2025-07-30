@@ -21,6 +21,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/domain"
+	"github.com/chaitin/MonkeyCode/backend/ent/types"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
 	"github.com/chaitin/MonkeyCode/backend/pkg/request"
 )
@@ -206,6 +207,7 @@ func (m *ModelUsecase) GetTokenUsage(ctx context.Context, modelType consts.Model
 
 // Update implements domain.ModelUsecase.
 func (m *ModelUsecase) Update(ctx context.Context, req *domain.UpdateModelReq) (*domain.Model, error) {
+	m.logger.With("req", req).With("param", req.Param).DebugContext(ctx, "update model")
 	model, err := m.repo.Update(ctx, req.ID, func(tx *db.Tx, old *db.Model, up *db.ModelUpdateOne) error {
 		if req.ModelName != nil {
 			up.SetModelName(*req.ModelName)
@@ -239,6 +241,16 @@ func (m *ModelUsecase) Update(ctx context.Context, req *domain.UpdateModelReq) (
 			}
 			up.SetStatus(*req.Status)
 		}
+		if req.Param != nil {
+			up.SetParameters(&types.ModelParam{
+				R1Enabled:          req.Param.R1Enabled,
+				MaxTokens:          req.Param.MaxTokens,
+				ContextWindow:      req.Param.ContextWindow,
+				SupprtImages:       req.Param.SupprtImages,
+				SupportComputerUse: req.Param.SupportComputerUse,
+				SupportPromptCache: req.Param.SupportPromptCache,
+			})
+		}
 		return nil
 	})
 	if err != nil {
@@ -262,6 +274,9 @@ func (m *ModelUsecase) getQuery(req *domain.GetProviderModelListReq) request.Que
 	}
 	q["type"] = "text"
 	q["sub_type"] = string(req.Type)
+	if req.Type == consts.ModelTypeLLM {
+		q["sub_type"] = "chat"
+	}
 	// 硅基流动不支持coder sub_type
 	if req.Provider == consts.ModelProviderSiliconFlow && req.Type == consts.ModelTypeCoder {
 		q["sub_type"] = "chat"
@@ -289,6 +304,7 @@ func (m *ModelUsecase) GetProviderModelList(ctx context.Context, req *domain.Get
 		}
 		u.Path = path.Join(u.Path, "/models")
 		client := request.NewClient(u.Scheme, u.Host, m.client.Timeout, request.WithClient(m.client))
+		client.SetDebug(m.cfg.Debug)
 		query := m.getQuery(req)
 		resp, err := request.Get[domain.OpenAIResp](
 			client, u.Path,

@@ -249,6 +249,7 @@ var (
 		{Name: "is_internal", Type: field.TypeBool, Default: false},
 		{Name: "provider", Type: field.TypeString},
 		{Name: "status", Type: field.TypeString, Default: "active"},
+		{Name: "parameters", Type: field.TypeJSON, Nullable: true},
 		{Name: "context_length", Type: field.TypeInt, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -262,7 +263,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "models_users_models",
-				Columns:    []*schema.Column{ModelsColumns[15]},
+				Columns:    []*schema.Column{ModelsColumns[16]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

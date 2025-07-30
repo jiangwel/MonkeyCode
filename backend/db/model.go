@@ -3,6 +3,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
+	"github.com/chaitin/MonkeyCode/backend/ent/types"
 	"github.com/google/uuid"
 )
 
@@ -44,6 +46,8 @@ type Model struct {
 	Provider consts.ModelProvider `json:"provider,omitempty"`
 	// Status holds the value of the "status" field.
 	Status consts.ModelStatus `json:"status,omitempty"`
+	// Parameters holds the value of the "parameters" field.
+	Parameters *types.ModelParam `json:"parameters,omitempty"`
 	// ContextLength holds the value of the "context_length" field.
 	ContextLength int `json:"context_length,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -92,6 +96,8 @@ func (*Model) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case model.FieldParameters:
+			values[i] = new([]byte)
 		case model.FieldIsInternal:
 			values[i] = new(sql.NullBool)
 		case model.FieldContextLength:
@@ -195,6 +201,14 @@ func (m *Model) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.Status = consts.ModelStatus(value.String)
 			}
+		case model.FieldParameters:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field parameters", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &m.Parameters); err != nil {
+					return fmt.Errorf("unmarshal field parameters: %w", err)
+				}
+			}
 		case model.FieldContextLength:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field context_length", values[i])
@@ -294,6 +308,9 @@ func (m *Model) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("parameters=")
+	builder.WriteString(fmt.Sprintf("%v", m.Parameters))
 	builder.WriteString(", ")
 	builder.WriteString("context_length=")
 	builder.WriteString(fmt.Sprintf("%v", m.ContextLength))

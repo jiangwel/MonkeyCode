@@ -19,3 +19,23 @@ type CustomOAuth struct {
 	AvatarField    string   `json:"avatar_field"`     // 用户信息回包中的头像URL字段名`
 	EmailField     string   `json:"email_field"`      // 用户信息回包中的邮箱字段名
 }
+
+type ModelParam struct {
+	R1Enabled          bool `json:"r1_enabled"`
+	MaxTokens          int  `json:"max_tokens"`
+	ContextWindow      int  `json:"context_window"`
+	SupprtImages       bool `json:"support_images"`
+	SupportComputerUse bool `json:"support_computer_use"`
+	SupportPromptCache bool `json:"support_prompt_cache"`
+}
+
+func DefaultModelParam() *ModelParam {
+	return &ModelParam{
+		R1Enabled:          false,
+		MaxTokens:          8192,
+		ContextWindow:      64000,
+		SupprtImages:       false,
+		SupportComputerUse: false,
+		SupportPromptCache: false,
+	}
+}
