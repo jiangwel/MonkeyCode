@@ -4,7 +4,7 @@ go 1.23.7
 
 require (
 	entgo.io/ent v0.14.4
-	github.com/GoYoko/web v1.1.0
+	github.com/GoYoko/web v1.3.0
 	github.com/cloudwego/eino v0.3.51
 	github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250710065240-482d48888f25
 	github.com/doquangtan/socket.io/v4 v4.0.8
