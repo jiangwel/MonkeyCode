@@ -95,7 +95,7 @@ const CardServiceSettings = () => {
               borderRadius: '2px',
               mr: 1,
             },
-          }}>MonkeyCode 服务链接地址</Box>
+          }}>MonkeyCode 服务连接地址</Box>
           {hasValueChanged && <Button variant="contained" size="small" onClick={handleSave}>保存</Button>}
         </Stack>
         <Box sx={{ m: 2 }}>
