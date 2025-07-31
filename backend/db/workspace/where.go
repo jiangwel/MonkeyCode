@@ -502,6 +502,29 @@ func HasFilesWith(preds ...predicate.WorkspaceFile) predicate.Workspace {
 	})
 }
 
+// HasSecurityScannings applies the HasEdge predicate on the "security_scannings" edge.
+func HasSecurityScannings() predicate.Workspace {
+	return predicate.Workspace(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SecurityScanningsTable, SecurityScanningsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSecurityScanningsWith applies the HasEdge predicate on the "security_scannings" edge with a given conditions (other predicates).
+func HasSecurityScanningsWith(preds ...predicate.SecurityScanning) predicate.Workspace {
+	return predicate.Workspace(func(s *sql.Selector) {
+		step := newSecurityScanningsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Workspace) predicate.Workspace {
 	return predicate.Workspace(sql.AndPredicates(predicates...))

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanning"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/workspace"
 	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
@@ -144,6 +145,21 @@ func (wc *WorkspaceCreate) AddFiles(w ...*WorkspaceFile) *WorkspaceCreate {
 		ids[i] = w[i].ID
 	}
 	return wc.AddFileIDs(ids...)
+}
+
+// AddSecurityScanningIDs adds the "security_scannings" edge to the SecurityScanning entity by IDs.
+func (wc *WorkspaceCreate) AddSecurityScanningIDs(ids ...uuid.UUID) *WorkspaceCreate {
+	wc.mutation.AddSecurityScanningIDs(ids...)
+	return wc
+}
+
+// AddSecurityScannings adds the "security_scannings" edges to the SecurityScanning entity.
+func (wc *WorkspaceCreate) AddSecurityScannings(s ...*SecurityScanning) *WorkspaceCreate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return wc.AddSecurityScanningIDs(ids...)
 }
 
 // Mutation returns the WorkspaceMutation object of the builder.
@@ -310,6 +326,22 @@ func (wc *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(workspacefile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wc.mutation.SecurityScanningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.SecurityScanningsTable,
+			Columns: []string{workspace.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

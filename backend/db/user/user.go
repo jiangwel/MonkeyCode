@@ -48,6 +48,8 @@ const (
 	EdgeWorkspaceFiles = "workspace_files"
 	// EdgeAPIKeys holds the string denoting the api_keys edge name in mutations.
 	EdgeAPIKeys = "api_keys"
+	// EdgeSecurityScannings holds the string denoting the security_scannings edge name in mutations.
+	EdgeSecurityScannings = "security_scannings"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// LoginHistoriesTable is the table that holds the login_histories relation/edge.
@@ -99,6 +101,13 @@ const (
 	APIKeysInverseTable = "api_keys"
 	// APIKeysColumn is the table column denoting the api_keys relation/edge.
 	APIKeysColumn = "user_id"
+	// SecurityScanningsTable is the table that holds the security_scannings relation/edge.
+	SecurityScanningsTable = "security_scannings"
+	// SecurityScanningsInverseTable is the table name for the SecurityScanning entity.
+	// It exists in this package in order to avoid circular dependency with the "securityscanning" package.
+	SecurityScanningsInverseTable = "security_scannings"
+	// SecurityScanningsColumn is the table column denoting the security_scannings relation/edge.
+	SecurityScanningsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -293,6 +302,20 @@ func ByAPIKeys(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAPIKeysStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySecurityScanningsCount orders the results by security_scannings count.
+func BySecurityScanningsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSecurityScanningsStep(), opts...)
+	}
+}
+
+// BySecurityScannings orders the results by security_scannings terms.
+func BySecurityScannings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSecurityScanningsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newLoginHistoriesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -340,5 +363,12 @@ func newAPIKeysStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(APIKeysInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, APIKeysTable, APIKeysColumn),
+	)
+}
+func newSecurityScanningsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SecurityScanningsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SecurityScanningsTable, SecurityScanningsColumn),
 	)
 }

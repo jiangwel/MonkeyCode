@@ -35,6 +35,7 @@ type UserHandler struct {
 	euse      domain.ExtensionUsecase
 	duse      domain.DashboardUsecase
 	buse      domain.BillingUsecase
+	scuse     domain.SecurityScanningUsecase
 	session   *session.Session
 	logger    *slog.Logger
 	cfg       *config.Config
@@ -47,6 +48,7 @@ func NewUserHandler(
 	w *web.Web,
 	usecase domain.UserUsecase,
 	euse domain.ExtensionUsecase,
+	scuse domain.SecurityScanningUsecase,
 	duse domain.DashboardUsecase,
 	buse domain.BillingUsecase,
 	auth *middleware.AuthMiddleware,
@@ -61,6 +63,7 @@ func NewUserHandler(
 		euse:      euse,
 		duse:      duse,
 		buse:      buse,
+		scuse:     scuse,
 		session:   session,
 		logger:    logger,
 		cfg:       cfg,
@@ -124,6 +127,12 @@ func NewUserHandler(
 	cplt.Use(auth.UserAuth(), active.Active("user"))
 	cplt.GET("/record", web.BindHandler(u.ListCompletionRecord, web.WithPage()))
 	cplt.GET("/info", web.BaseHandler(u.CompletionInfo))
+
+	// user security
+	sc := w.Group("/api/v1/user/security")
+	sc.Use(auth.UserAuth(), active.Active("user"))
+	sc.GET("/scanning", web.BindHandler(u.SecurityList, web.WithPage()))
+	sc.GET("/scanning/detail", web.BaseHandler(u.SecurityDetail))
 
 	return u
 }

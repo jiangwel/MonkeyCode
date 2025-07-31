@@ -23,6 +23,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanning"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanningresult"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
@@ -467,6 +469,60 @@ func (f TraverseModelProviderModel) Traverse(ctx context.Context, q db.Query) er
 	return fmt.Errorf("unexpected query type %T. expect *db.ModelProviderModelQuery", q)
 }
 
+// The SecurityScanningFunc type is an adapter to allow the use of ordinary function as a Querier.
+type SecurityScanningFunc func(context.Context, *db.SecurityScanningQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f SecurityScanningFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.SecurityScanningQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.SecurityScanningQuery", q)
+}
+
+// The TraverseSecurityScanning type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseSecurityScanning func(context.Context, *db.SecurityScanningQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseSecurityScanning) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseSecurityScanning) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.SecurityScanningQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.SecurityScanningQuery", q)
+}
+
+// The SecurityScanningResultFunc type is an adapter to allow the use of ordinary function as a Querier.
+type SecurityScanningResultFunc func(context.Context, *db.SecurityScanningResultQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f SecurityScanningResultFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.SecurityScanningResultQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.SecurityScanningResultQuery", q)
+}
+
+// The TraverseSecurityScanningResult type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseSecurityScanningResult func(context.Context, *db.SecurityScanningResultQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseSecurityScanningResult) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseSecurityScanningResult) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.SecurityScanningResultQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.SecurityScanningResultQuery", q)
+}
+
 // The SettingFunc type is an adapter to allow the use of ordinary function as a Querier.
 type SettingFunc func(context.Context, *db.SettingQuery) (db.Value, error)
 
@@ -714,6 +770,10 @@ func NewQuery(q db.Query) (Query, error) {
 		return &query[*db.ModelProviderQuery, predicate.ModelProvider, modelprovider.OrderOption]{typ: db.TypeModelProvider, tq: q}, nil
 	case *db.ModelProviderModelQuery:
 		return &query[*db.ModelProviderModelQuery, predicate.ModelProviderModel, modelprovidermodel.OrderOption]{typ: db.TypeModelProviderModel, tq: q}, nil
+	case *db.SecurityScanningQuery:
+		return &query[*db.SecurityScanningQuery, predicate.SecurityScanning, securityscanning.OrderOption]{typ: db.TypeSecurityScanning, tq: q}, nil
+	case *db.SecurityScanningResultQuery:
+		return &query[*db.SecurityScanningResultQuery, predicate.SecurityScanningResult, securityscanningresult.OrderOption]{typ: db.TypeSecurityScanningResult, tq: q}, nil
 	case *db.SettingQuery:
 		return &query[*db.SettingQuery, predicate.Setting, setting.OrderOption]{typ: db.TypeSetting, tq: q}, nil
 	case *db.TaskQuery:

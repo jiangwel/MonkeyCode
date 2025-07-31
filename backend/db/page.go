@@ -207,6 +207,34 @@ func (mpm *ModelProviderModelQuery) Page(ctx context.Context, page, size int) ([
 	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
 }
 
+func (ss *SecurityScanningQuery) Page(ctx context.Context, page, size int) ([]*SecurityScanning, *PageInfo, error) {
+	cnt, err := ss.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := ss.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
+func (ssr *SecurityScanningResultQuery) Page(ctx context.Context, page, size int) ([]*SecurityScanningResult, *PageInfo, error) {
+	cnt, err := ssr.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := ssr.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
 func (s *SettingQuery) Page(ctx context.Context, page, size int) ([]*Setting, *PageInfo, error) {
 	cnt, err := s.Count(ctx)
 	if err != nil {

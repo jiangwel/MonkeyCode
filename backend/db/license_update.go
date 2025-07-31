@@ -31,15 +31,15 @@ func (lu *LicenseUpdate) Where(ps ...predicate.License) *LicenseUpdate {
 }
 
 // SetType sets the "type" field.
-func (lu *LicenseUpdate) SetType(dt consts.LicenseType) *LicenseUpdate {
-	lu.mutation.SetType(dt)
+func (lu *LicenseUpdate) SetType(ct consts.LicenseType) *LicenseUpdate {
+	lu.mutation.SetType(ct)
 	return lu
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (lu *LicenseUpdate) SetNillableType(dt *consts.LicenseType) *LicenseUpdate {
-	if dt != nil {
-		lu.SetType(*dt)
+func (lu *LicenseUpdate) SetNillableType(ct *consts.LicenseType) *LicenseUpdate {
+	if ct != nil {
+		lu.SetType(*ct)
 	}
 	return lu
 }
@@ -178,15 +178,15 @@ type LicenseUpdateOne struct {
 }
 
 // SetType sets the "type" field.
-func (luo *LicenseUpdateOne) SetType(dt consts.LicenseType) *LicenseUpdateOne {
-	luo.mutation.SetType(dt)
+func (luo *LicenseUpdateOne) SetType(ct consts.LicenseType) *LicenseUpdateOne {
+	luo.mutation.SetType(ct)
 	return luo
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (luo *LicenseUpdateOne) SetNillableType(dt *consts.LicenseType) *LicenseUpdateOne {
-	if dt != nil {
-		luo.SetType(*dt)
+func (luo *LicenseUpdateOne) SetNillableType(ct *consts.LicenseType) *LicenseUpdateOne {
+	if ct != nil {
+		luo.SetType(*ct)
 	}
 	return luo
 }

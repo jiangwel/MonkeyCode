@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanning"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/workspace"
 	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
@@ -158,6 +159,21 @@ func (wu *WorkspaceUpdate) AddFiles(w ...*WorkspaceFile) *WorkspaceUpdate {
 	return wu.AddFileIDs(ids...)
 }
 
+// AddSecurityScanningIDs adds the "security_scannings" edge to the SecurityScanning entity by IDs.
+func (wu *WorkspaceUpdate) AddSecurityScanningIDs(ids ...uuid.UUID) *WorkspaceUpdate {
+	wu.mutation.AddSecurityScanningIDs(ids...)
+	return wu
+}
+
+// AddSecurityScannings adds the "security_scannings" edges to the SecurityScanning entity.
+func (wu *WorkspaceUpdate) AddSecurityScannings(s ...*SecurityScanning) *WorkspaceUpdate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return wu.AddSecurityScanningIDs(ids...)
+}
+
 // Mutation returns the WorkspaceMutation object of the builder.
 func (wu *WorkspaceUpdate) Mutation() *WorkspaceMutation {
 	return wu.mutation
@@ -188,6 +204,27 @@ func (wu *WorkspaceUpdate) RemoveFiles(w ...*WorkspaceFile) *WorkspaceUpdate {
 		ids[i] = w[i].ID
 	}
 	return wu.RemoveFileIDs(ids...)
+}
+
+// ClearSecurityScannings clears all "security_scannings" edges to the SecurityScanning entity.
+func (wu *WorkspaceUpdate) ClearSecurityScannings() *WorkspaceUpdate {
+	wu.mutation.ClearSecurityScannings()
+	return wu
+}
+
+// RemoveSecurityScanningIDs removes the "security_scannings" edge to SecurityScanning entities by IDs.
+func (wu *WorkspaceUpdate) RemoveSecurityScanningIDs(ids ...uuid.UUID) *WorkspaceUpdate {
+	wu.mutation.RemoveSecurityScanningIDs(ids...)
+	return wu
+}
+
+// RemoveSecurityScannings removes "security_scannings" edges to SecurityScanning entities.
+func (wu *WorkspaceUpdate) RemoveSecurityScannings(s ...*SecurityScanning) *WorkspaceUpdate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return wu.RemoveSecurityScanningIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -358,6 +395,51 @@ func (wu *WorkspaceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if wu.mutation.SecurityScanningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.SecurityScanningsTable,
+			Columns: []string{workspace.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.RemovedSecurityScanningsIDs(); len(nodes) > 0 && !wu.mutation.SecurityScanningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.SecurityScanningsTable,
+			Columns: []string{workspace.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.SecurityScanningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.SecurityScanningsTable,
+			Columns: []string{workspace.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(wu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, wu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -506,6 +588,21 @@ func (wuo *WorkspaceUpdateOne) AddFiles(w ...*WorkspaceFile) *WorkspaceUpdateOne
 	return wuo.AddFileIDs(ids...)
 }
 
+// AddSecurityScanningIDs adds the "security_scannings" edge to the SecurityScanning entity by IDs.
+func (wuo *WorkspaceUpdateOne) AddSecurityScanningIDs(ids ...uuid.UUID) *WorkspaceUpdateOne {
+	wuo.mutation.AddSecurityScanningIDs(ids...)
+	return wuo
+}
+
+// AddSecurityScannings adds the "security_scannings" edges to the SecurityScanning entity.
+func (wuo *WorkspaceUpdateOne) AddSecurityScannings(s ...*SecurityScanning) *WorkspaceUpdateOne {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return wuo.AddSecurityScanningIDs(ids...)
+}
+
 // Mutation returns the WorkspaceMutation object of the builder.
 func (wuo *WorkspaceUpdateOne) Mutation() *WorkspaceMutation {
 	return wuo.mutation
@@ -536,6 +633,27 @@ func (wuo *WorkspaceUpdateOne) RemoveFiles(w ...*WorkspaceFile) *WorkspaceUpdate
 		ids[i] = w[i].ID
 	}
 	return wuo.RemoveFileIDs(ids...)
+}
+
+// ClearSecurityScannings clears all "security_scannings" edges to the SecurityScanning entity.
+func (wuo *WorkspaceUpdateOne) ClearSecurityScannings() *WorkspaceUpdateOne {
+	wuo.mutation.ClearSecurityScannings()
+	return wuo
+}
+
+// RemoveSecurityScanningIDs removes the "security_scannings" edge to SecurityScanning entities by IDs.
+func (wuo *WorkspaceUpdateOne) RemoveSecurityScanningIDs(ids ...uuid.UUID) *WorkspaceUpdateOne {
+	wuo.mutation.RemoveSecurityScanningIDs(ids...)
+	return wuo
+}
+
+// RemoveSecurityScannings removes "security_scannings" edges to SecurityScanning entities.
+func (wuo *WorkspaceUpdateOne) RemoveSecurityScannings(s ...*SecurityScanning) *WorkspaceUpdateOne {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return wuo.RemoveSecurityScanningIDs(ids...)
 }
 
 // Where appends a list predicates to the WorkspaceUpdate builder.
@@ -729,6 +847,51 @@ func (wuo *WorkspaceUpdateOne) sqlSave(ctx context.Context) (_node *Workspace, e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(workspacefile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wuo.mutation.SecurityScanningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.SecurityScanningsTable,
+			Columns: []string{workspace.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.RemovedSecurityScanningsIDs(); len(nodes) > 0 && !wuo.mutation.SecurityScanningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.SecurityScanningsTable,
+			Columns: []string{workspace.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.SecurityScanningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workspace.SecurityScanningsTable,
+			Columns: []string{workspace.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

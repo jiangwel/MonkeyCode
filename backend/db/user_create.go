@@ -15,6 +15,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanning"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
@@ -267,6 +268,21 @@ func (uc *UserCreate) AddAPIKeys(a ...*ApiKey) *UserCreate {
 		ids[i] = a[i].ID
 	}
 	return uc.AddAPIKeyIDs(ids...)
+}
+
+// AddSecurityScanningIDs adds the "security_scannings" edge to the SecurityScanning entity by IDs.
+func (uc *UserCreate) AddSecurityScanningIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddSecurityScanningIDs(ids...)
+	return uc
+}
+
+// AddSecurityScannings adds the "security_scannings" edges to the SecurityScanning entity.
+func (uc *UserCreate) AddSecurityScannings(s ...*SecurityScanning) *UserCreate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uc.AddSecurityScanningIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -522,6 +538,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.SecurityScanningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityScanningsTable,
+			Columns: []string{user.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

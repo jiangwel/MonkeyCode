@@ -19,9 +19,15 @@ GOOS=$TARGETOS GOARCH=$TARGETARCH \
 go build \
 -ldflags "-w -s -X 'github.com/chaitin/MonkeyCode/backend/pkg/version.Version=${VERSION}' -X 'github.com/chaitin/MonkeyCode/backend/pkg/version.BuildTime=${BUILD_TIME}' -X 'github.com/chaitin/MonkeyCode/backend/pkg/version.GitCommit=${GIT_COMMIT}'" \
 -o /out/main \
-cmd/server/main.go cmd/server/wire_gen.go 
+pro/cmd/server/main.go pro/cmd/server/wire_gen.go 
 
-FROM alpine:3.21 as binary
+FROM debian:bullseye-20250721-slim as binary
+
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    update-ca-certificates
 
 WORKDIR /app
 

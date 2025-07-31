@@ -48,9 +48,11 @@ type WorkspaceEdges struct {
 	Owner *User `json:"owner,omitempty"`
 	// Files holds the value of the files edge.
 	Files []*WorkspaceFile `json:"files,omitempty"`
+	// SecurityScannings holds the value of the security_scannings edge.
+	SecurityScannings []*SecurityScanning `json:"security_scannings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -71,6 +73,15 @@ func (e WorkspaceEdges) FilesOrErr() ([]*WorkspaceFile, error) {
 		return e.Files, nil
 	}
 	return nil, &NotLoadedError{edge: "files"}
+}
+
+// SecurityScanningsOrErr returns the SecurityScannings value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkspaceEdges) SecurityScanningsOrErr() ([]*SecurityScanning, error) {
+	if e.loadedTypes[2] {
+		return e.SecurityScannings, nil
+	}
+	return nil, &NotLoadedError{edge: "security_scannings"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -178,6 +189,11 @@ func (w *Workspace) QueryOwner() *UserQuery {
 // QueryFiles queries the "files" edge of the Workspace entity.
 func (w *Workspace) QueryFiles() *WorkspaceFileQuery {
 	return NewWorkspaceClient(w.config).QueryFiles(w)
+}
+
+// QuerySecurityScannings queries the "security_scannings" edge of the Workspace entity.
+func (w *Workspace) QuerySecurityScannings() *SecurityScanningQuery {
+	return NewWorkspaceClient(w.config).QuerySecurityScannings(w)
 }
 
 // Update returns a builder for updating this Workspace.
