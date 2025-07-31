@@ -42,7 +42,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   position: 'relative',
   zIndex: 9,
   padding: theme.spacing(4),
-  background: 'rgba(255, 255, 255, 0.85)',
+  background: 'rgba(240, 240, 240, 0.85)',
   backdropFilter: 'blur(10px)',
   width: 458,
   borderRadius: theme.spacing(2),
@@ -209,8 +209,8 @@ const LoginPage = () => {
 
         <CusTabs
           list={[
-            { label: '普通账号', value: 'user' },
-            { label: '管理员账号', value: 'admin' },
+            { label: '研发成员', value: 'user' },
+            { label: '管理员', value: 'admin' },
           ]}
           value={tab}
           onChange={(value: TabType) => {
