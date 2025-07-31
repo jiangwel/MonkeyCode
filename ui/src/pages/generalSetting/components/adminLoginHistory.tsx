@@ -12,7 +12,7 @@ type LoginHistory = NonNullable<
   DomainListAdminLoginHistoryResp['login_histories']
 >[number];
 
-const LoginHistory = () => {
+const AdminLoginHistory = () => {
   const { data, loading } = useRequest(() => getAdminLoginHistory({}));
   const columns: ColumnsType<LoginHistory> = [
     {
@@ -55,9 +55,23 @@ const LoginHistory = () => {
         direction='row'
         justifyContent='space-between'
         alignItems='center'
-        sx={{ mb: 2 }}
+        sx={{ 
+          mb: 2,
+          height: 32,
+          fontWeight: 'bold',
+         }}
       >
-        <Box sx={{ fontWeight: 700, lineHeight: '36px' }}>管理员登录记录</Box>
+        <Box sx={{
+          '&::before': {
+            content: '""',
+            display: 'inline-block',
+            width: 4,
+            height: 12,
+            bgcolor: 'common.black',
+            borderRadius: '2px',
+            mr: 1,
+          },
+        }}>管理员登录记录</Box>
       </Stack>
       <Table
         columns={columns}
@@ -71,4 +85,4 @@ const LoginHistory = () => {
   );
 };
 
-export default LoginHistory;
+export default AdminLoginHistory;

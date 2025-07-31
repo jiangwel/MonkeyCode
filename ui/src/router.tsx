@@ -84,10 +84,6 @@ const routerConfig = [
         element: <MemberManage />,
       },
       {
-        path: 'admin',
-        element: <Admin />,
-      },
-      {
         path: 'general-setting',
         element: <GeneralSetting />,
       },

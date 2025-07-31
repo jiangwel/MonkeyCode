@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { getGetSetting, putUpdateSetting } from '@/api/Admin';
 import { DomainUpdateSettingReq } from '@/api/types';
 
-const BaseURLSettings = () => {
+const CardServiceSettings = () => {
   const [baseURL, setBaseURL] = useState('');
   const [initialBaseURL, setInitialBaseURL] = useState('');
 
@@ -69,12 +69,14 @@ const BaseURLSettings = () => {
 
   const hasValueChanged = baseURL !== initialBaseURL;
 
-  return <Card sx={{p : 0}}>
+  return <Card sx={{p : 0, borderBottom: '1px solid #e0e0e0'}}>
     <Box sx={{
       fontWeight: 'bold',
       px: 2,
       py: 1.5,
-      bgcolor: 'rgb(248, 249, 250)'
+      bgcolor: 'rgb(248, 249, 250)',
+      borderTopLeftRadius: '10px',
+      borderTopRightRadius: '10px',
     }}>MonkeyCode 服务配置</Box>
     <Stack direction='column'>
       <Box sx={{ width: '100%' }}>
@@ -117,4 +119,4 @@ const BaseURLSettings = () => {
   </Card>
 }
 
-export default BaseURLSettings;
+export default CardServiceSettings;

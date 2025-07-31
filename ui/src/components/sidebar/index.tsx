@@ -58,14 +58,6 @@ const ADMIN_MENUS = [
     disabled: false,
   },
   {
-    label: '管理员',
-    value: '/admin',
-    pathname: 'admin',
-    icon: 'icon-guanliyuan1',
-    show: true,
-    disabled: false,
-  },
-  {
     label: '通用设置',
     value: '/general-setting',
     pathname: 'general-setting',
