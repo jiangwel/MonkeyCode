@@ -271,7 +271,7 @@ export const getGetSetting = (params: RequestParams = {}) =>
   });
 
 /**
- * @description 更新系统设置
+ * @description 更新为增量更新，只传需要更新的字段
  *
  * @tags Admin
  * @name PutUpdateSetting

@@ -34,6 +34,7 @@ const Completion = LazyLoadable(lazy(() => import('@/pages/completion')));
 const Model = LazyLoadable(lazy(() => import('@/pages/model')));
 const MemberManage = LazyLoadable(lazy(() => import('@/pages/memberManage')));
 const Admin = LazyLoadable(lazy(() => import('@/pages/admin')));
+const GeneralSetting = LazyLoadable(lazy(() => import('@/pages/generalSetting')));
 const Invite = LazyLoadable(lazy(() => import('@/pages/invite')));
 const Auth = LazyLoadable(lazy(() => import('@/pages/auth')));
 const Login = LazyLoadable(lazy(() => import('@/pages/login')));
@@ -85,6 +86,10 @@ const routerConfig = [
       {
         path: 'admin',
         element: <Admin />,
+      },
+      {
+        path: 'general-setting',
+        element: <GeneralSetting />,
       },
     ],
   },

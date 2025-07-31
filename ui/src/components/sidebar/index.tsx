@@ -65,6 +65,14 @@ const ADMIN_MENUS = [
     show: true,
     disabled: false,
   },
+  {
+    label: '通用设置',
+    value: '/general-setting',
+    pathname: 'general-setting',
+    icon: 'icon-setting',
+    show: true,
+    disabled: false,
+  },
 ];
 
 const USER_MENUS = [

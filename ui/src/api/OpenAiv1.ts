@@ -13,6 +13,9 @@
 import request, { ContentType, RequestParams } from "./httpClient";
 import {
   DomainAcceptCompletionReq,
+  DomainCreateSecurityScanningReq,
+  DomainListSecurityScanningBriefResp,
+  DomainListSecurityScanningReq,
   DomainModelListResp,
   DomainReportReq,
   WebResp,
@@ -140,6 +143,59 @@ export const postReport = (
 ) =>
   request<WebResp>({
     path: `/v1/report`,
+    method: "POST",
+    body: param,
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
+ * @description 分页逻辑只支持用 next_token
+ *
+ * @tags OpenAIV1
+ * @name GetListSecurityScanning
+ * @summary 扫描任务列表
+ * @request GET:/v1/security/scanning
+ * @response `200` `(WebResp & {
+    data?: DomainListSecurityScanningBriefResp,
+
+})` OK
+ */
+
+export const getListSecurityScanning = (
+  param: DomainListSecurityScanningReq,
+  params: RequestParams = {},
+) =>
+  request<
+    WebResp & {
+      data?: DomainListSecurityScanningBriefResp;
+    }
+  >({
+    path: `/v1/security/scanning`,
+    method: "GET",
+    body: param,
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
+ * @description 创建扫描任务
+ *
+ * @tags OpenAIV1
+ * @name PostCreateSecurityScanning
+ * @summary 创建扫描任务
+ * @request POST:/v1/security/scanning
+ * @response `200` `WebResp` OK
+ */
+
+export const postCreateSecurityScanning = (
+  param: DomainCreateSecurityScanningReq,
+  params: RequestParams = {},
+) =>
+  request<WebResp>({
+    path: `/v1/security/scanning`,
     method: "POST",
     body: param,
     type: ContentType.Json,
