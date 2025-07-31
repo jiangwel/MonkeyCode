@@ -8,6 +8,9 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/domain"
 )
 
+// cli 脚本工具
+const scriptPath = "./tools/dist/cli.cjs"
+
 // RunCli 运行monkeycode-cli命令
 //
 //	@Tags			CLI
@@ -15,11 +18,11 @@ import (
 //	@Description	运行monkeycode-cli命令
 //	@Accept			json
 //	@Produce		json
-//	@Param			command	path		string				true	"命令"
-//	@Param			flag	query		string				false	"标志"
-//	@Param			codeFiles	body		domain.CodeFiles			true	"代码文件信息"
-//	@Success		200		{object}	[]domain.IndexResult	"输出结果"
-//	@Failure		500		{object}	web.Resp			"内部错误"
+//	@Param			command	    index		string				        true	"命令"
+//	@Param			flag	    query		string				        false	"标志"
+//	@Param			fileMetas	body		domain.[]FileMeta			true	"代码文件信息"
+//	@Success		200		    {object}	[]domain.IndexResult	            "输出结果"
+//	@Failure		500		    {object}	web.Resp			                "内部错误"
 //	@Router			/api/v1/cli/{command} [post]
 func RunCli(command string, flag string, fileMetas []domain.FileMeta) ([]domain.IndexResult, error) {
 	inputJson, err := json.Marshal(fileMetas)
@@ -29,9 +32,9 @@ func RunCli(command string, flag string, fileMetas []domain.FileMeta) ([]domain.
 
 	var cmd *exec.Cmd
 	if flag == "" {
-		cmd = exec.Command("monkeycode-cli", command, string(inputJson))
+		cmd = exec.Command(scriptPath, command, string(inputJson))
 	} else {
-		cmd = exec.Command("monkeycode-cli", command, flag, string(inputJson))
+		cmd = exec.Command(scriptPath, command, flag, string(inputJson))
 	}
 
 	cmd.Env = os.Environ()

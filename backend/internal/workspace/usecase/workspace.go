@@ -134,6 +134,11 @@ func (u *WorkspaceUsecase) Delete(ctx context.Context, id string) error {
 }
 
 func (u *WorkspaceUsecase) EnsureWorkspace(ctx context.Context, userID, rootPath, name string) (*domain.Workspace, error) {
+	// 自动生成工作区名称（如果未提供）
+	if name == "" {
+		name = u.generateWorkspaceName(rootPath)
+	}
+
 	// 首先尝试获取已存在的工作区
 	workspace, err := u.repo.GetByUserAndPath(ctx, userID, rootPath)
 	if err == nil {
@@ -153,20 +158,48 @@ func (u *WorkspaceUsecase) EnsureWorkspace(ctx context.Context, userID, rootPath
 		return nil, fmt.Errorf("failed to check workspace existence: %w", err)
 	}
 
-	// 自动生成工作区名称（如果未提供）
-	if name == "" {
-		name = u.generateWorkspaceName(rootPath)
+	// 使用重试机制来处理并发创建的情况
+	maxRetries := 3
+	for i := range maxRetries {
+		createReq := &domain.CreateWorkspaceReq{
+			UserID:      userID,
+			Name:        name,
+			Description: fmt.Sprintf("Auto-created workspace for %s", rootPath),
+			RootPath:    rootPath,
+			Settings:    map[string]any{},
+		}
+
+		workspace, err := u.Create(ctx, createReq)
+		if err == nil {
+			return workspace, nil
+		}
+
+		// 如果是唯一约束错误，说明工作区已经被其他请求创建了
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			// 等待一小段时间，然后尝试获取已创建的工作区
+			time.Sleep(10 * time.Millisecond)
+
+			existing, err := u.repo.GetByUserAndPath(ctx, userID, rootPath)
+			if err == nil {
+				// 更新最后访问时间
+				updated, err := u.repo.Update(ctx, existing.ID.String(), func(up *db.WorkspaceUpdateOne) error {
+					up.SetLastAccessedAt(time.Now())
+					return nil
+				})
+				if err != nil {
+					u.logger.Warn("failed to update workspace last accessed time", "error", err, "id", existing.ID)
+				}
+				return (&domain.Workspace{}).From(updated), nil
+			}
+		}
+
+		// 如果不是唯一约束错误，直接返回错误
+		if i == maxRetries-1 {
+			return nil, err
+		}
 	}
 
-	createReq := &domain.CreateWorkspaceReq{
-		UserID:      userID,
-		Name:        name,
-		Description: fmt.Sprintf("Auto-created workspace for %s", rootPath),
-		RootPath:    rootPath,
-		Settings:    map[string]any{},
-	}
-
-	return u.Create(ctx, createReq)
+	return nil, fmt.Errorf("failed to create workspace after %d retries", maxRetries)
 }
 
 func (u *WorkspaceUsecase) generateWorkspaceName(rootPath string) string {
@@ -297,17 +330,31 @@ func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAn
 			return err
 		}
 
-		// 判断是否已经保存了相同的CodeSnippet
-		// 目前不需要更新已有的CodeSnippet
-		if _, err := u.codeSnippetSvc.GetByID(ctx, ""); err != nil {
-			u.logger.Info("code snippet already exists, updating content")
+		// 先删除与该文件关联的所有旧代码片段
+		existingSnippets, err := u.codeSnippetSvc.ListByWorkspaceFile(ctx, file.ID.String())
+		if err != nil {
+			u.logger.Error("failed to list existing code snippets", "error", err, "fileID", file.ID)
+			// 继续处理，不因错误而中断整个流程
 		} else {
-			// 创建新的CodeSnippet
-			_, err = u.codeSnippetSvc.CreateFromIndexResult(ctx, file.ID.String(), &res)
-			if err != nil {
-				u.logger.Error("failed to create code snippet from index result", "error", err, "filePath", res.FilePath)
-				// 继续处理其他结果，不因单个错误而中断整个流程
+			for _, snippet := range existingSnippets {
+				// 检查snippet ID是否为空
+				if snippet.ID == "" {
+					u.logger.Warn("skipping deletion of code snippet with empty ID", "fileID", file.ID)
+					continue
+				}
+				err := u.codeSnippetSvc.Delete(ctx, snippet.ID)
+				if err != nil {
+					u.logger.Error("failed to delete existing code snippet", "error", err, "snippetID", snippet.ID)
+					// 继续处理其他片段，不因单个错误而中断整个流程
+				}
 			}
+		}
+
+		// 创建新的CodeSnippet
+		_, err = u.codeSnippetSvc.CreateFromIndexResult(ctx, file.ID.String(), &res)
+		if err != nil {
+			u.logger.Error("failed to create code snippet from index result", "error", err, "filePath", res.FilePath)
+			// 继续处理其他结果，不因单个错误而中断整个流程
 		}
 	}
 	return nil

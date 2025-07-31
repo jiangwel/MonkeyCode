@@ -31,7 +31,7 @@ func (u *CodeSnippetUsecase) CreateFromIndexResult(ctx context.Context, workspac
 		Name:            indexResult.Name,
 		SnippetType:     indexResult.Type,
 		Language:        indexResult.Language,
-		Content:         indexResult.RangeText,
+		Content:         indexResult.ImplementText,
 		Hash:            indexResult.FileHash,
 		StartLine:       indexResult.StartLine,
 		EndLine:         indexResult.EndLine,
@@ -62,21 +62,82 @@ func (u *CodeSnippetUsecase) CreateFromIndexResult(ctx context.Context, workspac
 
 // ListByWorkspaceFile 列出特定工作区文件的所有代码片段
 func (u *CodeSnippetUsecase) ListByWorkspaceFile(ctx context.Context, workspaceFileID string) ([]*domain.CodeSnippet, error) {
-	// 实现列出特定工作区文件的所有代码片段的逻辑
-	// 为简化起见，这里暂时返回空列表，实际实现需要根据需求完成
-	return []*domain.CodeSnippet{}, nil
+	// 调用 repository 层的方法
+	dbSnippets, err := u.repo.ListByWorkspaceFile(ctx, workspaceFileID)
+	if err != nil {
+		u.logger.Error("failed to list code snippets by workspace file", "error", err, "workspaceFileID", workspaceFileID)
+		return nil, fmt.Errorf("failed to list code snippets: %w", err)
+	}
+
+	// 将数据库模型转换为领域模型
+	var snippets []*domain.CodeSnippet
+	for _, dbSnippet := range dbSnippets {
+		snippet := (&domain.CodeSnippet{}).From(dbSnippet)
+		snippets = append(snippets, snippet)
+	}
+
+	return snippets, nil
 }
 
 // GetByID 根据 ID 获取代码片段
 func (u *CodeSnippetUsecase) GetByID(ctx context.Context, id string) (*domain.CodeSnippet, error) {
-	// 实现根据 ID 获取代码片段的逻辑
-	// 为简化起见，这里暂时返回 nil，实际实现需要根据需求完成
-	return nil, nil
+	// 调用 repository 层的方法
+	dbSnippet, err := u.repo.GetByID(ctx, id)
+	if err != nil {
+		u.logger.Error("failed to get code snippet by ID", "error", err, "id", id)
+		return nil, fmt.Errorf("failed to get code snippet: %w", err)
+	}
+
+	// 将数据库模型转换为领域模型
+	return (&domain.CodeSnippet{}).From(dbSnippet), nil
 }
 
 // Delete 删除代码片段
 func (u *CodeSnippetUsecase) Delete(ctx context.Context, id string) error {
-	// 实现删除代码片段的逻辑
-	// 为简化起见，这里暂时返回 nil，实际实现需要根据需求完成
+	// 调用 repository 层的方法
+	err := u.repo.Delete(ctx, id)
+	if err != nil {
+		u.logger.Error("failed to delete code snippet", "error", err, "id", id)
+		return fmt.Errorf("failed to delete code snippet: %w", err)
+	}
+
 	return nil
+}
+
+// Search 根据名称、类型和语言搜索代码片段
+func (u *CodeSnippetUsecase) Search(ctx context.Context, name, snippetType, language string) ([]*domain.CodeSnippet, error) {
+	// 调用 repository 层的 Search 方法
+	dbSnippets, err := u.repo.Search(ctx, name, snippetType, language)
+	if err != nil {
+		u.logger.Error("failed to search code snippets", "error", err)
+		return nil, fmt.Errorf("failed to search code snippets: %w", err)
+	}
+
+	// 将数据库模型转换为领域模型
+	var snippets []*domain.CodeSnippet
+	for _, dbSnippet := range dbSnippets {
+		snippet := (&domain.CodeSnippet{}).From(dbSnippet)
+		snippets = append(snippets, snippet)
+	}
+
+	return snippets, nil
+}
+
+// SearchByWorkspace 根据用户ID、工作区路径和搜索条件搜索代码片段
+func (u *CodeSnippetUsecase) SearchByWorkspace(ctx context.Context, userID, workspacePath, name, snippetType, language string) ([]*domain.CodeSnippet, error) {
+	// 调用 repository 层的 SearchByWorkspace 方法
+	dbSnippets, err := u.repo.SearchByWorkspace(ctx, userID, workspacePath, name, snippetType, language)
+	if err != nil {
+		u.logger.Error("failed to search code snippets by workspace", "error", err, "userID", userID, "workspacePath", workspacePath)
+		return nil, fmt.Errorf("failed to search code snippets by workspace: %w", err)
+	}
+
+	// 将数据库模型转换为领域模型
+	var snippets []*domain.CodeSnippet
+	for _, dbSnippet := range dbSnippets {
+		snippet := (&domain.CodeSnippet{}).FromWithFile(dbSnippet)
+		snippets = append(snippets, snippet)
+	}
+
+	return snippets, nil
 }

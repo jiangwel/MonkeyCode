@@ -1173,6 +1173,61 @@
                 }
             }
         },
+        "/api/v1/ide/codesnippet/context": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "为IDE端提供代码片段上下文检索功能，使用API Key认证。支持单个查询和批量查询。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CodeSnippet"
+                ],
+                "summary": "IDE端上下文检索",
+                "operationId": "get-context",
+                "parameters": [
+                    {
+                        "description": "检索请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_codesnippet_handler_http_v1.GetContextReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Resp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/domain.CodeSnippet"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/model": {
             "get": {
                 "description": "获取模型列表",
@@ -3833,6 +3888,102 @@
                 "CodeLanguageTypeCpp"
             ]
         },
+        "domain.CodeSnippet": {
+            "type": "object",
+            "properties": {
+                "definition": {
+                    "description": "结构化信息",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "definitionText": {
+                    "description": "定义文本",
+                    "type": "string"
+                },
+                "dependencies": {
+                    "description": "依赖项",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endColumn": {
+                    "description": "结束列号",
+                    "type": "integer"
+                },
+                "endLine": {
+                    "description": "结束行号",
+                    "type": "integer"
+                },
+                "field": {
+                    "description": "容器名称",
+                    "type": "string"
+                },
+                "fileHash": {
+                    "description": "内容哈希",
+                    "type": "string"
+                },
+                "filePath": {
+                    "description": "文件路径",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "代码片段ID",
+                    "type": "string"
+                },
+                "language": {
+                    "description": "编程语言",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "代码片段名称",
+                    "type": "string"
+                },
+                "namespace": {
+                    "description": "命名空间",
+                    "type": "string"
+                },
+                "parameters": {
+                    "description": "参数列表",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    }
+                },
+                "rangeText": {
+                    "description": "代码片段内容",
+                    "type": "string"
+                },
+                "scope": {
+                    "description": "作用域信息",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "signature": {
+                    "description": "函数签名",
+                    "type": "string"
+                },
+                "startColumn": {
+                    "description": "起始列号",
+                    "type": "integer"
+                },
+                "startLine": {
+                    "description": "起始行号",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "代码片段类型",
+                    "type": "string"
+                },
+                "workspace_file_id": {
+                    "description": "关联的workspace file ID",
+                    "type": "string"
+                }
+            }
+        },
         "domain.CompletionData": {
             "type": "object",
             "properties": {
@@ -4381,12 +4532,7 @@
                 "rangeText": {
                     "type": "string"
                 },
-                "scope": {
-                    "type": "array",
-                    "items": {
-                        "type": "object"
-                    }
-                },
+                "scope": {},
                 "signature": {
                     "type": "string"
                 },
@@ -5634,6 +5780,51 @@
                 },
                 "workspace_id": {
                     "description": "工作区ID",
+                    "type": "string"
+                }
+            }
+        },
+        "internal_codesnippet_handler_http_v1.GetContextReq": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "description": "返回结果数量限制，默认10",
+                    "type": "integer"
+                },
+                "queries": {
+                    "description": "批量查询参数",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_codesnippet_handler_http_v1.Query"
+                    }
+                },
+                "query": {
+                    "description": "单个查询参数",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/internal_codesnippet_handler_http_v1.Query"
+                        }
+                    ]
+                },
+                "workspacePath": {
+                    "description": "工作区路径（必填）",
+                    "type": "string"
+                }
+            }
+        },
+        "internal_codesnippet_handler_http_v1.Query": {
+            "type": "object",
+            "properties": {
+                "language": {
+                    "description": "编程语言（可选）",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "代码片段名称（可选）",
+                    "type": "string"
+                },
+                "snippetType": {
+                    "description": "代码片段类型（可选）",
                     "type": "string"
                 }
             }
