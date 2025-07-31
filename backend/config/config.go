@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/viper"
 
+	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/pkg/logger"
 )
 
@@ -77,13 +78,25 @@ type Config struct {
 	} `mapstructure:"data_report"`
 }
 
-func (c *Config) GetBaseURL(req *http.Request) string {
+func (c *Config) GetBaseURL(req *http.Request, settings *domain.Setting) string {
 	scheme := "http"
 	if req.TLS != nil {
 		scheme = "https"
 	}
 	if proto := req.Header.Get("X-Forwarded-Proto"); proto != "" {
 		scheme = proto
+	}
+
+	if settings != nil && settings.BaseURL != "" {
+		baseurl := settings.BaseURL
+		if !strings.HasPrefix(baseurl, "http") {
+			baseurl = fmt.Sprintf("%s://%s", scheme, baseurl)
+		}
+		return strings.TrimSuffix(baseurl, "/")
+	}
+
+	if port := req.Header.Get("X-Forwarded-Port"); port != "" && port != "80" && port != "443" {
+		c.Server.Port = port
 	}
 	baseurl := fmt.Sprintf("%s://%s", scheme, req.Host)
 	if c.Server.Port != "" {

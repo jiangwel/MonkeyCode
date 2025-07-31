@@ -36,6 +36,7 @@ func (Setting) Fields() []ent.Field {
 		field.Bool("enable_auto_login").Default(false),
 		field.JSON("dingtalk_oauth", &types.DingtalkOAuth{}).Optional(),
 		field.JSON("custom_oauth", &types.CustomOAuth{}).Optional(),
+		field.String("base_url").Optional(),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

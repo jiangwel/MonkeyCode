@@ -391,6 +391,9 @@ func (u *UserUsecase) UpdateSetting(ctx context.Context, req *domain.UpdateSetti
 			}
 			up.SetCustomOauth(custom)
 		}
+		if req.BaseURL != nil {
+			up.SetBaseURL(*req.BaseURL)
+		}
 	})
 	if err != nil {
 		return nil, err
@@ -518,7 +521,11 @@ func (u *UserUsecase) OAuthSignUpOrIn(ctx context.Context, req *domain.OAuthSign
 func (u *UserUsecase) OAuthCallback(c *web.Context, req *domain.OAuthCallbackReq) error {
 	ctx := c.Request().Context()
 	req.IP = c.RealIP()
-	req.BaseURL = u.cfg.GetBaseURL(c.Request())
+	s, err := u.GetSetting(ctx)
+	if err != nil {
+		return err
+	}
+	req.BaseURL = u.cfg.GetBaseURL(c.Request(), s)
 	b, err := u.redis.Get(ctx, fmt.Sprintf("oauth:state:%s", req.State)).Result()
 	if err != nil {
 		return err

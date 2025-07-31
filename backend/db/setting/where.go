@@ -75,6 +75,11 @@ func EnableAutoLogin(v bool) predicate.Setting {
 	return predicate.Setting(sql.FieldEQ(FieldEnableAutoLogin, v))
 }
 
+// BaseURL applies equality check predicate on the "base_url" field. It's identical to BaseURLEQ.
+func BaseURL(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldEQ(FieldBaseURL, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Setting {
 	return predicate.Setting(sql.FieldEQ(FieldCreatedAt, v))
@@ -143,6 +148,81 @@ func CustomOauthIsNil() predicate.Setting {
 // CustomOauthNotNil applies the NotNil predicate on the "custom_oauth" field.
 func CustomOauthNotNil() predicate.Setting {
 	return predicate.Setting(sql.FieldNotNull(FieldCustomOauth))
+}
+
+// BaseURLEQ applies the EQ predicate on the "base_url" field.
+func BaseURLEQ(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldEQ(FieldBaseURL, v))
+}
+
+// BaseURLNEQ applies the NEQ predicate on the "base_url" field.
+func BaseURLNEQ(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldNEQ(FieldBaseURL, v))
+}
+
+// BaseURLIn applies the In predicate on the "base_url" field.
+func BaseURLIn(vs ...string) predicate.Setting {
+	return predicate.Setting(sql.FieldIn(FieldBaseURL, vs...))
+}
+
+// BaseURLNotIn applies the NotIn predicate on the "base_url" field.
+func BaseURLNotIn(vs ...string) predicate.Setting {
+	return predicate.Setting(sql.FieldNotIn(FieldBaseURL, vs...))
+}
+
+// BaseURLGT applies the GT predicate on the "base_url" field.
+func BaseURLGT(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldGT(FieldBaseURL, v))
+}
+
+// BaseURLGTE applies the GTE predicate on the "base_url" field.
+func BaseURLGTE(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldGTE(FieldBaseURL, v))
+}
+
+// BaseURLLT applies the LT predicate on the "base_url" field.
+func BaseURLLT(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldLT(FieldBaseURL, v))
+}
+
+// BaseURLLTE applies the LTE predicate on the "base_url" field.
+func BaseURLLTE(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldLTE(FieldBaseURL, v))
+}
+
+// BaseURLContains applies the Contains predicate on the "base_url" field.
+func BaseURLContains(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldContains(FieldBaseURL, v))
+}
+
+// BaseURLHasPrefix applies the HasPrefix predicate on the "base_url" field.
+func BaseURLHasPrefix(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldHasPrefix(FieldBaseURL, v))
+}
+
+// BaseURLHasSuffix applies the HasSuffix predicate on the "base_url" field.
+func BaseURLHasSuffix(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldHasSuffix(FieldBaseURL, v))
+}
+
+// BaseURLIsNil applies the IsNil predicate on the "base_url" field.
+func BaseURLIsNil() predicate.Setting {
+	return predicate.Setting(sql.FieldIsNull(FieldBaseURL))
+}
+
+// BaseURLNotNil applies the NotNil predicate on the "base_url" field.
+func BaseURLNotNil() predicate.Setting {
+	return predicate.Setting(sql.FieldNotNull(FieldBaseURL))
+}
+
+// BaseURLEqualFold applies the EqualFold predicate on the "base_url" field.
+func BaseURLEqualFold(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldEqualFold(FieldBaseURL, v))
+}
+
+// BaseURLContainsFold applies the ContainsFold predicate on the "base_url" field.
+func BaseURLContainsFold(v string) predicate.Setting {
+	return predicate.Setting(sql.FieldContainsFold(FieldBaseURL, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

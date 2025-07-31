@@ -293,6 +293,7 @@ type UpdateSettingReq struct {
 	EnableAutoLogin      *bool             `json:"enable_auto_login"`      // 是否开启自动登录
 	DingtalkOAuth        *DingtalkOAuthReq `json:"dingtalk_oauth"`         // 钉钉OAuth配置
 	CustomOAuth          *CustomOAuthReq   `json:"custom_oauth"`           // 自定义OAuth配置
+	BaseURL              *string           `json:"base_url"`               // base url 配置，为了支持前置代理
 }
 
 type DingtalkOAuthReq struct {
@@ -372,6 +373,7 @@ type Setting struct {
 	EnableAutoLogin      bool          `json:"enable_auto_login"`      // 是否开启自动登录
 	DingtalkOAuth        DingtalkOAuth `json:"dingtalk_oauth"`         // 钉钉OAuth接入
 	CustomOAuth          CustomOAuth   `json:"custom_oauth"`           // 自定义OAuth接入
+	BaseURL              string        `json:"base_url,omitempty"`     // base url 配置，为了支持前置代理
 	CreatedAt            int64         `json:"created_at"`             // 创建时间
 	UpdatedAt            int64         `json:"updated_at"`             // 更新时间
 }
@@ -387,6 +389,7 @@ func (s *Setting) From(e *db.Setting) *Setting {
 	s.EnableAutoLogin = e.EnableAutoLogin
 	s.DingtalkOAuth = *cvt.From(e.DingtalkOauth, &DingtalkOAuth{})
 	s.CustomOAuth = *cvt.From(e.CustomOauth, &CustomOAuth{})
+	s.BaseURL = e.BaseURL
 	s.CreatedAt = e.CreatedAt.Unix()
 	s.UpdatedAt = e.UpdatedAt.Unix()
 

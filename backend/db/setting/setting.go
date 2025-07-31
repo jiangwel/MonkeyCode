@@ -25,6 +25,8 @@ const (
 	FieldDingtalkOauth = "dingtalk_oauth"
 	// FieldCustomOauth holds the string denoting the custom_oauth field in the database.
 	FieldCustomOauth = "custom_oauth"
+	// FieldBaseURL holds the string denoting the base_url field in the database.
+	FieldBaseURL = "base_url"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -42,6 +44,7 @@ var Columns = []string{
 	FieldEnableAutoLogin,
 	FieldDingtalkOauth,
 	FieldCustomOauth,
+	FieldBaseURL,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -99,6 +102,11 @@ func ByDisablePasswordLogin(opts ...sql.OrderTermOption) OrderOption {
 // ByEnableAutoLogin orders the results by the enable_auto_login field.
 func ByEnableAutoLogin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnableAutoLogin, opts...).ToFunc()
+}
+
+// ByBaseURL orders the results by the base_url field.
+func ByBaseURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBaseURL, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

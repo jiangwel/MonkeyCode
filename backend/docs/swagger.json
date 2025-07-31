@@ -402,7 +402,7 @@
                 }
             },
             "put": {
-                "description": "更新系统设置",
+                "description": "更新为增量更新，只传需要更新的字段",
                 "consumes": [
                     "application/json"
                 ],
@@ -4948,6 +4948,10 @@
         "domain.Setting": {
             "type": "object",
             "properties": {
+                "base_url": {
+                    "description": "base url 配置，为了支持前置代理",
+                    "type": "string"
+                },
                 "created_at": {
                     "description": "创建时间",
                     "type": "integer"
@@ -5259,6 +5263,10 @@
         "domain.UpdateSettingReq": {
             "type": "object",
             "properties": {
+                "base_url": {
+                    "description": "base url 配置，为了支持前置代理",
+                    "type": "string"
+                },
                 "custom_oauth": {
                     "description": "自定义OAuth配置",
                     "allOf": [
