@@ -266,7 +266,7 @@ const MemberManage = () => {
     {
       title: '加入时间',
       dataIndex: 'created_at',
-      width: 120,
+      width: 140,
       render: (text) => {
         return dayjs.unix(text).fromNow();
       },
@@ -274,7 +274,7 @@ const MemberManage = () => {
     {
       title: '最近活跃',
       dataIndex: 'last_active_at',
-      width: 120,
+      width: 140,
       render: (text, record) => {
         return record.last_active_at === 0
           ? '从未使用'
@@ -284,7 +284,7 @@ const MemberManage = () => {
     {
       title: '',
       dataIndex: 'action',
-      width: 100,
+      width: 80,
       render: (_, record) => {
         return (
           <IconButton

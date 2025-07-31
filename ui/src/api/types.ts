@@ -40,6 +40,47 @@ export enum ConstsUserPlatform {
   UserPlatformCustom = "custom",
 }
 
+export enum ConstsSecurityScanningStatus {
+  SecurityScanningStatusPending = "pending",
+  SecurityScanningStatusRunning = "running",
+  SecurityScanningStatusSuccess = "success",
+  SecurityScanningStatusFailed = "failed",
+}
+
+export enum ConstsSecurityScanningRiskLevel {
+  SecurityScanningRiskLevelSevere = "severe",
+  SecurityScanningRiskLevelCritical = "critical",
+  SecurityScanningRiskLevelSuggest = "suggest",
+}
+
+export enum ConstsSecurityScanningLanguage {
+  SecurityScanningLanguageCpp = "C/C++",
+  SecurityScanningLanguageJava = "Java",
+  SecurityScanningLanguagePython = "Python",
+  SecurityScanningLanguageJavaScript = "JavaScript",
+  SecurityScanningLanguageGo = "Go",
+  SecurityScanningLanguagePHP = "PHP",
+  SecurityScanningLanguageCS = "C#",
+  SecurityScanningLanguageSwift = "Swift",
+  SecurityScanningLanguageRuby = "Ruby",
+  SecurityScanningLanguageRust = "Rust",
+  SecurityScanningLanguageHTML = "HTML",
+  SecurityScanningLanguageObjectiveC = "Objective-C/C++",
+  SecurityScanningLanguageOCaml = "OCaml",
+  SecurityScanningLanguageKotlin = "Kotlin",
+  SecurityScanningLanguageScala = "Scala",
+  SecurityScanningLanguageSolidity = "Solidity",
+  SecurityScanningLanguageCOBOL = "COBOL",
+  SecurityScanningLanguageShell = "Shell",
+  SecurityScanningLanguageSQL = "SQL",
+  SecurityScanningLanguageFortran = "Fortran",
+  SecurityScanningLanguageDart = "Dart",
+  SecurityScanningLanguageGroovy = "Groovy",
+  SecurityScanningLanguageLua = "Lua",
+  SecurityScanningLanguageSecrets = "Secrets",
+  SecurityScanningLanguageIaC = "IaC",
+}
+
 export enum ConstsReportAction {
   ReportActionAccept = "accept",
   ReportActionSuggest = "suggest",
@@ -313,6 +354,13 @@ export interface DomainCreateModelReq {
   show_name?: string;
 }
 
+export interface DomainCreateSecurityScanningReq {
+  /** 扫描语言 */
+  language?: ConstsSecurityScanningLanguage;
+  /** 项目目录 */
+  workspace?: string;
+}
+
 export interface DomainCreateWorkspaceFileReq {
   /** 文件内容 */
   content?: string;
@@ -500,6 +548,41 @@ export interface DomainListCompletionRecordResp {
 export interface DomainListLoginHistoryResp {
   has_next_page?: boolean;
   login_histories?: DomainUserLoginHistory[];
+  next_token?: string;
+  total_count?: number;
+}
+
+export interface DomainListSecurityScanningBriefResp {
+  has_next_page?: boolean;
+  items?: DomainSecurityScanningBrief[];
+  next_token?: string;
+  total_count?: number;
+}
+
+export interface DomainListSecurityScanningReq {
+  /** 作者 */
+  author?: string;
+  /** 下一页标识 */
+  next_token?: string;
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
+  page?: number;
+  /** 项目名称 */
+  project_name?: string;
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
+  size?: number;
+}
+
+export interface DomainListSecurityScanningResp {
+  has_next_page?: boolean;
+  items?: DomainSecurityScanningResult[];
   next_token?: string;
   total_count?: number;
 }
@@ -695,7 +778,57 @@ export interface DomainReportReq {
   user_input?: string;
 }
 
+export interface DomainSecurityScanningBrief {
+  /** 创建时间 */
+  created_at?: number;
+  /** 报告url */
+  report_url?: string;
+  /** 扫描状态 */
+  status?: ConstsSecurityScanningStatus;
+  /** 项目目录 */
+  workspace?: string;
+}
+
+export interface DomainSecurityScanningResult {
+  /** 扫描开始时间 */
+  created_at?: number;
+  /** 扫描任务id */
+  id?: string;
+  /** 扫描任务 */
+  name?: string;
+  /** 项目名称 */
+  project_name?: string;
+  /** 风险结果 */
+  risk?: DomainSecurityScanningRiskResult;
+  /** 扫描状态 */
+  status?: ConstsSecurityScanningStatus;
+  /** 用户 */
+  user?: DomainUser;
+}
+
+export interface DomainSecurityScanningRiskDetail {
+  /** 风险描述 */
+  desc?: string;
+  /** 风险文件名 */
+  filename?: string;
+  /** 风险id */
+  id?: string;
+  /** 风险等级 */
+  level?: ConstsSecurityScanningRiskLevel;
+}
+
+export interface DomainSecurityScanningRiskResult {
+  /** 高危数 */
+  critical_count?: number;
+  /** 严重数 */
+  severe_count?: number;
+  /** 建议数 */
+  suggest_count?: number;
+}
+
 export interface DomainSetting {
+  /** base url 配置，为了支持前置代理 */
+  base_url?: string;
   /** 创建时间 */
   created_at?: number;
   /** 自定义OAuth接入 */
@@ -829,6 +962,8 @@ export interface DomainUpdateModelReq {
 }
 
 export interface DomainUpdateSettingReq {
+  /** base url 配置，为了支持前置代理 */
+  base_url?: string;
   /** 自定义OAuth配置 */
   custom_oauth?: DomainCustomOAuthReq;
   /** 钉钉OAuth配置 */
@@ -1230,6 +1365,32 @@ export interface GetGetTokenUsageParams {
   model_type: "llm" | "coder" | "embedding" | "audio" | "reranker";
 }
 
+export interface GetSecurityScanningListParams {
+  /** 作者 */
+  author?: string;
+  /** 下一页标识 */
+  next_token?: string;
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
+  page?: number;
+  /** 项目名称 */
+  project_name?: string;
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
+  size?: number;
+}
+
+export interface GetSecurityScanningDetailParams {
+  /** 扫描任务id */
+  id: string;
+}
+
 export interface GetUserChatInfoParams {
   /** 对话记录ID */
   id: string;
@@ -1382,6 +1543,32 @@ export interface GetUserOauthSignupOrInParams {
    * @default "plugin"
    */
   source: "plugin" | "browser";
+}
+
+export interface GetUserSecurityScanningListParams {
+  /** 作者 */
+  author?: string;
+  /** 下一页标识 */
+  next_token?: string;
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
+  page?: number;
+  /** 项目名称 */
+  project_name?: string;
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
+  size?: number;
+}
+
+export interface GetUserSecurityScanningDetailParams {
+  /** 扫描任务id */
+  id: string;
 }
 
 export interface GetListWorkspaceFilesParams {

@@ -151,7 +151,7 @@ const AddAdminModal = ({
   );
 };
 
-const AdminTable = () => {
+const AdminUser = () => {
   const [open, setOpen] = useState(false);
   const { data, loading, refresh } = useRequest(() => getListAdminUser({}));
   const onDeleteAdmin = (data: DomainAdminUser) => {
@@ -187,19 +187,27 @@ const AdminTable = () => {
       },
     },
     {
-      title: '最近活跃时间',
+      title: '加入时间',
+      dataIndex: 'created_at',
+      width: 140,
+      render: (text) => {
+        return dayjs.unix(text).fromNow();
+      },
+    },
+    {
+      title: '最近活跃',
       dataIndex: 'last_active_at',
+      width: 140,
       render: (text, record) => {
-        return <Stack direction='column'>
-            <Box sx={{ color: 'text.secondary' }}>{record.created_at ? dayjs.unix(record.created_at).fromNow() + '加入' : '加入时间未知'}</Box>
-            <Box sx={{ color: 'text.secondary' }}>{record.last_active_at ? dayjs.unix(record.last_active_at).fromNow() + '活跃' : '活跃时间未知'}</Box>
-          </Stack>
+        return record.last_active_at === 0
+          ? '从未使用'
+          : dayjs.unix(text).fromNow();
       },
     },
     {
       title: '',
       dataIndex: 'opt',
-      width: 200,
+      width: 100,
       render: (_, record) => {
         return (
           <Button
@@ -215,14 +223,28 @@ const AdminTable = () => {
     },
   ];
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card>
       <Stack
         direction='row'
         justifyContent='space-between'
         alignItems='center'
-        sx={{ mb: 2 }}
+        sx={{ 
+          mb: 2,
+          height: 32,
+          fontWeight: 'bold',
+         }}
       >
-        <Box sx={{ fontWeight: 700, lineHeight: '36px' }}>管理员</Box>
+        <Box sx={{
+          '&::before': {
+            content: '""',
+            display: 'inline-block',
+            width: 4,
+            height: 12,
+            bgcolor: 'common.black',
+            borderRadius: '2px',
+            mr: 1,
+          },
+        }}>管理员清单</Box>
         <Button
           variant='contained'
           color='primary'
@@ -249,4 +271,4 @@ const AdminTable = () => {
   );
 };
 
-export default AdminTable;
+export default AdminUser;
