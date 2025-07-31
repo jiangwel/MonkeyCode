@@ -10909,6 +10909,7 @@ type SettingMutation struct {
 	enable_auto_login      *bool
 	dingtalk_oauth         **types.DingtalkOAuth
 	custom_oauth           **types.CustomOAuth
+	base_url               *string
 	created_at             *time.Time
 	updated_at             *time.Time
 	clearedFields          map[string]struct{}
@@ -11263,6 +11264,55 @@ func (m *SettingMutation) ResetCustomOauth() {
 	delete(m.clearedFields, setting.FieldCustomOauth)
 }
 
+// SetBaseURL sets the "base_url" field.
+func (m *SettingMutation) SetBaseURL(s string) {
+	m.base_url = &s
+}
+
+// BaseURL returns the value of the "base_url" field in the mutation.
+func (m *SettingMutation) BaseURL() (r string, exists bool) {
+	v := m.base_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseURL returns the old "base_url" field's value of the Setting entity.
+// If the Setting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingMutation) OldBaseURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseURL: %w", err)
+	}
+	return oldValue.BaseURL, nil
+}
+
+// ClearBaseURL clears the value of the "base_url" field.
+func (m *SettingMutation) ClearBaseURL() {
+	m.base_url = nil
+	m.clearedFields[setting.FieldBaseURL] = struct{}{}
+}
+
+// BaseURLCleared returns if the "base_url" field was cleared in this mutation.
+func (m *SettingMutation) BaseURLCleared() bool {
+	_, ok := m.clearedFields[setting.FieldBaseURL]
+	return ok
+}
+
+// ResetBaseURL resets all changes to the "base_url" field.
+func (m *SettingMutation) ResetBaseURL() {
+	m.base_url = nil
+	delete(m.clearedFields, setting.FieldBaseURL)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *SettingMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -11369,7 +11419,7 @@ func (m *SettingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.enable_sso != nil {
 		fields = append(fields, setting.FieldEnableSSO)
 	}
@@ -11387,6 +11437,9 @@ func (m *SettingMutation) Fields() []string {
 	}
 	if m.custom_oauth != nil {
 		fields = append(fields, setting.FieldCustomOauth)
+	}
+	if m.base_url != nil {
+		fields = append(fields, setting.FieldBaseURL)
 	}
 	if m.created_at != nil {
 		fields = append(fields, setting.FieldCreatedAt)
@@ -11414,6 +11467,8 @@ func (m *SettingMutation) Field(name string) (ent.Value, bool) {
 		return m.DingtalkOauth()
 	case setting.FieldCustomOauth:
 		return m.CustomOauth()
+	case setting.FieldBaseURL:
+		return m.BaseURL()
 	case setting.FieldCreatedAt:
 		return m.CreatedAt()
 	case setting.FieldUpdatedAt:
@@ -11439,6 +11494,8 @@ func (m *SettingMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldDingtalkOauth(ctx)
 	case setting.FieldCustomOauth:
 		return m.OldCustomOauth(ctx)
+	case setting.FieldBaseURL:
+		return m.OldBaseURL(ctx)
 	case setting.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case setting.FieldUpdatedAt:
@@ -11494,6 +11551,13 @@ func (m *SettingMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCustomOauth(v)
 		return nil
+	case setting.FieldBaseURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseURL(v)
+		return nil
 	case setting.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -11544,6 +11608,9 @@ func (m *SettingMutation) ClearedFields() []string {
 	if m.FieldCleared(setting.FieldCustomOauth) {
 		fields = append(fields, setting.FieldCustomOauth)
 	}
+	if m.FieldCleared(setting.FieldBaseURL) {
+		fields = append(fields, setting.FieldBaseURL)
+	}
 	return fields
 }
 
@@ -11563,6 +11630,9 @@ func (m *SettingMutation) ClearField(name string) error {
 		return nil
 	case setting.FieldCustomOauth:
 		m.ClearCustomOauth()
+		return nil
+	case setting.FieldBaseURL:
+		m.ClearBaseURL()
 		return nil
 	}
 	return fmt.Errorf("unknown Setting nullable field %s", name)
@@ -11589,6 +11659,9 @@ func (m *SettingMutation) ResetField(name string) error {
 		return nil
 	case setting.FieldCustomOauth:
 		m.ResetCustomOauth()
+		return nil
+	case setting.FieldBaseURL:
+		m.ResetBaseURL()
 		return nil
 	case setting.FieldCreatedAt:
 		m.ResetCreatedAt()

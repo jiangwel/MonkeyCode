@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -225,15 +226,28 @@ func (r *UserRepo) GetUserByApiKey(ctx context.Context, apiKey string) (*db.User
 }
 
 func (r *UserRepo) GetSetting(ctx context.Context) (*db.Setting, error) {
+	if b, err := r.redis.Get(ctx, "setting").Result(); err == nil {
+		s := &db.Setting{}
+		if err := json.Unmarshal([]byte(b), s); err == nil {
+			return s, nil
+		}
+	}
 	s, err := r.db.Setting.Query().First(ctx)
 	if db.IsNotFound(err) {
-		return r.db.Setting.Create().
+		s, err = r.db.Setting.Create().
 			SetEnableSSO(false).
 			SetForceTwoFactorAuth(false).
 			SetDisablePasswordLogin(false).
 			Save(ctx)
 	}
 	if err != nil {
+		return nil, err
+	}
+	b, err := json.Marshal(s)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.redis.Set(ctx, "setting", b, time.Hour*24).Err(); err != nil {
 		return nil, err
 	}
 	return s, nil
@@ -253,7 +267,7 @@ func (r *UserRepo) UpdateSetting(ctx context.Context, fn func(*db.Setting, *db.S
 			return err
 		}
 		res = s
-		return nil
+		return r.redis.Del(ctx, "setting").Err()
 	})
 	return res, err
 }

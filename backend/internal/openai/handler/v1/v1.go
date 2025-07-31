@@ -21,6 +21,7 @@ type V1Handler struct {
 	proxyUse domain.ProxyUsecase
 	usecase  domain.OpenAIUsecase
 	euse     domain.ExtensionUsecase
+	uuse     domain.UserUsecase
 	config   *config.Config
 }
 
@@ -31,6 +32,7 @@ func NewV1Handler(
 	proxyUse domain.ProxyUsecase,
 	usecase domain.OpenAIUsecase,
 	euse domain.ExtensionUsecase,
+	uuse domain.UserUsecase,
 	middleware *middleware.ProxyMiddleware,
 	active *middleware.ActiveMiddleware,
 	config *config.Config,
@@ -41,6 +43,7 @@ func NewV1Handler(
 		proxyUse: proxyUse,
 		usecase:  usecase,
 		euse:     euse,
+		uuse:     uuse,
 		config:   config,
 	}
 
@@ -73,9 +76,13 @@ func (h *V1Handler) Version(c *web.Context) error {
 		return err
 	}
 
+	s, err := h.uuse.GetSetting(c.Request().Context())
+	if err != nil {
+		return err
+	}
 	return c.JSON(http.StatusOK, domain.VersionInfo{
 		Version: v.Version,
-		URL:     fmt.Sprintf("%s/api/v1/static/vsix/%s", h.config.GetBaseURL(c.Request()), v.Version),
+		URL:     fmt.Sprintf("%s/api/v1/static/vsix/%s", h.config.GetBaseURL(c.Request(), s), v.Version),
 	})
 }
 
@@ -182,8 +189,12 @@ func (h *V1Handler) Embeddings(c *web.Context) error {
 
 func (h *V1Handler) GetConfig(c *web.Context, req domain.ConfigReq) error {
 	key := middleware.GetApiKey(c)
+	s, err := h.uuse.GetSetting(c.Request().Context())
+	if err != nil {
+		return err
+	}
 	req.Key = key.Key
-	req.BaseURL = h.config.GetBaseURL(c.Request())
+	req.BaseURL = h.config.GetBaseURL(c.Request(), s)
 	resp, err := h.usecase.GetConfig(c.Request().Context(), &req)
 	if err != nil {
 		return err

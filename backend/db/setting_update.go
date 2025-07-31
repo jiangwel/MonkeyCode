@@ -110,6 +110,26 @@ func (su *SettingUpdate) ClearCustomOauth() *SettingUpdate {
 	return su
 }
 
+// SetBaseURL sets the "base_url" field.
+func (su *SettingUpdate) SetBaseURL(s string) *SettingUpdate {
+	su.mutation.SetBaseURL(s)
+	return su
+}
+
+// SetNillableBaseURL sets the "base_url" field if the given value is not nil.
+func (su *SettingUpdate) SetNillableBaseURL(s *string) *SettingUpdate {
+	if s != nil {
+		su.SetBaseURL(*s)
+	}
+	return su
+}
+
+// ClearBaseURL clears the value of the "base_url" field.
+func (su *SettingUpdate) ClearBaseURL() *SettingUpdate {
+	su.mutation.ClearBaseURL()
+	return su
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (su *SettingUpdate) SetCreatedAt(t time.Time) *SettingUpdate {
 	su.mutation.SetCreatedAt(t)
@@ -209,6 +229,12 @@ func (su *SettingUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if su.mutation.CustomOauthCleared() {
 		_spec.ClearField(setting.FieldCustomOauth, field.TypeJSON)
+	}
+	if value, ok := su.mutation.BaseURL(); ok {
+		_spec.SetField(setting.FieldBaseURL, field.TypeString, value)
+	}
+	if su.mutation.BaseURLCleared() {
+		_spec.ClearField(setting.FieldBaseURL, field.TypeString)
 	}
 	if value, ok := su.mutation.CreatedAt(); ok {
 		_spec.SetField(setting.FieldCreatedAt, field.TypeTime, value)
@@ -315,6 +341,26 @@ func (suo *SettingUpdateOne) SetCustomOauth(to *types.CustomOAuth) *SettingUpdat
 // ClearCustomOauth clears the value of the "custom_oauth" field.
 func (suo *SettingUpdateOne) ClearCustomOauth() *SettingUpdateOne {
 	suo.mutation.ClearCustomOauth()
+	return suo
+}
+
+// SetBaseURL sets the "base_url" field.
+func (suo *SettingUpdateOne) SetBaseURL(s string) *SettingUpdateOne {
+	suo.mutation.SetBaseURL(s)
+	return suo
+}
+
+// SetNillableBaseURL sets the "base_url" field if the given value is not nil.
+func (suo *SettingUpdateOne) SetNillableBaseURL(s *string) *SettingUpdateOne {
+	if s != nil {
+		suo.SetBaseURL(*s)
+	}
+	return suo
+}
+
+// ClearBaseURL clears the value of the "base_url" field.
+func (suo *SettingUpdateOne) ClearBaseURL() *SettingUpdateOne {
+	suo.mutation.ClearBaseURL()
 	return suo
 }
 
@@ -447,6 +493,12 @@ func (suo *SettingUpdateOne) sqlSave(ctx context.Context) (_node *Setting, err e
 	}
 	if suo.mutation.CustomOauthCleared() {
 		_spec.ClearField(setting.FieldCustomOauth, field.TypeJSON)
+	}
+	if value, ok := suo.mutation.BaseURL(); ok {
+		_spec.SetField(setting.FieldBaseURL, field.TypeString, value)
+	}
+	if suo.mutation.BaseURLCleared() {
+		_spec.ClearField(setting.FieldBaseURL, field.TypeString)
 	}
 	if value, ok := suo.mutation.CreatedAt(); ok {
 		_spec.SetField(setting.FieldCreatedAt, field.TypeTime, value)

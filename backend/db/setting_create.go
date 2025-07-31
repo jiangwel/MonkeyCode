@@ -93,6 +93,20 @@ func (sc *SettingCreate) SetCustomOauth(to *types.CustomOAuth) *SettingCreate {
 	return sc
 }
 
+// SetBaseURL sets the "base_url" field.
+func (sc *SettingCreate) SetBaseURL(s string) *SettingCreate {
+	sc.mutation.SetBaseURL(s)
+	return sc
+}
+
+// SetNillableBaseURL sets the "base_url" field if the given value is not nil.
+func (sc *SettingCreate) SetNillableBaseURL(s *string) *SettingCreate {
+	if s != nil {
+		sc.SetBaseURL(*s)
+	}
+	return sc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (sc *SettingCreate) SetCreatedAt(t time.Time) *SettingCreate {
 	sc.mutation.SetCreatedAt(t)
@@ -268,6 +282,10 @@ func (sc *SettingCreate) createSpec() (*Setting, *sqlgraph.CreateSpec) {
 		_spec.SetField(setting.FieldCustomOauth, field.TypeJSON, value)
 		_node.CustomOauth = value
 	}
+	if value, ok := sc.mutation.BaseURL(); ok {
+		_spec.SetField(setting.FieldBaseURL, field.TypeString, value)
+		_node.BaseURL = value
+	}
 	if value, ok := sc.mutation.CreatedAt(); ok {
 		_spec.SetField(setting.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -409,6 +427,24 @@ func (u *SettingUpsert) UpdateCustomOauth() *SettingUpsert {
 // ClearCustomOauth clears the value of the "custom_oauth" field.
 func (u *SettingUpsert) ClearCustomOauth() *SettingUpsert {
 	u.SetNull(setting.FieldCustomOauth)
+	return u
+}
+
+// SetBaseURL sets the "base_url" field.
+func (u *SettingUpsert) SetBaseURL(v string) *SettingUpsert {
+	u.Set(setting.FieldBaseURL, v)
+	return u
+}
+
+// UpdateBaseURL sets the "base_url" field to the value that was provided on create.
+func (u *SettingUpsert) UpdateBaseURL() *SettingUpsert {
+	u.SetExcluded(setting.FieldBaseURL)
+	return u
+}
+
+// ClearBaseURL clears the value of the "base_url" field.
+func (u *SettingUpsert) ClearBaseURL() *SettingUpsert {
+	u.SetNull(setting.FieldBaseURL)
 	return u
 }
 
@@ -579,6 +615,27 @@ func (u *SettingUpsertOne) UpdateCustomOauth() *SettingUpsertOne {
 func (u *SettingUpsertOne) ClearCustomOauth() *SettingUpsertOne {
 	return u.Update(func(s *SettingUpsert) {
 		s.ClearCustomOauth()
+	})
+}
+
+// SetBaseURL sets the "base_url" field.
+func (u *SettingUpsertOne) SetBaseURL(v string) *SettingUpsertOne {
+	return u.Update(func(s *SettingUpsert) {
+		s.SetBaseURL(v)
+	})
+}
+
+// UpdateBaseURL sets the "base_url" field to the value that was provided on create.
+func (u *SettingUpsertOne) UpdateBaseURL() *SettingUpsertOne {
+	return u.Update(func(s *SettingUpsert) {
+		s.UpdateBaseURL()
+	})
+}
+
+// ClearBaseURL clears the value of the "base_url" field.
+func (u *SettingUpsertOne) ClearBaseURL() *SettingUpsertOne {
+	return u.Update(func(s *SettingUpsert) {
+		s.ClearBaseURL()
 	})
 }
 
@@ -920,6 +977,27 @@ func (u *SettingUpsertBulk) UpdateCustomOauth() *SettingUpsertBulk {
 func (u *SettingUpsertBulk) ClearCustomOauth() *SettingUpsertBulk {
 	return u.Update(func(s *SettingUpsert) {
 		s.ClearCustomOauth()
+	})
+}
+
+// SetBaseURL sets the "base_url" field.
+func (u *SettingUpsertBulk) SetBaseURL(v string) *SettingUpsertBulk {
+	return u.Update(func(s *SettingUpsert) {
+		s.SetBaseURL(v)
+	})
+}
+
+// UpdateBaseURL sets the "base_url" field to the value that was provided on create.
+func (u *SettingUpsertBulk) UpdateBaseURL() *SettingUpsertBulk {
+	return u.Update(func(s *SettingUpsert) {
+		s.UpdateBaseURL()
+	})
+}
+
+// ClearBaseURL clears the value of the "base_url" field.
+func (u *SettingUpsertBulk) ClearBaseURL() *SettingUpsertBulk {
+	return u.Update(func(s *SettingUpsert) {
+		s.ClearBaseURL()
 	})
 }
 

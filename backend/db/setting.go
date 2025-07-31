@@ -32,6 +32,8 @@ type Setting struct {
 	DingtalkOauth *types.DingtalkOAuth `json:"dingtalk_oauth,omitempty"`
 	// CustomOauth holds the value of the "custom_oauth" field.
 	CustomOauth *types.CustomOAuth `json:"custom_oauth,omitempty"`
+	// BaseURL holds the value of the "base_url" field.
+	BaseURL string `json:"base_url,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -48,6 +50,8 @@ func (*Setting) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case setting.FieldEnableSSO, setting.FieldForceTwoFactorAuth, setting.FieldDisablePasswordLogin, setting.FieldEnableAutoLogin:
 			values[i] = new(sql.NullBool)
+		case setting.FieldBaseURL:
+			values[i] = new(sql.NullString)
 		case setting.FieldCreatedAt, setting.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case setting.FieldID:
@@ -112,6 +116,12 @@ func (s *Setting) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &s.CustomOauth); err != nil {
 					return fmt.Errorf("unmarshal field custom_oauth: %w", err)
 				}
+			}
+		case setting.FieldBaseURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field base_url", values[i])
+			} else if value.Valid {
+				s.BaseURL = value.String
 			}
 		case setting.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -178,6 +188,9 @@ func (s *Setting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("custom_oauth=")
 	builder.WriteString(fmt.Sprintf("%v", s.CustomOauth))
+	builder.WriteString(", ")
+	builder.WriteString("base_url=")
+	builder.WriteString(s.BaseURL)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(s.CreatedAt.Format(time.ANSIC))

@@ -25,7 +25,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/internal/middleware"
 	v1_2 "github.com/chaitin/MonkeyCode/backend/internal/model/handler/http/v1"
 	repo2 "github.com/chaitin/MonkeyCode/backend/internal/model/repo"
-	usecase3 "github.com/chaitin/MonkeyCode/backend/internal/model/usecase"
+	usecase4 "github.com/chaitin/MonkeyCode/backend/internal/model/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/openai/handler/v1"
 	repo3 "github.com/chaitin/MonkeyCode/backend/internal/openai/repo"
 	"github.com/chaitin/MonkeyCode/backend/internal/openai/usecase"
@@ -37,7 +37,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/internal/socket/handler"
 	v1_3 "github.com/chaitin/MonkeyCode/backend/internal/user/handler/v1"
 	repo5 "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
-	usecase4 "github.com/chaitin/MonkeyCode/backend/internal/user/usecase"
+	usecase3 "github.com/chaitin/MonkeyCode/backend/internal/user/usecase"
 	repo8 "github.com/chaitin/MonkeyCode/backend/internal/workspace/repo"
 	usecase7 "github.com/chaitin/MonkeyCode/backend/internal/workspace/usecase"
 	"github.com/chaitin/MonkeyCode/backend/pkg"
@@ -73,20 +73,20 @@ func newServer() (*Server, error) {
 	openAIUsecase := openai.NewOpenAIUsecase(configConfig, openAIRepo, modelRepo, slogLogger)
 	extensionRepo := repo4.NewExtensionRepo(client)
 	extensionUsecase := usecase2.NewExtensionUsecase(extensionRepo, configConfig, slogLogger)
-	proxyMiddleware := middleware.NewProxyMiddleware(proxyUsecase)
-	activeMiddleware := middleware.NewActiveMiddleware(redisClient, slogLogger)
-	v1Handler := v1.NewV1Handler(slogLogger, web, llmProxy, proxyUsecase, openAIUsecase, extensionUsecase, proxyMiddleware, activeMiddleware, configConfig)
-	modelUsecase := usecase3.NewModelUsecase(slogLogger, modelRepo, configConfig)
-	sessionSession := session.NewSession(configConfig)
-	authMiddleware := middleware.NewAuthMiddleware(sessionSession, slogLogger)
-	readOnlyMiddleware := middleware.NewReadOnlyMiddleware(configConfig)
-	modelHandler := v1_2.NewModelHandler(web, modelUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, slogLogger)
 	ipdbIPDB, err := ipdb.NewIPDB(slogLogger)
 	if err != nil {
 		return nil, err
 	}
 	userRepo := repo5.NewUserRepo(client, ipdbIPDB, redisClient, configConfig)
-	userUsecase := usecase4.NewUserUsecase(configConfig, redisClient, userRepo, slogLogger, sessionSession)
+	sessionSession := session.NewSession(configConfig)
+	userUsecase := usecase3.NewUserUsecase(configConfig, redisClient, userRepo, slogLogger, sessionSession)
+	proxyMiddleware := middleware.NewProxyMiddleware(proxyUsecase)
+	activeMiddleware := middleware.NewActiveMiddleware(redisClient, slogLogger)
+	v1Handler := v1.NewV1Handler(slogLogger, web, llmProxy, proxyUsecase, openAIUsecase, extensionUsecase, userUsecase, proxyMiddleware, activeMiddleware, configConfig)
+	modelUsecase := usecase4.NewModelUsecase(slogLogger, modelRepo, configConfig)
+	authMiddleware := middleware.NewAuthMiddleware(sessionSession, slogLogger)
+	readOnlyMiddleware := middleware.NewReadOnlyMiddleware(configConfig)
+	modelHandler := v1_2.NewModelHandler(web, modelUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, slogLogger)
 	dashboardRepo := repo6.NewDashboardRepo(client)
 	dashboardUsecase := usecase5.NewDashboardUsecase(dashboardRepo)
 	billingRepo := repo7.NewBillingRepo(client)

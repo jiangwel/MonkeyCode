@@ -6,6 +6,11 @@ type DingtalkOAuth struct {
 	ClientSecret string `json:"client_secret"` // 钉钉客户端密钥
 }
 
+type BaseURL struct {
+	Host string `json:"host"`
+	Port string `json:"port"`
+}
+
 type CustomOAuth struct {
 	Enable         bool     `json:"enable"`           // 自定义OAuth开关
 	ClientID       string   `json:"client_id"`        // 自定义客户端ID

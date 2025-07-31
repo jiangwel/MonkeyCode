@@ -315,6 +315,7 @@ var (
 		{Name: "enable_auto_login", Type: field.TypeBool, Default: false},
 		{Name: "dingtalk_oauth", Type: field.TypeJSON, Nullable: true},
 		{Name: "custom_oauth", Type: field.TypeJSON, Nullable: true},
+		{Name: "base_url", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
