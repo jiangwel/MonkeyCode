@@ -15,7 +15,7 @@ import {
   Divider,
   Stack,
 } from '@mui/material';
-import { Icon, message } from '@c-x/ui';
+import { CusTabs, Icon, message } from '@c-x/ui';
 
 // @ts-ignore
 import { AestheticFluidBg } from '@/assets/jsm/AestheticFluidBg.module.js';
@@ -43,7 +43,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   position: 'relative',
   zIndex: 9,
   padding: theme.spacing(4),
-  background: 'rgba(255, 255, 255, 0.85)',
+  background: 'rgba(240, 240, 240, 0.85)',
   backdropFilter: 'blur(10px)',
   width: 458,
   borderRadius: theme.spacing(2),
@@ -133,6 +133,12 @@ const AuthPage = () => {
   // 处理登录表单提交
   const onSubmit = useCallback(
     async (data: LoginFormData) => {
+      // 检查是否使用 admin 账户登录
+      if (data.username === 'admin') {
+        message.error('请使用研发成员的账户登录，本页面不支持管理员账户访问');
+        return;
+      }
+
       setLoading(true);
       setError(null);
 
@@ -344,6 +350,40 @@ const AuthPage = () => {
             Monkey Code
           </LogoTitle>
         </LogoContainer>
+
+        <CusTabs
+          list={[
+            { label: '研发成员', value: 'user' },
+            { label: '管理员', value: 'admin', disabled: true},
+          ]}
+          value={"user"}
+          sx={{
+            width: '100%',
+            mb: 4,
+            height: 40,
+            border: 'none',
+            padding: '4px',
+            '.MuiTab-root': {
+              width: '50%',
+              height: 32,
+              fontSize: 14,
+              '&.Mui-selected': {
+                color: 'text.primary',
+                fontWeight: 500,
+              },
+            },
+            '.MuiTabs-scroller': {
+              height: 32,
+            },
+            '.MuiTabs-indicator': {
+              borderRadius: '10px',
+              height: 32,
+              backgroundColor: '#fff',
+            },
+            bgcolor: 'rgba(255, 255, 255, 0.2)',
+            borderRadius: '10px',
+          }}
+        />
         {!loginSetting.disable_password_login && renderLoginForm()}
         {oauthEnable && oauthLogin()}
       </StyledPaper>
