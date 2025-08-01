@@ -18,9 +18,9 @@ const scriptPath = "./tools/dist/cli.cjs"
 //	@Description	运行monkeycode-cli命令
 //	@Accept			json
 //	@Produce		json
-//	@Param			command	    index		string				        true	"命令"
+//	@Param			command	    path		string				        true	"命令"
 //	@Param			flag	    query		string				        false	"标志"
-//	@Param			fileMetas	body		domain.[]FileMeta			true	"代码文件信息"
+//	@Param			fileMetas	body		[]domain.FileMeta			true	"代码文件信息"
 //	@Success		200		    {object}	[]domain.IndexResult	            "输出结果"
 //	@Failure		500		    {object}	web.Resp			                "内部错误"
 //	@Router			/api/v1/cli/{command} [post]
