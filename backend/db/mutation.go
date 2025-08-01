@@ -8570,9 +8570,22 @@ func (m *ModelMutation) OldAPIKey(ctx context.Context) (v string, err error) {
 	return oldValue.APIKey, nil
 }
 
+// ClearAPIKey clears the value of the "api_key" field.
+func (m *ModelMutation) ClearAPIKey() {
+	m.api_key = nil
+	m.clearedFields[model.FieldAPIKey] = struct{}{}
+}
+
+// APIKeyCleared returns if the "api_key" field was cleared in this mutation.
+func (m *ModelMutation) APIKeyCleared() bool {
+	_, ok := m.clearedFields[model.FieldAPIKey]
+	return ok
+}
+
 // ResetAPIKey resets all changes to the "api_key" field.
 func (m *ModelMutation) ResetAPIKey() {
 	m.api_key = nil
+	delete(m.clearedFields, model.FieldAPIKey)
 }
 
 // SetAPIVersion sets the "api_version" field.
@@ -9438,6 +9451,9 @@ func (m *ModelMutation) ClearedFields() []string {
 	if m.FieldCleared(model.FieldShowName) {
 		fields = append(fields, model.FieldShowName)
 	}
+	if m.FieldCleared(model.FieldAPIKey) {
+		fields = append(fields, model.FieldAPIKey)
+	}
 	if m.FieldCleared(model.FieldAPIVersion) {
 		fields = append(fields, model.FieldAPIVersion)
 	}
@@ -9472,6 +9488,9 @@ func (m *ModelMutation) ClearField(name string) error {
 		return nil
 	case model.FieldShowName:
 		m.ClearShowName()
+		return nil
+	case model.FieldAPIKey:
+		m.ClearAPIKey()
 		return nil
 	case model.FieldAPIVersion:
 		m.ClearAPIVersion()

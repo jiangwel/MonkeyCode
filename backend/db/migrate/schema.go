@@ -242,7 +242,7 @@ var (
 		{Name: "model_type", Type: field.TypeString},
 		{Name: "show_name", Type: field.TypeString, Nullable: true},
 		{Name: "api_base", Type: field.TypeString},
-		{Name: "api_key", Type: field.TypeString},
+		{Name: "api_key", Type: field.TypeString, Nullable: true},
 		{Name: "api_version", Type: field.TypeString, Nullable: true},
 		{Name: "api_header", Type: field.TypeString, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true},

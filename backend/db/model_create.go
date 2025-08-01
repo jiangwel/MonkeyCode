@@ -80,6 +80,14 @@ func (mc *ModelCreate) SetAPIKey(s string) *ModelCreate {
 	return mc
 }
 
+// SetNillableAPIKey sets the "api_key" field if the given value is not nil.
+func (mc *ModelCreate) SetNillableAPIKey(s *string) *ModelCreate {
+	if s != nil {
+		mc.SetAPIKey(*s)
+	}
+	return mc
+}
+
 // SetAPIVersion sets the "api_version" field.
 func (mc *ModelCreate) SetAPIVersion(s string) *ModelCreate {
 	mc.mutation.SetAPIVersion(s)
@@ -293,9 +301,6 @@ func (mc *ModelCreate) check() error {
 	}
 	if _, ok := mc.mutation.APIBase(); !ok {
 		return &ValidationError{Name: "api_base", err: errors.New(`db: missing required field "Model.api_base"`)}
-	}
-	if _, ok := mc.mutation.APIKey(); !ok {
-		return &ValidationError{Name: "api_key", err: errors.New(`db: missing required field "Model.api_key"`)}
 	}
 	if _, ok := mc.mutation.IsInternal(); !ok {
 		return &ValidationError{Name: "is_internal", err: errors.New(`db: missing required field "Model.is_internal"`)}
@@ -574,6 +579,12 @@ func (u *ModelUpsert) SetAPIKey(v string) *ModelUpsert {
 // UpdateAPIKey sets the "api_key" field to the value that was provided on create.
 func (u *ModelUpsert) UpdateAPIKey() *ModelUpsert {
 	u.SetExcluded(model.FieldAPIKey)
+	return u
+}
+
+// ClearAPIKey clears the value of the "api_key" field.
+func (u *ModelUpsert) ClearAPIKey() *ModelUpsert {
+	u.SetNull(model.FieldAPIKey)
 	return u
 }
 
@@ -876,6 +887,13 @@ func (u *ModelUpsertOne) SetAPIKey(v string) *ModelUpsertOne {
 func (u *ModelUpsertOne) UpdateAPIKey() *ModelUpsertOne {
 	return u.Update(func(s *ModelUpsert) {
 		s.UpdateAPIKey()
+	})
+}
+
+// ClearAPIKey clears the value of the "api_key" field.
+func (u *ModelUpsertOne) ClearAPIKey() *ModelUpsertOne {
+	return u.Update(func(s *ModelUpsert) {
+		s.ClearAPIKey()
 	})
 }
 
@@ -1371,6 +1389,13 @@ func (u *ModelUpsertBulk) SetAPIKey(v string) *ModelUpsertBulk {
 func (u *ModelUpsertBulk) UpdateAPIKey() *ModelUpsertBulk {
 	return u.Update(func(s *ModelUpsert) {
 		s.UpdateAPIKey()
+	})
+}
+
+// ClearAPIKey clears the value of the "api_key" field.
+func (u *ModelUpsertBulk) ClearAPIKey() *ModelUpsertBulk {
+	return u.Update(func(s *ModelUpsert) {
+		s.ClearAPIKey()
 	})
 }
 

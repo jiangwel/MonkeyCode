@@ -130,6 +130,12 @@ func (mu *ModelUpdate) SetNillableAPIKey(s *string) *ModelUpdate {
 	return mu
 }
 
+// ClearAPIKey clears the value of the "api_key" field.
+func (mu *ModelUpdate) ClearAPIKey() *ModelUpdate {
+	mu.mutation.ClearAPIKey()
+	return mu
+}
+
 // SetAPIVersion sets the "api_version" field.
 func (mu *ModelUpdate) SetAPIVersion(s string) *ModelUpdate {
 	mu.mutation.SetAPIVersion(s)
@@ -412,6 +418,9 @@ func (mu *ModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.APIKey(); ok {
 		_spec.SetField(model.FieldAPIKey, field.TypeString, value)
 	}
+	if mu.mutation.APIKeyCleared() {
+		_spec.ClearField(model.FieldAPIKey, field.TypeString)
+	}
 	if value, ok := mu.mutation.APIVersion(); ok {
 		_spec.SetField(model.FieldAPIVersion, field.TypeString, value)
 	}
@@ -649,6 +658,12 @@ func (muo *ModelUpdateOne) SetNillableAPIKey(s *string) *ModelUpdateOne {
 	if s != nil {
 		muo.SetAPIKey(*s)
 	}
+	return muo
+}
+
+// ClearAPIKey clears the value of the "api_key" field.
+func (muo *ModelUpdateOne) ClearAPIKey() *ModelUpdateOne {
+	muo.mutation.ClearAPIKey()
 	return muo
 }
 
@@ -963,6 +978,9 @@ func (muo *ModelUpdateOne) sqlSave(ctx context.Context) (_node *Model, err error
 	}
 	if value, ok := muo.mutation.APIKey(); ok {
 		_spec.SetField(model.FieldAPIKey, field.TypeString, value)
+	}
+	if muo.mutation.APIKeyCleared() {
+		_spec.ClearField(model.FieldAPIKey, field.TypeString)
 	}
 	if value, ok := muo.mutation.APIVersion(); ok {
 		_spec.SetField(model.FieldAPIVersion, field.TypeString, value)
