@@ -36,7 +36,7 @@ func (Model) Fields() []ent.Field {
 		field.String("model_type").GoType(consts.ModelType("")),
 		field.String("show_name").Optional(),
 		field.String("api_base"),
-		field.String("api_key"),
+		field.String("api_key").Optional(),
 		field.String("api_version").Optional(),
 		field.String("api_header").Optional(),
 		field.String("description").Optional(),

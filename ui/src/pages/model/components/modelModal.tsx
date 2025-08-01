@@ -723,6 +723,7 @@ const ModelAdd = ({
                                 size='small'
                                 placeholder='例如：16000'
                                 type='number'
+                                onChange={(e) => field.onChange(Number(e.target.value))}
                               />
                               <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
                                 {[
@@ -767,6 +768,7 @@ const ModelAdd = ({
                               size='small'
                               placeholder='例如：4000'
                               type='number'
+                              onChange={(e) => field.onChange(Number(e.target.value))}
                             />
                           )}
                         />
