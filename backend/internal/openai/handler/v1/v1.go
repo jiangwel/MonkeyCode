@@ -49,6 +49,7 @@ func NewV1Handler(
 
 	w.GET("/api/config", web.BindHandler(h.GetConfig), middleware.Auth())
 	w.GET("/v1/version", web.BaseHandler(h.Version), middleware.Auth())
+	w.GET("/v1/health", web.BaseHandler(h.HealthCheck))
 
 	g := w.Group("/v1", middleware.Auth())
 	g.GET("/models", web.BaseHandler(h.ModelList))
@@ -200,4 +201,18 @@ func (h *V1Handler) GetConfig(c *web.Context, req domain.ConfigReq) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, resp)
+}
+
+// HealthCheck 健康检查
+//
+//	@Tags			OpenAIV1
+//	@Summary		健康检查
+//	@Description	固定回包 `{"code": 0, "data": "MonkeyCode"}`
+//	@ID				health
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	web.Resp{}
+//	@Router			/v1/health [get]
+func (h *V1Handler) HealthCheck(c *web.Context) error {
+	return c.Success("MonkeyCode")
 }

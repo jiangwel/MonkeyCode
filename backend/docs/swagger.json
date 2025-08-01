@@ -734,11 +734,14 @@
                     },
                     {
                         "description": "代码文件信息",
-                        "name": "codeFiles",
+                        "name": "fileMetas",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CodeFiles"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.FileMeta"
+                            }
                         }
                     }
                 ],
@@ -3340,6 +3343,30 @@
                 }
             }
         },
+        "/v1/health": {
+            "get": {
+                "description": "固定回包 `{\"code\": 0, \"data\": \"MonkeyCode\"}`",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OpenAIV1"
+                ],
+                "summary": "健康检查",
+                "operationId": "health",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Resp"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/models": {
             "get": {
                 "description": "模型列表",
@@ -3837,17 +3864,6 @@
                             "$ref": "#/definitions/consts.ModelType"
                         }
                     ]
-                }
-            }
-        },
-        "domain.CodeFiles": {
-            "type": "object",
-            "properties": {
-                "files": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.FileMeta"
-                    }
                 }
             }
         },
