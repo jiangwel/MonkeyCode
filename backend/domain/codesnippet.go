@@ -8,12 +8,14 @@ import (
 
 // CodeSnippetUsecase 定义 CodeSnippet 业务逻辑接口
 type CodeSnippetUsecase interface {
-	CreateFromIndexResult(ctx context.Context, workspaceFileID string, indexResult *IndexResult) (*CodeSnippet, error)
+	CreateFromIndexResult(ctx context.Context, workspaceFileID string, indexResult *IndexResult, workspacePath string) (*CodeSnippet, error)
 	ListByWorkspaceFile(ctx context.Context, workspaceFileID string) ([]*CodeSnippet, error)
 	GetByID(ctx context.Context, id string) (*CodeSnippet, error)
 	Delete(ctx context.Context, id string) error
 	Search(ctx context.Context, name, snippetType, language string) ([]*CodeSnippet, error)
 	SearchByWorkspace(ctx context.Context, userID, workspacePath, name, snippetType, language string) ([]*CodeSnippet, error)
+	SemanticSearch(ctx context.Context, embedding []float32, limit int) ([]*CodeSnippet, error)
+	SemanticSearchByWorkspace(ctx context.Context, userID, workspacePath string, embedding []float32, limit int) ([]*CodeSnippet, error)
 }
 
 // CodeSnippetRepo 定义 CodeSnippet 数据访问接口
@@ -24,11 +26,14 @@ type CodeSnippetRepo interface {
 	Delete(ctx context.Context, id string) error
 	Search(ctx context.Context, name, snippetType, language string) ([]*db.CodeSnippet, error)
 	SearchByWorkspace(ctx context.Context, userID, workspacePath, name, snippetType, language string) ([]*db.CodeSnippet, error)
+	SemanticSearch(ctx context.Context, embedding []float32, limit int) ([]*db.CodeSnippet, error)
+	SemanticSearchByWorkspace(ctx context.Context, userID, workspacePath string, embedding []float32, limit int) ([]*db.CodeSnippet, error)
 }
 
 // 请求结构体
 type CreateCodeSnippetReq struct {
 	WorkspaceFileID string           `json:"workspace_file_id" validate:"required"` // 关联的workspace file ID
+	WorkspacePath   string           `json:"workspace_path"`                        // 工作区路径
 	Name            string           `json:"name"`                                  // 代码片段名称
 	SnippetType     string           `json:"snippet_type"`                          // 代码片段类型 (function, class, variable, etc.)
 	Language        string           `json:"language"`                              // 编程语言
@@ -46,30 +51,32 @@ type CreateCodeSnippetReq struct {
 	Signature       string           `json:"signature"`                             // 函数签名
 	DefinitionText  string           `json:"definition_text"`                       // 定义文本
 	StructuredInfo  map[string]any   `json:"structured_info"`                       // 结构化信息
+	Embedding       []float32        `json:"embedding,omitempty"`                   // 向量嵌入
 }
 
 // 数据模型
 type CodeSnippet struct {
-	ID              string           `json:"id"`                // 代码片段ID
-	WorkspaceFileID string           `json:"workspace_file_id"` // 关联的workspace file ID
-	Name            string           `json:"name"`              // 代码片段名称
-	SnippetType     string           `json:"type"`              // 代码片段类型
-	Language        string           `json:"language"`          // 编程语言
-	Content         string           `json:"rangeText"`         // 代码片段内容
-	Hash            string           `json:"fileHash"`          // 内容哈希
-	StartLine       int              `json:"startLine"`         // 起始行号
-	EndLine         int              `json:"endLine"`           // 结束行号
-	StartColumn     int              `json:"startColumn"`       // 起始列号
-	EndColumn       int              `json:"endColumn"`         // 结束列号
-	FilePath        string           `json:"filePath"`          // 文件路径
-	Namespace       string           `json:"namespace"`         // 命名空间
-	ContainerName   string           `json:"field"`             // 容器名称
-	Scope           []string         `json:"scope"`             // 作用域信息
-	Dependencies    []string         `json:"dependencies"`      // 依赖项
-	Parameters      []map[string]any `json:"parameters"`        // 参数列表
-	Signature       string           `json:"signature"`         // 函数签名
-	DefinitionText  string           `json:"definitionText"`    // 定义文本
-	StructuredInfo  map[string]any   `json:"definition"`        // 结构化信息
+	ID              string           `json:"id"`                  // 代码片段ID
+	WorkspaceFileID string           `json:"workspace_file_id"`   // 关联的workspace file ID
+	Name            string           `json:"name"`                // 代码片段名称
+	SnippetType     string           `json:"type"`                // 代码片段类型
+	Language        string           `json:"language"`            // 编程语言
+	Content         string           `json:"rangeText"`           // 代码片段内容
+	Hash            string           `json:"fileHash"`            // 内容哈希
+	StartLine       int              `json:"startLine"`           // 起始行号
+	EndLine         int              `json:"endLine"`             // 结束行号
+	StartColumn     int              `json:"startColumn"`         // 起始列号
+	EndColumn       int              `json:"endColumn"`           // 结束列号
+	FilePath        string           `json:"filePath"`            // 文件路径
+	Namespace       string           `json:"namespace"`           // 命名空间
+	ContainerName   string           `json:"field"`               // 容器名称
+	Scope           []string         `json:"scope"`               // 作用域信息
+	Dependencies    []string         `json:"dependencies"`        // 依赖项
+	Parameters      []map[string]any `json:"parameters"`          // 参数列表
+	Signature       string           `json:"signature"`           // 函数签名
+	DefinitionText  string           `json:"definitionText"`      // 定义文本
+	StructuredInfo  map[string]any   `json:"definition"`          // 结构化信息
+	Embedding       []float32        `json:"embedding,omitempty"` // 向量嵌入
 }
 
 func (c *CodeSnippet) From(e *db.CodeSnippet) *CodeSnippet {
@@ -97,6 +104,14 @@ func (c *CodeSnippet) From(e *db.CodeSnippet) *CodeSnippet {
 	c.DefinitionText = e.DefinitionText
 	c.StructuredInfo = e.StructuredInfo
 
+	// 检查embedding是否为空，避免空指针引用
+	embeddingSlice := e.Embedding.Slice()
+	if len(embeddingSlice) > 0 {
+		c.Embedding = embeddingSlice
+	} else {
+		c.Embedding = []float32{}
+	}
+
 	return c
 }
 
@@ -111,6 +126,7 @@ func (c *CodeSnippet) FromWithFile(e *db.CodeSnippet) *CodeSnippet {
 	// 设置文件路径
 	if e.Edges.SourceFile != nil {
 		c.FilePath = e.Edges.SourceFile.Path
+		c.WorkspaceFileID = e.Edges.SourceFile.Path
 	}
 
 	return c

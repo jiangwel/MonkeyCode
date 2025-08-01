@@ -8,6 +8,7 @@ import (
 	billingusecase "github.com/chaitin/MonkeyCode/backend/internal/billing/usecase"
 	codesnippetv1 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/handler/http/v1"
 	codesnippetrepo "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/repo"
+	codesnippetservice "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/service"
 	codesnippetusecase "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/usecase"
 	dashv1 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/handler/v1"
 	dashrepo "github.com/chaitin/MonkeyCode/backend/internal/dashboard/repo"
@@ -105,4 +106,5 @@ var Provider = wire.NewSet(
 	securityrepo.NewSecurityScanningRepo,
 	securityusecase.NewSecurityScanningUsecase,
 	securityv1.NewSecurityHandler,
+	codesnippetservice.NewOpenAIEmbeddingService,
 )

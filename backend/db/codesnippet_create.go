@@ -14,6 +14,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 	"github.com/google/uuid"
+	pgvector "github.com/pgvector/pgvector-go"
 )
 
 // CodeSnippetCreate is the builder for creating a CodeSnippet entity.
@@ -161,6 +162,34 @@ func (csc *CodeSnippetCreate) SetNillableDefinitionText(s *string) *CodeSnippetC
 // SetStructuredInfo sets the "structured_info" field.
 func (csc *CodeSnippetCreate) SetStructuredInfo(m map[string]interface{}) *CodeSnippetCreate {
 	csc.mutation.SetStructuredInfo(m)
+	return csc
+}
+
+// SetEmbedding sets the "embedding" field.
+func (csc *CodeSnippetCreate) SetEmbedding(pg pgvector.Vector) *CodeSnippetCreate {
+	csc.mutation.SetEmbedding(pg)
+	return csc
+}
+
+// SetNillableEmbedding sets the "embedding" field if the given value is not nil.
+func (csc *CodeSnippetCreate) SetNillableEmbedding(pg *pgvector.Vector) *CodeSnippetCreate {
+	if pg != nil {
+		csc.SetEmbedding(*pg)
+	}
+	return csc
+}
+
+// SetWorkspacePath sets the "workspacePath" field.
+func (csc *CodeSnippetCreate) SetWorkspacePath(s string) *CodeSnippetCreate {
+	csc.mutation.SetWorkspacePath(s)
+	return csc
+}
+
+// SetNillableWorkspacePath sets the "workspacePath" field if the given value is not nil.
+func (csc *CodeSnippetCreate) SetNillableWorkspacePath(s *string) *CodeSnippetCreate {
+	if s != nil {
+		csc.SetWorkspacePath(*s)
+	}
 	return csc
 }
 
@@ -351,6 +380,14 @@ func (csc *CodeSnippetCreate) createSpec() (*CodeSnippet, *sqlgraph.CreateSpec) 
 	if value, ok := csc.mutation.StructuredInfo(); ok {
 		_spec.SetField(codesnippet.FieldStructuredInfo, field.TypeJSON, value)
 		_node.StructuredInfo = value
+	}
+	if value, ok := csc.mutation.Embedding(); ok {
+		_spec.SetField(codesnippet.FieldEmbedding, field.TypeOther, value)
+		_node.Embedding = value
+	}
+	if value, ok := csc.mutation.WorkspacePath(); ok {
+		_spec.SetField(codesnippet.FieldWorkspacePath, field.TypeString, value)
+		_node.WorkspacePath = value
 	}
 	if nodes := csc.mutation.SourceFileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -706,6 +743,42 @@ func (u *CodeSnippetUpsert) UpdateStructuredInfo() *CodeSnippetUpsert {
 // ClearStructuredInfo clears the value of the "structured_info" field.
 func (u *CodeSnippetUpsert) ClearStructuredInfo() *CodeSnippetUpsert {
 	u.SetNull(codesnippet.FieldStructuredInfo)
+	return u
+}
+
+// SetEmbedding sets the "embedding" field.
+func (u *CodeSnippetUpsert) SetEmbedding(v pgvector.Vector) *CodeSnippetUpsert {
+	u.Set(codesnippet.FieldEmbedding, v)
+	return u
+}
+
+// UpdateEmbedding sets the "embedding" field to the value that was provided on create.
+func (u *CodeSnippetUpsert) UpdateEmbedding() *CodeSnippetUpsert {
+	u.SetExcluded(codesnippet.FieldEmbedding)
+	return u
+}
+
+// ClearEmbedding clears the value of the "embedding" field.
+func (u *CodeSnippetUpsert) ClearEmbedding() *CodeSnippetUpsert {
+	u.SetNull(codesnippet.FieldEmbedding)
+	return u
+}
+
+// SetWorkspacePath sets the "workspacePath" field.
+func (u *CodeSnippetUpsert) SetWorkspacePath(v string) *CodeSnippetUpsert {
+	u.Set(codesnippet.FieldWorkspacePath, v)
+	return u
+}
+
+// UpdateWorkspacePath sets the "workspacePath" field to the value that was provided on create.
+func (u *CodeSnippetUpsert) UpdateWorkspacePath() *CodeSnippetUpsert {
+	u.SetExcluded(codesnippet.FieldWorkspacePath)
+	return u
+}
+
+// ClearWorkspacePath clears the value of the "workspacePath" field.
+func (u *CodeSnippetUpsert) ClearWorkspacePath() *CodeSnippetUpsert {
+	u.SetNull(codesnippet.FieldWorkspacePath)
 	return u
 }
 
@@ -1090,6 +1163,48 @@ func (u *CodeSnippetUpsertOne) UpdateStructuredInfo() *CodeSnippetUpsertOne {
 func (u *CodeSnippetUpsertOne) ClearStructuredInfo() *CodeSnippetUpsertOne {
 	return u.Update(func(s *CodeSnippetUpsert) {
 		s.ClearStructuredInfo()
+	})
+}
+
+// SetEmbedding sets the "embedding" field.
+func (u *CodeSnippetUpsertOne) SetEmbedding(v pgvector.Vector) *CodeSnippetUpsertOne {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.SetEmbedding(v)
+	})
+}
+
+// UpdateEmbedding sets the "embedding" field to the value that was provided on create.
+func (u *CodeSnippetUpsertOne) UpdateEmbedding() *CodeSnippetUpsertOne {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.UpdateEmbedding()
+	})
+}
+
+// ClearEmbedding clears the value of the "embedding" field.
+func (u *CodeSnippetUpsertOne) ClearEmbedding() *CodeSnippetUpsertOne {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.ClearEmbedding()
+	})
+}
+
+// SetWorkspacePath sets the "workspacePath" field.
+func (u *CodeSnippetUpsertOne) SetWorkspacePath(v string) *CodeSnippetUpsertOne {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.SetWorkspacePath(v)
+	})
+}
+
+// UpdateWorkspacePath sets the "workspacePath" field to the value that was provided on create.
+func (u *CodeSnippetUpsertOne) UpdateWorkspacePath() *CodeSnippetUpsertOne {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.UpdateWorkspacePath()
+	})
+}
+
+// ClearWorkspacePath clears the value of the "workspacePath" field.
+func (u *CodeSnippetUpsertOne) ClearWorkspacePath() *CodeSnippetUpsertOne {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.ClearWorkspacePath()
 	})
 }
 
@@ -1640,6 +1755,48 @@ func (u *CodeSnippetUpsertBulk) UpdateStructuredInfo() *CodeSnippetUpsertBulk {
 func (u *CodeSnippetUpsertBulk) ClearStructuredInfo() *CodeSnippetUpsertBulk {
 	return u.Update(func(s *CodeSnippetUpsert) {
 		s.ClearStructuredInfo()
+	})
+}
+
+// SetEmbedding sets the "embedding" field.
+func (u *CodeSnippetUpsertBulk) SetEmbedding(v pgvector.Vector) *CodeSnippetUpsertBulk {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.SetEmbedding(v)
+	})
+}
+
+// UpdateEmbedding sets the "embedding" field to the value that was provided on create.
+func (u *CodeSnippetUpsertBulk) UpdateEmbedding() *CodeSnippetUpsertBulk {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.UpdateEmbedding()
+	})
+}
+
+// ClearEmbedding clears the value of the "embedding" field.
+func (u *CodeSnippetUpsertBulk) ClearEmbedding() *CodeSnippetUpsertBulk {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.ClearEmbedding()
+	})
+}
+
+// SetWorkspacePath sets the "workspacePath" field.
+func (u *CodeSnippetUpsertBulk) SetWorkspacePath(v string) *CodeSnippetUpsertBulk {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.SetWorkspacePath(v)
+	})
+}
+
+// UpdateWorkspacePath sets the "workspacePath" field to the value that was provided on create.
+func (u *CodeSnippetUpsertBulk) UpdateWorkspacePath() *CodeSnippetUpsertBulk {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.UpdateWorkspacePath()
+	})
+}
+
+// ClearWorkspacePath clears the value of the "workspacePath" field.
+func (u *CodeSnippetUpsertBulk) ClearWorkspacePath() *CodeSnippetUpsertBulk {
+	return u.Update(func(s *CodeSnippetUpsert) {
+		s.ClearWorkspacePath()
 	})
 }
 

@@ -108,10 +108,6 @@ func (h *SocketHandler) registerDisconnectHandler(socket *socketio.Socket) {
 
 func (h *SocketHandler) registerFileUpdateHandler(socket *socketio.Socket) {
 	socket.On("file:update", func(data *socketio.EventPayload) {
-		h.logger.Debug("Received file:update event",
-			"socketId", socket.Id,
-			"dataCount", len(data.Data))
-
 		if len(data.Data) == 0 {
 			h.sendErrorACK(data, "No data provided")
 			return
@@ -139,10 +135,6 @@ func (h *SocketHandler) processFileUpdateData(socket *socketio.Socket, data *soc
 
 func (h *SocketHandler) registerTestPingHandler(socket *socketio.Socket) {
 	socket.On("test:ping", func(data *socketio.EventPayload) {
-		h.logger.Debug("Received test:ping event",
-			"socketId", socket.Id,
-			"dataCount", len(data.Data))
-
 		if len(data.Data) > 0 {
 			if dataStr, ok := data.Data[0].(string); ok {
 				h.handleTestPing(socket, dataStr)
@@ -158,24 +150,16 @@ func (h *SocketHandler) registerHeartbeatHandler(socket *socketio.Socket) {
 			return
 		}
 
-		if dataStr, ok := data.Data[0].(string); ok {
-			response := h.handleHeartbeat(socket, dataStr)
-			h.logger.Debug("Sending heartbeat ACK",
-				"socketId", socket.Id,
-				"response", response)
-
-			if data.Ack != nil {
-				data.Ack(response)
-			}
+		// 直接传递第一个数据元素，支持对象和字符串
+		response := h.handleHeartbeat(socket, data.Data[0])
+		if data.Ack != nil {
+			data.Ack(response)
 		}
 	})
 }
 
 func (h *SocketHandler) registerWorkspaceStatsHandler(socket *socketio.Socket) {
 	socket.On("workspace:stats", func(data *socketio.EventPayload) {
-		h.logger.Debug("Received workspace:stats event",
-			"socketId", socket.Id)
-
 		// Note: GetWorkspaceStats is not in the new interface.
 		// This will need to be implemented or removed.
 		// For now, returning a placeholder.
@@ -183,8 +167,6 @@ func (h *SocketHandler) registerWorkspaceStatsHandler(socket *socketio.Socket) {
 			"status":  "not_implemented",
 			"message": "Workspace stats functionality is not available.",
 		}
-		h.logger.Debug("Sending workspace stats ACK",
-			"socketId", socket.Id)
 
 		if data.Ack != nil {
 			data.Ack(response)
@@ -201,10 +183,6 @@ func (h *SocketHandler) handleFileUpdate(socket *socketio.Socket, data string) i
 			"message": "Invalid data format",
 		}
 	}
-
-	h.logger.Debug("Processing file update",
-		"event", updateData.Event,
-		"file", updateData.FilePath)
 
 	// 立即返回确认收到
 	immediateAck := AckResponse{
@@ -267,10 +245,6 @@ func (h *SocketHandler) handleFileUpdateFromObject(socket *socketio.Socket, data
 		updateData.WorkspacePath = workspacePath
 	}
 
-	h.logger.Debug("Processing file update",
-		"event", updateData.Event,
-		"file", updateData.FilePath)
-
 	// 立即返回确认收到
 	immediateAck := AckResponse{
 		ID:      updateData.ID,
@@ -302,7 +276,7 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 	userID := user.ID.String()
 
 	// 确保workspace存在
-	workspaceID, err := h.ensureWorkspace(ctx, userID, updateData.WorkspacePath, updateData.FilePath)
+	workspaceID, err := h.ensureWorkspace(ctx, userID, updateData.WorkspacePath)
 	if err != nil {
 		finalStatus = "error"
 		message = fmt.Sprintf("Failed to ensure workspace: %v", err)
@@ -357,7 +331,6 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 
 					finalStatus = "success"
 					message = "File created successfully"
-					h.logger.Debug("File created successfully", "path", updateData.FilePath)
 				}
 			} else {
 				// 其他错误
@@ -370,7 +343,6 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 			if existingFile.Hash == updateData.Hash {
 				finalStatus = "success"
 				message = "File is already up-to-date"
-				h.logger.Debug("Skipping update for unchanged file", "path", updateData.FilePath)
 			} else {
 				updateReq := &domain.UpdateWorkspaceFileReq{
 					ID:      existingFile.ID,
@@ -385,7 +357,6 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 				} else {
 					finalStatus = "success"
 					message = "File updated successfully"
-					h.logger.Debug("File updated successfully", "path", updateData.FilePath)
 				}
 			}
 		}
@@ -413,7 +384,6 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 		} else {
 			finalStatus = "success"
 			message = "File updated successfully"
-			h.logger.Debug("File updated successfully", "path", updateData.FilePath)
 
 			// 调用GetAndSave处理更新的文件
 			fileExtension := h.getFileExtension(updateData.FilePath)
@@ -456,7 +426,6 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 		} else {
 			finalStatus = "success"
 			message = "File deleted successfully"
-			h.logger.Debug("File deleted successfully", "path", updateData.FilePath)
 		}
 
 	default:
@@ -469,7 +438,7 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 }
 
 // ensureWorkspace ensures that a workspace exists for the given workspacePath
-func (h *SocketHandler) ensureWorkspace(ctx context.Context, userID, workspacePath, filePath string) (string, error) {
+func (h *SocketHandler) ensureWorkspace(ctx context.Context, userID, workspacePath string) (string, error) {
 	if workspacePath != "" {
 		// Use EnsureWorkspace to create or update workspace based on path
 		workspace, err := h.workspaceUsecase.EnsureWorkspace(ctx, userID, workspacePath, "")
@@ -491,10 +460,6 @@ func (h *SocketHandler) handleTestPing(socket *socketio.Socket, data string) {
 		return
 	}
 
-	h.logger.Debug("Received test ping",
-		"socketId", socket.Id,
-		"message", pingData.Message)
-
 	// 发送pong响应
 	pongData := map[string]interface{}{
 		"timestamp":    time.Now().UnixMilli(),
@@ -510,24 +475,44 @@ func (h *SocketHandler) handleTestPing(socket *socketio.Socket, data string) {
 	h.mu.Unlock()
 }
 
-func (h *SocketHandler) handleHeartbeat(socket *socketio.Socket, data string) interface{} {
+func (h *SocketHandler) handleHeartbeat(socket *socketio.Socket, data interface{}) interface{} {
 	var heartbeatData HeartbeatData
-	if err := json.Unmarshal([]byte(data), &heartbeatData); err != nil {
-		h.logger.Error("Failed to parse heartbeat data", "error", err)
+
+	// 处理不同类型的数据
+	switch v := data.(type) {
+	case string:
+		if err := json.Unmarshal([]byte(v), &heartbeatData); err != nil {
+			h.logger.Error("Failed to parse heartbeat data from string", "error", err)
+			return map[string]interface{}{
+				"status":  "error",
+				"message": "Invalid heartbeat data format",
+			}
+		}
+	case map[string]interface{}:
+		// 直接从map中提取数据
+		if clientID, ok := v["clientId"].(string); ok {
+			heartbeatData.ClientID = clientID
+		}
+		if timestamp, ok := v["timestamp"].(float64); ok {
+			heartbeatData.Timestamp = int64(timestamp)
+		}
+		if typeStr, ok := v["type"].(string); ok {
+			heartbeatData.Type = typeStr
+		}
+	default:
+		h.logger.Error("Unexpected heartbeat data type", "type", fmt.Sprintf("%T", data))
 		return map[string]interface{}{
 			"status":  "error",
-			"message": "Invalid heartbeat data",
+			"message": "Invalid heartbeat data type",
 		}
 	}
-
-	// 记录心跳
-	h.logger.Debug("Heartbeat received", "socketId", socket.Id)
 
 	// 返回心跳响应
 	response := map[string]interface{}{
 		"status":     "ok",
 		"serverTime": time.Now().UnixMilli(),
 		"socketId":   socket.Id,
+		"clientId":   heartbeatData.ClientID,
 	}
 
 	return response
@@ -553,7 +538,6 @@ func (h *SocketHandler) BroadcastServerStatus(status, message string) {
 		"message": message,
 	}
 	h.io.Emit("server:status", statusData)
-	h.logger.Debug("Broadcasted server status", "status", status, "message", message)
 }
 
 // GetConnectedClients 获取连接的客户端数量
@@ -590,13 +574,6 @@ func (h *SocketHandler) sendFinalResult(socket *socketio.Socket, updateData File
 		"message": message,
 		"file":    updateData.FilePath,
 	}
-
-	// 记录发送的最终处理结果
-	h.logger.Debug("Sending final processing result",
-		"socketId", socket.Id,
-		"file", updateData.FilePath,
-		"status", status,
-		"message", message)
 
 	// 使用互斥锁保护Socket写入
 	h.mu.Lock()

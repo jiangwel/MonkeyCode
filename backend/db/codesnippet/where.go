@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/google/uuid"
+	pgvector "github.com/pgvector/pgvector-go"
 )
 
 // ID filters vertices based on their ID field.
@@ -122,6 +123,16 @@ func Signature(v string) predicate.CodeSnippet {
 // DefinitionText applies equality check predicate on the "definition_text" field. It's identical to DefinitionTextEQ.
 func DefinitionText(v string) predicate.CodeSnippet {
 	return predicate.CodeSnippet(sql.FieldEQ(FieldDefinitionText, v))
+}
+
+// Embedding applies equality check predicate on the "embedding" field. It's identical to EmbeddingEQ.
+func Embedding(v pgvector.Vector) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldEQ(FieldEmbedding, v))
+}
+
+// WorkspacePath applies equality check predicate on the "workspacePath" field. It's identical to WorkspacePathEQ.
+func WorkspacePath(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldEQ(FieldWorkspacePath, v))
 }
 
 // WorkspaceFileIDEQ applies the EQ predicate on the "workspace_file_id" field.
@@ -967,6 +978,131 @@ func StructuredInfoIsNil() predicate.CodeSnippet {
 // StructuredInfoNotNil applies the NotNil predicate on the "structured_info" field.
 func StructuredInfoNotNil() predicate.CodeSnippet {
 	return predicate.CodeSnippet(sql.FieldNotNull(FieldStructuredInfo))
+}
+
+// EmbeddingEQ applies the EQ predicate on the "embedding" field.
+func EmbeddingEQ(v pgvector.Vector) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldEQ(FieldEmbedding, v))
+}
+
+// EmbeddingNEQ applies the NEQ predicate on the "embedding" field.
+func EmbeddingNEQ(v pgvector.Vector) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldNEQ(FieldEmbedding, v))
+}
+
+// EmbeddingIn applies the In predicate on the "embedding" field.
+func EmbeddingIn(vs ...pgvector.Vector) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldIn(FieldEmbedding, vs...))
+}
+
+// EmbeddingNotIn applies the NotIn predicate on the "embedding" field.
+func EmbeddingNotIn(vs ...pgvector.Vector) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldNotIn(FieldEmbedding, vs...))
+}
+
+// EmbeddingGT applies the GT predicate on the "embedding" field.
+func EmbeddingGT(v pgvector.Vector) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldGT(FieldEmbedding, v))
+}
+
+// EmbeddingGTE applies the GTE predicate on the "embedding" field.
+func EmbeddingGTE(v pgvector.Vector) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldGTE(FieldEmbedding, v))
+}
+
+// EmbeddingLT applies the LT predicate on the "embedding" field.
+func EmbeddingLT(v pgvector.Vector) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldLT(FieldEmbedding, v))
+}
+
+// EmbeddingLTE applies the LTE predicate on the "embedding" field.
+func EmbeddingLTE(v pgvector.Vector) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldLTE(FieldEmbedding, v))
+}
+
+// EmbeddingIsNil applies the IsNil predicate on the "embedding" field.
+func EmbeddingIsNil() predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldIsNull(FieldEmbedding))
+}
+
+// EmbeddingNotNil applies the NotNil predicate on the "embedding" field.
+func EmbeddingNotNil() predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldNotNull(FieldEmbedding))
+}
+
+// WorkspacePathEQ applies the EQ predicate on the "workspacePath" field.
+func WorkspacePathEQ(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldEQ(FieldWorkspacePath, v))
+}
+
+// WorkspacePathNEQ applies the NEQ predicate on the "workspacePath" field.
+func WorkspacePathNEQ(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldNEQ(FieldWorkspacePath, v))
+}
+
+// WorkspacePathIn applies the In predicate on the "workspacePath" field.
+func WorkspacePathIn(vs ...string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldIn(FieldWorkspacePath, vs...))
+}
+
+// WorkspacePathNotIn applies the NotIn predicate on the "workspacePath" field.
+func WorkspacePathNotIn(vs ...string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldNotIn(FieldWorkspacePath, vs...))
+}
+
+// WorkspacePathGT applies the GT predicate on the "workspacePath" field.
+func WorkspacePathGT(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldGT(FieldWorkspacePath, v))
+}
+
+// WorkspacePathGTE applies the GTE predicate on the "workspacePath" field.
+func WorkspacePathGTE(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldGTE(FieldWorkspacePath, v))
+}
+
+// WorkspacePathLT applies the LT predicate on the "workspacePath" field.
+func WorkspacePathLT(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldLT(FieldWorkspacePath, v))
+}
+
+// WorkspacePathLTE applies the LTE predicate on the "workspacePath" field.
+func WorkspacePathLTE(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldLTE(FieldWorkspacePath, v))
+}
+
+// WorkspacePathContains applies the Contains predicate on the "workspacePath" field.
+func WorkspacePathContains(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldContains(FieldWorkspacePath, v))
+}
+
+// WorkspacePathHasPrefix applies the HasPrefix predicate on the "workspacePath" field.
+func WorkspacePathHasPrefix(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldHasPrefix(FieldWorkspacePath, v))
+}
+
+// WorkspacePathHasSuffix applies the HasSuffix predicate on the "workspacePath" field.
+func WorkspacePathHasSuffix(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldHasSuffix(FieldWorkspacePath, v))
+}
+
+// WorkspacePathIsNil applies the IsNil predicate on the "workspacePath" field.
+func WorkspacePathIsNil() predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldIsNull(FieldWorkspacePath))
+}
+
+// WorkspacePathNotNil applies the NotNil predicate on the "workspacePath" field.
+func WorkspacePathNotNil() predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldNotNull(FieldWorkspacePath))
+}
+
+// WorkspacePathEqualFold applies the EqualFold predicate on the "workspacePath" field.
+func WorkspacePathEqualFold(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldEqualFold(FieldWorkspacePath, v))
+}
+
+// WorkspacePathContainsFold applies the ContainsFold predicate on the "workspacePath" field.
+func WorkspacePathContainsFold(v string) predicate.CodeSnippet {
+	return predicate.CodeSnippet(sql.FieldContainsFold(FieldWorkspacePath, v))
 }
 
 // HasSourceFile applies the HasEdge predicate on the "source_file" edge.
