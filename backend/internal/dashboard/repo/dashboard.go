@@ -46,6 +46,7 @@ func (d *DashboardRepo) CategoryStat(ctx context.Context, req domain.StatisticsF
 	if err := d.db.Task.Query().
 		Where(task.CreatedAtGTE(req.StartTime())).
 		Where(task.ProgramLanguageNEQ("")).
+		Where(task.IsSuggested(true)).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("program_language", "category"),
@@ -112,8 +113,9 @@ func (d *DashboardRepo) TimeStat(ctx context.Context, req domain.StatisticsFilte
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'llm')", "llm_count"),
 				sql.As("COUNT(*) FILTER (WHERE is_suggested = true AND model_type = 'coder')", "code_count"),
 				sql.As("COUNT(*) FILTER (WHERE is_accept = true AND model_type = 'coder')", "accepted_count"),
-				sql.As(sql.Sum(task.FieldCodeLines), "code_lines"),
-			).GroupBy("date").
+				sql.As("SUM(code_lines) FILTER (WHERE is_accept = true)", "code_lines"),
+			).
+				GroupBy("date").
 				OrderBy(sql.Asc("date"))
 		}).
 		Scan(ctx, &ds); err != nil {
@@ -127,7 +129,8 @@ func (d *DashboardRepo) TimeStat(ctx context.Context, req domain.StatisticsFilte
 			s.Select(
 				sql.As("date_trunc('minute', created_at)", "date"),
 				sql.As(sql.Count("*"), "count"),
-			).GroupBy("date").
+			).
+				GroupBy("date").
 				OrderBy(sql.Asc("date"))
 		}).
 		Scan(ctx, &dsOneHour); err != nil {
@@ -208,7 +211,8 @@ func (d *DashboardRepo) UserCodeRank(ctx context.Context, req domain.StatisticsF
 			s.Select(
 				sql.As("user_id", "user_id"),
 				sql.As(sql.Sum(task.FieldCodeLines), "code_lines"),
-			).GroupBy(task.FieldUserID).
+			).
+				GroupBy(task.FieldUserID).
 				OrderBy(sql.Desc("code_lines"))
 		}).
 		Scan(ctx, &rs); err != nil {
@@ -289,8 +293,9 @@ func (d *DashboardRepo) UserStat(ctx context.Context, req domain.StatisticsFilte
 				sql.As("COUNT(*) FILTER (WHERE model_type = 'llm')", "llm_count"),
 				sql.As("COUNT(*) FILTER (WHERE is_suggested = true AND model_type = 'coder')", "code_count"),
 				sql.As("COUNT(*) FILTER (WHERE is_accept = true AND model_type = 'coder')", "accepted_count"),
-				sql.As(sql.Sum(task.FieldCodeLines), "code_lines"),
-			).GroupBy("date").
+				sql.As("SUM(code_lines) FILTER (WHERE is_accept = true)", "code_lines"),
+			).
+				GroupBy("date").
 				OrderBy(sql.Asc("date"))
 		}).
 		Scan(ctx, &ds); err != nil {
@@ -306,7 +311,8 @@ func (d *DashboardRepo) UserStat(ctx context.Context, req domain.StatisticsFilte
 			s.Select(
 				sql.As("work_mode", "category"),
 				sql.As("COUNT(*)", "value"),
-			).GroupBy(task.FieldWorkMode).
+			).
+				GroupBy(task.FieldWorkMode).
 				OrderBy(sql.Desc("value"))
 		}).
 		Scan(ctx, &cs); err != nil {
@@ -317,11 +323,13 @@ func (d *DashboardRepo) UserStat(ctx context.Context, req domain.StatisticsFilte
 		Where(task.CreatedAtGTE(req.StartTime())).
 		Where(task.HasUserWith(user.ID(id))).
 		Where(task.ProgramLanguageNEQ("")).
+		Where(task.IsSuggested(true)).
 		Modify(func(s *sql.Selector) {
 			s.Select(
 				sql.As("program_language", "category"),
 				sql.As("COUNT(*)", "value"),
-			).GroupBy(task.FieldProgramLanguage).
+			).
+				GroupBy(task.FieldProgramLanguage).
 				OrderBy(sql.Desc("value"))
 		}).
 		Scan(ctx, &ps); err != nil {
@@ -384,7 +392,8 @@ func (d *DashboardRepo) UserHeatmap(ctx context.Context, userID string) ([]*doma
 			s.Select(
 				sql.As("date_trunc('day', created_at)", "date"),
 				sql.As("COUNT(*)", "count"),
-			).GroupBy("date").
+			).
+				GroupBy("date").
 				OrderBy(sql.Asc("date"))
 		}).
 		Scan(ctx, &rs); err != nil {
