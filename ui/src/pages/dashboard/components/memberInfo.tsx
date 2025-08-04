@@ -21,7 +21,6 @@ const getRecent1YearData = (
   data: DomainUserHeatmap[] = [],
   max_count: number
 ) => {
-  const average = max_count / 5;
   const today = dayjs();
   const lastYearToday = today.subtract(1, 'year');
   const diffInDays = today.diff(lastYearToday, 'day');
@@ -31,17 +30,22 @@ const getRecent1YearData = (
     dateMap[dayjs.unix(item.date!).format('YYYY-MM-DD')] = item.count!;
   });
 
+  const getLevel = (count: number) => {
+    if (count === 0) return 0;
+    if (count === 1) return 1;
+    if (count <= Math.max(2, max_count * 0.25)) return 2;
+    if (count <= Math.max(3, max_count * 0.6)) return 3;
+    return 4;
+  };
+
   for (let i = 0; i < diffInDays; i++) {
     const time = today.subtract(i, 'day').format('YYYY-MM-DD');
-    if (dateMap[time]) {
-      result.unshift({
-        count: dateMap[time],
-        date: time,
-        level: Math.ceil(dateMap[time] / average) - 1,
-      });
-    } else {
-      result.unshift({ count: 0, date: time, level: 0 });
-    }
+    const count = dateMap[time] || 0;
+    result.unshift({
+      count,
+      date: time,
+      level: getLevel(count),
+    });
   }
   return result;
 };
@@ -159,11 +163,11 @@ const MemberInfo = ({
           blockSize={blockSize}
           theme={{
             light: [
-              '#fff',
-              theme.palette.grey[300],
-              theme.palette.grey[500],
-              theme.palette.grey[700],
-              theme.palette.grey[900],
+              theme.palette.grey[200], // level 0: 无使用 - 浅灰色背景
+              theme.palette.grey[400], // level 1: 轻度使用 - 浅灰色
+              theme.palette.grey[600], // level 2: 中度使用 - 中灰色
+              theme.palette.grey[800], // level 3: 高度使用 - 深灰色
+              theme.palette.grey[900], // level 4: 重度使用 - 最深灰色
             ],
           }}
           labels={{
