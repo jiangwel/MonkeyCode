@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Card from '@/components/card';
 import dayjs from 'dayjs';
 import {
   Box,
   Stack,
-  Typography,
   Tooltip,
   useTheme,
   IconButton,
@@ -50,6 +49,113 @@ const getRecent1YearData = (
   return result;
 };
 
+// 自定义Hook：处理ActivityCalendar自动滚动
+const useActivityCalendarAutoScroll = () => {
+  const scrollToLatest = useCallback(() => {
+    // 尝试多种可能的选择器策略
+    const selectors = [
+      '.react-activity-calendar__scroll-container',
+      '.react-activity-calendar [style*="overflow"]',
+      '.react-activity-calendar > div:first-child',
+    ];
+    
+    let scrollContainer: HTMLElement | null = null;
+    
+    // 按优先级尝试找到滚动容器
+    for (const selector of selectors) {
+      scrollContainer = document.querySelector(selector);
+      if (scrollContainer && scrollContainer.scrollWidth > scrollContainer.clientWidth) {
+        break;
+      }
+    }
+    
+    if (scrollContainer) {
+      // 滚动到最右侧（最新数据）
+      scrollContainer.scrollLeft = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+    }
+  }, []);
+  
+  const setupAutoScroll = useCallback(() => {
+    // 延迟执行确保组件完全渲染
+    const timeoutId = setTimeout(scrollToLatest, 100);
+    
+    // 使用ResizeObserver监听容器大小变化
+    let resizeObserver: ResizeObserver | null = null;
+    
+    const setupResizeObserver = () => {
+      const container = document.querySelector('.react-activity-calendar');
+      if (container && 'ResizeObserver' in window) {
+        resizeObserver = new ResizeObserver(() => {
+          scrollToLatest();
+        });
+        resizeObserver.observe(container);
+      } else {
+        // 降级方案：使用window resize事件
+        window.addEventListener('resize', scrollToLatest);
+      }
+    };
+    
+    // 延迟设置ResizeObserver确保DOM已渲染
+    const observerTimeoutId = setTimeout(setupResizeObserver, 150);
+    
+    // 清理函数
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(observerTimeoutId);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      } else {
+        window.removeEventListener('resize', scrollToLatest);
+      }
+    };
+  }, [scrollToLatest]);
+  
+  return { setupAutoScroll };
+};
+
+// 简化的blockSize计算Hook - 保持原有大小
+const useBlockSize = (containerRef: React.RefObject<HTMLElement>) => {
+  const [blockSize, setBlockSize] = useState(8);
+  
+  useEffect(() => {
+    const calculateBlockSize = () => {
+      if (!containerRef.current) return;
+      
+      const containerWidth = containerRef.current.offsetWidth;
+      const baseWidth = 980;
+      const blockIncrement = 54;
+      
+      // 只在桌面端进行计算，保持原有逻辑
+      const increment = Math.max(0, Math.ceil((containerWidth - baseWidth) / blockIncrement));
+      setBlockSize(increment + 8);
+    };
+    
+    // 初始计算
+    calculateBlockSize();
+    
+    // 使用ResizeObserver监听容器大小变化
+    let resizeObserver: ResizeObserver | null = null;
+    
+    if ('ResizeObserver' in window && containerRef.current) {
+      resizeObserver = new ResizeObserver(calculateBlockSize);
+      resizeObserver.observe(containerRef.current);
+    } else {
+      // 降级方案
+      window.addEventListener('resize', calculateBlockSize);
+    }
+    
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      } else {
+        window.removeEventListener('resize', calculateBlockSize);
+      }
+    };
+  }, [containerRef]);
+  
+  return blockSize;
+};
+
 const MemberInfo = ({
   data,
   memberData,
@@ -62,22 +168,27 @@ const MemberInfo = ({
   onMemberChange?: (data: DomainUser) => void;
 }) => {
   const theme = useTheme();
-  const [blockSize, setBlockSize] = useState(8);
   const ref = useRef<HTMLDivElement>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  
+  // 使用自定义Hooks
+  const blockSize = useBlockSize(ref as React.RefObject<HTMLElement>);
+  const { setupAutoScroll } = useActivityCalendarAutoScroll();
+  
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
+  
   const handleClose = () => {
     setAnchorEl(null);
   };
+  
+  // 设置自动滚动
   useEffect(() => {
-    const innerWidth = ref.current?.offsetWidth;
-    const dis = Math.max(0, Math.ceil((innerWidth! - 980) / 54));
-    console.log(dis);
-    setBlockSize(dis + 8);
-  }, []);
+    const cleanup = setupAutoScroll();
+    return cleanup;
+  }, [setupAutoScroll, data, memberData]);
 
   return (
     <Card
@@ -155,6 +266,8 @@ const MemberInfo = ({
           alignItems: 'center',
           position: 'relative',
           minWidth: 0,
+          flex: 1,
+          overflow: 'auto',
         }}
       >
         <ActivityCalendar
@@ -163,11 +276,11 @@ const MemberInfo = ({
           blockSize={blockSize}
           theme={{
             light: [
-              theme.palette.grey[200], // level 0: 无使用 - 浅灰色背景
-              theme.palette.grey[400], // level 1: 轻度使用 - 浅灰色
-              theme.palette.grey[600], // level 2: 中度使用 - 中灰色
-              theme.palette.grey[800], // level 3: 高度使用 - 深灰色
-              theme.palette.grey[900], // level 4: 重度使用 - 最深灰色
+              theme.palette.grey[100],
+              theme.palette.grey[300],
+              theme.palette.grey[500],
+              theme.palette.grey[700],
+              theme.palette.grey[900],
             ],
           }}
           labels={{
@@ -192,9 +305,6 @@ const MemberInfo = ({
               more: '较多',
             },
           }}
-          // hideTotalCount
-          // hideMonthLabels
-          // hideColorLegend
           renderBlock={(block, activity) => (
             <Tooltip
               slotProps={{
