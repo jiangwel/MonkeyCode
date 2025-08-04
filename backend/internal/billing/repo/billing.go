@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"strings"
 
 	"entgo.io/ent/dialect/sql"
 
@@ -113,9 +114,10 @@ func filterTask(q *db.TaskQuery, req domain.ListRecordReq) {
 	}
 
 	if req.Language != "" {
+		lang := strings.ToLower(req.Language)
 		q.Where(func(s *sql.Selector) {
 			s.Where(
-				sql.Like(s.C(task.FieldProgramLanguage), "%"+req.Language+"%"),
+				sql.Like(s.C(task.FieldProgramLanguage), "%"+lang+"%"),
 			)
 		})
 	}
