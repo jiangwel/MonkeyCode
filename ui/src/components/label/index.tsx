@@ -9,9 +9,9 @@ const StyledLabel = styled('div')<StyledLabelProps>(
     // 获取颜色值
     const getColor = (colorProp: string) => {
       // 如果是主题预设颜色
-      if (['success', 'warning', 'error', 'info'].includes(colorProp)) {
+      if (['success', 'warning', 'error', 'info', 'disabled'].includes(colorProp)) {
         return theme.palette[
-          colorProp as 'success' | 'warning' | 'error' | 'info'
+          colorProp as 'success' | 'warning' | 'error' | 'info' | 'disabled'
         ].main;
       }
       // 如果是 default，使用灰色
@@ -26,10 +26,10 @@ const StyledLabel = styled('div')<StyledLabelProps>(
 
     // 获取背景颜色（淡化版本）
     const getBackgroundColor = (colorProp: string) => {
-      if (['success', 'warning', 'error', 'info'].includes(colorProp)) {
+      if (['success', 'warning', 'error', 'info', 'disabled'].includes(colorProp)) {
         // 使用主题的 light 版本，如果没有则使用 alpha 透明度
         const palette =
-          theme.palette[colorProp as 'success' | 'warning' | 'error' | 'info'];
+          theme.palette[colorProp as 'success' | 'warning' | 'error' | 'info' | 'disabled'];
         return alpha(palette.main, 0.15);
       }
       // 如果是 default，使用淡灰色背景

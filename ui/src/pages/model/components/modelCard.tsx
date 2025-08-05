@@ -194,9 +194,7 @@ const ModelItem = ({
         sx={{ mt: 2 }}
       >
         <Stack direction='row' alignItems='center'>
-          {data.is_active && (
-            <StyledLabel color='success'>正在使用</StyledLabel>
-          )}
+          <StyledLabel color={data.is_active ? 'success' : 'disabled'}>{data.is_active ? '正在使用' : '未激活'}</StyledLabel>
         </Stack>
         <Stack direction='row' sx={{ button: { minWidth: 0 } }} gap={2}>
           {!data.is_active && (
@@ -204,6 +202,9 @@ const ModelItem = ({
               disableRipple
               sx={{
                 color: 'success.main',
+                '&:hover': {
+                  fontWeight: 700
+                },
               }}
               onClick={onActiveModel}
             >
@@ -216,6 +217,9 @@ const ModelItem = ({
               disableRipple
               sx={{
                 color: 'info.main',
+                '&:hover': {
+                  fontWeight: 700
+                },
               }}
               onClick={() => onEdit(data)}
             >
@@ -228,6 +232,9 @@ const ModelItem = ({
               disableRipple
               sx={{
                 color: 'error.main',
+                '&:hover': {
+                  fontWeight: 700
+                },
               }}
               onClick={onInactiveModel}
             >
@@ -240,6 +247,9 @@ const ModelItem = ({
               disableRipple
               sx={{
                 color: 'error.main',
+                '&:hover': {
+                  fontWeight: 700
+                },
               }}
               onClick={onRemoveModel}
             >
