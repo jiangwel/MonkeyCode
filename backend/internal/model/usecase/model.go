@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"maps"
 	"net/http"
@@ -107,6 +108,13 @@ func (m *ModelUsecase) Check(ctx context.Context, req *domain.CheckModelReq) (*d
 			config.APIVersion = "2024-10-21"
 		}
 	}
+	// 阿里云百炼模型支持流式和思考功能
+	if req.Provider == consts.ModelProviderBaiLian {
+		config.ExtraFields = map[string]any{
+			"stream":          true,
+			"enable_thinking": true,
+		}
+	}
 	if req.APIHeader != "" {
 		client := getHttpClientWithAPIHeaderMap(req.APIHeader)
 		if client != nil {
@@ -117,16 +125,46 @@ func (m *ModelUsecase) Check(ctx context.Context, req *domain.CheckModelReq) (*d
 	if err != nil {
 		return nil, err
 	}
-	resp, err := chatModel.Generate(ctx, []*schema.Message{
-		schema.SystemMessage("You are a helpful assistant."),
-		schema.UserMessage("hi"),
-	})
-	if err != nil {
-		return nil, err
-	}
-	content := resp.Content
-	if content == "" {
-		return nil, fmt.Errorf("generate failed")
+	// 阿里云百炼模型(不支持 翻译/OCR 模型的添加)
+	if req.Provider == consts.ModelProviderBaiLian {
+		msgs := []*schema.Message{
+			schema.SystemMessage("You are a helpful assistant."),
+			schema.UserMessage("hi"),
+		}
+		stream, err := chatModel.Stream(ctx, msgs)
+		if err != nil {
+			return nil, err
+		}
+		var content string
+		for {
+			msg, err := stream.Recv()
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				return nil, err
+			}
+			if msg.Content != "" {
+				content += msg.Content
+			}
+		}
+
+		if content == "" {
+			return nil, fmt.Errorf("generate failed")
+		}
+	} else {
+		resp, err := chatModel.Generate(ctx, []*schema.Message{
+			schema.SystemMessage("You are a helpful assistant."),
+			schema.UserMessage("hi"),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		content := resp.Content
+		if content == "" {
+			return nil, fmt.Errorf("generate failed")
+		}
 	}
 	return &domain.Model{
 		ModelType: req.Type,
