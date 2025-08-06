@@ -102,7 +102,9 @@ jobs:
       - name: Get VSIX
         run: |
           mkdir -p assets/vsix
-          wget -O assets/vsix/monkeycode-${{ steps.get_version.outputs.VERSION#v }}.vsix https://release.baizhi.cloud/monkeycode/vsixs/monkeycode-${{ steps.get_version.outputs.VERSION#v }}.vsix
+          VERSION_NO_V=${{ steps.get_version.outputs.VERSION }}
+          VERSION_NO_V=${VERSION_NO_V#v}
+          wget -O assets/vsix/monkeycode-${VERSION_NO_V}.vsix https://release.baizhi.cloud/monkeycode/vsixs/monkeycode-${VERSION_NO_V}.vsix
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
