@@ -1,1 +1,2 @@
 *.xdb filter=lfs diff=lfs merge=lfs -text
+backend/assets/vsix/monkeycode-1.7.0-alpha.vsix filter=lfs diff=lfs merge=lfs -text
