@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/errcode"
 	"github.com/chaitin/MonkeyCode/backend/internal/middleware"
 	"github.com/chaitin/MonkeyCode/backend/pkg/session"
+	"github.com/chaitin/MonkeyCode/backend/pkg/version"
 	"github.com/chaitin/MonkeyCode/backend/pkg/vsix"
 )
 
@@ -173,11 +175,6 @@ func (h *UserHandler) VSIXDownload(c *web.Context) error {
 		return c.String(http.StatusTooManyRequests, "Too Many Requests")
 	}
 
-	v, err := h.euse.GetByVersion(c.Request().Context(), c.Param("version"))
-	if err != nil {
-		return err
-	}
-
 	s, err := h.usecase.GetSetting(c.Request().Context())
 	if err != nil {
 		return err
@@ -185,14 +182,15 @@ func (h *UserHandler) VSIXDownload(c *web.Context) error {
 
 	host := c.Request().Host
 	h.logger.With("url", c.Request().URL).With("header", c.Request().Header).With("host", host).DebugContext(c.Request().Context(), "vsix download")
-	cacheKey := h.generateCacheKey(v.Version, h.cfg.GetBaseURL(c.Request(), s))
+	cacheKey := h.generateCacheKey(version.Version, h.cfg.GetBaseURL(c.Request(), s))
+	version := strings.Trim(version.Version, "v")
 
 	h.cacheMu.RLock()
 	if entry, exists := h.vsixCache[cacheKey]; exists {
 		if time.Since(entry.createdAt) < time.Hour {
 			h.cacheMu.RUnlock()
 
-			disposition := fmt.Sprintf("attachment; filename=monkeycode-%s.vsix", v.Version)
+			disposition := fmt.Sprintf("attachment; filename=monkeycode-%s.vsix", version)
 			c.Response().Header().Set("Content-Type", "application/octet-stream")
 			c.Response().Header().Set("Content-Disposition", disposition)
 			c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", len(entry.data)))
@@ -204,7 +202,7 @@ func (h *UserHandler) VSIXDownload(c *web.Context) error {
 	h.cacheMu.RUnlock()
 
 	var buf bytes.Buffer
-	if err := vsix.ChangeVsixEndpoint(v.Path, "extension/package.json", h.cfg.GetBaseURL(c.Request(), s), &buf); err != nil {
+	if err := vsix.ChangeVsixEndpoint(fmt.Sprintf("/app/assets/vsix/monkeycode-%s.vsix", version), "extension/package.json", h.cfg.GetBaseURL(c.Request(), s), &buf); err != nil {
 		return err
 	}
 
@@ -218,7 +216,7 @@ func (h *UserHandler) VSIXDownload(c *web.Context) error {
 
 	go h.cleanExpiredCache()
 
-	disposition := fmt.Sprintf("attachment; filename=monkeycode-%s.vsix", v.Version)
+	disposition := fmt.Sprintf("attachment; filename=monkeycode-%s.vsix", version)
 	c.Response().Header().Set("Content-Type", "application/octet-stream")
 	c.Response().Header().Set("Content-Disposition", disposition)
 	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", len(data)))

@@ -50,8 +50,6 @@ func main() {
 		panic(err)
 	}
 
-	s.euse.SyncLatest()
-
 	svc := service.NewService(service.WithPprof())
 	svc.Add(s)
 	if err := svc.Run(); err != nil {

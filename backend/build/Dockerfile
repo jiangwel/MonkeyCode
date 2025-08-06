@@ -26,6 +26,7 @@ FROM alpine:3.21 as binary
 WORKDIR /app
 
 ADD migration ./migration
+ADD assets ./assets
 
 COPY --from=builder /out/main /app/main
 
