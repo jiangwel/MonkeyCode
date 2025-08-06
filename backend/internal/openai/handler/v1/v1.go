@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/internal/middleware"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy"
+	"github.com/chaitin/MonkeyCode/backend/pkg/version"
 )
 
 type V1Handler struct {
@@ -72,18 +74,15 @@ func BadRequest(c *web.Context, msg string) error {
 }
 
 func (h *V1Handler) Version(c *web.Context) error {
-	v, err := h.euse.Latest(c.Request().Context())
-	if err != nil {
-		return err
-	}
+	v := strings.Trim(version.Version, "v")
 
 	s, err := h.uuse.GetSetting(c.Request().Context())
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, domain.VersionInfo{
-		Version: v.Version,
-		URL:     fmt.Sprintf("%s/api/v1/static/vsix/%s", h.config.GetBaseURL(c.Request(), s), v.Version),
+		Version: v,
+		URL:     fmt.Sprintf("%s/api/v1/static/vsix/%s", h.config.GetBaseURL(c.Request(), s), v),
 	})
 }
 
