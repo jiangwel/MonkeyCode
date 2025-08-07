@@ -102,6 +102,25 @@ export const postEmbeddings = (params: RequestParams = {}) =>
   });
 
 /**
+ * @description 固定回包 `{"code": 0, "data": "MonkeyCode"}`
+ *
+ * @tags OpenAIV1
+ * @name GetHealth
+ * @summary 健康检查
+ * @request GET:/v1/health
+ * @response `200` `WebResp` OK
+ */
+
+export const getHealth = (params: RequestParams = {}) =>
+  request<WebResp>({
+    path: `/v1/health`,
+    method: "GET",
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
  * @description 模型列表
  *
  * @tags OpenAIV1

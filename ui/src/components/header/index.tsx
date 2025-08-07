@@ -43,9 +43,8 @@ const Header = () => {
         >
           下载客户端
         </Button>
-        <Tooltip title='退出登录' arrow>
+        <Tooltip title='退出登录'>
           <IconButton
-            title='退出登录'
             size='small'
             sx={{
               bgcolor: '#fff',

@@ -25,8 +25,16 @@ const lightTheme = createTheme(
         dark: '#229A16',
         contrastText: '#fff',
       },
+      warning: {
+        main: '#FFA500',
+      },
       info: {
         main: '#3248F2',
+      },
+      risk: {
+        severe: '#FF6262',
+        critical: '#FFA762',
+        suggest: '#FFCF62'
       },
       disabled: {
         main: '#666',

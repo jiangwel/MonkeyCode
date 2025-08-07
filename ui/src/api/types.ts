@@ -246,8 +246,47 @@ export interface DomainCheckModelReq {
   type: "llm" | "coder" | "embedding" | "rerank";
 }
 
-export interface DomainCodeFiles {
-  files?: DomainFileMeta[];
+export interface DomainCodeSnippet {
+  /** 结构化信息 */
+  definition?: Record<string, any>;
+  /** 定义文本 */
+  definitionText?: string;
+  /** 依赖项 */
+  dependencies?: string[];
+  /** 结束列号 */
+  endColumn?: number;
+  /** 结束行号 */
+  endLine?: number;
+  /** 容器名称 */
+  field?: string;
+  /** 内容哈希 */
+  fileHash?: string;
+  /** 文件路径 */
+  filePath?: string;
+  /** 代码片段ID */
+  id?: string;
+  /** 编程语言 */
+  language?: string;
+  /** 代码片段名称 */
+  name?: string;
+  /** 命名空间 */
+  namespace?: string;
+  /** 参数列表 */
+  parameters?: Record<string, any>[];
+  /** 代码片段内容 */
+  rangeText?: string;
+  /** 作用域信息 */
+  scope?: string[];
+  /** 函数签名 */
+  signature?: string;
+  /** 起始列号 */
+  startColumn?: number;
+  /** 起始行号 */
+  startLine?: number;
+  /** 代码片段类型 */
+  type?: string;
+  /** 关联的workspace file ID */
+  workspace_file_id?: string;
 }
 
 export interface DomainCompletionData {
@@ -357,6 +396,7 @@ export interface DomainCreateModelReq {
 export interface DomainCreateSecurityScanningReq {
   /** 扫描语言 */
   language?: ConstsSecurityScanningLanguage;
+  user_id?: string;
   /** 项目目录 */
   workspace?: string;
 }
@@ -506,7 +546,7 @@ export interface DomainIndexResult {
   language?: string;
   name?: string;
   rangeText?: string;
-  scope?: Record<string, any>[];
+  scope?: unknown;
   signature?: string;
   startLine?: number;
   type?: string;
@@ -564,19 +604,11 @@ export interface DomainListSecurityScanningReq {
   author?: string;
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
   /** 项目名称 */
   project_name?: string;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
 }
 
@@ -796,6 +828,8 @@ export interface DomainSecurityScanningResult {
   id?: string;
   /** 扫描任务 */
   name?: string;
+  /** 项目路径 */
+  path?: string;
   /** 项目名称 */
   project_name?: string;
   /** 风险结果 */
@@ -809,17 +843,26 @@ export interface DomainSecurityScanningResult {
 export interface DomainSecurityScanningRiskDetail {
   /** 风险描述 */
   desc?: string;
+  /** 风险代码行结束位置 */
+  end?: GithubComChaitinMonkeyCodeBackendEntTypesPosition;
   /** 风险文件名 */
   filename?: string;
+  /** 修复建议 */
+  fix?: string;
   /** 风险id */
   id?: string;
   /** 风险等级 */
   level?: ConstsSecurityScanningRiskLevel;
+  /** 风险代码行 */
+  lines?: string;
+  /** 风险代码行开始位置 */
+  start?: GithubComChaitinMonkeyCodeBackendEntTypesPosition;
 }
 
 export interface DomainSecurityScanningRiskResult {
   /** 高危数 */
   critical_count?: number;
+  id?: string;
   /** 严重数 */
   severe_count?: number;
   /** 建议数 */
@@ -1130,6 +1173,32 @@ export interface DomainWorkspaceFile {
   workspace_id?: string;
 }
 
+export interface GithubComChaitinMonkeyCodeBackendEntTypesPosition {
+  col?: number;
+  line?: number;
+  offset?: number;
+}
+
+export interface InternalCodesnippetHandlerHttpV1GetContextReq {
+  /** 返回结果数量限制，默认10 */
+  limit?: number;
+  /** 批量查询参数 */
+  queries?: InternalCodesnippetHandlerHttpV1Query[];
+  /** 单个查询参数 */
+  query?: InternalCodesnippetHandlerHttpV1Query;
+  /** 工作区路径（必填） */
+  workspacePath?: string;
+}
+
+export interface InternalCodesnippetHandlerHttpV1Query {
+  /** 编程语言（可选） */
+  language?: string;
+  /** 代码片段名称（可选） */
+  name?: string;
+  /** 代码片段类型（可选） */
+  snippetType?: string;
+}
+
 export interface WebResp {
   code?: number;
   data?: unknown;
@@ -1144,34 +1213,18 @@ export interface DeleteDeleteAdminParams {
 export interface GetListAdminUserParams {
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
 }
 
 export interface GetAdminLoginHistoryParams {
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
 }
 
@@ -1189,17 +1242,9 @@ export interface GetListChatRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
@@ -1219,21 +1264,16 @@ export interface GetListCompletionRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
 }
+
+/** 代码文件信息 */
+export type V1CliCreatePayload = DomainFileMeta[];
 
 export interface V1CliCreateParams {
   /** 标志 */
@@ -1370,19 +1410,11 @@ export interface GetSecurityScanningListParams {
   author?: string;
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
   /** 项目名称 */
   project_name?: string;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
 }
 
@@ -1405,17 +1437,9 @@ export interface GetUserListChatRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
@@ -1435,17 +1459,9 @@ export interface GetUserListCompletionRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
@@ -1493,34 +1509,18 @@ export interface DeleteDeleteUserParams {
 export interface GetListUserParams {
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
 }
 
 export interface GetLoginHistoryParams {
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
 }
 
@@ -1550,19 +1550,11 @@ export interface GetUserSecurityScanningListParams {
   author?: string;
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
   /** 项目名称 */
   project_name?: string;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
 }
 
@@ -1576,19 +1568,11 @@ export interface GetListWorkspaceFilesParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /**
-   * 分页
-   * @min 1
-   * @default 1
-   */
+  /** 分页 */
   page?: number;
   /** 搜索关键词（文件路径） */
   search?: string;
-  /**
-   * 每页多少条记录
-   * @min 1
-   * @default 10
-   */
+  /** 每页多少条记录 */
   size?: number;
   /** 用户ID */
   user_id?: string;

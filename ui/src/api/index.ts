@@ -1,6 +1,7 @@
 export * from './Admin'
 export * from './Billing'
 export * from './Cli'
+export * from './CodeSnippet'
 export * from './Dashboard'
 export * from './Model'
 export * from './OpenAiv1'

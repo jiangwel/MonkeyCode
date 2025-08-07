@@ -11,7 +11,11 @@
  */
 
 import request, { ContentType, RequestParams } from "./httpClient";
-import { DomainCodeFiles, DomainIndexResult, V1CliCreateParams } from "./types";
+import {
+  DomainIndexResult,
+  V1CliCreateParams,
+  V1CliCreatePayload,
+} from "./types";
 
 /**
  * @description 运行monkeycode-cli命令
@@ -26,14 +30,14 @@ import { DomainCodeFiles, DomainIndexResult, V1CliCreateParams } from "./types";
 
 export const v1CliCreate = (
   { command, ...query }: V1CliCreateParams,
-  codeFiles: DomainCodeFiles,
+  fileMetas: V1CliCreatePayload,
   params: RequestParams = {},
 ) =>
   request<DomainIndexResult[]>({
     path: `/api/v1/cli/${command}`,
     method: "POST",
     query: query,
-    body: codeFiles,
+    body: fileMetas,
     type: ContentType.Json,
     format: "json",
     ...params,
