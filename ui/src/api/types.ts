@@ -843,17 +843,26 @@ export interface DomainSecurityScanningResult {
 export interface DomainSecurityScanningRiskDetail {
   /** 风险描述 */
   desc?: string;
+  /** 风险代码行结束位置 */
+  end?: GithubComChaitinMonkeyCodeBackendEntTypesPosition;
   /** 风险文件名 */
   filename?: string;
+  /** 修复建议 */
+  fix?: string;
   /** 风险id */
   id?: string;
   /** 风险等级 */
   level?: ConstsSecurityScanningRiskLevel;
+  /** 风险代码行 */
+  lines?: string;
+  /** 风险代码行开始位置 */
+  start?: GithubComChaitinMonkeyCodeBackendEntTypesPosition;
 }
 
 export interface DomainSecurityScanningRiskResult {
   /** 高危数 */
   critical_count?: number;
+  id?: string;
   /** 严重数 */
   severe_count?: number;
   /** 建议数 */
@@ -1162,6 +1171,12 @@ export interface DomainWorkspaceFile {
   user_id?: string;
   /** 工作区ID */
   workspace_id?: string;
+}
+
+export interface GithubComChaitinMonkeyCodeBackendEntTypesPosition {
+  col?: number;
+  line?: number;
+  offset?: number;
 }
 
 export interface InternalCodesnippetHandlerHttpV1GetContextReq {

@@ -40,7 +40,8 @@ const Login = LazyLoadable(lazy(() => import('@/pages/login')));
 const UserLogin = LazyLoadable(lazy(() => import('@/pages/user/login')));
 const Expectation = LazyLoadable(lazy(() => import('@/pages/expectation')));
 const UserChat = LazyLoadable(lazy(() => import('@/pages/user/chat')));
-const CodeSecurity = LazyLoadable(lazy(() => import('@/pages/codeSecurity')));
+const AdminCodeScan = LazyLoadable(lazy(() => import('@/pages/codescan')));
+const UserCodeScan = LazyLoadable(lazy(() => import('@/pages/user/codescan')));
 const UserCompletion = LazyLoadable(
   lazy(() => import('@/pages/user/completion'))
 );
@@ -68,8 +69,8 @@ const routerConfig = [
         element: <Chat />,
       },
       {
-        path: 'code-security',
-        element: <CodeSecurity />,
+        path: 'codescan',
+        element: <AdminCodeScan/>,
       },
       {
         path: 'completion',
@@ -109,6 +110,10 @@ const routerConfig = [
       {
         path: 'completion',
         element: <UserCompletion />,
+      },
+      {
+        path: 'codescan',
+        element: <UserCodeScan />,
       },
       {
         path: 'setting',

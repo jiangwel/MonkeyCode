@@ -7,6 +7,7 @@ const ADMIN_BREADCRUMB_MAP: Record<string, { title: string; to: string }> = {
   dashboard: { title: '仪表盘', to: '/' },
   chat: { title: '对话记录', to: '/chat' },
   completion: { title: '补全记录', to: '/completion' },
+  codescan: { title: '代码安全', to: '/codescan' },
   model: { title: '模型管理', to: '/model' },
   'member-management': { title: '成员管理', to: '/member-management' },
   admin: { title: '管理员', to: '/admin' },
@@ -16,6 +17,7 @@ const USER_BREADCRUMB_MAP: Record<string, { title: string; to: string }> = {
   dashboard: { title: '仪表盘', to: '/user/dashboard' },
   chat: { title: '对话记录', to: '/user/chat' },
   completion: { title: '补全记录', to: '/user/completion' },
+  codescan: { title: '代码安全', to: '/user/codescan' },
 };
 
 const Bread = () => {
