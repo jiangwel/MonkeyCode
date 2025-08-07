@@ -603,3 +603,11 @@ func (r *UserRepo) ExportCompletionData(ctx context.Context) ([]*domain.Completi
 
 	return result, nil
 }
+
+func (r *UserRepo) GetUserCount(ctx context.Context) (int64, error) {
+	count, err := r.db.User.Query().Count(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return int64(count), nil
+}

@@ -58,5 +58,6 @@ func (User) Edges() []ent.Edge {
 		edge.To("workspaces", Workspace.Type),
 		edge.To("workspace_files", WorkspaceFile.Type),
 		edge.To("api_keys", ApiKey.Type),
+		edge.To("security_scannings", SecurityScanning.Type),
 	}
 }

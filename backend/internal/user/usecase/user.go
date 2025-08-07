@@ -686,3 +686,7 @@ func (u *UserUsecase) ExportCompletionData(ctx context.Context) (*domain.ExportC
 		Data:       data,
 	}, nil
 }
+
+func (u *UserUsecase) GetUserCount(ctx context.Context) (int64, error) {
+	return u.repo.GetUserCount(ctx)
+}

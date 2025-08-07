@@ -45,6 +45,7 @@ func (Workspace) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("owner", User.Type).Ref("workspaces").Field("user_id").Unique().Required(),
 		edge.To("files", WorkspaceFile.Type),
+		edge.To("security_scannings", SecurityScanning.Type),
 	}
 }
 

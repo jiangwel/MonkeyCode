@@ -320,6 +320,76 @@ var (
 			},
 		},
 	}
+	// SecurityScanningsColumns holds the columns for the "security_scannings" table.
+	SecurityScanningsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "status", Type: field.TypeString},
+		{Name: "workspace", Type: field.TypeString},
+		{Name: "language", Type: field.TypeString},
+		{Name: "rule", Type: field.TypeString, Nullable: true},
+		{Name: "error_message", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "workspace_id", Type: field.TypeUUID},
+	}
+	// SecurityScanningsTable holds the schema information for the "security_scannings" table.
+	SecurityScanningsTable = &schema.Table{
+		Name:       "security_scannings",
+		Columns:    SecurityScanningsColumns,
+		PrimaryKey: []*schema.Column{SecurityScanningsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "security_scannings_users_security_scannings",
+				Columns:    []*schema.Column{SecurityScanningsColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "security_scannings_workspaces_security_scannings",
+				Columns:    []*schema.Column{SecurityScanningsColumns[9]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// SecurityScanningResultsColumns holds the columns for the "security_scanning_results" table.
+	SecurityScanningResultsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "check_id", Type: field.TypeString},
+		{Name: "engine_kind", Type: field.TypeString},
+		{Name: "lines", Type: field.TypeString, Size: 2147483647},
+		{Name: "path", Type: field.TypeString, Size: 2147483647},
+		{Name: "message", Type: field.TypeString, Size: 2147483647},
+		{Name: "message_zh", Type: field.TypeString, Size: 2147483647},
+		{Name: "severity", Type: field.TypeString},
+		{Name: "abstract_en", Type: field.TypeString, Size: 2147483647},
+		{Name: "abstract_zh", Type: field.TypeString, Size: 2147483647},
+		{Name: "category_en", Type: field.TypeString, Size: 2147483647},
+		{Name: "category_zh", Type: field.TypeString, Size: 2147483647},
+		{Name: "confidence", Type: field.TypeString},
+		{Name: "cwe", Type: field.TypeJSON},
+		{Name: "impact", Type: field.TypeString},
+		{Name: "owasp", Type: field.TypeJSON},
+		{Name: "start_position", Type: field.TypeJSON},
+		{Name: "end_position", Type: field.TypeJSON},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "security_scanning_id", Type: field.TypeUUID},
+	}
+	// SecurityScanningResultsTable holds the schema information for the "security_scanning_results" table.
+	SecurityScanningResultsTable = &schema.Table{
+		Name:       "security_scanning_results",
+		Columns:    SecurityScanningResultsColumns,
+		PrimaryKey: []*schema.Column{SecurityScanningResultsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "security_scanning_results_security_scannings_results",
+				Columns:    []*schema.Column{SecurityScanningResultsColumns[19]},
+				RefColumns: []*schema.Column{SecurityScanningsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// SettingsColumns holds the columns for the "settings" table.
 	SettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -625,6 +695,8 @@ var (
 		ModelsTable,
 		ModelProvidersTable,
 		ModelProviderModelsTable,
+		SecurityScanningsTable,
+		SecurityScanningResultsTable,
 		SettingsTable,
 		TasksTable,
 		TaskRecordsTable,
@@ -683,6 +755,15 @@ func init() {
 	ModelProviderModelsTable.ForeignKeys[0].RefTable = ModelProvidersTable
 	ModelProviderModelsTable.Annotation = &entsql.Annotation{
 		Table: "model_provider_models",
+	}
+	SecurityScanningsTable.ForeignKeys[0].RefTable = UsersTable
+	SecurityScanningsTable.ForeignKeys[1].RefTable = WorkspacesTable
+	SecurityScanningsTable.Annotation = &entsql.Annotation{
+		Table: "security_scannings",
+	}
+	SecurityScanningResultsTable.ForeignKeys[0].RefTable = SecurityScanningsTable
+	SecurityScanningResultsTable.Annotation = &entsql.Annotation{
+		Table: "security_scanning_results",
 	}
 	SettingsTable.Annotation = &entsql.Annotation{
 		Table: "settings",

@@ -15,6 +15,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanning"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
@@ -299,6 +300,21 @@ func (uu *UserUpdate) AddAPIKeys(a ...*ApiKey) *UserUpdate {
 	return uu.AddAPIKeyIDs(ids...)
 }
 
+// AddSecurityScanningIDs adds the "security_scannings" edge to the SecurityScanning entity by IDs.
+func (uu *UserUpdate) AddSecurityScanningIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddSecurityScanningIDs(ids...)
+	return uu
+}
+
+// AddSecurityScannings adds the "security_scannings" edges to the SecurityScanning entity.
+func (uu *UserUpdate) AddSecurityScannings(s ...*SecurityScanning) *UserUpdate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uu.AddSecurityScanningIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -449,6 +465,27 @@ func (uu *UserUpdate) RemoveAPIKeys(a ...*ApiKey) *UserUpdate {
 		ids[i] = a[i].ID
 	}
 	return uu.RemoveAPIKeyIDs(ids...)
+}
+
+// ClearSecurityScannings clears all "security_scannings" edges to the SecurityScanning entity.
+func (uu *UserUpdate) ClearSecurityScannings() *UserUpdate {
+	uu.mutation.ClearSecurityScannings()
+	return uu
+}
+
+// RemoveSecurityScanningIDs removes the "security_scannings" edge to SecurityScanning entities by IDs.
+func (uu *UserUpdate) RemoveSecurityScanningIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveSecurityScanningIDs(ids...)
+	return uu
+}
+
+// RemoveSecurityScannings removes "security_scannings" edges to SecurityScanning entities.
+func (uu *UserUpdate) RemoveSecurityScannings(s ...*SecurityScanning) *UserUpdate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uu.RemoveSecurityScanningIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -850,6 +887,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.SecurityScanningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityScanningsTable,
+			Columns: []string{user.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedSecurityScanningsIDs(); len(nodes) > 0 && !uu.mutation.SecurityScanningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityScanningsTable,
+			Columns: []string{user.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.SecurityScanningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityScanningsTable,
+			Columns: []string{user.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(uu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -1133,6 +1215,21 @@ func (uuo *UserUpdateOne) AddAPIKeys(a ...*ApiKey) *UserUpdateOne {
 	return uuo.AddAPIKeyIDs(ids...)
 }
 
+// AddSecurityScanningIDs adds the "security_scannings" edge to the SecurityScanning entity by IDs.
+func (uuo *UserUpdateOne) AddSecurityScanningIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddSecurityScanningIDs(ids...)
+	return uuo
+}
+
+// AddSecurityScannings adds the "security_scannings" edges to the SecurityScanning entity.
+func (uuo *UserUpdateOne) AddSecurityScannings(s ...*SecurityScanning) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uuo.AddSecurityScanningIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -1283,6 +1380,27 @@ func (uuo *UserUpdateOne) RemoveAPIKeys(a ...*ApiKey) *UserUpdateOne {
 		ids[i] = a[i].ID
 	}
 	return uuo.RemoveAPIKeyIDs(ids...)
+}
+
+// ClearSecurityScannings clears all "security_scannings" edges to the SecurityScanning entity.
+func (uuo *UserUpdateOne) ClearSecurityScannings() *UserUpdateOne {
+	uuo.mutation.ClearSecurityScannings()
+	return uuo
+}
+
+// RemoveSecurityScanningIDs removes the "security_scannings" edge to SecurityScanning entities by IDs.
+func (uuo *UserUpdateOne) RemoveSecurityScanningIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveSecurityScanningIDs(ids...)
+	return uuo
+}
+
+// RemoveSecurityScannings removes "security_scannings" edges to SecurityScanning entities.
+func (uuo *UserUpdateOne) RemoveSecurityScannings(s ...*SecurityScanning) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uuo.RemoveSecurityScanningIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1707,6 +1825,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.SecurityScanningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityScanningsTable,
+			Columns: []string{user.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedSecurityScanningsIDs(); len(nodes) > 0 && !uuo.mutation.SecurityScanningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityScanningsTable,
+			Columns: []string{user.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.SecurityScanningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityScanningsTable,
+			Columns: []string{user.SecurityScanningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

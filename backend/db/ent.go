@@ -26,6 +26,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanning"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanningresult"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
@@ -94,28 +96,30 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			admin.Table:              admin.ValidColumn,
-			adminloginhistory.Table:  adminloginhistory.ValidColumn,
-			apikey.Table:             apikey.ValidColumn,
-			billingplan.Table:        billingplan.ValidColumn,
-			billingquota.Table:       billingquota.ValidColumn,
-			billingrecord.Table:      billingrecord.ValidColumn,
-			billingusage.Table:       billingusage.ValidColumn,
-			codesnippet.Table:        codesnippet.ValidColumn,
-			extension.Table:          extension.ValidColumn,
-			invitecode.Table:         invitecode.ValidColumn,
-			license.Table:            license.ValidColumn,
-			model.Table:              model.ValidColumn,
-			modelprovider.Table:      modelprovider.ValidColumn,
-			modelprovidermodel.Table: modelprovidermodel.ValidColumn,
-			setting.Table:            setting.ValidColumn,
-			task.Table:               task.ValidColumn,
-			taskrecord.Table:         taskrecord.ValidColumn,
-			user.Table:               user.ValidColumn,
-			useridentity.Table:       useridentity.ValidColumn,
-			userloginhistory.Table:   userloginhistory.ValidColumn,
-			workspace.Table:          workspace.ValidColumn,
-			workspacefile.Table:      workspacefile.ValidColumn,
+			admin.Table:                  admin.ValidColumn,
+			adminloginhistory.Table:      adminloginhistory.ValidColumn,
+			apikey.Table:                 apikey.ValidColumn,
+			billingplan.Table:            billingplan.ValidColumn,
+			billingquota.Table:           billingquota.ValidColumn,
+			billingrecord.Table:          billingrecord.ValidColumn,
+			billingusage.Table:           billingusage.ValidColumn,
+			codesnippet.Table:            codesnippet.ValidColumn,
+			extension.Table:              extension.ValidColumn,
+			invitecode.Table:             invitecode.ValidColumn,
+			license.Table:                license.ValidColumn,
+			model.Table:                  model.ValidColumn,
+			modelprovider.Table:          modelprovider.ValidColumn,
+			modelprovidermodel.Table:     modelprovidermodel.ValidColumn,
+			securityscanning.Table:       securityscanning.ValidColumn,
+			securityscanningresult.Table: securityscanningresult.ValidColumn,
+			setting.Table:                setting.ValidColumn,
+			task.Table:                   task.ValidColumn,
+			taskrecord.Table:             taskrecord.ValidColumn,
+			user.Table:                   user.ValidColumn,
+			useridentity.Table:           useridentity.ValidColumn,
+			userloginhistory.Table:       userloginhistory.ValidColumn,
+			workspace.Table:              workspace.ValidColumn,
+			workspacefile.Table:          workspacefile.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

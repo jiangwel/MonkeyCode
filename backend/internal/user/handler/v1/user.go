@@ -35,6 +35,7 @@ type UserHandler struct {
 	euse      domain.ExtensionUsecase
 	duse      domain.DashboardUsecase
 	buse      domain.BillingUsecase
+	scuse     domain.SecurityScanningUsecase
 	session   *session.Session
 	logger    *slog.Logger
 	cfg       *config.Config
@@ -47,6 +48,7 @@ func NewUserHandler(
 	w *web.Web,
 	usecase domain.UserUsecase,
 	euse domain.ExtensionUsecase,
+	scuse domain.SecurityScanningUsecase,
 	duse domain.DashboardUsecase,
 	buse domain.BillingUsecase,
 	auth *middleware.AuthMiddleware,
@@ -61,6 +63,7 @@ func NewUserHandler(
 		euse:      euse,
 		duse:      duse,
 		buse:      buse,
+		scuse:     scuse,
 		session:   session,
 		logger:    logger,
 		cfg:       cfg,
@@ -124,6 +127,12 @@ func NewUserHandler(
 	cplt.Use(auth.UserAuth(), active.Active("user"))
 	cplt.GET("/record", web.BindHandler(u.ListCompletionRecord, web.WithPage()))
 	cplt.GET("/info", web.BaseHandler(u.CompletionInfo))
+
+	// user security
+	sc := w.Group("/api/v1/user/security")
+	sc.Use(auth.UserAuth(), active.Active("user"))
+	sc.GET("/scanning", web.BindHandler(u.SecurityList, web.WithPage()))
+	sc.GET("/scanning/detail", web.BaseHandler(u.SecurityDetail))
 
 	return u
 }
@@ -431,6 +440,23 @@ func (h *UserHandler) LoginHistory(c *web.Context) error {
 //	@Router			/api/v1/user/invite [get]
 func (h *UserHandler) Invite(c *web.Context) error {
 	user := middleware.GetAdmin(c)
+
+	edition := c.Get("edition")
+	if edition == nil {
+		return errcode.ErrPermission
+	}
+
+	// 如果是 Free 版本 user 表不允许超过 100 人
+	if edition.(int) == 0 {
+		count, err := h.usecase.GetUserCount(c.Request().Context())
+		if err != nil {
+			return err
+		}
+		if count >= 100 {
+			return errcode.ErrUserLimit
+		}
+	}
+
 	resp, err := h.usecase.Invite(c.Request().Context(), user.ID)
 	if err != nil {
 		return err
