@@ -151,6 +151,20 @@ func (ic *InviteCodeQuery) Page(ctx context.Context, page, size int) ([]*InviteC
 	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
 }
 
+func (l *LicenseQuery) Page(ctx context.Context, page, size int) ([]*License, *PageInfo, error) {
+	cnt, err := l.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := l.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
 func (m *ModelQuery) Page(ctx context.Context, page, size int) ([]*Model, *PageInfo, error) {
 	cnt, err := m.Count(ctx)
 	if err != nil {

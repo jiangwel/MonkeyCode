@@ -235,6 +235,20 @@ var (
 		Columns:    InviteCodesColumns,
 		PrimaryKey: []*schema.Column{InviteCodesColumns[0]},
 	}
+	// LicenseColumns holds the columns for the "license" table.
+	LicenseColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "type", Type: field.TypeString},
+		{Name: "data", Type: field.TypeBytes, Nullable: true},
+		{Name: "code", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// LicenseTable holds the schema information for the "license" table.
+	LicenseTable = &schema.Table{
+		Name:       "license",
+		Columns:    LicenseColumns,
+		PrimaryKey: []*schema.Column{LicenseColumns[0]},
+	}
 	// ModelsColumns holds the columns for the "models" table.
 	ModelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -607,6 +621,7 @@ var (
 		CodeSnippetsTable,
 		ExtensionsTable,
 		InviteCodesTable,
+		LicenseTable,
 		ModelsTable,
 		ModelProvidersTable,
 		ModelProviderModelsTable,
@@ -654,6 +669,9 @@ func init() {
 	}
 	InviteCodesTable.Annotation = &entsql.Annotation{
 		Table: "invite_codes",
+	}
+	LicenseTable.Annotation = &entsql.Annotation{
+		Table: "license",
 	}
 	ModelsTable.ForeignKeys[0].RefTable = UsersTable
 	ModelsTable.Annotation = &entsql.Annotation{

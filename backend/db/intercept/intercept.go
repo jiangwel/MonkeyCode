@@ -18,6 +18,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/extension"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
+	"github.com/chaitin/MonkeyCode/backend/db/license"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
@@ -358,6 +359,33 @@ func (f TraverseInviteCode) Traverse(ctx context.Context, q db.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *db.InviteCodeQuery", q)
 }
 
+// The LicenseFunc type is an adapter to allow the use of ordinary function as a Querier.
+type LicenseFunc func(context.Context, *db.LicenseQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f LicenseFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.LicenseQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.LicenseQuery", q)
+}
+
+// The TraverseLicense type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseLicense func(context.Context, *db.LicenseQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseLicense) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseLicense) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.LicenseQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.LicenseQuery", q)
+}
+
 // The ModelFunc type is an adapter to allow the use of ordinary function as a Querier.
 type ModelFunc func(context.Context, *db.ModelQuery) (db.Value, error)
 
@@ -678,6 +706,8 @@ func NewQuery(q db.Query) (Query, error) {
 		return &query[*db.ExtensionQuery, predicate.Extension, extension.OrderOption]{typ: db.TypeExtension, tq: q}, nil
 	case *db.InviteCodeQuery:
 		return &query[*db.InviteCodeQuery, predicate.InviteCode, invitecode.OrderOption]{typ: db.TypeInviteCode, tq: q}, nil
+	case *db.LicenseQuery:
+		return &query[*db.LicenseQuery, predicate.License, license.OrderOption]{typ: db.TypeLicense, tq: q}, nil
 	case *db.ModelQuery:
 		return &query[*db.ModelQuery, predicate.Model, model.OrderOption]{typ: db.TypeModel, tq: q}, nil
 	case *db.ModelProviderQuery:

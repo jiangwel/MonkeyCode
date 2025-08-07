@@ -15,6 +15,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/billingusage"
 	"github.com/chaitin/MonkeyCode/backend/db/extension"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
+	"github.com/chaitin/MonkeyCode/backend/db/license"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
@@ -156,6 +157,16 @@ func init() {
 	invitecode.DefaultUpdatedAt = invitecodeDescUpdatedAt.Default.(func() time.Time)
 	// invitecode.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	invitecode.UpdateDefaultUpdatedAt = invitecodeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	licenseFields := schema.License{}.Fields()
+	_ = licenseFields
+	// licenseDescCreatedAt is the schema descriptor for created_at field.
+	licenseDescCreatedAt := licenseFields[4].Descriptor()
+	// license.DefaultCreatedAt holds the default value on creation for the created_at field.
+	license.DefaultCreatedAt = licenseDescCreatedAt.Default.(func() time.Time)
+	// licenseDescID is the schema descriptor for id field.
+	licenseDescID := licenseFields[0].Descriptor()
+	// license.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	license.IDValidator = licenseDescID.Validators[0].(func(int) error)
 	modelFields := schema.Model{}.Fields()
 	_ = modelFields
 	// modelDescIsInternal is the schema descriptor for is_internal field.

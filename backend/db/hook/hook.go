@@ -129,6 +129,18 @@ func (f InviteCodeFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.InviteCodeMutation", m)
 }
 
+// The LicenseFunc type is an adapter to allow the use of ordinary
+// function as License mutator.
+type LicenseFunc func(context.Context, *db.LicenseMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LicenseFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.LicenseMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.LicenseMutation", m)
+}
+
 // The ModelFunc type is an adapter to allow the use of ordinary
 // function as Model mutator.
 type ModelFunc func(context.Context, *db.ModelMutation) (db.Value, error)

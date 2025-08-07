@@ -26,6 +26,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/extension"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
+	"github.com/chaitin/MonkeyCode/backend/db/license"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
@@ -66,6 +67,8 @@ type Client struct {
 	Extension *ExtensionClient
 	// InviteCode is the client for interacting with the InviteCode builders.
 	InviteCode *InviteCodeClient
+	// License is the client for interacting with the License builders.
+	License *LicenseClient
 	// Model is the client for interacting with the Model builders.
 	Model *ModelClient
 	// ModelProvider is the client for interacting with the ModelProvider builders.
@@ -109,6 +112,7 @@ func (c *Client) init() {
 	c.CodeSnippet = NewCodeSnippetClient(c.config)
 	c.Extension = NewExtensionClient(c.config)
 	c.InviteCode = NewInviteCodeClient(c.config)
+	c.License = NewLicenseClient(c.config)
 	c.Model = NewModelClient(c.config)
 	c.ModelProvider = NewModelProviderClient(c.config)
 	c.ModelProviderModel = NewModelProviderModelClient(c.config)
@@ -222,6 +226,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CodeSnippet:        NewCodeSnippetClient(cfg),
 		Extension:          NewExtensionClient(cfg),
 		InviteCode:         NewInviteCodeClient(cfg),
+		License:            NewLicenseClient(cfg),
 		Model:              NewModelClient(cfg),
 		ModelProvider:      NewModelProviderClient(cfg),
 		ModelProviderModel: NewModelProviderModelClient(cfg),
@@ -262,6 +267,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CodeSnippet:        NewCodeSnippetClient(cfg),
 		Extension:          NewExtensionClient(cfg),
 		InviteCode:         NewInviteCodeClient(cfg),
+		License:            NewLicenseClient(cfg),
 		Model:              NewModelClient(cfg),
 		ModelProvider:      NewModelProviderClient(cfg),
 		ModelProviderModel: NewModelProviderModelClient(cfg),
@@ -304,7 +310,7 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Admin, c.AdminLoginHistory, c.ApiKey, c.BillingPlan, c.BillingQuota,
 		c.BillingRecord, c.BillingUsage, c.CodeSnippet, c.Extension, c.InviteCode,
-		c.Model, c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task,
+		c.License, c.Model, c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task,
 		c.TaskRecord, c.User, c.UserIdentity, c.UserLoginHistory, c.Workspace,
 		c.WorkspaceFile,
 	} {
@@ -318,7 +324,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Admin, c.AdminLoginHistory, c.ApiKey, c.BillingPlan, c.BillingQuota,
 		c.BillingRecord, c.BillingUsage, c.CodeSnippet, c.Extension, c.InviteCode,
-		c.Model, c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task,
+		c.License, c.Model, c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task,
 		c.TaskRecord, c.User, c.UserIdentity, c.UserLoginHistory, c.Workspace,
 		c.WorkspaceFile,
 	} {
@@ -349,6 +355,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Extension.mutate(ctx, m)
 	case *InviteCodeMutation:
 		return c.InviteCode.mutate(ctx, m)
+	case *LicenseMutation:
+		return c.License.mutate(ctx, m)
 	case *ModelMutation:
 		return c.Model.mutate(ctx, m)
 	case *ModelProviderMutation:
@@ -1771,6 +1779,139 @@ func (c *InviteCodeClient) mutate(ctx context.Context, m *InviteCodeMutation) (V
 		return (&InviteCodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown InviteCode mutation op: %q", m.Op())
+	}
+}
+
+// LicenseClient is a client for the License schema.
+type LicenseClient struct {
+	config
+}
+
+// NewLicenseClient returns a client for the License from the given config.
+func NewLicenseClient(c config) *LicenseClient {
+	return &LicenseClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `license.Hooks(f(g(h())))`.
+func (c *LicenseClient) Use(hooks ...Hook) {
+	c.hooks.License = append(c.hooks.License, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `license.Intercept(f(g(h())))`.
+func (c *LicenseClient) Intercept(interceptors ...Interceptor) {
+	c.inters.License = append(c.inters.License, interceptors...)
+}
+
+// Create returns a builder for creating a License entity.
+func (c *LicenseClient) Create() *LicenseCreate {
+	mutation := newLicenseMutation(c.config, OpCreate)
+	return &LicenseCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of License entities.
+func (c *LicenseClient) CreateBulk(builders ...*LicenseCreate) *LicenseCreateBulk {
+	return &LicenseCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LicenseClient) MapCreateBulk(slice any, setFunc func(*LicenseCreate, int)) *LicenseCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LicenseCreateBulk{err: fmt.Errorf("calling to LicenseClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LicenseCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LicenseCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for License.
+func (c *LicenseClient) Update() *LicenseUpdate {
+	mutation := newLicenseMutation(c.config, OpUpdate)
+	return &LicenseUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LicenseClient) UpdateOne(l *License) *LicenseUpdateOne {
+	mutation := newLicenseMutation(c.config, OpUpdateOne, withLicense(l))
+	return &LicenseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LicenseClient) UpdateOneID(id int) *LicenseUpdateOne {
+	mutation := newLicenseMutation(c.config, OpUpdateOne, withLicenseID(id))
+	return &LicenseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for License.
+func (c *LicenseClient) Delete() *LicenseDelete {
+	mutation := newLicenseMutation(c.config, OpDelete)
+	return &LicenseDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LicenseClient) DeleteOne(l *License) *LicenseDeleteOne {
+	return c.DeleteOneID(l.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LicenseClient) DeleteOneID(id int) *LicenseDeleteOne {
+	builder := c.Delete().Where(license.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LicenseDeleteOne{builder}
+}
+
+// Query returns a query builder for License.
+func (c *LicenseClient) Query() *LicenseQuery {
+	return &LicenseQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLicense},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a License entity by its id.
+func (c *LicenseClient) Get(ctx context.Context, id int) (*License, error) {
+	return c.Query().Where(license.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LicenseClient) GetX(ctx context.Context, id int) *License {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LicenseClient) Hooks() []Hook {
+	return c.hooks.License
+}
+
+// Interceptors returns the client interceptors.
+func (c *LicenseClient) Interceptors() []Interceptor {
+	return c.inters.License
+}
+
+func (c *LicenseClient) mutate(ctx context.Context, m *LicenseMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LicenseCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LicenseUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LicenseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LicenseDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown License mutation op: %q", m.Op())
 	}
 }
 
@@ -3597,15 +3738,15 @@ func (c *WorkspaceFileClient) mutate(ctx context.Context, m *WorkspaceFileMutati
 type (
 	hooks struct {
 		Admin, AdminLoginHistory, ApiKey, BillingPlan, BillingQuota, BillingRecord,
-		BillingUsage, CodeSnippet, Extension, InviteCode, Model, ModelProvider,
-		ModelProviderModel, Setting, Task, TaskRecord, User, UserIdentity,
-		UserLoginHistory, Workspace, WorkspaceFile []ent.Hook
+		BillingUsage, CodeSnippet, Extension, InviteCode, License, Model,
+		ModelProvider, ModelProviderModel, Setting, Task, TaskRecord, User,
+		UserIdentity, UserLoginHistory, Workspace, WorkspaceFile []ent.Hook
 	}
 	inters struct {
 		Admin, AdminLoginHistory, ApiKey, BillingPlan, BillingQuota, BillingRecord,
-		BillingUsage, CodeSnippet, Extension, InviteCode, Model, ModelProvider,
-		ModelProviderModel, Setting, Task, TaskRecord, User, UserIdentity,
-		UserLoginHistory, Workspace, WorkspaceFile []ent.Interceptor
+		BillingUsage, CodeSnippet, Extension, InviteCode, License, Model,
+		ModelProvider, ModelProviderModel, Setting, Task, TaskRecord, User,
+		UserIdentity, UserLoginHistory, Workspace, WorkspaceFile []ent.Interceptor
 	}
 )
 
