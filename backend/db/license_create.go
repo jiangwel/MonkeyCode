@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/license"
-	"github.com/chaitin/MonkeyCode/backend/pro/domain"
 )
 
 // LicenseCreate is the builder for creating a License entity.
@@ -24,7 +24,7 @@ type LicenseCreate struct {
 }
 
 // SetType sets the "type" field.
-func (lc *LicenseCreate) SetType(dt domain.LicenseType) *LicenseCreate {
+func (lc *LicenseCreate) SetType(dt consts.LicenseType) *LicenseCreate {
 	lc.mutation.SetType(dt)
 	return lc
 }
@@ -225,7 +225,7 @@ type (
 )
 
 // SetType sets the "type" field.
-func (u *LicenseUpsert) SetType(v domain.LicenseType) *LicenseUpsert {
+func (u *LicenseUpsert) SetType(v consts.LicenseType) *LicenseUpsert {
 	u.Set(license.FieldType, v)
 	return u
 }
@@ -333,7 +333,7 @@ func (u *LicenseUpsertOne) Update(set func(*LicenseUpsert)) *LicenseUpsertOne {
 }
 
 // SetType sets the "type" field.
-func (u *LicenseUpsertOne) SetType(v domain.LicenseType) *LicenseUpsertOne {
+func (u *LicenseUpsertOne) SetType(v consts.LicenseType) *LicenseUpsertOne {
 	return u.Update(func(s *LicenseUpsert) {
 		s.SetType(v)
 	})
@@ -617,7 +617,7 @@ func (u *LicenseUpsertBulk) Update(set func(*LicenseUpsert)) *LicenseUpsertBulk 
 }
 
 // SetType sets the "type" field.
-func (u *LicenseUpsertBulk) SetType(v domain.LicenseType) *LicenseUpsertBulk {
+func (u *LicenseUpsertBulk) SetType(v consts.LicenseType) *LicenseUpsertBulk {
 	return u.Update(func(s *LicenseUpsert) {
 		s.SetType(v)
 	})

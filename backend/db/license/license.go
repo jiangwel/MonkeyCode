@@ -9,23 +9,23 @@ import (
 )
 
 const (
-	// Label holds the string label denoting the license type in the database.
+	// Label 定义数据库中 license 表的标签名称
 	Label = "license"
-	// FieldID holds the string denoting the id field in the database.
+	// FieldID 定义数据库中 id 字段的名称
 	FieldID = "id"
-	// FieldType holds the string denoting the type field in the database.
+	// FieldType 定义数据库中 type 字段的名称
 	FieldType = "type"
-	// FieldData holds the string denoting the data field in the database.
+	// FieldData 定义数据库中 data 字段的名称
 	FieldData = "data"
-	// FieldCode holds the string denoting the code field in the database.
+	// FieldCode 定义数据库中 code 字段的名称
 	FieldCode = "code"
-	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	// FieldCreatedAt 定义数据库中 created_at 字段的名称
 	FieldCreatedAt = "created_at"
-	// Table holds the table name of the license in the database.
+	// Table 定义数据库中 license 表的名称
 	Table = "license"
 )
 
-// Columns holds all SQL columns for license fields.
+// Columns 包含 license 表的所有字段名称
 var Columns = []string{
 	FieldID,
 	FieldType,
@@ -34,7 +34,7 @@ var Columns = []string{
 	FieldCreatedAt,
 }
 
-// ValidColumn reports if the column name is valid (part of the table columns).
+// ValidColumn 检查给定的列名是否为有效的 license 表字段
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
@@ -45,31 +45,31 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	// DefaultCreatedAt 定义 created_at 字段在创建时的默认值生成函数
 	DefaultCreatedAt func() time.Time
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	// IDValidator 是 id 字段的验证器，在保存前由构建器调用
 	IDValidator func(int) error
 )
 
-// OrderOption defines the ordering options for the License queries.
+// OrderOption 定义 License 查询的排序选项
 type OrderOption func(*sql.Selector)
 
-// ByID orders the results by the id field.
+// ByID 按 id 字段对结果进行排序
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByType orders the results by the type field.
+// ByType 按 type 字段对结果进行排序
 func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
-// ByCode orders the results by the code field.
+// ByCode 按 code 字段对结果进行排序
 func ByCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCode, opts...).ToFunc()
 }
 
-// ByCreatedAt orders the results by the created_at field.
+// ByCreatedAt 按 created_at 字段对结果进行排序
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
 }

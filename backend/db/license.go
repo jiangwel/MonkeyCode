@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/license"
-	"github.com/chaitin/MonkeyCode/backend/pro/domain"
 )
 
 // License is the model entity for the License schema.
@@ -19,7 +19,7 @@ type License struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Type holds the value of the "type" field.
-	Type domain.LicenseType `json:"type,omitempty"`
+	Type consts.LicenseType `json:"type,omitempty"`
 	// Data holds the value of the "data" field.
 	Data []byte `json:"data,omitempty"`
 	// Code holds the value of the "code" field.
@@ -67,7 +67,7 @@ func (l *License) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
-				l.Type = domain.LicenseType(value.String)
+				l.Type = consts.LicenseType(value.String)
 			}
 		case license.FieldData:
 			if value, ok := values[i].(*[]byte); !ok {

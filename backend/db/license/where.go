@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
-	"github.com/chaitin/MonkeyCode/backend/pro/domain"
 )
 
 // ID filters vertices based on their ID field.
@@ -56,7 +56,7 @@ func IDLTE(id int) predicate.License {
 }
 
 // Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
-func Type(v domain.LicenseType) predicate.License {
+func Type(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldEQ(FieldType, vc))
 }
@@ -77,19 +77,19 @@ func CreatedAt(v time.Time) predicate.License {
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v domain.LicenseType) predicate.License {
+func TypeEQ(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldEQ(FieldType, vc))
 }
 
 // TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v domain.LicenseType) predicate.License {
+func TypeNEQ(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldNEQ(FieldType, vc))
 }
 
 // TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...domain.LicenseType) predicate.License {
+func TypeIn(vs ...consts.LicenseType) predicate.License {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = string(vs[i])
@@ -98,7 +98,7 @@ func TypeIn(vs ...domain.LicenseType) predicate.License {
 }
 
 // TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...domain.LicenseType) predicate.License {
+func TypeNotIn(vs ...consts.LicenseType) predicate.License {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = string(vs[i])
@@ -107,55 +107,55 @@ func TypeNotIn(vs ...domain.LicenseType) predicate.License {
 }
 
 // TypeGT applies the GT predicate on the "type" field.
-func TypeGT(v domain.LicenseType) predicate.License {
+func TypeGT(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldGT(FieldType, vc))
 }
 
 // TypeGTE applies the GTE predicate on the "type" field.
-func TypeGTE(v domain.LicenseType) predicate.License {
+func TypeGTE(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldGTE(FieldType, vc))
 }
 
 // TypeLT applies the LT predicate on the "type" field.
-func TypeLT(v domain.LicenseType) predicate.License {
+func TypeLT(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldLT(FieldType, vc))
 }
 
 // TypeLTE applies the LTE predicate on the "type" field.
-func TypeLTE(v domain.LicenseType) predicate.License {
+func TypeLTE(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldLTE(FieldType, vc))
 }
 
 // TypeContains applies the Contains predicate on the "type" field.
-func TypeContains(v domain.LicenseType) predicate.License {
+func TypeContains(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldContains(FieldType, vc))
 }
 
 // TypeHasPrefix applies the HasPrefix predicate on the "type" field.
-func TypeHasPrefix(v domain.LicenseType) predicate.License {
+func TypeHasPrefix(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldHasPrefix(FieldType, vc))
 }
 
 // TypeHasSuffix applies the HasSuffix predicate on the "type" field.
-func TypeHasSuffix(v domain.LicenseType) predicate.License {
+func TypeHasSuffix(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldHasSuffix(FieldType, vc))
 }
 
 // TypeEqualFold applies the EqualFold predicate on the "type" field.
-func TypeEqualFold(v domain.LicenseType) predicate.License {
+func TypeEqualFold(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldEqualFold(FieldType, vc))
 }
 
 // TypeContainsFold applies the ContainsFold predicate on the "type" field.
-func TypeContainsFold(v domain.LicenseType) predicate.License {
+func TypeContainsFold(v consts.LicenseType) predicate.License {
 	vc := string(v)
 	return predicate.License(sql.FieldContainsFold(FieldType, vc))
 }

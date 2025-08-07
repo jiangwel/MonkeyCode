@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/license"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
-	"github.com/chaitin/MonkeyCode/backend/pro/domain"
 )
 
 // LicenseUpdate is the builder for updating License entities.
@@ -31,13 +31,13 @@ func (lu *LicenseUpdate) Where(ps ...predicate.License) *LicenseUpdate {
 }
 
 // SetType sets the "type" field.
-func (lu *LicenseUpdate) SetType(dt domain.LicenseType) *LicenseUpdate {
+func (lu *LicenseUpdate) SetType(dt consts.LicenseType) *LicenseUpdate {
 	lu.mutation.SetType(dt)
 	return lu
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (lu *LicenseUpdate) SetNillableType(dt *domain.LicenseType) *LicenseUpdate {
+func (lu *LicenseUpdate) SetNillableType(dt *consts.LicenseType) *LicenseUpdate {
 	if dt != nil {
 		lu.SetType(*dt)
 	}
@@ -178,13 +178,13 @@ type LicenseUpdateOne struct {
 }
 
 // SetType sets the "type" field.
-func (luo *LicenseUpdateOne) SetType(dt domain.LicenseType) *LicenseUpdateOne {
+func (luo *LicenseUpdateOne) SetType(dt consts.LicenseType) *LicenseUpdateOne {
 	luo.mutation.SetType(dt)
 	return luo
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (luo *LicenseUpdateOne) SetNillableType(dt *domain.LicenseType) *LicenseUpdateOne {
+func (luo *LicenseUpdateOne) SetNillableType(dt *consts.LicenseType) *LicenseUpdateOne {
 	if dt != nil {
 		luo.SetType(*dt)
 	}

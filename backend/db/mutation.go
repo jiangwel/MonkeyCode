@@ -36,7 +36,6 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/workspace"
 	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 	"github.com/chaitin/MonkeyCode/backend/ent/types"
-	"github.com/chaitin/MonkeyCode/backend/pro/domain"
 	"github.com/google/uuid"
 )
 
@@ -8205,7 +8204,7 @@ type LicenseMutation struct {
 	op            Op
 	typ           string
 	id            *int
-	_type         *domain.LicenseType
+	_type         *consts.LicenseType
 	data          *[]byte
 	code          *string
 	created_at    *time.Time
@@ -8320,12 +8319,12 @@ func (m *LicenseMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetType sets the "type" field.
-func (m *LicenseMutation) SetType(dt domain.LicenseType) {
+func (m *LicenseMutation) SetType(dt consts.LicenseType) {
 	m._type = &dt
 }
 
 // GetType returns the value of the "type" field in the mutation.
-func (m *LicenseMutation) GetType() (r domain.LicenseType, exists bool) {
+func (m *LicenseMutation) GetType() (r consts.LicenseType, exists bool) {
 	v := m._type
 	if v == nil {
 		return
@@ -8336,7 +8335,7 @@ func (m *LicenseMutation) GetType() (r domain.LicenseType, exists bool) {
 // OldType returns the old "type" field's value of the License entity.
 // If the License object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LicenseMutation) OldType(ctx context.Context) (v domain.LicenseType, err error) {
+func (m *LicenseMutation) OldType(ctx context.Context) (v consts.LicenseType, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldType is only allowed on UpdateOne operations")
 	}
@@ -8579,7 +8578,7 @@ func (m *LicenseMutation) OldField(ctx context.Context, name string) (ent.Value,
 func (m *LicenseMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case license.FieldType:
-		v, ok := value.(domain.LicenseType)
+		v, ok := value.(consts.LicenseType)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
