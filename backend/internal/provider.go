@@ -36,6 +36,29 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/pkg/version"
 )
 
+// NewAPIHandlers 创建 APIHandlers 实例
+func NewAPIHandlers(
+	openaiV1 *v1.V1Handler,
+	userV1 *userV1.UserHandler,
+	modelV1 *modelv1.ModelHandler,
+	dashboardV1 *dashv1.DashboardHandler,
+	codeSnippetV1 *codesnippetv1.CodeSnippetHandler,
+	socketH *sockethandler.SocketHandler,
+	billingV1 *billingv1.BillingHandler,
+	workspaceFileV1 *workspacehandlerv1.WorkspaceFileHandler,
+) *APIHandlers {
+	return &APIHandlers{
+		OpenAIV1Handler:      openaiV1,
+		UserHandler:          userV1,
+		ModelHandler:         modelV1,
+		DashboardHandler:     dashboardV1,
+		CodeSnippetHandler:   codeSnippetV1,
+		SocketHandler:        socketH,
+		BillingHandler:       billingV1,
+		WorkspaceFileHandler: workspaceFileV1,
+	}
+}
+
 var Provider = wire.NewSet(
 	proxy.NewLLMProxy,
 	v1.NewV1Handler,
@@ -73,4 +96,5 @@ var Provider = wire.NewSet(
 	codesnippetrepo.NewCodeSnippetRepo,
 	codesnippetusecase.NewCodeSnippetUsecase,
 	codesnippetv1.NewCodeSnippetHandler,
+	NewAPIHandlers,
 )
