@@ -45,6 +45,10 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Generate Swagger.json
+        run: |
+          touch docs/swagger.json
+
       - name: Run tests
         run: go test -v ./...
 

@@ -24,8 +24,8 @@ type LicenseCreate struct {
 }
 
 // SetType sets the "type" field.
-func (lc *LicenseCreate) SetType(dt consts.LicenseType) *LicenseCreate {
-	lc.mutation.SetType(dt)
+func (lc *LicenseCreate) SetType(ct consts.LicenseType) *LicenseCreate {
+	lc.mutation.SetType(ct)
 	return lc
 }
 

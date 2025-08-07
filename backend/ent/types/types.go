@@ -1,5 +1,11 @@
 package types
 
+type Position struct {
+	Col    int `json:"col"`
+	Line   int `json:"line"`
+	Offset int `json:"offset"`
+}
+
 type DingtalkOAuth struct {
 	Enable       bool   `json:"enable"`        // 钉钉OAuth开关
 	ClientID     string `json:"client_id"`     // 钉钉客户端ID

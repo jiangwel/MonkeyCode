@@ -177,6 +177,30 @@ func (f ModelProviderModelFunc) Mutate(ctx context.Context, m db.Mutation) (db.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ModelProviderModelMutation", m)
 }
 
+// The SecurityScanningFunc type is an adapter to allow the use of ordinary
+// function as SecurityScanning mutator.
+type SecurityScanningFunc func(context.Context, *db.SecurityScanningMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SecurityScanningFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.SecurityScanningMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.SecurityScanningMutation", m)
+}
+
+// The SecurityScanningResultFunc type is an adapter to allow the use of ordinary
+// function as SecurityScanningResult mutator.
+type SecurityScanningResultFunc func(context.Context, *db.SecurityScanningResultMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SecurityScanningResultFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.SecurityScanningResultMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.SecurityScanningResultMutation", m)
+}
+
 // The SettingFunc type is an adapter to allow the use of ordinary
 // function as Setting mutator.
 type SettingFunc func(context.Context, *db.SettingMutation) (db.Value, error)

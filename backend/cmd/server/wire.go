@@ -18,6 +18,7 @@ import (
 	dashv1 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/handler/v1"
 	v1 "github.com/chaitin/MonkeyCode/backend/internal/model/handler/http/v1"
 	openaiV1 "github.com/chaitin/MonkeyCode/backend/internal/openai/handler/v1"
+	securityv1 "github.com/chaitin/MonkeyCode/backend/internal/security/handler/http/v1"
 	sockethandler "github.com/chaitin/MonkeyCode/backend/internal/socket/handler"
 	userV1 "github.com/chaitin/MonkeyCode/backend/internal/user/handler/v1"
 	"github.com/chaitin/MonkeyCode/backend/pkg/report"
@@ -39,6 +40,7 @@ type Server struct {
 	report        *report.Reporter
 	reportuse     domain.ReportUsecase
 	euse          domain.ExtensionUsecase
+	securityV1    *securityv1.SecurityHandler
 	codeSnippetV1 *codesnippetv1.CodeSnippetHandler
 }
 

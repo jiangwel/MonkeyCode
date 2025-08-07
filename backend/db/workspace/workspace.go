@@ -34,6 +34,8 @@ const (
 	EdgeOwner = "owner"
 	// EdgeFiles holds the string denoting the files edge name in mutations.
 	EdgeFiles = "files"
+	// EdgeSecurityScannings holds the string denoting the security_scannings edge name in mutations.
+	EdgeSecurityScannings = "security_scannings"
 	// Table holds the table name of the workspace in the database.
 	Table = "workspaces"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -50,6 +52,13 @@ const (
 	FilesInverseTable = "workspace_files"
 	// FilesColumn is the table column denoting the files relation/edge.
 	FilesColumn = "workspace_id"
+	// SecurityScanningsTable is the table that holds the security_scannings relation/edge.
+	SecurityScanningsTable = "security_scannings"
+	// SecurityScanningsInverseTable is the table name for the SecurityScanning entity.
+	// It exists in this package in order to avoid circular dependency with the "securityscanning" package.
+	SecurityScanningsInverseTable = "security_scannings"
+	// SecurityScanningsColumn is the table column denoting the security_scannings relation/edge.
+	SecurityScanningsColumn = "workspace_id"
 )
 
 // Columns holds all SQL columns for workspace fields.
@@ -151,6 +160,20 @@ func ByFiles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFilesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySecurityScanningsCount orders the results by security_scannings count.
+func BySecurityScanningsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSecurityScanningsStep(), opts...)
+	}
+}
+
+// BySecurityScannings orders the results by security_scannings terms.
+func BySecurityScannings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSecurityScanningsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOwnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -163,5 +186,12 @@ func newFilesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FilesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FilesTable, FilesColumn),
+	)
+}
+func newSecurityScanningsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SecurityScanningsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SecurityScanningsTable, SecurityScanningsColumn),
 	)
 }
