@@ -1179,6 +1179,13 @@ export interface GithubComChaitinMonkeyCodeBackendEntTypesPosition {
   offset?: number;
 }
 
+export interface GithubComChaitinMonkeyCodeBackendProDomainLicenseResp {
+  edition?: number;
+  expired_at?: number;
+  started_at?: number;
+  state?: number;
+}
+
 export interface InternalCodesnippetHandlerHttpV1GetContextReq {
   /** 返回结果数量限制，默认10 */
   limit?: number;
@@ -1370,6 +1377,18 @@ export interface GetUserStatDashboardParams {
   precision: "hour" | "day";
   /** 用户ID，可选参数 */
   user_id?: string;
+}
+
+export interface V1LicenseCreatePayload {
+  /** license type */
+  license_type: "file" | "code";
+  /**
+   * license file
+   * @format binary
+   */
+  license_file: File;
+  /** license code */
+  license_code: string;
 }
 
 export interface DeleteDeleteModelParams {

@@ -152,7 +152,16 @@ const Completion = () => {
       title: '时间',
       width: 200,
       render(value: number) {
-        return dayjs.unix(value).format('YYYY-MM-DD HH:mm:ss');
+        return (
+          <Stack direction='column'>
+            <Box sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {dayjs.unix(value).format('YYYY-MM-DD')}
+            </Box>
+            <Box sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {dayjs.unix(value).format('HH:mm:ss')}
+            </Box>
+          </Stack>
+        )      
       },
     },
   ];
