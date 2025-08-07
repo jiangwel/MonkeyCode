@@ -110,6 +110,12 @@ jobs:
           VERSION_NO_V=${VERSION_NO_V#v}
           wget -O assets/vsix/monkeycode-${VERSION_NO_V}.vsix https://release.baizhi.cloud/monkeycode/vsixs/monkeycode-${VERSION_NO_V}.vsix
 
+      - name: Get SGP
+        run: |
+          mkdir -p assets/sgp
+          wget -O assets/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/x86_64/sgp
+          wget -O assets/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/x86_64/sgp-rules
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
