@@ -33,6 +33,7 @@ type UserUsecase interface {
 	OAuthCallback(ctx *web.Context, req *OAuthCallbackReq) error
 	ExportCompletionData(ctx context.Context) (*ExportCompletionDataResp, error)
 	GetUserByApiKey(ctx context.Context, apiKey string) (*db.User, error)
+	GetUserCount(ctx context.Context) (int64, error)
 }
 
 type UserRepo interface {
@@ -60,6 +61,7 @@ type UserRepo interface {
 	SaveAdminLoginHistory(ctx context.Context, adminID, ip string) error
 	SaveUserLoginHistory(ctx context.Context, userID, ip string, session *VSCodeSession) error
 	ExportCompletionData(ctx context.Context) ([]*CompletionData, error)
+	GetUserCount(ctx context.Context) (int64, error)
 }
 
 type ProfileUpdateReq struct {
