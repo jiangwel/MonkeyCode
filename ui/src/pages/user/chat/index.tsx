@@ -62,7 +62,7 @@ const Chat = () => {
     {
       dataIndex: 'user',
       title: '成员',
-      width: 260,
+      width: 200,
       render(value: DomainUser) {
         return (
           <User
@@ -133,7 +133,7 @@ const Chat = () => {
     {
       dataIndex: 'input_tokens',
       title: '输入 Token',
-      width: 150,
+      width: 120,
       render(value: number) {
         return addCommasToNumber(value);
       },
@@ -141,7 +141,7 @@ const Chat = () => {
     {
       dataIndex: 'output_tokens',
       title: '输出 Token',
-      width: 150,
+      width: 120,
       render(value: number) {
         return addCommasToNumber(value);
       },
@@ -149,9 +149,18 @@ const Chat = () => {
     {
       dataIndex: 'created_at',
       title: '时间',
-      width: 180,
+      width: 160,
       render(value: number) {
-        return dayjs.unix(value).format('YYYY-MM-DD HH:mm:ss');
+        return (
+          <Stack direction='column'>
+            <Box sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {dayjs.unix(value).format('YYYY-MM-DD')}
+            </Box>
+            <Box sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {dayjs.unix(value).format('HH:mm:ss')}
+            </Box>
+          </Stack>
+        )      
       },
     },
   ];
