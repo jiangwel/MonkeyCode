@@ -40,6 +40,7 @@ const Login = LazyLoadable(lazy(() => import('@/pages/login')));
 const UserLogin = LazyLoadable(lazy(() => import('@/pages/user/login')));
 const Expectation = LazyLoadable(lazy(() => import('@/pages/expectation')));
 const UserChat = LazyLoadable(lazy(() => import('@/pages/user/chat')));
+const CodeSecurity = LazyLoadable(lazy(() => import('@/pages/codeSecurity')));
 const UserCompletion = LazyLoadable(
   lazy(() => import('@/pages/user/completion'))
 );
@@ -68,7 +69,7 @@ const routerConfig = [
       },
       {
         path: 'code-security',
-        element: <Expectation />,
+        element: <CodeSecurity />,
       },
       {
         path: 'completion',

@@ -108,7 +108,7 @@ const CardServiceSettings = () => {
           <Box sx={{
             mt: 1,
             fontSize: '0.75rem',
-            color: '#FFA500',
+            color: 'warning.main',
             fontWeight: 'normal'
           }}>
             用于解决 VSCode 插件无法连接 MonkeyCode 服务的问题
