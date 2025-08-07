@@ -34,6 +34,8 @@ type Tx struct {
 	Extension *ExtensionClient
 	// InviteCode is the client for interacting with the InviteCode builders.
 	InviteCode *InviteCodeClient
+	// License is the client for interacting with the License builders.
+	License *LicenseClient
 	// Model is the client for interacting with the Model builders.
 	Model *ModelClient
 	// ModelProvider is the client for interacting with the ModelProvider builders.
@@ -197,6 +199,7 @@ func (tx *Tx) init() {
 	tx.CodeSnippet = NewCodeSnippetClient(tx.config)
 	tx.Extension = NewExtensionClient(tx.config)
 	tx.InviteCode = NewInviteCodeClient(tx.config)
+	tx.License = NewLicenseClient(tx.config)
 	tx.Model = NewModelClient(tx.config)
 	tx.ModelProvider = NewModelProviderClient(tx.config)
 	tx.ModelProviderModel = NewModelProviderModelClient(tx.config)

@@ -22,6 +22,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/extension"
 	"github.com/chaitin/MonkeyCode/backend/db/invitecode"
+	"github.com/chaitin/MonkeyCode/backend/db/license"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
@@ -103,6 +104,7 @@ func checkColumn(table, column string) error {
 			codesnippet.Table:        codesnippet.ValidColumn,
 			extension.Table:          extension.ValidColumn,
 			invitecode.Table:         invitecode.ValidColumn,
+			license.Table:            license.ValidColumn,
 			model.Table:              model.ValidColumn,
 			modelprovider.Table:      modelprovider.ValidColumn,
 			modelprovidermodel.Table: modelprovidermodel.ValidColumn,

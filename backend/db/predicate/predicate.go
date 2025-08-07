@@ -36,6 +36,9 @@ type Extension func(*sql.Selector)
 // InviteCode is the predicate function for invitecode builders.
 type InviteCode func(*sql.Selector)
 
+// License is the predicate function for license builders.
+type License func(*sql.Selector)
+
 // Model is the predicate function for model builders.
 type Model func(*sql.Selector)
 
