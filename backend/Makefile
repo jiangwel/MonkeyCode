@@ -24,9 +24,6 @@ image:
 	  .
 
 wire:
-	wire cmd/server/wire.go cmd/server/main.go
-
-wire-pro:
 	wire pro/cmd/server/wire.go pro/cmd/server/main.go
 
 wire-scanner:
