@@ -196,6 +196,12 @@ jobs:
         run: |
           VERSION=${{ needs.build.outputs.version }}
           
+          # Clean up any existing manifests (ignore errors if they don't exist)
+          docker manifest rm ${{ env.REGISTRY }}/backend:${VERSION} || true
+          docker manifest rm ${{ env.REGISTRY }}/backend:latest || true
+          docker manifest rm ${{ env.REGISTRY }}/scanner:${VERSION} || true
+          docker manifest rm ${{ env.REGISTRY }}/scanner:latest || true
+          
           # Create and push backend version manifest
           docker manifest create ${{ env.REGISTRY }}/backend:${VERSION} \
             ${{ env.REGISTRY }}/backend:${VERSION}-x86_64 \
