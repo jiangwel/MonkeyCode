@@ -11,11 +11,7 @@
  */
 
 import request, { ContentType, RequestParams } from "./httpClient";
-import {
-  GithubComChaitinMonkeyCodeBackendProDomainLicenseResp,
-  V1LicenseCreatePayload,
-  WebResp,
-} from "./types";
+import { DomainLicenseResp, V1LicenseCreatePayload, WebResp } from "./types";
 
 /**
  * @description Get license
@@ -25,7 +21,7 @@ import {
  * @summary Get license
  * @request GET:/api/v1/license
  * @response `200` `(WebResp & {
-    data?: GithubComChaitinMonkeyCodeBackendProDomainLicenseResp,
+    data?: DomainLicenseResp,
 
 })` OK
  */
@@ -33,7 +29,7 @@ import {
 export const v1LicenseList = (params: RequestParams = {}) =>
   request<
     WebResp & {
-      data?: GithubComChaitinMonkeyCodeBackendProDomainLicenseResp;
+      data?: DomainLicenseResp;
     }
   >({
     path: `/api/v1/license`,
@@ -51,7 +47,7 @@ export const v1LicenseList = (params: RequestParams = {}) =>
  * @summary Upload license
  * @request POST:/api/v1/license
  * @response `200` `(WebResp & {
-    data?: GithubComChaitinMonkeyCodeBackendProDomainLicenseResp,
+    data?: DomainLicenseResp,
 
 })` OK
  */
@@ -62,7 +58,7 @@ export const v1LicenseCreate = (
 ) =>
   request<
     WebResp & {
-      data?: GithubComChaitinMonkeyCodeBackendProDomainLicenseResp;
+      data?: DomainLicenseResp;
     }
   >({
     path: `/api/v1/license`,
