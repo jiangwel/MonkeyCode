@@ -23,6 +23,20 @@ image:
 	  --output ${OUTPUT} \
 	  .
 
+image-scanner:
+	docker buildx build \
+	  -f build/Dockerfile.scanner \
+	  --build-arg GOCACHE=${GOCACHE} \
+	  --build-arg GOMODCACHE=${GOMODCACHE} \
+	  --build-arg REPO_COMMIT=$(shell git rev-parse HEAD) \
+	  --build-arg VERSION=${VERSION} \
+	  --build-arg BUILD_TIME=${BUILD_TIME} \
+	  --build-arg GIT_COMMIT=${GIT_COMMIT} \
+	  --platform ${PLATFORM} \
+	  --tag ${REGISTRY}/scanner:${TAG} \
+	  --output ${OUTPUT} \
+	  .
+
 wire:
 	wire pro/cmd/server/wire.go pro/cmd/server/main.go
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -38,7 +38,13 @@ func NewProxyUsecase(
 	cfg *config.Config,
 	redis *redis.Client,
 ) domain.ProxyUsecase {
-	client := request.NewClient("http", "monkeycode-scanner:8888", 15*time.Second)
+	client := request.NewClient("http", "monkeycode-scanner:8888", 30*time.Minute, request.WithTransport(&http.Transport{
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 100,
+		MaxConnsPerHost:     100,
+		IdleConnTimeout:     90 * time.Second,
+		ForceAttemptHTTP2:   true,
+	}))
 	client.SetDebug(cfg.Debug)
 	p := &ProxyUsecase{
 		repo:         repo,
@@ -128,7 +134,7 @@ func (p *ProxyUsecase) TaskHandle(ctx context.Context, task *queuerunner.Task[do
 		p.logger.With("id", id).With("error", err).ErrorContext(ctx, "failed to get security scanning")
 		return err
 	}
-	prefix := fmt.Sprintf("/app/codes/%s", id)
+	prefix := fmt.Sprintf("/app/static/codes/%s", id)
 	rootPath := path.Join(prefix, scanning.Edges.WorkspaceEdge.RootPath)
 	defer os.RemoveAll(prefix)
 
@@ -151,8 +157,13 @@ func (p *ProxyUsecase) TaskHandle(ctx context.Context, task *queuerunner.Task[do
 		return err
 	}
 
-	rule := strings.ToLower(string(scanning.Language))
-	result, err := scan.Scan(task.ID, rootPath, rule)
+	result, err := request.Post[scan.Result](p.client, "/api/v1/scan", domain.ScanReq{
+		TaskID:    task.ID,
+		UserID:    task.Data.UserID,
+		Workspace: rootPath,
+		Language:  task.Data.Language,
+	})
+
 	if err != nil {
 		if err = p.securityRepo.Update(ctx, id, consts.SecurityScanningStatusFailed, &scan.Result{
 			Output: err.Error(),
