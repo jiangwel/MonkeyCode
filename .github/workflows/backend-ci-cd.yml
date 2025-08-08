@@ -62,54 +62,8 @@ jobs:
             exit 1
           fi
 
-  prepare-assets:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
-    strategy:
-      matrix:
-        arch: [x86_64, aarch64]
-    defaults:
-      run:
-        working-directory: ./backend
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          lfs: true
-          submodules: true
-          token: ${{ secrets.PRO_TOKEN }}
-
-      - name: Get version
-        id: get_version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Get VSIX
-        run: |
-          mkdir -p assets/vsix
-          VERSION_NO_V=${{ steps.get_version.outputs.VERSION }}
-          VERSION_NO_V=${VERSION_NO_V#v}
-          wget -O assets/vsix/monkeycode-${VERSION_NO_V}.vsix https://release.baizhi.cloud/monkeycode/vsixs/monkeycode-${VERSION_NO_V}.vsix
-
-      - name: Get SGP for ${{ matrix.arch }}
-        run: |
-          mkdir -p assets/sgp
-          echo "Downloading SGP for architecture: ${{ matrix.arch }}"
-          wget -O assets/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/${{ matrix.arch }}/sgp
-          wget -O assets/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/${{ matrix.arch }}/sgp-rules
-          chmod +x assets/sgp/sgp
-
-      - name: Upload assets for ${{ matrix.arch }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: assets-${{ matrix.arch }}
-          path: backend/assets/
-          retention-days: 1
-
   build:
-    needs: prepare-assets
+    needs: test
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     defaults:
@@ -151,17 +105,27 @@ jobs:
           GIT_COMMIT=$(git rev-parse HEAD)
           echo "GIT_COMMIT=${GIT_COMMIT}" >> $GITHUB_OUTPUT
 
-      - name: Download x86_64 assets
-        uses: actions/download-artifact@v4
-        with:
-          name: assets-x86_64
-          path: backend/assets-x86_64/
-
-      - name: Download aarch64 assets
-        uses: actions/download-artifact@v4
-        with:
-          name: assets-aarch64
-          path: backend/assets-aarch64/
+      - name: Prepare assets for all architectures
+        run: |
+          # 创建架构特定的目录
+          mkdir -p assets-x86_64/{vsix,sgp}
+          mkdir -p assets-aarch64/{vsix,sgp}
+          
+          # 下载 VSIX (架构无关)
+          VERSION_NO_V=${{ steps.get_version.outputs.VERSION }}
+          VERSION_NO_V=${VERSION_NO_V#v}
+          wget -O assets-x86_64/vsix/monkeycode-${VERSION_NO_V}.vsix https://release.baizhi.cloud/monkeycode/vsixs/monkeycode-${VERSION_NO_V}.vsix
+          cp assets-x86_64/vsix/monkeycode-${VERSION_NO_V}.vsix assets-aarch64/vsix/
+          
+          # 下载 x86_64 SGP
+          wget -O assets-x86_64/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/x86_64/sgp
+          wget -O assets-x86_64/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/x86_64/sgp-rules
+          chmod +x assets-x86_64/sgp/sgp
+          
+          # 下载 aarch64 SGP
+          wget -O assets-arm64/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/aarch64/sgp
+          wget -O assets-arm64/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/aarch64/sgp-rules
+          chmod +x assets-arm64/sgp/sgp
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
