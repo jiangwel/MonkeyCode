@@ -3,7 +3,7 @@ import { Ellipsis, Modal } from '@c-x/ui';
 
 import { useEffect, useState } from 'react';
 import { DomainSecurityScanningResult, DomainSecurityScanningRiskDetail } from '@/api/types';
-import { getSecurityScanningDetail } from '@/api';
+import { getSecurityScanningDetail, getUserSecurityScanningDetail } from '@/api';
 import { Box, CircularProgress, List, ListItem, ListItemButton, Stack } from '@mui/material';
 
 interface RiskLevelBoxProps {
@@ -50,17 +50,19 @@ const TaskDetail = ({
   task,
   open,
   onClose,
+  admin,
 }: {
   task?: DomainSecurityScanningResult;
   open: boolean;
   onClose: () => void;
+  admin: boolean
 }) => {
   const [loading, setLoading] = useState(true);
   const [vulns, setVulns] = useState<DomainSecurityScanningRiskDetail[]>([]);
 
   const fetchData = async () => {
     setLoading(true);
-    const resp = await getSecurityScanningDetail({
+    const resp = await (admin ? getSecurityScanningDetail : getUserSecurityScanningDetail)({
       id: task?.id as string
     });
     setVulns(resp);

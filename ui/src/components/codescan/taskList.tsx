@@ -335,6 +335,7 @@ const CodeScanTaskList = ({
         open={!!detail}
         onClose={() => setDetail(undefined)}
         task={detail}
+        admin={admin}
       />
     </Card>
   );
