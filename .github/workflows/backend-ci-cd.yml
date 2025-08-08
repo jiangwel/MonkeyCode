@@ -201,6 +201,16 @@ jobs:
           docker manifest rm ${{ env.REGISTRY }}/backend:latest || true
           docker manifest rm ${{ env.REGISTRY }}/scanner:${VERSION} || true
           docker manifest rm ${{ env.REGISTRY }}/scanner:latest || true
+
+          # Also clean up architecture-specific manifests if they exist as manifest lists
+          docker manifest rm ${{ env.REGISTRY }}/backend:${VERSION}-x86_64 || true
+          docker manifest rm ${{ env.REGISTRY }}/backend:${VERSION}-aarch64 || true
+          docker manifest rm ${{ env.REGISTRY }}/backend:latest-x86_64 || true
+          docker manifest rm ${{ env.REGISTRY }}/backend:latest-aarch64 || true
+          docker manifest rm ${{ env.REGISTRY }}/scanner:${VERSION}-x86_64 || true
+          docker manifest rm ${{ env.REGISTRY }}/scanner:${VERSION}-aarch64 || true
+          docker manifest rm ${{ env.REGISTRY }}/scanner:latest-x86_64 || true
+          docker manifest rm ${{ env.REGISTRY }}/scanner:latest-aarch64 || true
           
           # Create and push backend version manifest
           docker manifest create ${{ env.REGISTRY }}/backend:${VERSION} \
