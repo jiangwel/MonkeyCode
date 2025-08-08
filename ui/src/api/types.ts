@@ -10,6 +10,12 @@
  * ---------------------------------------------------------------
  */
 
+export enum DomainLicenseEdition {
+  LicenseEditionFree = 0,
+  LicenseEditionContributor = 1,
+  LicenseEditionEnterprise = 2,
+}
+
 export enum DomainCodeLanguageType {
   CodeLanguageTypeGo = "go",
   CodeLanguageTypePython = "python",
@@ -557,6 +563,13 @@ export interface DomainInviteResp {
   code?: string;
 }
 
+export interface DomainLicenseResp {
+  edition?: DomainLicenseEdition;
+  expired_at?: number;
+  started_at?: number;
+  state?: number;
+}
+
 export interface DomainListAdminLoginHistoryResp {
   has_next_page?: boolean;
   login_histories?: DomainAdminLoginHistory[];
@@ -824,6 +837,8 @@ export interface DomainSecurityScanningBrief {
 export interface DomainSecurityScanningResult {
   /** 扫描开始时间 */
   created_at?: number;
+  /** 错误信息 */
+  error?: string;
   /** 扫描任务id */
   id?: string;
   /** 扫描任务 */
@@ -841,10 +856,12 @@ export interface DomainSecurityScanningResult {
 }
 
 export interface DomainSecurityScanningRiskDetail {
+  /** 代码内容 */
+  content?: string;
   /** 风险描述 */
   desc?: string;
   /** 风险代码行结束位置 */
-  end?: GithubComChaitinMonkeyCodeBackendEntTypesPosition;
+  end?: TypesPosition;
   /** 风险文件名 */
   filename?: string;
   /** 修复建议 */
@@ -856,7 +873,7 @@ export interface DomainSecurityScanningRiskDetail {
   /** 风险代码行 */
   lines?: string;
   /** 风险代码行开始位置 */
-  start?: GithubComChaitinMonkeyCodeBackendEntTypesPosition;
+  start?: TypesPosition;
 }
 
 export interface DomainSecurityScanningRiskResult {
@@ -1173,31 +1190,24 @@ export interface DomainWorkspaceFile {
   workspace_id?: string;
 }
 
-export interface GithubComChaitinMonkeyCodeBackendEntTypesPosition {
+export interface TypesPosition {
   col?: number;
   line?: number;
   offset?: number;
 }
 
-export interface GithubComChaitinMonkeyCodeBackendProDomainLicenseResp {
-  edition?: number;
-  expired_at?: number;
-  started_at?: number;
-  state?: number;
-}
-
-export interface InternalCodesnippetHandlerHttpV1GetContextReq {
+export interface V1GetContextReq {
   /** 返回结果数量限制，默认10 */
   limit?: number;
   /** 批量查询参数 */
-  queries?: InternalCodesnippetHandlerHttpV1Query[];
+  queries?: V1Query[];
   /** 单个查询参数 */
-  query?: InternalCodesnippetHandlerHttpV1Query;
+  query?: V1Query;
   /** 工作区路径（必填） */
   workspacePath?: string;
 }
 
-export interface InternalCodesnippetHandlerHttpV1Query {
+export interface V1Query {
   /** 编程语言（可选） */
   language?: string;
   /** 代码片段名称（可选） */

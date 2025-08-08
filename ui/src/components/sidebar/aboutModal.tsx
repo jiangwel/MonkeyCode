@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { useState } from 'react';
 import { Ellipsis, Modal } from '@c-x/ui';
 import { Box, Button, Link, Stack } from '@mui/material';
-import { GithubComChaitinMonkeyCodeBackendProDomainLicenseResp } from '@/api/types';
+import { DomainLicenseResp } from '@/api/types';
 import ChangeLicense from './changeLicense';
 
 interface LicenseModalProps {
@@ -10,7 +10,7 @@ interface LicenseModalProps {
   onClose: () => void;
   curVersion: string;
   latestVersion: string;
-  license: GithubComChaitinMonkeyCodeBackendProDomainLicenseResp | undefined;
+  license: DomainLicenseResp | undefined;
 }
 
 const AboutModal = ({

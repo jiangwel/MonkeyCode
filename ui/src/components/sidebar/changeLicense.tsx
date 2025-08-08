@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { useState } from 'react';
 import { Ellipsis, message, Modal } from '@c-x/ui';
 import { Box, Button, Link, Stack, TextField } from '@mui/material';
-import { GithubComChaitinMonkeyCodeBackendProDomainLicenseResp } from '@/api/types';
+import { DomainLicenseResp } from '@/api/types';
 import { v1LicenseCreate } from '@/api';
 
 interface LicenseModalProps {
@@ -27,7 +27,7 @@ const ChangeLicense = ({
       license_type: 'code',
       license_code: code,
       license_file: '' as any
-    }).then((resp: GithubComChaitinMonkeyCodeBackendProDomainLicenseResp) => {
+    }).then((resp: DomainLicenseResp) => {
       message.success("切换授权成功");
       console.log(resp)
       setVerifing(false);

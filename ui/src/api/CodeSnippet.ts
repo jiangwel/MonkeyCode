@@ -11,11 +11,7 @@
  */
 
 import { ContentType, RequestParams } from "./httpClient";
-import {
-  DomainCodeSnippet,
-  InternalCodesnippetHandlerHttpV1GetContextReq,
-  WebResp,
-} from "./types";
+import { DomainCodeSnippet, V1GetContextReq, WebResp } from "./types";
 
 /**
  * @description 为IDE端提供代码片段上下文检索功能，使用API Key认证。支持单个查询和批量查询。
@@ -32,7 +28,7 @@ import {
  */
 
 export const postGetContext = (
-  request: InternalCodesnippetHandlerHttpV1GetContextReq,
+  request: V1GetContextReq,
   params: RequestParams = {},
 ) =>
   request<
