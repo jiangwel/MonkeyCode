@@ -2,12 +2,14 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
+	"github.com/pgvector/pgvector-go"
 )
 
 // CodeSnippet holds the schema definition for the CodeSnippet entity.
@@ -53,6 +55,17 @@ func (CodeSnippet) Fields() []ent.Field {
 		field.Text("signature").Optional().Comment("函数/方法签名"),
 		field.Text("definition_text").Optional().Comment("定义文本，用于提供定义参考"),
 		field.JSON("structured_info", map[string]any{}).Optional().Comment("结构化信息 (definition)"),
+
+		// Vector embedding for semantic search
+		field.Other("embedding", pgvector.Vector{}).
+			SchemaType(map[string]string{
+				dialect.Postgres: "vector(1024)",
+			}).
+			Optional().
+			Comment("Vector embedding for semantic search"),
+
+		// Workspace path for faster lookup
+		field.String("workspacePath").Optional().Comment("工作区路径，用于快速查找"),
 	}
 }
 
@@ -74,5 +87,11 @@ func (CodeSnippet) Indexes() []ent.Index {
 		index.Fields("workspace_file_id"),
 		index.Fields("language", "snippet_type"),
 		index.Fields("language", "name"),
+		index.Fields("embedding").
+			Annotations(
+				entsql.IndexType("hnsw"),
+				entsql.OpClass("vector_cosine_ops"),
+			),
+		index.Fields("workspacePath"),
 	}
 }

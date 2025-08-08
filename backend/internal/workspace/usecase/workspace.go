@@ -320,6 +320,13 @@ func (u *WorkspaceFileUsecase) GetByID(ctx context.Context, id string) (*domain.
 }
 
 func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAndSaveReq) error {
+	// 获取workspace信息以获取RootPath
+	workspace, err := u.workspaceSvc.GetByID(ctx, req.WorkspaceID)
+	if err != nil {
+		u.logger.Error("failed to get workspace by ID", "error", err, "workspaceID", req.WorkspaceID)
+		return fmt.Errorf("failed to get workspace: %w", err)
+	}
+
 	results, err := cli.RunCli("index", "", req.FileMetas)
 	if err != nil {
 		return err
@@ -350,8 +357,8 @@ func (u *WorkspaceFileUsecase) GetAndSave(ctx context.Context, req *domain.GetAn
 			}
 		}
 
-		// 创建新的CodeSnippet
-		_, err = u.codeSnippetSvc.CreateFromIndexResult(ctx, file.ID.String(), &res)
+		// 创建新的CodeSnippet，传递workspacePath
+		_, err = u.codeSnippetSvc.CreateFromIndexResult(ctx, file.ID.String(), &res, workspace.RootPath)
 		if err != nil {
 			u.logger.Error("failed to create code snippet from index result", "error", err, "filePath", res.FilePath)
 			// 继续处理其他结果，不因单个错误而中断整个流程

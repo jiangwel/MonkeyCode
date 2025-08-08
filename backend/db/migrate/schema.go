@@ -168,6 +168,8 @@ var (
 		{Name: "signature", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "definition_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "structured_info", Type: field.TypeJSON, Nullable: true},
+		{Name: "embedding", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"postgres": "vector(1024)"}},
+		{Name: "workspace_path", Type: field.TypeString, Nullable: true},
 		{Name: "workspace_file_id", Type: field.TypeUUID},
 	}
 	// CodeSnippetsTable holds the schema information for the "code_snippets" table.
@@ -178,7 +180,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "code_snippets_workspace_files_snippets",
-				Columns:    []*schema.Column{CodeSnippetsColumns[18]},
+				Columns:    []*schema.Column{CodeSnippetsColumns[20]},
 				RefColumns: []*schema.Column{WorkspaceFilesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -192,7 +194,7 @@ var (
 			{
 				Name:    "codesnippet_workspace_file_id",
 				Unique:  false,
-				Columns: []*schema.Column{CodeSnippetsColumns[18]},
+				Columns: []*schema.Column{CodeSnippetsColumns[20]},
 			},
 			{
 				Name:    "codesnippet_language_snippet_type",
@@ -203,6 +205,20 @@ var (
 				Name:    "codesnippet_language_name",
 				Unique:  false,
 				Columns: []*schema.Column{CodeSnippetsColumns[3], CodeSnippetsColumns[1]},
+			},
+			{
+				Name:    "codesnippet_embedding",
+				Unique:  false,
+				Columns: []*schema.Column{CodeSnippetsColumns[18]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "vector_cosine_ops",
+					Type:    "hnsw",
+				},
+			},
+			{
+				Name:    "codesnippet_workspace_path",
+				Unique:  false,
+				Columns: []*schema.Column{CodeSnippetsColumns[19]},
 			},
 		},
 	}

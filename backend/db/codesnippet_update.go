@@ -15,6 +15,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 	"github.com/google/uuid"
+	pgvector "github.com/pgvector/pgvector-go"
 )
 
 // CodeSnippetUpdate is the builder for updating CodeSnippet entities.
@@ -345,6 +346,46 @@ func (csu *CodeSnippetUpdate) ClearStructuredInfo() *CodeSnippetUpdate {
 	return csu
 }
 
+// SetEmbedding sets the "embedding" field.
+func (csu *CodeSnippetUpdate) SetEmbedding(pg pgvector.Vector) *CodeSnippetUpdate {
+	csu.mutation.SetEmbedding(pg)
+	return csu
+}
+
+// SetNillableEmbedding sets the "embedding" field if the given value is not nil.
+func (csu *CodeSnippetUpdate) SetNillableEmbedding(pg *pgvector.Vector) *CodeSnippetUpdate {
+	if pg != nil {
+		csu.SetEmbedding(*pg)
+	}
+	return csu
+}
+
+// ClearEmbedding clears the value of the "embedding" field.
+func (csu *CodeSnippetUpdate) ClearEmbedding() *CodeSnippetUpdate {
+	csu.mutation.ClearEmbedding()
+	return csu
+}
+
+// SetWorkspacePath sets the "workspacePath" field.
+func (csu *CodeSnippetUpdate) SetWorkspacePath(s string) *CodeSnippetUpdate {
+	csu.mutation.SetWorkspacePath(s)
+	return csu
+}
+
+// SetNillableWorkspacePath sets the "workspacePath" field if the given value is not nil.
+func (csu *CodeSnippetUpdate) SetNillableWorkspacePath(s *string) *CodeSnippetUpdate {
+	if s != nil {
+		csu.SetWorkspacePath(*s)
+	}
+	return csu
+}
+
+// ClearWorkspacePath clears the value of the "workspacePath" field.
+func (csu *CodeSnippetUpdate) ClearWorkspacePath() *CodeSnippetUpdate {
+	csu.mutation.ClearWorkspacePath()
+	return csu
+}
+
 // SetSourceFileID sets the "source_file" edge to the WorkspaceFile entity by ID.
 func (csu *CodeSnippetUpdate) SetSourceFileID(id uuid.UUID) *CodeSnippetUpdate {
 	csu.mutation.SetSourceFileID(id)
@@ -521,6 +562,18 @@ func (csu *CodeSnippetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if csu.mutation.StructuredInfoCleared() {
 		_spec.ClearField(codesnippet.FieldStructuredInfo, field.TypeJSON)
+	}
+	if value, ok := csu.mutation.Embedding(); ok {
+		_spec.SetField(codesnippet.FieldEmbedding, field.TypeOther, value)
+	}
+	if csu.mutation.EmbeddingCleared() {
+		_spec.ClearField(codesnippet.FieldEmbedding, field.TypeOther)
+	}
+	if value, ok := csu.mutation.WorkspacePath(); ok {
+		_spec.SetField(codesnippet.FieldWorkspacePath, field.TypeString, value)
+	}
+	if csu.mutation.WorkspacePathCleared() {
+		_spec.ClearField(codesnippet.FieldWorkspacePath, field.TypeString)
 	}
 	if csu.mutation.SourceFileCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -887,6 +940,46 @@ func (csuo *CodeSnippetUpdateOne) ClearStructuredInfo() *CodeSnippetUpdateOne {
 	return csuo
 }
 
+// SetEmbedding sets the "embedding" field.
+func (csuo *CodeSnippetUpdateOne) SetEmbedding(pg pgvector.Vector) *CodeSnippetUpdateOne {
+	csuo.mutation.SetEmbedding(pg)
+	return csuo
+}
+
+// SetNillableEmbedding sets the "embedding" field if the given value is not nil.
+func (csuo *CodeSnippetUpdateOne) SetNillableEmbedding(pg *pgvector.Vector) *CodeSnippetUpdateOne {
+	if pg != nil {
+		csuo.SetEmbedding(*pg)
+	}
+	return csuo
+}
+
+// ClearEmbedding clears the value of the "embedding" field.
+func (csuo *CodeSnippetUpdateOne) ClearEmbedding() *CodeSnippetUpdateOne {
+	csuo.mutation.ClearEmbedding()
+	return csuo
+}
+
+// SetWorkspacePath sets the "workspacePath" field.
+func (csuo *CodeSnippetUpdateOne) SetWorkspacePath(s string) *CodeSnippetUpdateOne {
+	csuo.mutation.SetWorkspacePath(s)
+	return csuo
+}
+
+// SetNillableWorkspacePath sets the "workspacePath" field if the given value is not nil.
+func (csuo *CodeSnippetUpdateOne) SetNillableWorkspacePath(s *string) *CodeSnippetUpdateOne {
+	if s != nil {
+		csuo.SetWorkspacePath(*s)
+	}
+	return csuo
+}
+
+// ClearWorkspacePath clears the value of the "workspacePath" field.
+func (csuo *CodeSnippetUpdateOne) ClearWorkspacePath() *CodeSnippetUpdateOne {
+	csuo.mutation.ClearWorkspacePath()
+	return csuo
+}
+
 // SetSourceFileID sets the "source_file" edge to the WorkspaceFile entity by ID.
 func (csuo *CodeSnippetUpdateOne) SetSourceFileID(id uuid.UUID) *CodeSnippetUpdateOne {
 	csuo.mutation.SetSourceFileID(id)
@@ -1093,6 +1186,18 @@ func (csuo *CodeSnippetUpdateOne) sqlSave(ctx context.Context) (_node *CodeSnipp
 	}
 	if csuo.mutation.StructuredInfoCleared() {
 		_spec.ClearField(codesnippet.FieldStructuredInfo, field.TypeJSON)
+	}
+	if value, ok := csuo.mutation.Embedding(); ok {
+		_spec.SetField(codesnippet.FieldEmbedding, field.TypeOther, value)
+	}
+	if csuo.mutation.EmbeddingCleared() {
+		_spec.ClearField(codesnippet.FieldEmbedding, field.TypeOther)
+	}
+	if value, ok := csuo.mutation.WorkspacePath(); ok {
+		_spec.SetField(codesnippet.FieldWorkspacePath, field.TypeString, value)
+	}
+	if csuo.mutation.WorkspacePathCleared() {
+		_spec.ClearField(codesnippet.FieldWorkspacePath, field.TypeString)
 	}
 	if csuo.mutation.SourceFileCleared() {
 		edge := &sqlgraph.EdgeSpec{
