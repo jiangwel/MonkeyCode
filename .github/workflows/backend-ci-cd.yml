@@ -160,6 +160,26 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Build and push scanner image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/build/Dockerfile.scanner
+          push: true
+          platforms: ${{ matrix.platform }}
+          tags: |
+            ${{ env.REGISTRY }}/scanner:${{ steps.get_version.outputs.VERSION }}-${{ matrix.arch }}
+            ${{ env.REGISTRY }}/scanner:latest-${{ matrix.arch }}
+          build-args: |
+            GOCACHE=/tmp/go-build
+            GOMODCACHE=/tmp/go-mod
+            REPO_COMMIT=${{ github.sha }}
+            VERSION=${{ steps.get_version.outputs.VERSION }}
+            BUILD_TIME=${{ steps.get_build_time.outputs.BUILD_TIME }}
+            GIT_COMMIT=${{ steps.get_git_commit.outputs.GIT_COMMIT }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   create-manifest:
     needs: build
     runs-on: ubuntu-latest
@@ -176,14 +196,26 @@ jobs:
         run: |
           VERSION=${{ needs.build.outputs.version }}
           
-          # Create and push version manifest
+          # Create and push backend version manifest
           docker manifest create ${{ env.REGISTRY }}/backend:${VERSION} \
             ${{ env.REGISTRY }}/backend:${VERSION}-x86_64 \
             ${{ env.REGISTRY }}/backend:${VERSION}-aarch64
           docker manifest push ${{ env.REGISTRY }}/backend:${VERSION}
           
-          # Create and push latest manifest
+          # Create and push backend latest manifest
           docker manifest create ${{ env.REGISTRY }}/backend:latest \
             ${{ env.REGISTRY }}/backend:latest-x86_64 \
             ${{ env.REGISTRY }}/backend:latest-aarch64
           docker manifest push ${{ env.REGISTRY }}/backend:latest
+          
+          # Create and push scanner version manifest
+          docker manifest create ${{ env.REGISTRY }}/scanner:${VERSION} \
+            ${{ env.REGISTRY }}/scanner:${VERSION}-x86_64 \
+            ${{ env.REGISTRY }}/scanner:${VERSION}-aarch64
+          docker manifest push ${{ env.REGISTRY }}/scanner:${VERSION}
+          
+          # Create and push scanner latest manifest
+          docker manifest create ${{ env.REGISTRY }}/scanner:latest \
+            ${{ env.REGISTRY }}/scanner:latest-x86_64 \
+            ${{ env.REGISTRY }}/scanner:latest-aarch64
+          docker manifest push ${{ env.REGISTRY }}/scanner:latest
