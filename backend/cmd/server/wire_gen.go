@@ -12,34 +12,37 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db"
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	v1_5 "github.com/chaitin/MonkeyCode/backend/internal/billing/handler/http/v1"
-	repo7 "github.com/chaitin/MonkeyCode/backend/internal/billing/repo"
-	usecase6 "github.com/chaitin/MonkeyCode/backend/internal/billing/usecase"
-	v1_6 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/handler/http/v1"
-	repo9 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/repo"
-	usecase8 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/usecase"
+	repo8 "github.com/chaitin/MonkeyCode/backend/internal/billing/repo"
+	usecase7 "github.com/chaitin/MonkeyCode/backend/internal/billing/usecase"
+	v1_7 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/handler/http/v1"
+	repo10 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/repo"
+	usecase9 "github.com/chaitin/MonkeyCode/backend/internal/codesnippet/usecase"
 	v1_4 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/handler/v1"
-	repo6 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/repo"
-	usecase5 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/usecase"
-	repo4 "github.com/chaitin/MonkeyCode/backend/internal/extension/repo"
+	repo7 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/repo"
+	usecase6 "github.com/chaitin/MonkeyCode/backend/internal/dashboard/usecase"
+	repo5 "github.com/chaitin/MonkeyCode/backend/internal/extension/repo"
 	usecase2 "github.com/chaitin/MonkeyCode/backend/internal/extension/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/middleware"
 	v1_2 "github.com/chaitin/MonkeyCode/backend/internal/model/handler/http/v1"
 	repo2 "github.com/chaitin/MonkeyCode/backend/internal/model/repo"
 	usecase4 "github.com/chaitin/MonkeyCode/backend/internal/model/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/openai/handler/v1"
-	repo3 "github.com/chaitin/MonkeyCode/backend/internal/openai/repo"
+	repo4 "github.com/chaitin/MonkeyCode/backend/internal/openai/repo"
 	"github.com/chaitin/MonkeyCode/backend/internal/openai/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/repo"
 	"github.com/chaitin/MonkeyCode/backend/internal/proxy/usecase"
-	repo10 "github.com/chaitin/MonkeyCode/backend/internal/report/repo"
-	usecase9 "github.com/chaitin/MonkeyCode/backend/internal/report/usecase"
+	repo11 "github.com/chaitin/MonkeyCode/backend/internal/report/repo"
+	usecase10 "github.com/chaitin/MonkeyCode/backend/internal/report/usecase"
+	v1_6 "github.com/chaitin/MonkeyCode/backend/internal/security/handler/http/v1"
+	repo3 "github.com/chaitin/MonkeyCode/backend/internal/security/repo"
+	usecase5 "github.com/chaitin/MonkeyCode/backend/internal/security/usecase"
 	"github.com/chaitin/MonkeyCode/backend/internal/socket/handler"
 	v1_3 "github.com/chaitin/MonkeyCode/backend/internal/user/handler/v1"
-	repo5 "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
+	repo6 "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
 	usecase3 "github.com/chaitin/MonkeyCode/backend/internal/user/usecase"
-	repo8 "github.com/chaitin/MonkeyCode/backend/internal/workspace/repo"
-	usecase7 "github.com/chaitin/MonkeyCode/backend/internal/workspace/usecase"
+	repo9 "github.com/chaitin/MonkeyCode/backend/internal/workspace/repo"
+	usecase8 "github.com/chaitin/MonkeyCode/backend/internal/workspace/usecase"
 	"github.com/chaitin/MonkeyCode/backend/pkg"
 	"github.com/chaitin/MonkeyCode/backend/pkg/ipdb"
 	"github.com/chaitin/MonkeyCode/backend/pkg/logger"
@@ -67,17 +70,18 @@ func newServer() (*Server, error) {
 	redisClient := store.NewRedisCli(configConfig)
 	proxyRepo := repo.NewProxyRepo(client, redisClient)
 	modelRepo := repo2.NewModelRepo(client)
-	proxyUsecase := usecase.NewProxyUsecase(proxyRepo, modelRepo, slogLogger)
+	securityScanningRepo := repo3.NewSecurityScanningRepo(client)
+	proxyUsecase := usecase.NewProxyUsecase(proxyRepo, modelRepo, securityScanningRepo, slogLogger, configConfig, redisClient)
 	llmProxy := proxy.NewLLMProxy(slogLogger, configConfig, proxyUsecase)
-	openAIRepo := repo3.NewOpenAIRepo(client)
+	openAIRepo := repo4.NewOpenAIRepo(client)
 	openAIUsecase := openai.NewOpenAIUsecase(configConfig, openAIRepo, modelRepo, slogLogger)
-	extensionRepo := repo4.NewExtensionRepo(client)
+	extensionRepo := repo5.NewExtensionRepo(client)
 	extensionUsecase := usecase2.NewExtensionUsecase(extensionRepo, configConfig, slogLogger)
 	ipdbIPDB, err := ipdb.NewIPDB(slogLogger)
 	if err != nil {
 		return nil, err
 	}
-	userRepo := repo5.NewUserRepo(client, ipdbIPDB, redisClient, configConfig)
+	userRepo := repo6.NewUserRepo(client, ipdbIPDB, redisClient, configConfig)
 	sessionSession := session.NewSession(configConfig)
 	userUsecase := usecase3.NewUserUsecase(configConfig, redisClient, userRepo, slogLogger, sessionSession)
 	proxyMiddleware := middleware.NewProxyMiddleware(proxyUsecase)
@@ -87,28 +91,30 @@ func newServer() (*Server, error) {
 	authMiddleware := middleware.NewAuthMiddleware(sessionSession, slogLogger)
 	readOnlyMiddleware := middleware.NewReadOnlyMiddleware(configConfig)
 	modelHandler := v1_2.NewModelHandler(web, modelUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, slogLogger)
-	dashboardRepo := repo6.NewDashboardRepo(client)
-	dashboardUsecase := usecase5.NewDashboardUsecase(dashboardRepo)
-	billingRepo := repo7.NewBillingRepo(client)
-	billingUsecase := usecase6.NewBillingUsecase(billingRepo)
-	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, dashboardUsecase, billingUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, sessionSession, slogLogger, configConfig)
+	securityScanningUsecase := usecase5.NewSecurityScanningUsecase(securityScanningRepo)
+	dashboardRepo := repo7.NewDashboardRepo(client)
+	dashboardUsecase := usecase6.NewDashboardUsecase(dashboardRepo)
+	billingRepo := repo8.NewBillingRepo(client)
+	billingUsecase := usecase7.NewBillingUsecase(billingRepo)
+	userHandler := v1_3.NewUserHandler(web, userUsecase, extensionUsecase, securityScanningUsecase, dashboardUsecase, billingUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, sessionSession, slogLogger, configConfig)
 	dashboardHandler := v1_4.NewDashboardHandler(web, dashboardUsecase, authMiddleware, activeMiddleware)
 	billingHandler := v1_5.NewBillingHandler(web, billingUsecase, authMiddleware, activeMiddleware)
-	workspaceFileRepo := repo8.NewWorkspaceFileRepo(client)
-	workspaceRepo := repo8.NewWorkspaceRepo(client)
-	workspaceUsecase := usecase7.NewWorkspaceUsecase(workspaceRepo, configConfig, slogLogger)
-	codeSnippetRepo := repo9.NewCodeSnippetRepo(client, slogLogger)
-	codeSnippetUsecase := usecase8.NewCodeSnippetUsecase(codeSnippetRepo, slogLogger)
-	workspaceFileUsecase := usecase7.NewWorkspaceFileUsecase(workspaceFileRepo, workspaceUsecase, codeSnippetUsecase, configConfig, slogLogger)
+	workspaceFileRepo := repo9.NewWorkspaceFileRepo(client)
+	workspaceRepo := repo9.NewWorkspaceRepo(client)
+	workspaceUsecase := usecase8.NewWorkspaceUsecase(workspaceRepo, configConfig, slogLogger)
+	codeSnippetRepo := repo10.NewCodeSnippetRepo(client, slogLogger)
+	codeSnippetUsecase := usecase9.NewCodeSnippetUsecase(codeSnippetRepo, slogLogger)
+	workspaceFileUsecase := usecase8.NewWorkspaceFileUsecase(workspaceFileRepo, workspaceUsecase, codeSnippetUsecase, configConfig, slogLogger)
 	socketHandler, err := handler.NewSocketHandler(configConfig, slogLogger, workspaceFileUsecase, workspaceUsecase, userUsecase)
 	if err != nil {
 		return nil, err
 	}
 	versionInfo := version.NewVersionInfo()
 	reporter := report.NewReport(slogLogger, configConfig, versionInfo)
-	reportRepo := repo10.NewReportRepo(client)
-	reportUsecase := usecase9.NewReportUsecase(reportRepo, slogLogger, reporter, redisClient)
-	codeSnippetHandler := v1_6.NewCodeSnippetHandler(web, codeSnippetUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, proxyMiddleware, slogLogger)
+	reportRepo := repo11.NewReportRepo(client)
+	reportUsecase := usecase10.NewReportUsecase(reportRepo, slogLogger, reporter, redisClient)
+	securityHandler := v1_6.NewSecurityHandler(web, securityScanningUsecase, authMiddleware, activeMiddleware)
+	codeSnippetHandler := v1_7.NewCodeSnippetHandler(web, codeSnippetUsecase, authMiddleware, activeMiddleware, readOnlyMiddleware, proxyMiddleware, slogLogger)
 	server := &Server{
 		config:        configConfig,
 		web:           web,
@@ -124,6 +130,7 @@ func newServer() (*Server, error) {
 		report:        reporter,
 		reportuse:     reportUsecase,
 		euse:          extensionUsecase,
+		securityV1:    securityHandler,
 		codeSnippetV1: codeSnippetHandler,
 	}
 	return server, nil
@@ -146,5 +153,6 @@ type Server struct {
 	report        *report.Reporter
 	reportuse     domain.ReportUsecase
 	euse          domain.ExtensionUsecase
-	codeSnippetV1 *v1_6.CodeSnippetHandler
+	securityV1    *v1_6.SecurityHandler
+	codeSnippetV1 *v1_7.CodeSnippetHandler
 }

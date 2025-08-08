@@ -26,6 +26,9 @@ import (
 	proxyusecase "github.com/chaitin/MonkeyCode/backend/internal/proxy/usecase"
 	reportrepo "github.com/chaitin/MonkeyCode/backend/internal/report/repo"
 	reportuse "github.com/chaitin/MonkeyCode/backend/internal/report/usecase"
+	securityv1 "github.com/chaitin/MonkeyCode/backend/internal/security/handler/http/v1"
+	securityrepo "github.com/chaitin/MonkeyCode/backend/internal/security/repo"
+	securityusecase "github.com/chaitin/MonkeyCode/backend/internal/security/usecase"
 	sockethandler "github.com/chaitin/MonkeyCode/backend/internal/socket/handler"
 	userV1 "github.com/chaitin/MonkeyCode/backend/internal/user/handler/v1"
 	userrepo "github.com/chaitin/MonkeyCode/backend/internal/user/repo"
@@ -46,6 +49,7 @@ func NewAPIHandlers(
 	socketH *sockethandler.SocketHandler,
 	billingV1 *billingv1.BillingHandler,
 	workspaceFileV1 *workspacehandlerv1.WorkspaceFileHandler,
+	securityV1 *securityv1.SecurityHandler,
 ) *APIHandlers {
 	return &APIHandlers{
 		OpenAIV1Handler:      openaiV1,
@@ -56,6 +60,7 @@ func NewAPIHandlers(
 		SocketHandler:        socketH,
 		BillingHandler:       billingV1,
 		WorkspaceFileHandler: workspaceFileV1,
+		SecurityHandler:      securityV1,
 	}
 }
 
@@ -97,4 +102,7 @@ var Provider = wire.NewSet(
 	codesnippetusecase.NewCodeSnippetUsecase,
 	codesnippetv1.NewCodeSnippetHandler,
 	NewAPIHandlers,
+	securityrepo.NewSecurityScanningRepo,
+	securityusecase.NewSecurityScanningUsecase,
+	securityv1.NewSecurityHandler,
 )

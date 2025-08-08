@@ -16,6 +16,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanning"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/db/useridentity"
@@ -28,18 +29,19 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                *QueryContext
-	order              []user.OrderOption
-	inters             []Interceptor
-	predicates         []predicate.User
-	withLoginHistories *UserLoginHistoryQuery
-	withModels         *ModelQuery
-	withTasks          *TaskQuery
-	withIdentities     *UserIdentityQuery
-	withWorkspaces     *WorkspaceQuery
-	withWorkspaceFiles *WorkspaceFileQuery
-	withAPIKeys        *ApiKeyQuery
-	modifiers          []func(*sql.Selector)
+	ctx                   *QueryContext
+	order                 []user.OrderOption
+	inters                []Interceptor
+	predicates            []predicate.User
+	withLoginHistories    *UserLoginHistoryQuery
+	withModels            *ModelQuery
+	withTasks             *TaskQuery
+	withIdentities        *UserIdentityQuery
+	withWorkspaces        *WorkspaceQuery
+	withWorkspaceFiles    *WorkspaceFileQuery
+	withAPIKeys           *ApiKeyQuery
+	withSecurityScannings *SecurityScanningQuery
+	modifiers             []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -223,6 +225,28 @@ func (uq *UserQuery) QueryAPIKeys() *ApiKeyQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(apikey.Table, apikey.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.APIKeysTable, user.APIKeysColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySecurityScannings chains the current query on the "security_scannings" edge.
+func (uq *UserQuery) QuerySecurityScannings() *SecurityScanningQuery {
+	query := (&SecurityScanningClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(securityscanning.Table, securityscanning.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.SecurityScanningsTable, user.SecurityScanningsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -417,18 +441,19 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:             uq.config,
-		ctx:                uq.ctx.Clone(),
-		order:              append([]user.OrderOption{}, uq.order...),
-		inters:             append([]Interceptor{}, uq.inters...),
-		predicates:         append([]predicate.User{}, uq.predicates...),
-		withLoginHistories: uq.withLoginHistories.Clone(),
-		withModels:         uq.withModels.Clone(),
-		withTasks:          uq.withTasks.Clone(),
-		withIdentities:     uq.withIdentities.Clone(),
-		withWorkspaces:     uq.withWorkspaces.Clone(),
-		withWorkspaceFiles: uq.withWorkspaceFiles.Clone(),
-		withAPIKeys:        uq.withAPIKeys.Clone(),
+		config:                uq.config,
+		ctx:                   uq.ctx.Clone(),
+		order:                 append([]user.OrderOption{}, uq.order...),
+		inters:                append([]Interceptor{}, uq.inters...),
+		predicates:            append([]predicate.User{}, uq.predicates...),
+		withLoginHistories:    uq.withLoginHistories.Clone(),
+		withModels:            uq.withModels.Clone(),
+		withTasks:             uq.withTasks.Clone(),
+		withIdentities:        uq.withIdentities.Clone(),
+		withWorkspaces:        uq.withWorkspaces.Clone(),
+		withWorkspaceFiles:    uq.withWorkspaceFiles.Clone(),
+		withAPIKeys:           uq.withAPIKeys.Clone(),
+		withSecurityScannings: uq.withSecurityScannings.Clone(),
 		// clone intermediate query.
 		sql:       uq.sql.Clone(),
 		path:      uq.path,
@@ -513,6 +538,17 @@ func (uq *UserQuery) WithAPIKeys(opts ...func(*ApiKeyQuery)) *UserQuery {
 	return uq
 }
 
+// WithSecurityScannings tells the query-builder to eager-load the nodes that are connected to
+// the "security_scannings" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithSecurityScannings(opts ...func(*SecurityScanningQuery)) *UserQuery {
+	query := (&SecurityScanningClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withSecurityScannings = query
+	return uq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -591,7 +627,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			uq.withLoginHistories != nil,
 			uq.withModels != nil,
 			uq.withTasks != nil,
@@ -599,6 +635,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			uq.withWorkspaces != nil,
 			uq.withWorkspaceFiles != nil,
 			uq.withAPIKeys != nil,
+			uq.withSecurityScannings != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -668,6 +705,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadAPIKeys(ctx, query, nodes,
 			func(n *User) { n.Edges.APIKeys = []*ApiKey{} },
 			func(n *User, e *ApiKey) { n.Edges.APIKeys = append(n.Edges.APIKeys, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withSecurityScannings; query != nil {
+		if err := uq.loadSecurityScannings(ctx, query, nodes,
+			func(n *User) { n.Edges.SecurityScannings = []*SecurityScanning{} },
+			func(n *User, e *SecurityScanning) { n.Edges.SecurityScannings = append(n.Edges.SecurityScannings, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -869,6 +913,36 @@ func (uq *UserQuery) loadAPIKeys(ctx context.Context, query *ApiKeyQuery, nodes 
 	}
 	query.Where(predicate.ApiKey(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.APIKeysColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadSecurityScannings(ctx context.Context, query *SecurityScanningQuery, nodes []*User, init func(*User), assign func(*User, *SecurityScanning)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(securityscanning.FieldUserID)
+	}
+	query.Where(predicate.SecurityScanning(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.SecurityScanningsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

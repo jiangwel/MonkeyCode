@@ -45,6 +45,10 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Generate Swagger.json
+        run: |
+          touch docs/swagger.json
+
       - name: Run tests
         run: go test -v ./...
 
@@ -62,6 +66,13 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            arch: x86_64
+          - platform: linux/arm64
+            arch: aarch64
     defaults:
       run:
         working-directory: ./backend
@@ -72,6 +83,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: true
+          token: ${{ secrets.PRO_TOKEN }}
 
       - name: Cache Git LFS
         uses: actions/cache@v4
@@ -106,6 +119,14 @@ jobs:
           VERSION_NO_V=${VERSION_NO_V#v}
           wget -O assets/vsix/monkeycode-${VERSION_NO_V}.vsix https://release.baizhi.cloud/monkeycode/vsixs/monkeycode-${VERSION_NO_V}.vsix
 
+      - name: Get SGP
+        run: |
+          mkdir -p assets/sgp
+          echo "Downloading SGP for architecture: ${{ matrix.arch }}"
+          wget -O assets/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/${{ matrix.arch }}/sgp
+          wget -O assets/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/${{ matrix.arch }}/sgp-rules
+          chmod +x assets/sgp/sgp
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -125,10 +146,10 @@ jobs:
           context: ./backend
           file: ./backend/build/Dockerfile
           push: true
-          platforms: linux/amd64, linux/arm64
+          platforms: ${{ matrix.platform }}
           tags: |
-            ${{ env.REGISTRY }}/backend:${{ steps.get_version.outputs.VERSION }}
-            ${{ env.REGISTRY }}/backend:latest
+            ${{ env.REGISTRY }}/backend:${{ steps.get_version.outputs.VERSION }}-${{ matrix.arch }}
+            ${{ env.REGISTRY }}/backend:latest-${{ matrix.arch }}
           build-args: |
             GOCACHE=/tmp/go-build
             GOMODCACHE=/tmp/go-mod
@@ -138,3 +159,31 @@ jobs:
             GIT_COMMIT=${{ steps.get_git_commit.outputs.GIT_COMMIT }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  create-manifest:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Login to Aliyun Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.CT_ALIYUN_USER }}
+          password: ${{ secrets.CT_ALIYUN_PASS }}
+
+      - name: Create and push multi-arch manifest
+        run: |
+          VERSION=${{ needs.build.outputs.version }}
+          
+          # Create and push version manifest
+          docker manifest create ${{ env.REGISTRY }}/backend:${VERSION} \
+            ${{ env.REGISTRY }}/backend:${VERSION}-x86_64 \
+            ${{ env.REGISTRY }}/backend:${VERSION}-aarch64
+          docker manifest push ${{ env.REGISTRY }}/backend:${VERSION}
+          
+          # Create and push latest manifest
+          docker manifest create ${{ env.REGISTRY }}/backend:latest \
+            ${{ env.REGISTRY }}/backend:latest-x86_64 \
+            ${{ env.REGISTRY }}/backend:latest-aarch64
+          docker manifest push ${{ env.REGISTRY }}/backend:latest

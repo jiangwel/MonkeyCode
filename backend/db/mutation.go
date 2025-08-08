@@ -27,6 +27,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanning"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanningresult"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
@@ -48,28 +50,30 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAdmin              = "Admin"
-	TypeAdminLoginHistory  = "AdminLoginHistory"
-	TypeApiKey             = "ApiKey"
-	TypeBillingPlan        = "BillingPlan"
-	TypeBillingQuota       = "BillingQuota"
-	TypeBillingRecord      = "BillingRecord"
-	TypeBillingUsage       = "BillingUsage"
-	TypeCodeSnippet        = "CodeSnippet"
-	TypeExtension          = "Extension"
-	TypeInviteCode         = "InviteCode"
-	TypeLicense            = "License"
-	TypeModel              = "Model"
-	TypeModelProvider      = "ModelProvider"
-	TypeModelProviderModel = "ModelProviderModel"
-	TypeSetting            = "Setting"
-	TypeTask               = "Task"
-	TypeTaskRecord         = "TaskRecord"
-	TypeUser               = "User"
-	TypeUserIdentity       = "UserIdentity"
-	TypeUserLoginHistory   = "UserLoginHistory"
-	TypeWorkspace          = "Workspace"
-	TypeWorkspaceFile      = "WorkspaceFile"
+	TypeAdmin                  = "Admin"
+	TypeAdminLoginHistory      = "AdminLoginHistory"
+	TypeApiKey                 = "ApiKey"
+	TypeBillingPlan            = "BillingPlan"
+	TypeBillingQuota           = "BillingQuota"
+	TypeBillingRecord          = "BillingRecord"
+	TypeBillingUsage           = "BillingUsage"
+	TypeCodeSnippet            = "CodeSnippet"
+	TypeExtension              = "Extension"
+	TypeInviteCode             = "InviteCode"
+	TypeLicense                = "License"
+	TypeModel                  = "Model"
+	TypeModelProvider          = "ModelProvider"
+	TypeModelProviderModel     = "ModelProviderModel"
+	TypeSecurityScanning       = "SecurityScanning"
+	TypeSecurityScanningResult = "SecurityScanningResult"
+	TypeSetting                = "Setting"
+	TypeTask                   = "Task"
+	TypeTaskRecord             = "TaskRecord"
+	TypeUser                   = "User"
+	TypeUserIdentity           = "UserIdentity"
+	TypeUserLoginHistory       = "UserLoginHistory"
+	TypeWorkspace              = "Workspace"
+	TypeWorkspaceFile          = "WorkspaceFile"
 )
 
 // AdminMutation represents an operation that mutates the Admin nodes in the graph.
@@ -8319,8 +8323,8 @@ func (m *LicenseMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetType sets the "type" field.
-func (m *LicenseMutation) SetType(dt consts.LicenseType) {
-	m._type = &dt
+func (m *LicenseMutation) SetType(ct consts.LicenseType) {
+	m._type = &ct
 }
 
 // GetType returns the value of the "type" field in the mutation.
@@ -11451,6 +11455,2399 @@ func (m *ModelProviderModelMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown ModelProviderModel edge %s", name)
+}
+
+// SecurityScanningMutation represents an operation that mutates the SecurityScanning nodes in the graph.
+type SecurityScanningMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	status                *consts.SecurityScanningStatus
+	workspace             *string
+	language              *consts.SecurityScanningLanguage
+	rule                  *string
+	error_message         *string
+	created_at            *time.Time
+	updated_at            *time.Time
+	clearedFields         map[string]struct{}
+	user                  *uuid.UUID
+	cleareduser           bool
+	results               map[uuid.UUID]struct{}
+	removedresults        map[uuid.UUID]struct{}
+	clearedresults        bool
+	workspace_edge        *uuid.UUID
+	clearedworkspace_edge bool
+	done                  bool
+	oldValue              func(context.Context) (*SecurityScanning, error)
+	predicates            []predicate.SecurityScanning
+}
+
+var _ ent.Mutation = (*SecurityScanningMutation)(nil)
+
+// securityscanningOption allows management of the mutation configuration using functional options.
+type securityscanningOption func(*SecurityScanningMutation)
+
+// newSecurityScanningMutation creates new mutation for the SecurityScanning entity.
+func newSecurityScanningMutation(c config, op Op, opts ...securityscanningOption) *SecurityScanningMutation {
+	m := &SecurityScanningMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSecurityScanning,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSecurityScanningID sets the ID field of the mutation.
+func withSecurityScanningID(id uuid.UUID) securityscanningOption {
+	return func(m *SecurityScanningMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SecurityScanning
+		)
+		m.oldValue = func(ctx context.Context) (*SecurityScanning, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SecurityScanning.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSecurityScanning sets the old SecurityScanning of the mutation.
+func withSecurityScanning(node *SecurityScanning) securityscanningOption {
+	return func(m *SecurityScanningMutation) {
+		m.oldValue = func(context.Context) (*SecurityScanning, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SecurityScanningMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SecurityScanningMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of SecurityScanning entities.
+func (m *SecurityScanningMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SecurityScanningMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SecurityScanningMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SecurityScanning.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUserID sets the "user_id" field.
+func (m *SecurityScanningMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *SecurityScanningMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the SecurityScanning entity.
+// If the SecurityScanning object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *SecurityScanningMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetWorkspaceID sets the "workspace_id" field.
+func (m *SecurityScanningMutation) SetWorkspaceID(u uuid.UUID) {
+	m.workspace_edge = &u
+}
+
+// WorkspaceID returns the value of the "workspace_id" field in the mutation.
+func (m *SecurityScanningMutation) WorkspaceID() (r uuid.UUID, exists bool) {
+	v := m.workspace_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspaceID returns the old "workspace_id" field's value of the SecurityScanning entity.
+// If the SecurityScanning object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningMutation) OldWorkspaceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspaceID: %w", err)
+	}
+	return oldValue.WorkspaceID, nil
+}
+
+// ResetWorkspaceID resets all changes to the "workspace_id" field.
+func (m *SecurityScanningMutation) ResetWorkspaceID() {
+	m.workspace_edge = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *SecurityScanningMutation) SetStatus(css consts.SecurityScanningStatus) {
+	m.status = &css
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *SecurityScanningMutation) Status() (r consts.SecurityScanningStatus, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the SecurityScanning entity.
+// If the SecurityScanning object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningMutation) OldStatus(ctx context.Context) (v consts.SecurityScanningStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *SecurityScanningMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetWorkspace sets the "workspace" field.
+func (m *SecurityScanningMutation) SetWorkspace(s string) {
+	m.workspace = &s
+}
+
+// Workspace returns the value of the "workspace" field in the mutation.
+func (m *SecurityScanningMutation) Workspace() (r string, exists bool) {
+	v := m.workspace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspace returns the old "workspace" field's value of the SecurityScanning entity.
+// If the SecurityScanning object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningMutation) OldWorkspace(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspace is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspace requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspace: %w", err)
+	}
+	return oldValue.Workspace, nil
+}
+
+// ResetWorkspace resets all changes to the "workspace" field.
+func (m *SecurityScanningMutation) ResetWorkspace() {
+	m.workspace = nil
+}
+
+// SetLanguage sets the "language" field.
+func (m *SecurityScanningMutation) SetLanguage(csl consts.SecurityScanningLanguage) {
+	m.language = &csl
+}
+
+// Language returns the value of the "language" field in the mutation.
+func (m *SecurityScanningMutation) Language() (r consts.SecurityScanningLanguage, exists bool) {
+	v := m.language
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLanguage returns the old "language" field's value of the SecurityScanning entity.
+// If the SecurityScanning object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningMutation) OldLanguage(ctx context.Context) (v consts.SecurityScanningLanguage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLanguage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLanguage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLanguage: %w", err)
+	}
+	return oldValue.Language, nil
+}
+
+// ResetLanguage resets all changes to the "language" field.
+func (m *SecurityScanningMutation) ResetLanguage() {
+	m.language = nil
+}
+
+// SetRule sets the "rule" field.
+func (m *SecurityScanningMutation) SetRule(s string) {
+	m.rule = &s
+}
+
+// Rule returns the value of the "rule" field in the mutation.
+func (m *SecurityScanningMutation) Rule() (r string, exists bool) {
+	v := m.rule
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRule returns the old "rule" field's value of the SecurityScanning entity.
+// If the SecurityScanning object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningMutation) OldRule(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRule is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRule requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRule: %w", err)
+	}
+	return oldValue.Rule, nil
+}
+
+// ClearRule clears the value of the "rule" field.
+func (m *SecurityScanningMutation) ClearRule() {
+	m.rule = nil
+	m.clearedFields[securityscanning.FieldRule] = struct{}{}
+}
+
+// RuleCleared returns if the "rule" field was cleared in this mutation.
+func (m *SecurityScanningMutation) RuleCleared() bool {
+	_, ok := m.clearedFields[securityscanning.FieldRule]
+	return ok
+}
+
+// ResetRule resets all changes to the "rule" field.
+func (m *SecurityScanningMutation) ResetRule() {
+	m.rule = nil
+	delete(m.clearedFields, securityscanning.FieldRule)
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *SecurityScanningMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *SecurityScanningMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the SecurityScanning entity.
+// If the SecurityScanning object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningMutation) OldErrorMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (m *SecurityScanningMutation) ClearErrorMessage() {
+	m.error_message = nil
+	m.clearedFields[securityscanning.FieldErrorMessage] = struct{}{}
+}
+
+// ErrorMessageCleared returns if the "error_message" field was cleared in this mutation.
+func (m *SecurityScanningMutation) ErrorMessageCleared() bool {
+	_, ok := m.clearedFields[securityscanning.FieldErrorMessage]
+	return ok
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *SecurityScanningMutation) ResetErrorMessage() {
+	m.error_message = nil
+	delete(m.clearedFields, securityscanning.FieldErrorMessage)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SecurityScanningMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SecurityScanningMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the SecurityScanning entity.
+// If the SecurityScanning object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SecurityScanningMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *SecurityScanningMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *SecurityScanningMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the SecurityScanning entity.
+// If the SecurityScanning object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *SecurityScanningMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *SecurityScanningMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[securityscanning.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *SecurityScanningMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *SecurityScanningMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *SecurityScanningMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// AddResultIDs adds the "results" edge to the SecurityScanningResult entity by ids.
+func (m *SecurityScanningMutation) AddResultIDs(ids ...uuid.UUID) {
+	if m.results == nil {
+		m.results = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.results[ids[i]] = struct{}{}
+	}
+}
+
+// ClearResults clears the "results" edge to the SecurityScanningResult entity.
+func (m *SecurityScanningMutation) ClearResults() {
+	m.clearedresults = true
+}
+
+// ResultsCleared reports if the "results" edge to the SecurityScanningResult entity was cleared.
+func (m *SecurityScanningMutation) ResultsCleared() bool {
+	return m.clearedresults
+}
+
+// RemoveResultIDs removes the "results" edge to the SecurityScanningResult entity by IDs.
+func (m *SecurityScanningMutation) RemoveResultIDs(ids ...uuid.UUID) {
+	if m.removedresults == nil {
+		m.removedresults = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.results, ids[i])
+		m.removedresults[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedResults returns the removed IDs of the "results" edge to the SecurityScanningResult entity.
+func (m *SecurityScanningMutation) RemovedResultsIDs() (ids []uuid.UUID) {
+	for id := range m.removedresults {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResultsIDs returns the "results" edge IDs in the mutation.
+func (m *SecurityScanningMutation) ResultsIDs() (ids []uuid.UUID) {
+	for id := range m.results {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetResults resets all changes to the "results" edge.
+func (m *SecurityScanningMutation) ResetResults() {
+	m.results = nil
+	m.clearedresults = false
+	m.removedresults = nil
+}
+
+// SetWorkspaceEdgeID sets the "workspace_edge" edge to the Workspace entity by id.
+func (m *SecurityScanningMutation) SetWorkspaceEdgeID(id uuid.UUID) {
+	m.workspace_edge = &id
+}
+
+// ClearWorkspaceEdge clears the "workspace_edge" edge to the Workspace entity.
+func (m *SecurityScanningMutation) ClearWorkspaceEdge() {
+	m.clearedworkspace_edge = true
+	m.clearedFields[securityscanning.FieldWorkspaceID] = struct{}{}
+}
+
+// WorkspaceEdgeCleared reports if the "workspace_edge" edge to the Workspace entity was cleared.
+func (m *SecurityScanningMutation) WorkspaceEdgeCleared() bool {
+	return m.clearedworkspace_edge
+}
+
+// WorkspaceEdgeID returns the "workspace_edge" edge ID in the mutation.
+func (m *SecurityScanningMutation) WorkspaceEdgeID() (id uuid.UUID, exists bool) {
+	if m.workspace_edge != nil {
+		return *m.workspace_edge, true
+	}
+	return
+}
+
+// WorkspaceEdgeIDs returns the "workspace_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// WorkspaceEdgeID instead. It exists only for internal usage by the builders.
+func (m *SecurityScanningMutation) WorkspaceEdgeIDs() (ids []uuid.UUID) {
+	if id := m.workspace_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkspaceEdge resets all changes to the "workspace_edge" edge.
+func (m *SecurityScanningMutation) ResetWorkspaceEdge() {
+	m.workspace_edge = nil
+	m.clearedworkspace_edge = false
+}
+
+// Where appends a list predicates to the SecurityScanningMutation builder.
+func (m *SecurityScanningMutation) Where(ps ...predicate.SecurityScanning) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SecurityScanningMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SecurityScanningMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SecurityScanning, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SecurityScanningMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SecurityScanningMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SecurityScanning).
+func (m *SecurityScanningMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SecurityScanningMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.user != nil {
+		fields = append(fields, securityscanning.FieldUserID)
+	}
+	if m.workspace_edge != nil {
+		fields = append(fields, securityscanning.FieldWorkspaceID)
+	}
+	if m.status != nil {
+		fields = append(fields, securityscanning.FieldStatus)
+	}
+	if m.workspace != nil {
+		fields = append(fields, securityscanning.FieldWorkspace)
+	}
+	if m.language != nil {
+		fields = append(fields, securityscanning.FieldLanguage)
+	}
+	if m.rule != nil {
+		fields = append(fields, securityscanning.FieldRule)
+	}
+	if m.error_message != nil {
+		fields = append(fields, securityscanning.FieldErrorMessage)
+	}
+	if m.created_at != nil {
+		fields = append(fields, securityscanning.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, securityscanning.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SecurityScanningMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case securityscanning.FieldUserID:
+		return m.UserID()
+	case securityscanning.FieldWorkspaceID:
+		return m.WorkspaceID()
+	case securityscanning.FieldStatus:
+		return m.Status()
+	case securityscanning.FieldWorkspace:
+		return m.Workspace()
+	case securityscanning.FieldLanguage:
+		return m.Language()
+	case securityscanning.FieldRule:
+		return m.Rule()
+	case securityscanning.FieldErrorMessage:
+		return m.ErrorMessage()
+	case securityscanning.FieldCreatedAt:
+		return m.CreatedAt()
+	case securityscanning.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SecurityScanningMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case securityscanning.FieldUserID:
+		return m.OldUserID(ctx)
+	case securityscanning.FieldWorkspaceID:
+		return m.OldWorkspaceID(ctx)
+	case securityscanning.FieldStatus:
+		return m.OldStatus(ctx)
+	case securityscanning.FieldWorkspace:
+		return m.OldWorkspace(ctx)
+	case securityscanning.FieldLanguage:
+		return m.OldLanguage(ctx)
+	case securityscanning.FieldRule:
+		return m.OldRule(ctx)
+	case securityscanning.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
+	case securityscanning.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case securityscanning.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown SecurityScanning field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SecurityScanningMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case securityscanning.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case securityscanning.FieldWorkspaceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspaceID(v)
+		return nil
+	case securityscanning.FieldStatus:
+		v, ok := value.(consts.SecurityScanningStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case securityscanning.FieldWorkspace:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspace(v)
+		return nil
+	case securityscanning.FieldLanguage:
+		v, ok := value.(consts.SecurityScanningLanguage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLanguage(v)
+		return nil
+	case securityscanning.FieldRule:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRule(v)
+		return nil
+	case securityscanning.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
+	case securityscanning.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case securityscanning.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SecurityScanning field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SecurityScanningMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SecurityScanningMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SecurityScanningMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown SecurityScanning numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SecurityScanningMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(securityscanning.FieldRule) {
+		fields = append(fields, securityscanning.FieldRule)
+	}
+	if m.FieldCleared(securityscanning.FieldErrorMessage) {
+		fields = append(fields, securityscanning.FieldErrorMessage)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SecurityScanningMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SecurityScanningMutation) ClearField(name string) error {
+	switch name {
+	case securityscanning.FieldRule:
+		m.ClearRule()
+		return nil
+	case securityscanning.FieldErrorMessage:
+		m.ClearErrorMessage()
+		return nil
+	}
+	return fmt.Errorf("unknown SecurityScanning nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SecurityScanningMutation) ResetField(name string) error {
+	switch name {
+	case securityscanning.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case securityscanning.FieldWorkspaceID:
+		m.ResetWorkspaceID()
+		return nil
+	case securityscanning.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case securityscanning.FieldWorkspace:
+		m.ResetWorkspace()
+		return nil
+	case securityscanning.FieldLanguage:
+		m.ResetLanguage()
+		return nil
+	case securityscanning.FieldRule:
+		m.ResetRule()
+		return nil
+	case securityscanning.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
+	case securityscanning.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case securityscanning.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown SecurityScanning field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SecurityScanningMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.user != nil {
+		edges = append(edges, securityscanning.EdgeUser)
+	}
+	if m.results != nil {
+		edges = append(edges, securityscanning.EdgeResults)
+	}
+	if m.workspace_edge != nil {
+		edges = append(edges, securityscanning.EdgeWorkspaceEdge)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SecurityScanningMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case securityscanning.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case securityscanning.EdgeResults:
+		ids := make([]ent.Value, 0, len(m.results))
+		for id := range m.results {
+			ids = append(ids, id)
+		}
+		return ids
+	case securityscanning.EdgeWorkspaceEdge:
+		if id := m.workspace_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SecurityScanningMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedresults != nil {
+		edges = append(edges, securityscanning.EdgeResults)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SecurityScanningMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case securityscanning.EdgeResults:
+		ids := make([]ent.Value, 0, len(m.removedresults))
+		for id := range m.removedresults {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SecurityScanningMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.cleareduser {
+		edges = append(edges, securityscanning.EdgeUser)
+	}
+	if m.clearedresults {
+		edges = append(edges, securityscanning.EdgeResults)
+	}
+	if m.clearedworkspace_edge {
+		edges = append(edges, securityscanning.EdgeWorkspaceEdge)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SecurityScanningMutation) EdgeCleared(name string) bool {
+	switch name {
+	case securityscanning.EdgeUser:
+		return m.cleareduser
+	case securityscanning.EdgeResults:
+		return m.clearedresults
+	case securityscanning.EdgeWorkspaceEdge:
+		return m.clearedworkspace_edge
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SecurityScanningMutation) ClearEdge(name string) error {
+	switch name {
+	case securityscanning.EdgeUser:
+		m.ClearUser()
+		return nil
+	case securityscanning.EdgeWorkspaceEdge:
+		m.ClearWorkspaceEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown SecurityScanning unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SecurityScanningMutation) ResetEdge(name string) error {
+	switch name {
+	case securityscanning.EdgeUser:
+		m.ResetUser()
+		return nil
+	case securityscanning.EdgeResults:
+		m.ResetResults()
+		return nil
+	case securityscanning.EdgeWorkspaceEdge:
+		m.ResetWorkspaceEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown SecurityScanning edge %s", name)
+}
+
+// SecurityScanningResultMutation represents an operation that mutates the SecurityScanningResult nodes in the graph.
+type SecurityScanningResultMutation struct {
+	config
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	check_id                 *string
+	engine_kind              *string
+	lines                    *string
+	_path                    *string
+	message                  *string
+	message_zh               *string
+	severity                 *string
+	abstract_en              *string
+	abstract_zh              *string
+	category_en              *string
+	category_zh              *string
+	confidence               *string
+	cwe                      *[]interface{}
+	appendcwe                []interface{}
+	impact                   *string
+	owasp                    *[]interface{}
+	appendowasp              []interface{}
+	start_position           **types.Position
+	end_position             **types.Position
+	created_at               *time.Time
+	clearedFields            map[string]struct{}
+	security_scanning        *uuid.UUID
+	clearedsecurity_scanning bool
+	done                     bool
+	oldValue                 func(context.Context) (*SecurityScanningResult, error)
+	predicates               []predicate.SecurityScanningResult
+}
+
+var _ ent.Mutation = (*SecurityScanningResultMutation)(nil)
+
+// securityscanningresultOption allows management of the mutation configuration using functional options.
+type securityscanningresultOption func(*SecurityScanningResultMutation)
+
+// newSecurityScanningResultMutation creates new mutation for the SecurityScanningResult entity.
+func newSecurityScanningResultMutation(c config, op Op, opts ...securityscanningresultOption) *SecurityScanningResultMutation {
+	m := &SecurityScanningResultMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSecurityScanningResult,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSecurityScanningResultID sets the ID field of the mutation.
+func withSecurityScanningResultID(id uuid.UUID) securityscanningresultOption {
+	return func(m *SecurityScanningResultMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SecurityScanningResult
+		)
+		m.oldValue = func(ctx context.Context) (*SecurityScanningResult, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SecurityScanningResult.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSecurityScanningResult sets the old SecurityScanningResult of the mutation.
+func withSecurityScanningResult(node *SecurityScanningResult) securityscanningresultOption {
+	return func(m *SecurityScanningResultMutation) {
+		m.oldValue = func(context.Context) (*SecurityScanningResult, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SecurityScanningResultMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SecurityScanningResultMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of SecurityScanningResult entities.
+func (m *SecurityScanningResultMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SecurityScanningResultMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SecurityScanningResultMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SecurityScanningResult.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetSecurityScanningID sets the "security_scanning_id" field.
+func (m *SecurityScanningResultMutation) SetSecurityScanningID(u uuid.UUID) {
+	m.security_scanning = &u
+}
+
+// SecurityScanningID returns the value of the "security_scanning_id" field in the mutation.
+func (m *SecurityScanningResultMutation) SecurityScanningID() (r uuid.UUID, exists bool) {
+	v := m.security_scanning
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSecurityScanningID returns the old "security_scanning_id" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldSecurityScanningID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSecurityScanningID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSecurityScanningID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSecurityScanningID: %w", err)
+	}
+	return oldValue.SecurityScanningID, nil
+}
+
+// ResetSecurityScanningID resets all changes to the "security_scanning_id" field.
+func (m *SecurityScanningResultMutation) ResetSecurityScanningID() {
+	m.security_scanning = nil
+}
+
+// SetCheckID sets the "check_id" field.
+func (m *SecurityScanningResultMutation) SetCheckID(s string) {
+	m.check_id = &s
+}
+
+// CheckID returns the value of the "check_id" field in the mutation.
+func (m *SecurityScanningResultMutation) CheckID() (r string, exists bool) {
+	v := m.check_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCheckID returns the old "check_id" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldCheckID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCheckID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCheckID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCheckID: %w", err)
+	}
+	return oldValue.CheckID, nil
+}
+
+// ResetCheckID resets all changes to the "check_id" field.
+func (m *SecurityScanningResultMutation) ResetCheckID() {
+	m.check_id = nil
+}
+
+// SetEngineKind sets the "engine_kind" field.
+func (m *SecurityScanningResultMutation) SetEngineKind(s string) {
+	m.engine_kind = &s
+}
+
+// EngineKind returns the value of the "engine_kind" field in the mutation.
+func (m *SecurityScanningResultMutation) EngineKind() (r string, exists bool) {
+	v := m.engine_kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEngineKind returns the old "engine_kind" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldEngineKind(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEngineKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEngineKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEngineKind: %w", err)
+	}
+	return oldValue.EngineKind, nil
+}
+
+// ResetEngineKind resets all changes to the "engine_kind" field.
+func (m *SecurityScanningResultMutation) ResetEngineKind() {
+	m.engine_kind = nil
+}
+
+// SetLines sets the "lines" field.
+func (m *SecurityScanningResultMutation) SetLines(s string) {
+	m.lines = &s
+}
+
+// Lines returns the value of the "lines" field in the mutation.
+func (m *SecurityScanningResultMutation) Lines() (r string, exists bool) {
+	v := m.lines
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLines returns the old "lines" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldLines(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLines is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLines requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLines: %w", err)
+	}
+	return oldValue.Lines, nil
+}
+
+// ResetLines resets all changes to the "lines" field.
+func (m *SecurityScanningResultMutation) ResetLines() {
+	m.lines = nil
+}
+
+// SetPath sets the "path" field.
+func (m *SecurityScanningResultMutation) SetPath(s string) {
+	m._path = &s
+}
+
+// Path returns the value of the "path" field in the mutation.
+func (m *SecurityScanningResultMutation) Path() (r string, exists bool) {
+	v := m._path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPath returns the old "path" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPath: %w", err)
+	}
+	return oldValue.Path, nil
+}
+
+// ResetPath resets all changes to the "path" field.
+func (m *SecurityScanningResultMutation) ResetPath() {
+	m._path = nil
+}
+
+// SetMessage sets the "message" field.
+func (m *SecurityScanningResultMutation) SetMessage(s string) {
+	m.message = &s
+}
+
+// Message returns the value of the "message" field in the mutation.
+func (m *SecurityScanningResultMutation) Message() (r string, exists bool) {
+	v := m.message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessage returns the old "message" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessage: %w", err)
+	}
+	return oldValue.Message, nil
+}
+
+// ResetMessage resets all changes to the "message" field.
+func (m *SecurityScanningResultMutation) ResetMessage() {
+	m.message = nil
+}
+
+// SetMessageZh sets the "message_zh" field.
+func (m *SecurityScanningResultMutation) SetMessageZh(s string) {
+	m.message_zh = &s
+}
+
+// MessageZh returns the value of the "message_zh" field in the mutation.
+func (m *SecurityScanningResultMutation) MessageZh() (r string, exists bool) {
+	v := m.message_zh
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessageZh returns the old "message_zh" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldMessageZh(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMessageZh is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMessageZh requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessageZh: %w", err)
+	}
+	return oldValue.MessageZh, nil
+}
+
+// ResetMessageZh resets all changes to the "message_zh" field.
+func (m *SecurityScanningResultMutation) ResetMessageZh() {
+	m.message_zh = nil
+}
+
+// SetSeverity sets the "severity" field.
+func (m *SecurityScanningResultMutation) SetSeverity(s string) {
+	m.severity = &s
+}
+
+// Severity returns the value of the "severity" field in the mutation.
+func (m *SecurityScanningResultMutation) Severity() (r string, exists bool) {
+	v := m.severity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSeverity returns the old "severity" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldSeverity(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSeverity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSeverity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSeverity: %w", err)
+	}
+	return oldValue.Severity, nil
+}
+
+// ResetSeverity resets all changes to the "severity" field.
+func (m *SecurityScanningResultMutation) ResetSeverity() {
+	m.severity = nil
+}
+
+// SetAbstractEn sets the "abstract_en" field.
+func (m *SecurityScanningResultMutation) SetAbstractEn(s string) {
+	m.abstract_en = &s
+}
+
+// AbstractEn returns the value of the "abstract_en" field in the mutation.
+func (m *SecurityScanningResultMutation) AbstractEn() (r string, exists bool) {
+	v := m.abstract_en
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAbstractEn returns the old "abstract_en" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldAbstractEn(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAbstractEn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAbstractEn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAbstractEn: %w", err)
+	}
+	return oldValue.AbstractEn, nil
+}
+
+// ResetAbstractEn resets all changes to the "abstract_en" field.
+func (m *SecurityScanningResultMutation) ResetAbstractEn() {
+	m.abstract_en = nil
+}
+
+// SetAbstractZh sets the "abstract_zh" field.
+func (m *SecurityScanningResultMutation) SetAbstractZh(s string) {
+	m.abstract_zh = &s
+}
+
+// AbstractZh returns the value of the "abstract_zh" field in the mutation.
+func (m *SecurityScanningResultMutation) AbstractZh() (r string, exists bool) {
+	v := m.abstract_zh
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAbstractZh returns the old "abstract_zh" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldAbstractZh(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAbstractZh is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAbstractZh requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAbstractZh: %w", err)
+	}
+	return oldValue.AbstractZh, nil
+}
+
+// ResetAbstractZh resets all changes to the "abstract_zh" field.
+func (m *SecurityScanningResultMutation) ResetAbstractZh() {
+	m.abstract_zh = nil
+}
+
+// SetCategoryEn sets the "category_en" field.
+func (m *SecurityScanningResultMutation) SetCategoryEn(s string) {
+	m.category_en = &s
+}
+
+// CategoryEn returns the value of the "category_en" field in the mutation.
+func (m *SecurityScanningResultMutation) CategoryEn() (r string, exists bool) {
+	v := m.category_en
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCategoryEn returns the old "category_en" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldCategoryEn(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCategoryEn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCategoryEn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCategoryEn: %w", err)
+	}
+	return oldValue.CategoryEn, nil
+}
+
+// ResetCategoryEn resets all changes to the "category_en" field.
+func (m *SecurityScanningResultMutation) ResetCategoryEn() {
+	m.category_en = nil
+}
+
+// SetCategoryZh sets the "category_zh" field.
+func (m *SecurityScanningResultMutation) SetCategoryZh(s string) {
+	m.category_zh = &s
+}
+
+// CategoryZh returns the value of the "category_zh" field in the mutation.
+func (m *SecurityScanningResultMutation) CategoryZh() (r string, exists bool) {
+	v := m.category_zh
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCategoryZh returns the old "category_zh" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldCategoryZh(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCategoryZh is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCategoryZh requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCategoryZh: %w", err)
+	}
+	return oldValue.CategoryZh, nil
+}
+
+// ResetCategoryZh resets all changes to the "category_zh" field.
+func (m *SecurityScanningResultMutation) ResetCategoryZh() {
+	m.category_zh = nil
+}
+
+// SetConfidence sets the "confidence" field.
+func (m *SecurityScanningResultMutation) SetConfidence(s string) {
+	m.confidence = &s
+}
+
+// Confidence returns the value of the "confidence" field in the mutation.
+func (m *SecurityScanningResultMutation) Confidence() (r string, exists bool) {
+	v := m.confidence
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfidence returns the old "confidence" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldConfidence(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConfidence is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConfidence requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfidence: %w", err)
+	}
+	return oldValue.Confidence, nil
+}
+
+// ResetConfidence resets all changes to the "confidence" field.
+func (m *SecurityScanningResultMutation) ResetConfidence() {
+	m.confidence = nil
+}
+
+// SetCwe sets the "cwe" field.
+func (m *SecurityScanningResultMutation) SetCwe(i []interface{}) {
+	m.cwe = &i
+	m.appendcwe = nil
+}
+
+// Cwe returns the value of the "cwe" field in the mutation.
+func (m *SecurityScanningResultMutation) Cwe() (r []interface{}, exists bool) {
+	v := m.cwe
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCwe returns the old "cwe" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldCwe(ctx context.Context) (v []interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCwe is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCwe requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCwe: %w", err)
+	}
+	return oldValue.Cwe, nil
+}
+
+// AppendCwe adds i to the "cwe" field.
+func (m *SecurityScanningResultMutation) AppendCwe(i []interface{}) {
+	m.appendcwe = append(m.appendcwe, i...)
+}
+
+// AppendedCwe returns the list of values that were appended to the "cwe" field in this mutation.
+func (m *SecurityScanningResultMutation) AppendedCwe() ([]interface{}, bool) {
+	if len(m.appendcwe) == 0 {
+		return nil, false
+	}
+	return m.appendcwe, true
+}
+
+// ResetCwe resets all changes to the "cwe" field.
+func (m *SecurityScanningResultMutation) ResetCwe() {
+	m.cwe = nil
+	m.appendcwe = nil
+}
+
+// SetImpact sets the "impact" field.
+func (m *SecurityScanningResultMutation) SetImpact(s string) {
+	m.impact = &s
+}
+
+// Impact returns the value of the "impact" field in the mutation.
+func (m *SecurityScanningResultMutation) Impact() (r string, exists bool) {
+	v := m.impact
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImpact returns the old "impact" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldImpact(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImpact is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImpact requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImpact: %w", err)
+	}
+	return oldValue.Impact, nil
+}
+
+// ResetImpact resets all changes to the "impact" field.
+func (m *SecurityScanningResultMutation) ResetImpact() {
+	m.impact = nil
+}
+
+// SetOwasp sets the "owasp" field.
+func (m *SecurityScanningResultMutation) SetOwasp(i []interface{}) {
+	m.owasp = &i
+	m.appendowasp = nil
+}
+
+// Owasp returns the value of the "owasp" field in the mutation.
+func (m *SecurityScanningResultMutation) Owasp() (r []interface{}, exists bool) {
+	v := m.owasp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwasp returns the old "owasp" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldOwasp(ctx context.Context) (v []interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOwasp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOwasp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwasp: %w", err)
+	}
+	return oldValue.Owasp, nil
+}
+
+// AppendOwasp adds i to the "owasp" field.
+func (m *SecurityScanningResultMutation) AppendOwasp(i []interface{}) {
+	m.appendowasp = append(m.appendowasp, i...)
+}
+
+// AppendedOwasp returns the list of values that were appended to the "owasp" field in this mutation.
+func (m *SecurityScanningResultMutation) AppendedOwasp() ([]interface{}, bool) {
+	if len(m.appendowasp) == 0 {
+		return nil, false
+	}
+	return m.appendowasp, true
+}
+
+// ResetOwasp resets all changes to the "owasp" field.
+func (m *SecurityScanningResultMutation) ResetOwasp() {
+	m.owasp = nil
+	m.appendowasp = nil
+}
+
+// SetStartPosition sets the "start_position" field.
+func (m *SecurityScanningResultMutation) SetStartPosition(t *types.Position) {
+	m.start_position = &t
+}
+
+// StartPosition returns the value of the "start_position" field in the mutation.
+func (m *SecurityScanningResultMutation) StartPosition() (r *types.Position, exists bool) {
+	v := m.start_position
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartPosition returns the old "start_position" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldStartPosition(ctx context.Context) (v *types.Position, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartPosition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartPosition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartPosition: %w", err)
+	}
+	return oldValue.StartPosition, nil
+}
+
+// ResetStartPosition resets all changes to the "start_position" field.
+func (m *SecurityScanningResultMutation) ResetStartPosition() {
+	m.start_position = nil
+}
+
+// SetEndPosition sets the "end_position" field.
+func (m *SecurityScanningResultMutation) SetEndPosition(t *types.Position) {
+	m.end_position = &t
+}
+
+// EndPosition returns the value of the "end_position" field in the mutation.
+func (m *SecurityScanningResultMutation) EndPosition() (r *types.Position, exists bool) {
+	v := m.end_position
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndPosition returns the old "end_position" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldEndPosition(ctx context.Context) (v *types.Position, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndPosition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndPosition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndPosition: %w", err)
+	}
+	return oldValue.EndPosition, nil
+}
+
+// ResetEndPosition resets all changes to the "end_position" field.
+func (m *SecurityScanningResultMutation) ResetEndPosition() {
+	m.end_position = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SecurityScanningResultMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SecurityScanningResultMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SecurityScanningResultMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// ClearSecurityScanning clears the "security_scanning" edge to the SecurityScanning entity.
+func (m *SecurityScanningResultMutation) ClearSecurityScanning() {
+	m.clearedsecurity_scanning = true
+	m.clearedFields[securityscanningresult.FieldSecurityScanningID] = struct{}{}
+}
+
+// SecurityScanningCleared reports if the "security_scanning" edge to the SecurityScanning entity was cleared.
+func (m *SecurityScanningResultMutation) SecurityScanningCleared() bool {
+	return m.clearedsecurity_scanning
+}
+
+// SecurityScanningIDs returns the "security_scanning" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SecurityScanningID instead. It exists only for internal usage by the builders.
+func (m *SecurityScanningResultMutation) SecurityScanningIDs() (ids []uuid.UUID) {
+	if id := m.security_scanning; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSecurityScanning resets all changes to the "security_scanning" edge.
+func (m *SecurityScanningResultMutation) ResetSecurityScanning() {
+	m.security_scanning = nil
+	m.clearedsecurity_scanning = false
+}
+
+// Where appends a list predicates to the SecurityScanningResultMutation builder.
+func (m *SecurityScanningResultMutation) Where(ps ...predicate.SecurityScanningResult) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SecurityScanningResultMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SecurityScanningResultMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SecurityScanningResult, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SecurityScanningResultMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SecurityScanningResultMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SecurityScanningResult).
+func (m *SecurityScanningResultMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SecurityScanningResultMutation) Fields() []string {
+	fields := make([]string, 0, 19)
+	if m.security_scanning != nil {
+		fields = append(fields, securityscanningresult.FieldSecurityScanningID)
+	}
+	if m.check_id != nil {
+		fields = append(fields, securityscanningresult.FieldCheckID)
+	}
+	if m.engine_kind != nil {
+		fields = append(fields, securityscanningresult.FieldEngineKind)
+	}
+	if m.lines != nil {
+		fields = append(fields, securityscanningresult.FieldLines)
+	}
+	if m._path != nil {
+		fields = append(fields, securityscanningresult.FieldPath)
+	}
+	if m.message != nil {
+		fields = append(fields, securityscanningresult.FieldMessage)
+	}
+	if m.message_zh != nil {
+		fields = append(fields, securityscanningresult.FieldMessageZh)
+	}
+	if m.severity != nil {
+		fields = append(fields, securityscanningresult.FieldSeverity)
+	}
+	if m.abstract_en != nil {
+		fields = append(fields, securityscanningresult.FieldAbstractEn)
+	}
+	if m.abstract_zh != nil {
+		fields = append(fields, securityscanningresult.FieldAbstractZh)
+	}
+	if m.category_en != nil {
+		fields = append(fields, securityscanningresult.FieldCategoryEn)
+	}
+	if m.category_zh != nil {
+		fields = append(fields, securityscanningresult.FieldCategoryZh)
+	}
+	if m.confidence != nil {
+		fields = append(fields, securityscanningresult.FieldConfidence)
+	}
+	if m.cwe != nil {
+		fields = append(fields, securityscanningresult.FieldCwe)
+	}
+	if m.impact != nil {
+		fields = append(fields, securityscanningresult.FieldImpact)
+	}
+	if m.owasp != nil {
+		fields = append(fields, securityscanningresult.FieldOwasp)
+	}
+	if m.start_position != nil {
+		fields = append(fields, securityscanningresult.FieldStartPosition)
+	}
+	if m.end_position != nil {
+		fields = append(fields, securityscanningresult.FieldEndPosition)
+	}
+	if m.created_at != nil {
+		fields = append(fields, securityscanningresult.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SecurityScanningResultMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case securityscanningresult.FieldSecurityScanningID:
+		return m.SecurityScanningID()
+	case securityscanningresult.FieldCheckID:
+		return m.CheckID()
+	case securityscanningresult.FieldEngineKind:
+		return m.EngineKind()
+	case securityscanningresult.FieldLines:
+		return m.Lines()
+	case securityscanningresult.FieldPath:
+		return m.Path()
+	case securityscanningresult.FieldMessage:
+		return m.Message()
+	case securityscanningresult.FieldMessageZh:
+		return m.MessageZh()
+	case securityscanningresult.FieldSeverity:
+		return m.Severity()
+	case securityscanningresult.FieldAbstractEn:
+		return m.AbstractEn()
+	case securityscanningresult.FieldAbstractZh:
+		return m.AbstractZh()
+	case securityscanningresult.FieldCategoryEn:
+		return m.CategoryEn()
+	case securityscanningresult.FieldCategoryZh:
+		return m.CategoryZh()
+	case securityscanningresult.FieldConfidence:
+		return m.Confidence()
+	case securityscanningresult.FieldCwe:
+		return m.Cwe()
+	case securityscanningresult.FieldImpact:
+		return m.Impact()
+	case securityscanningresult.FieldOwasp:
+		return m.Owasp()
+	case securityscanningresult.FieldStartPosition:
+		return m.StartPosition()
+	case securityscanningresult.FieldEndPosition:
+		return m.EndPosition()
+	case securityscanningresult.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SecurityScanningResultMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case securityscanningresult.FieldSecurityScanningID:
+		return m.OldSecurityScanningID(ctx)
+	case securityscanningresult.FieldCheckID:
+		return m.OldCheckID(ctx)
+	case securityscanningresult.FieldEngineKind:
+		return m.OldEngineKind(ctx)
+	case securityscanningresult.FieldLines:
+		return m.OldLines(ctx)
+	case securityscanningresult.FieldPath:
+		return m.OldPath(ctx)
+	case securityscanningresult.FieldMessage:
+		return m.OldMessage(ctx)
+	case securityscanningresult.FieldMessageZh:
+		return m.OldMessageZh(ctx)
+	case securityscanningresult.FieldSeverity:
+		return m.OldSeverity(ctx)
+	case securityscanningresult.FieldAbstractEn:
+		return m.OldAbstractEn(ctx)
+	case securityscanningresult.FieldAbstractZh:
+		return m.OldAbstractZh(ctx)
+	case securityscanningresult.FieldCategoryEn:
+		return m.OldCategoryEn(ctx)
+	case securityscanningresult.FieldCategoryZh:
+		return m.OldCategoryZh(ctx)
+	case securityscanningresult.FieldConfidence:
+		return m.OldConfidence(ctx)
+	case securityscanningresult.FieldCwe:
+		return m.OldCwe(ctx)
+	case securityscanningresult.FieldImpact:
+		return m.OldImpact(ctx)
+	case securityscanningresult.FieldOwasp:
+		return m.OldOwasp(ctx)
+	case securityscanningresult.FieldStartPosition:
+		return m.OldStartPosition(ctx)
+	case securityscanningresult.FieldEndPosition:
+		return m.OldEndPosition(ctx)
+	case securityscanningresult.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown SecurityScanningResult field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SecurityScanningResultMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case securityscanningresult.FieldSecurityScanningID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSecurityScanningID(v)
+		return nil
+	case securityscanningresult.FieldCheckID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCheckID(v)
+		return nil
+	case securityscanningresult.FieldEngineKind:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEngineKind(v)
+		return nil
+	case securityscanningresult.FieldLines:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLines(v)
+		return nil
+	case securityscanningresult.FieldPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPath(v)
+		return nil
+	case securityscanningresult.FieldMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessage(v)
+		return nil
+	case securityscanningresult.FieldMessageZh:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessageZh(v)
+		return nil
+	case securityscanningresult.FieldSeverity:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSeverity(v)
+		return nil
+	case securityscanningresult.FieldAbstractEn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAbstractEn(v)
+		return nil
+	case securityscanningresult.FieldAbstractZh:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAbstractZh(v)
+		return nil
+	case securityscanningresult.FieldCategoryEn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCategoryEn(v)
+		return nil
+	case securityscanningresult.FieldCategoryZh:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCategoryZh(v)
+		return nil
+	case securityscanningresult.FieldConfidence:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConfidence(v)
+		return nil
+	case securityscanningresult.FieldCwe:
+		v, ok := value.([]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCwe(v)
+		return nil
+	case securityscanningresult.FieldImpact:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImpact(v)
+		return nil
+	case securityscanningresult.FieldOwasp:
+		v, ok := value.([]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwasp(v)
+		return nil
+	case securityscanningresult.FieldStartPosition:
+		v, ok := value.(*types.Position)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartPosition(v)
+		return nil
+	case securityscanningresult.FieldEndPosition:
+		v, ok := value.(*types.Position)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndPosition(v)
+		return nil
+	case securityscanningresult.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SecurityScanningResult field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SecurityScanningResultMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SecurityScanningResultMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SecurityScanningResultMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown SecurityScanningResult numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SecurityScanningResultMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SecurityScanningResultMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SecurityScanningResultMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown SecurityScanningResult nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SecurityScanningResultMutation) ResetField(name string) error {
+	switch name {
+	case securityscanningresult.FieldSecurityScanningID:
+		m.ResetSecurityScanningID()
+		return nil
+	case securityscanningresult.FieldCheckID:
+		m.ResetCheckID()
+		return nil
+	case securityscanningresult.FieldEngineKind:
+		m.ResetEngineKind()
+		return nil
+	case securityscanningresult.FieldLines:
+		m.ResetLines()
+		return nil
+	case securityscanningresult.FieldPath:
+		m.ResetPath()
+		return nil
+	case securityscanningresult.FieldMessage:
+		m.ResetMessage()
+		return nil
+	case securityscanningresult.FieldMessageZh:
+		m.ResetMessageZh()
+		return nil
+	case securityscanningresult.FieldSeverity:
+		m.ResetSeverity()
+		return nil
+	case securityscanningresult.FieldAbstractEn:
+		m.ResetAbstractEn()
+		return nil
+	case securityscanningresult.FieldAbstractZh:
+		m.ResetAbstractZh()
+		return nil
+	case securityscanningresult.FieldCategoryEn:
+		m.ResetCategoryEn()
+		return nil
+	case securityscanningresult.FieldCategoryZh:
+		m.ResetCategoryZh()
+		return nil
+	case securityscanningresult.FieldConfidence:
+		m.ResetConfidence()
+		return nil
+	case securityscanningresult.FieldCwe:
+		m.ResetCwe()
+		return nil
+	case securityscanningresult.FieldImpact:
+		m.ResetImpact()
+		return nil
+	case securityscanningresult.FieldOwasp:
+		m.ResetOwasp()
+		return nil
+	case securityscanningresult.FieldStartPosition:
+		m.ResetStartPosition()
+		return nil
+	case securityscanningresult.FieldEndPosition:
+		m.ResetEndPosition()
+		return nil
+	case securityscanningresult.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown SecurityScanningResult field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SecurityScanningResultMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.security_scanning != nil {
+		edges = append(edges, securityscanningresult.EdgeSecurityScanning)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SecurityScanningResultMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case securityscanningresult.EdgeSecurityScanning:
+		if id := m.security_scanning; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SecurityScanningResultMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SecurityScanningResultMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SecurityScanningResultMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedsecurity_scanning {
+		edges = append(edges, securityscanningresult.EdgeSecurityScanning)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SecurityScanningResultMutation) EdgeCleared(name string) bool {
+	switch name {
+	case securityscanningresult.EdgeSecurityScanning:
+		return m.clearedsecurity_scanning
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SecurityScanningResultMutation) ClearEdge(name string) error {
+	switch name {
+	case securityscanningresult.EdgeSecurityScanning:
+		m.ClearSecurityScanning()
+		return nil
+	}
+	return fmt.Errorf("unknown SecurityScanningResult unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SecurityScanningResultMutation) ResetEdge(name string) error {
+	switch name {
+	case securityscanningresult.EdgeSecurityScanning:
+		m.ResetSecurityScanning()
+		return nil
+	}
+	return fmt.Errorf("unknown SecurityScanningResult edge %s", name)
 }
 
 // SettingMutation represents an operation that mutates the Setting nodes in the graph.
@@ -15090,43 +17487,46 @@ func (m *TaskRecordMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	deleted_at             *time.Time
-	username               *string
-	password               *string
-	email                  *string
-	avatar_url             *string
-	platform               *consts.UserPlatform
-	status                 *consts.UserStatus
-	created_at             *time.Time
-	updated_at             *time.Time
-	clearedFields          map[string]struct{}
-	login_histories        map[uuid.UUID]struct{}
-	removedlogin_histories map[uuid.UUID]struct{}
-	clearedlogin_histories bool
-	models                 map[uuid.UUID]struct{}
-	removedmodels          map[uuid.UUID]struct{}
-	clearedmodels          bool
-	tasks                  map[uuid.UUID]struct{}
-	removedtasks           map[uuid.UUID]struct{}
-	clearedtasks           bool
-	identities             map[uuid.UUID]struct{}
-	removedidentities      map[uuid.UUID]struct{}
-	clearedidentities      bool
-	workspaces             map[uuid.UUID]struct{}
-	removedworkspaces      map[uuid.UUID]struct{}
-	clearedworkspaces      bool
-	workspace_files        map[uuid.UUID]struct{}
-	removedworkspace_files map[uuid.UUID]struct{}
-	clearedworkspace_files bool
-	api_keys               map[uuid.UUID]struct{}
-	removedapi_keys        map[uuid.UUID]struct{}
-	clearedapi_keys        bool
-	done                   bool
-	oldValue               func(context.Context) (*User, error)
-	predicates             []predicate.User
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	deleted_at                *time.Time
+	username                  *string
+	password                  *string
+	email                     *string
+	avatar_url                *string
+	platform                  *consts.UserPlatform
+	status                    *consts.UserStatus
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	login_histories           map[uuid.UUID]struct{}
+	removedlogin_histories    map[uuid.UUID]struct{}
+	clearedlogin_histories    bool
+	models                    map[uuid.UUID]struct{}
+	removedmodels             map[uuid.UUID]struct{}
+	clearedmodels             bool
+	tasks                     map[uuid.UUID]struct{}
+	removedtasks              map[uuid.UUID]struct{}
+	clearedtasks              bool
+	identities                map[uuid.UUID]struct{}
+	removedidentities         map[uuid.UUID]struct{}
+	clearedidentities         bool
+	workspaces                map[uuid.UUID]struct{}
+	removedworkspaces         map[uuid.UUID]struct{}
+	clearedworkspaces         bool
+	workspace_files           map[uuid.UUID]struct{}
+	removedworkspace_files    map[uuid.UUID]struct{}
+	clearedworkspace_files    bool
+	api_keys                  map[uuid.UUID]struct{}
+	removedapi_keys           map[uuid.UUID]struct{}
+	clearedapi_keys           bool
+	security_scannings        map[uuid.UUID]struct{}
+	removedsecurity_scannings map[uuid.UUID]struct{}
+	clearedsecurity_scannings bool
+	done                      bool
+	oldValue                  func(context.Context) (*User, error)
+	predicates                []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -16000,6 +18400,60 @@ func (m *UserMutation) ResetAPIKeys() {
 	m.removedapi_keys = nil
 }
 
+// AddSecurityScanningIDs adds the "security_scannings" edge to the SecurityScanning entity by ids.
+func (m *UserMutation) AddSecurityScanningIDs(ids ...uuid.UUID) {
+	if m.security_scannings == nil {
+		m.security_scannings = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.security_scannings[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSecurityScannings clears the "security_scannings" edge to the SecurityScanning entity.
+func (m *UserMutation) ClearSecurityScannings() {
+	m.clearedsecurity_scannings = true
+}
+
+// SecurityScanningsCleared reports if the "security_scannings" edge to the SecurityScanning entity was cleared.
+func (m *UserMutation) SecurityScanningsCleared() bool {
+	return m.clearedsecurity_scannings
+}
+
+// RemoveSecurityScanningIDs removes the "security_scannings" edge to the SecurityScanning entity by IDs.
+func (m *UserMutation) RemoveSecurityScanningIDs(ids ...uuid.UUID) {
+	if m.removedsecurity_scannings == nil {
+		m.removedsecurity_scannings = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.security_scannings, ids[i])
+		m.removedsecurity_scannings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSecurityScannings returns the removed IDs of the "security_scannings" edge to the SecurityScanning entity.
+func (m *UserMutation) RemovedSecurityScanningsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsecurity_scannings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SecurityScanningsIDs returns the "security_scannings" edge IDs in the mutation.
+func (m *UserMutation) SecurityScanningsIDs() (ids []uuid.UUID) {
+	for id := range m.security_scannings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSecurityScannings resets all changes to the "security_scannings" edge.
+func (m *UserMutation) ResetSecurityScannings() {
+	m.security_scannings = nil
+	m.clearedsecurity_scannings = false
+	m.removedsecurity_scannings = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -16302,7 +18756,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.login_histories != nil {
 		edges = append(edges, user.EdgeLoginHistories)
 	}
@@ -16323,6 +18777,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.api_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
+	}
+	if m.security_scannings != nil {
+		edges = append(edges, user.EdgeSecurityScannings)
 	}
 	return edges
 }
@@ -16373,13 +18830,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeSecurityScannings:
+		ids := make([]ent.Value, 0, len(m.security_scannings))
+		for id := range m.security_scannings {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.removedlogin_histories != nil {
 		edges = append(edges, user.EdgeLoginHistories)
 	}
@@ -16400,6 +18863,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedapi_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
+	}
+	if m.removedsecurity_scannings != nil {
+		edges = append(edges, user.EdgeSecurityScannings)
 	}
 	return edges
 }
@@ -16450,13 +18916,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeSecurityScannings:
+		ids := make([]ent.Value, 0, len(m.removedsecurity_scannings))
+		for id := range m.removedsecurity_scannings {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.clearedlogin_histories {
 		edges = append(edges, user.EdgeLoginHistories)
 	}
@@ -16477,6 +18949,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedapi_keys {
 		edges = append(edges, user.EdgeAPIKeys)
+	}
+	if m.clearedsecurity_scannings {
+		edges = append(edges, user.EdgeSecurityScannings)
 	}
 	return edges
 }
@@ -16499,6 +18974,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedworkspace_files
 	case user.EdgeAPIKeys:
 		return m.clearedapi_keys
+	case user.EdgeSecurityScannings:
+		return m.clearedsecurity_scannings
 	}
 	return false
 }
@@ -16535,6 +19012,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeAPIKeys:
 		m.ResetAPIKeys()
+		return nil
+	case user.EdgeSecurityScannings:
+		m.ResetSecurityScannings()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
@@ -18680,25 +21160,28 @@ func (m *UserLoginHistoryMutation) ResetEdge(name string) error {
 // WorkspaceMutation represents an operation that mutates the Workspace nodes in the graph.
 type WorkspaceMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	name             *string
-	description      *string
-	root_path        *string
-	settings         *map[string]interface{}
-	last_accessed_at *time.Time
-	created_at       *time.Time
-	updated_at       *time.Time
-	clearedFields    map[string]struct{}
-	owner            *uuid.UUID
-	clearedowner     bool
-	files            map[uuid.UUID]struct{}
-	removedfiles     map[uuid.UUID]struct{}
-	clearedfiles     bool
-	done             bool
-	oldValue         func(context.Context) (*Workspace, error)
-	predicates       []predicate.Workspace
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	name                      *string
+	description               *string
+	root_path                 *string
+	settings                  *map[string]interface{}
+	last_accessed_at          *time.Time
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	owner                     *uuid.UUID
+	clearedowner              bool
+	files                     map[uuid.UUID]struct{}
+	removedfiles              map[uuid.UUID]struct{}
+	clearedfiles              bool
+	security_scannings        map[uuid.UUID]struct{}
+	removedsecurity_scannings map[uuid.UUID]struct{}
+	clearedsecurity_scannings bool
+	done                      bool
+	oldValue                  func(context.Context) (*Workspace, error)
+	predicates                []predicate.Workspace
 }
 
 var _ ent.Mutation = (*WorkspaceMutation)(nil)
@@ -19226,6 +21709,60 @@ func (m *WorkspaceMutation) ResetFiles() {
 	m.removedfiles = nil
 }
 
+// AddSecurityScanningIDs adds the "security_scannings" edge to the SecurityScanning entity by ids.
+func (m *WorkspaceMutation) AddSecurityScanningIDs(ids ...uuid.UUID) {
+	if m.security_scannings == nil {
+		m.security_scannings = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.security_scannings[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSecurityScannings clears the "security_scannings" edge to the SecurityScanning entity.
+func (m *WorkspaceMutation) ClearSecurityScannings() {
+	m.clearedsecurity_scannings = true
+}
+
+// SecurityScanningsCleared reports if the "security_scannings" edge to the SecurityScanning entity was cleared.
+func (m *WorkspaceMutation) SecurityScanningsCleared() bool {
+	return m.clearedsecurity_scannings
+}
+
+// RemoveSecurityScanningIDs removes the "security_scannings" edge to the SecurityScanning entity by IDs.
+func (m *WorkspaceMutation) RemoveSecurityScanningIDs(ids ...uuid.UUID) {
+	if m.removedsecurity_scannings == nil {
+		m.removedsecurity_scannings = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.security_scannings, ids[i])
+		m.removedsecurity_scannings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSecurityScannings returns the removed IDs of the "security_scannings" edge to the SecurityScanning entity.
+func (m *WorkspaceMutation) RemovedSecurityScanningsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsecurity_scannings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SecurityScanningsIDs returns the "security_scannings" edge IDs in the mutation.
+func (m *WorkspaceMutation) SecurityScanningsIDs() (ids []uuid.UUID) {
+	for id := range m.security_scannings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSecurityScannings resets all changes to the "security_scannings" edge.
+func (m *WorkspaceMutation) ResetSecurityScannings() {
+	m.security_scannings = nil
+	m.clearedsecurity_scannings = false
+	m.removedsecurity_scannings = nil
+}
+
 // Where appends a list predicates to the WorkspaceMutation builder.
 func (m *WorkspaceMutation) Where(ps ...predicate.Workspace) {
 	m.predicates = append(m.predicates, ps...)
@@ -19499,12 +22036,15 @@ func (m *WorkspaceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *WorkspaceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.owner != nil {
 		edges = append(edges, workspace.EdgeOwner)
 	}
 	if m.files != nil {
 		edges = append(edges, workspace.EdgeFiles)
+	}
+	if m.security_scannings != nil {
+		edges = append(edges, workspace.EdgeSecurityScannings)
 	}
 	return edges
 }
@@ -19523,15 +22063,24 @@ func (m *WorkspaceMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case workspace.EdgeSecurityScannings:
+		ids := make([]ent.Value, 0, len(m.security_scannings))
+		for id := range m.security_scannings {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *WorkspaceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedfiles != nil {
 		edges = append(edges, workspace.EdgeFiles)
+	}
+	if m.removedsecurity_scannings != nil {
+		edges = append(edges, workspace.EdgeSecurityScannings)
 	}
 	return edges
 }
@@ -19546,18 +22095,27 @@ func (m *WorkspaceMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case workspace.EdgeSecurityScannings:
+		ids := make([]ent.Value, 0, len(m.removedsecurity_scannings))
+		for id := range m.removedsecurity_scannings {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *WorkspaceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedowner {
 		edges = append(edges, workspace.EdgeOwner)
 	}
 	if m.clearedfiles {
 		edges = append(edges, workspace.EdgeFiles)
+	}
+	if m.clearedsecurity_scannings {
+		edges = append(edges, workspace.EdgeSecurityScannings)
 	}
 	return edges
 }
@@ -19570,6 +22128,8 @@ func (m *WorkspaceMutation) EdgeCleared(name string) bool {
 		return m.clearedowner
 	case workspace.EdgeFiles:
 		return m.clearedfiles
+	case workspace.EdgeSecurityScannings:
+		return m.clearedsecurity_scannings
 	}
 	return false
 }
@@ -19594,6 +22154,9 @@ func (m *WorkspaceMutation) ResetEdge(name string) error {
 		return nil
 	case workspace.EdgeFiles:
 		m.ResetFiles()
+		return nil
+	case workspace.EdgeSecurityScannings:
+		m.ResetSecurityScannings()
 		return nil
 	}
 	return fmt.Errorf("unknown Workspace edge %s", name)

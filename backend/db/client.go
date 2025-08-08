@@ -30,6 +30,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanning"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanningresult"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
@@ -75,6 +77,10 @@ type Client struct {
 	ModelProvider *ModelProviderClient
 	// ModelProviderModel is the client for interacting with the ModelProviderModel builders.
 	ModelProviderModel *ModelProviderModelClient
+	// SecurityScanning is the client for interacting with the SecurityScanning builders.
+	SecurityScanning *SecurityScanningClient
+	// SecurityScanningResult is the client for interacting with the SecurityScanningResult builders.
+	SecurityScanningResult *SecurityScanningResultClient
 	// Setting is the client for interacting with the Setting builders.
 	Setting *SettingClient
 	// Task is the client for interacting with the Task builders.
@@ -116,6 +122,8 @@ func (c *Client) init() {
 	c.Model = NewModelClient(c.config)
 	c.ModelProvider = NewModelProviderClient(c.config)
 	c.ModelProviderModel = NewModelProviderModelClient(c.config)
+	c.SecurityScanning = NewSecurityScanningClient(c.config)
+	c.SecurityScanningResult = NewSecurityScanningResultClient(c.config)
 	c.Setting = NewSettingClient(c.config)
 	c.Task = NewTaskClient(c.config)
 	c.TaskRecord = NewTaskRecordClient(c.config)
@@ -214,30 +222,32 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                ctx,
-		config:             cfg,
-		Admin:              NewAdminClient(cfg),
-		AdminLoginHistory:  NewAdminLoginHistoryClient(cfg),
-		ApiKey:             NewApiKeyClient(cfg),
-		BillingPlan:        NewBillingPlanClient(cfg),
-		BillingQuota:       NewBillingQuotaClient(cfg),
-		BillingRecord:      NewBillingRecordClient(cfg),
-		BillingUsage:       NewBillingUsageClient(cfg),
-		CodeSnippet:        NewCodeSnippetClient(cfg),
-		Extension:          NewExtensionClient(cfg),
-		InviteCode:         NewInviteCodeClient(cfg),
-		License:            NewLicenseClient(cfg),
-		Model:              NewModelClient(cfg),
-		ModelProvider:      NewModelProviderClient(cfg),
-		ModelProviderModel: NewModelProviderModelClient(cfg),
-		Setting:            NewSettingClient(cfg),
-		Task:               NewTaskClient(cfg),
-		TaskRecord:         NewTaskRecordClient(cfg),
-		User:               NewUserClient(cfg),
-		UserIdentity:       NewUserIdentityClient(cfg),
-		UserLoginHistory:   NewUserLoginHistoryClient(cfg),
-		Workspace:          NewWorkspaceClient(cfg),
-		WorkspaceFile:      NewWorkspaceFileClient(cfg),
+		ctx:                    ctx,
+		config:                 cfg,
+		Admin:                  NewAdminClient(cfg),
+		AdminLoginHistory:      NewAdminLoginHistoryClient(cfg),
+		ApiKey:                 NewApiKeyClient(cfg),
+		BillingPlan:            NewBillingPlanClient(cfg),
+		BillingQuota:           NewBillingQuotaClient(cfg),
+		BillingRecord:          NewBillingRecordClient(cfg),
+		BillingUsage:           NewBillingUsageClient(cfg),
+		CodeSnippet:            NewCodeSnippetClient(cfg),
+		Extension:              NewExtensionClient(cfg),
+		InviteCode:             NewInviteCodeClient(cfg),
+		License:                NewLicenseClient(cfg),
+		Model:                  NewModelClient(cfg),
+		ModelProvider:          NewModelProviderClient(cfg),
+		ModelProviderModel:     NewModelProviderModelClient(cfg),
+		SecurityScanning:       NewSecurityScanningClient(cfg),
+		SecurityScanningResult: NewSecurityScanningResultClient(cfg),
+		Setting:                NewSettingClient(cfg),
+		Task:                   NewTaskClient(cfg),
+		TaskRecord:             NewTaskRecordClient(cfg),
+		User:                   NewUserClient(cfg),
+		UserIdentity:           NewUserIdentityClient(cfg),
+		UserLoginHistory:       NewUserLoginHistoryClient(cfg),
+		Workspace:              NewWorkspaceClient(cfg),
+		WorkspaceFile:          NewWorkspaceFileClient(cfg),
 	}, nil
 }
 
@@ -255,30 +265,32 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                ctx,
-		config:             cfg,
-		Admin:              NewAdminClient(cfg),
-		AdminLoginHistory:  NewAdminLoginHistoryClient(cfg),
-		ApiKey:             NewApiKeyClient(cfg),
-		BillingPlan:        NewBillingPlanClient(cfg),
-		BillingQuota:       NewBillingQuotaClient(cfg),
-		BillingRecord:      NewBillingRecordClient(cfg),
-		BillingUsage:       NewBillingUsageClient(cfg),
-		CodeSnippet:        NewCodeSnippetClient(cfg),
-		Extension:          NewExtensionClient(cfg),
-		InviteCode:         NewInviteCodeClient(cfg),
-		License:            NewLicenseClient(cfg),
-		Model:              NewModelClient(cfg),
-		ModelProvider:      NewModelProviderClient(cfg),
-		ModelProviderModel: NewModelProviderModelClient(cfg),
-		Setting:            NewSettingClient(cfg),
-		Task:               NewTaskClient(cfg),
-		TaskRecord:         NewTaskRecordClient(cfg),
-		User:               NewUserClient(cfg),
-		UserIdentity:       NewUserIdentityClient(cfg),
-		UserLoginHistory:   NewUserLoginHistoryClient(cfg),
-		Workspace:          NewWorkspaceClient(cfg),
-		WorkspaceFile:      NewWorkspaceFileClient(cfg),
+		ctx:                    ctx,
+		config:                 cfg,
+		Admin:                  NewAdminClient(cfg),
+		AdminLoginHistory:      NewAdminLoginHistoryClient(cfg),
+		ApiKey:                 NewApiKeyClient(cfg),
+		BillingPlan:            NewBillingPlanClient(cfg),
+		BillingQuota:           NewBillingQuotaClient(cfg),
+		BillingRecord:          NewBillingRecordClient(cfg),
+		BillingUsage:           NewBillingUsageClient(cfg),
+		CodeSnippet:            NewCodeSnippetClient(cfg),
+		Extension:              NewExtensionClient(cfg),
+		InviteCode:             NewInviteCodeClient(cfg),
+		License:                NewLicenseClient(cfg),
+		Model:                  NewModelClient(cfg),
+		ModelProvider:          NewModelProviderClient(cfg),
+		ModelProviderModel:     NewModelProviderModelClient(cfg),
+		SecurityScanning:       NewSecurityScanningClient(cfg),
+		SecurityScanningResult: NewSecurityScanningResultClient(cfg),
+		Setting:                NewSettingClient(cfg),
+		Task:                   NewTaskClient(cfg),
+		TaskRecord:             NewTaskRecordClient(cfg),
+		User:                   NewUserClient(cfg),
+		UserIdentity:           NewUserIdentityClient(cfg),
+		UserLoginHistory:       NewUserLoginHistoryClient(cfg),
+		Workspace:              NewWorkspaceClient(cfg),
+		WorkspaceFile:          NewWorkspaceFileClient(cfg),
 	}, nil
 }
 
@@ -310,9 +322,9 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Admin, c.AdminLoginHistory, c.ApiKey, c.BillingPlan, c.BillingQuota,
 		c.BillingRecord, c.BillingUsage, c.CodeSnippet, c.Extension, c.InviteCode,
-		c.License, c.Model, c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task,
-		c.TaskRecord, c.User, c.UserIdentity, c.UserLoginHistory, c.Workspace,
-		c.WorkspaceFile,
+		c.License, c.Model, c.ModelProvider, c.ModelProviderModel, c.SecurityScanning,
+		c.SecurityScanningResult, c.Setting, c.Task, c.TaskRecord, c.User,
+		c.UserIdentity, c.UserLoginHistory, c.Workspace, c.WorkspaceFile,
 	} {
 		n.Use(hooks...)
 	}
@@ -324,9 +336,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Admin, c.AdminLoginHistory, c.ApiKey, c.BillingPlan, c.BillingQuota,
 		c.BillingRecord, c.BillingUsage, c.CodeSnippet, c.Extension, c.InviteCode,
-		c.License, c.Model, c.ModelProvider, c.ModelProviderModel, c.Setting, c.Task,
-		c.TaskRecord, c.User, c.UserIdentity, c.UserLoginHistory, c.Workspace,
-		c.WorkspaceFile,
+		c.License, c.Model, c.ModelProvider, c.ModelProviderModel, c.SecurityScanning,
+		c.SecurityScanningResult, c.Setting, c.Task, c.TaskRecord, c.User,
+		c.UserIdentity, c.UserLoginHistory, c.Workspace, c.WorkspaceFile,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -363,6 +375,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ModelProvider.mutate(ctx, m)
 	case *ModelProviderModelMutation:
 		return c.ModelProviderModel.mutate(ctx, m)
+	case *SecurityScanningMutation:
+		return c.SecurityScanning.mutate(ctx, m)
+	case *SecurityScanningResultMutation:
+		return c.SecurityScanningResult.mutate(ctx, m)
 	case *SettingMutation:
 		return c.Setting.mutate(ctx, m)
 	case *TaskMutation:
@@ -2378,6 +2394,336 @@ func (c *ModelProviderModelClient) mutate(ctx context.Context, m *ModelProviderM
 	}
 }
 
+// SecurityScanningClient is a client for the SecurityScanning schema.
+type SecurityScanningClient struct {
+	config
+}
+
+// NewSecurityScanningClient returns a client for the SecurityScanning from the given config.
+func NewSecurityScanningClient(c config) *SecurityScanningClient {
+	return &SecurityScanningClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `securityscanning.Hooks(f(g(h())))`.
+func (c *SecurityScanningClient) Use(hooks ...Hook) {
+	c.hooks.SecurityScanning = append(c.hooks.SecurityScanning, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `securityscanning.Intercept(f(g(h())))`.
+func (c *SecurityScanningClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SecurityScanning = append(c.inters.SecurityScanning, interceptors...)
+}
+
+// Create returns a builder for creating a SecurityScanning entity.
+func (c *SecurityScanningClient) Create() *SecurityScanningCreate {
+	mutation := newSecurityScanningMutation(c.config, OpCreate)
+	return &SecurityScanningCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SecurityScanning entities.
+func (c *SecurityScanningClient) CreateBulk(builders ...*SecurityScanningCreate) *SecurityScanningCreateBulk {
+	return &SecurityScanningCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SecurityScanningClient) MapCreateBulk(slice any, setFunc func(*SecurityScanningCreate, int)) *SecurityScanningCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SecurityScanningCreateBulk{err: fmt.Errorf("calling to SecurityScanningClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SecurityScanningCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SecurityScanningCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SecurityScanning.
+func (c *SecurityScanningClient) Update() *SecurityScanningUpdate {
+	mutation := newSecurityScanningMutation(c.config, OpUpdate)
+	return &SecurityScanningUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SecurityScanningClient) UpdateOne(ss *SecurityScanning) *SecurityScanningUpdateOne {
+	mutation := newSecurityScanningMutation(c.config, OpUpdateOne, withSecurityScanning(ss))
+	return &SecurityScanningUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SecurityScanningClient) UpdateOneID(id uuid.UUID) *SecurityScanningUpdateOne {
+	mutation := newSecurityScanningMutation(c.config, OpUpdateOne, withSecurityScanningID(id))
+	return &SecurityScanningUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SecurityScanning.
+func (c *SecurityScanningClient) Delete() *SecurityScanningDelete {
+	mutation := newSecurityScanningMutation(c.config, OpDelete)
+	return &SecurityScanningDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SecurityScanningClient) DeleteOne(ss *SecurityScanning) *SecurityScanningDeleteOne {
+	return c.DeleteOneID(ss.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SecurityScanningClient) DeleteOneID(id uuid.UUID) *SecurityScanningDeleteOne {
+	builder := c.Delete().Where(securityscanning.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SecurityScanningDeleteOne{builder}
+}
+
+// Query returns a query builder for SecurityScanning.
+func (c *SecurityScanningClient) Query() *SecurityScanningQuery {
+	return &SecurityScanningQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSecurityScanning},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SecurityScanning entity by its id.
+func (c *SecurityScanningClient) Get(ctx context.Context, id uuid.UUID) (*SecurityScanning, error) {
+	return c.Query().Where(securityscanning.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SecurityScanningClient) GetX(ctx context.Context, id uuid.UUID) *SecurityScanning {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a SecurityScanning.
+func (c *SecurityScanningClient) QueryUser(ss *SecurityScanning) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ss.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(securityscanning.Table, securityscanning.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, securityscanning.UserTable, securityscanning.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(ss.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryResults queries the results edge of a SecurityScanning.
+func (c *SecurityScanningClient) QueryResults(ss *SecurityScanning) *SecurityScanningResultQuery {
+	query := (&SecurityScanningResultClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ss.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(securityscanning.Table, securityscanning.FieldID, id),
+			sqlgraph.To(securityscanningresult.Table, securityscanningresult.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, securityscanning.ResultsTable, securityscanning.ResultsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ss.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkspaceEdge queries the workspace_edge edge of a SecurityScanning.
+func (c *SecurityScanningClient) QueryWorkspaceEdge(ss *SecurityScanning) *WorkspaceQuery {
+	query := (&WorkspaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ss.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(securityscanning.Table, securityscanning.FieldID, id),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, securityscanning.WorkspaceEdgeTable, securityscanning.WorkspaceEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(ss.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SecurityScanningClient) Hooks() []Hook {
+	return c.hooks.SecurityScanning
+}
+
+// Interceptors returns the client interceptors.
+func (c *SecurityScanningClient) Interceptors() []Interceptor {
+	return c.inters.SecurityScanning
+}
+
+func (c *SecurityScanningClient) mutate(ctx context.Context, m *SecurityScanningMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SecurityScanningCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SecurityScanningUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SecurityScanningUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SecurityScanningDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown SecurityScanning mutation op: %q", m.Op())
+	}
+}
+
+// SecurityScanningResultClient is a client for the SecurityScanningResult schema.
+type SecurityScanningResultClient struct {
+	config
+}
+
+// NewSecurityScanningResultClient returns a client for the SecurityScanningResult from the given config.
+func NewSecurityScanningResultClient(c config) *SecurityScanningResultClient {
+	return &SecurityScanningResultClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `securityscanningresult.Hooks(f(g(h())))`.
+func (c *SecurityScanningResultClient) Use(hooks ...Hook) {
+	c.hooks.SecurityScanningResult = append(c.hooks.SecurityScanningResult, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `securityscanningresult.Intercept(f(g(h())))`.
+func (c *SecurityScanningResultClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SecurityScanningResult = append(c.inters.SecurityScanningResult, interceptors...)
+}
+
+// Create returns a builder for creating a SecurityScanningResult entity.
+func (c *SecurityScanningResultClient) Create() *SecurityScanningResultCreate {
+	mutation := newSecurityScanningResultMutation(c.config, OpCreate)
+	return &SecurityScanningResultCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SecurityScanningResult entities.
+func (c *SecurityScanningResultClient) CreateBulk(builders ...*SecurityScanningResultCreate) *SecurityScanningResultCreateBulk {
+	return &SecurityScanningResultCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SecurityScanningResultClient) MapCreateBulk(slice any, setFunc func(*SecurityScanningResultCreate, int)) *SecurityScanningResultCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SecurityScanningResultCreateBulk{err: fmt.Errorf("calling to SecurityScanningResultClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SecurityScanningResultCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SecurityScanningResultCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SecurityScanningResult.
+func (c *SecurityScanningResultClient) Update() *SecurityScanningResultUpdate {
+	mutation := newSecurityScanningResultMutation(c.config, OpUpdate)
+	return &SecurityScanningResultUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SecurityScanningResultClient) UpdateOne(ssr *SecurityScanningResult) *SecurityScanningResultUpdateOne {
+	mutation := newSecurityScanningResultMutation(c.config, OpUpdateOne, withSecurityScanningResult(ssr))
+	return &SecurityScanningResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SecurityScanningResultClient) UpdateOneID(id uuid.UUID) *SecurityScanningResultUpdateOne {
+	mutation := newSecurityScanningResultMutation(c.config, OpUpdateOne, withSecurityScanningResultID(id))
+	return &SecurityScanningResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SecurityScanningResult.
+func (c *SecurityScanningResultClient) Delete() *SecurityScanningResultDelete {
+	mutation := newSecurityScanningResultMutation(c.config, OpDelete)
+	return &SecurityScanningResultDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SecurityScanningResultClient) DeleteOne(ssr *SecurityScanningResult) *SecurityScanningResultDeleteOne {
+	return c.DeleteOneID(ssr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SecurityScanningResultClient) DeleteOneID(id uuid.UUID) *SecurityScanningResultDeleteOne {
+	builder := c.Delete().Where(securityscanningresult.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SecurityScanningResultDeleteOne{builder}
+}
+
+// Query returns a query builder for SecurityScanningResult.
+func (c *SecurityScanningResultClient) Query() *SecurityScanningResultQuery {
+	return &SecurityScanningResultQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSecurityScanningResult},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SecurityScanningResult entity by its id.
+func (c *SecurityScanningResultClient) Get(ctx context.Context, id uuid.UUID) (*SecurityScanningResult, error) {
+	return c.Query().Where(securityscanningresult.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SecurityScanningResultClient) GetX(ctx context.Context, id uuid.UUID) *SecurityScanningResult {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySecurityScanning queries the security_scanning edge of a SecurityScanningResult.
+func (c *SecurityScanningResultClient) QuerySecurityScanning(ssr *SecurityScanningResult) *SecurityScanningQuery {
+	query := (&SecurityScanningClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ssr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(securityscanningresult.Table, securityscanningresult.FieldID, id),
+			sqlgraph.To(securityscanning.Table, securityscanning.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, securityscanningresult.SecurityScanningTable, securityscanningresult.SecurityScanningColumn),
+		)
+		fromV = sqlgraph.Neighbors(ssr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SecurityScanningResultClient) Hooks() []Hook {
+	return c.hooks.SecurityScanningResult
+}
+
+// Interceptors returns the client interceptors.
+func (c *SecurityScanningResultClient) Interceptors() []Interceptor {
+	return c.inters.SecurityScanningResult
+}
+
+func (c *SecurityScanningResultClient) mutate(ctx context.Context, m *SecurityScanningResultMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SecurityScanningResultCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SecurityScanningResultUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SecurityScanningResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SecurityScanningResultDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown SecurityScanningResult mutation op: %q", m.Op())
+	}
+}
+
 // SettingClient is a client for the Setting schema.
 type SettingClient struct {
 	config
@@ -3061,6 +3407,22 @@ func (c *UserClient) QueryAPIKeys(u *User) *ApiKeyQuery {
 	return query
 }
 
+// QuerySecurityScannings queries the security_scannings edge of a User.
+func (c *UserClient) QuerySecurityScannings(u *User) *SecurityScanningQuery {
+	query := (&SecurityScanningClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(securityscanning.Table, securityscanning.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.SecurityScanningsTable, user.SecurityScanningsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	hooks := c.hooks.User
@@ -3528,6 +3890,22 @@ func (c *WorkspaceClient) QueryFiles(w *Workspace) *WorkspaceFileQuery {
 	return query
 }
 
+// QuerySecurityScannings queries the security_scannings edge of a Workspace.
+func (c *WorkspaceClient) QuerySecurityScannings(w *Workspace) *SecurityScanningQuery {
+	query := (&SecurityScanningClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspace.Table, workspace.FieldID, id),
+			sqlgraph.To(securityscanning.Table, securityscanning.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workspace.SecurityScanningsTable, workspace.SecurityScanningsColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *WorkspaceClient) Hooks() []Hook {
 	return c.hooks.Workspace
@@ -3739,14 +4117,16 @@ type (
 	hooks struct {
 		Admin, AdminLoginHistory, ApiKey, BillingPlan, BillingQuota, BillingRecord,
 		BillingUsage, CodeSnippet, Extension, InviteCode, License, Model,
-		ModelProvider, ModelProviderModel, Setting, Task, TaskRecord, User,
-		UserIdentity, UserLoginHistory, Workspace, WorkspaceFile []ent.Hook
+		ModelProvider, ModelProviderModel, SecurityScanning, SecurityScanningResult,
+		Setting, Task, TaskRecord, User, UserIdentity, UserLoginHistory, Workspace,
+		WorkspaceFile []ent.Hook
 	}
 	inters struct {
 		Admin, AdminLoginHistory, ApiKey, BillingPlan, BillingQuota, BillingRecord,
 		BillingUsage, CodeSnippet, Extension, InviteCode, License, Model,
-		ModelProvider, ModelProviderModel, Setting, Task, TaskRecord, User,
-		UserIdentity, UserLoginHistory, Workspace, WorkspaceFile []ent.Interceptor
+		ModelProvider, ModelProviderModel, SecurityScanning, SecurityScanningResult,
+		Setting, Task, TaskRecord, User, UserIdentity, UserLoginHistory, Workspace,
+		WorkspaceFile []ent.Interceptor
 	}
 )
 

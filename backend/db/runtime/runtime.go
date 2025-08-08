@@ -19,6 +19,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovider"
 	"github.com/chaitin/MonkeyCode/backend/db/modelprovidermodel"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanning"
+	"github.com/chaitin/MonkeyCode/backend/db/securityscanningresult"
 	"github.com/chaitin/MonkeyCode/backend/db/setting"
 	"github.com/chaitin/MonkeyCode/backend/db/task"
 	"github.com/chaitin/MonkeyCode/backend/db/taskrecord"
@@ -235,6 +237,22 @@ func init() {
 	modelprovidermodelDescID := modelprovidermodelFields[0].Descriptor()
 	// modelprovidermodel.DefaultID holds the default value on creation for the id field.
 	modelprovidermodel.DefaultID = modelprovidermodelDescID.Default.(func() uuid.UUID)
+	securityscanningFields := schema.SecurityScanning{}.Fields()
+	_ = securityscanningFields
+	// securityscanningDescCreatedAt is the schema descriptor for created_at field.
+	securityscanningDescCreatedAt := securityscanningFields[8].Descriptor()
+	// securityscanning.DefaultCreatedAt holds the default value on creation for the created_at field.
+	securityscanning.DefaultCreatedAt = securityscanningDescCreatedAt.Default.(func() time.Time)
+	// securityscanningDescUpdatedAt is the schema descriptor for updated_at field.
+	securityscanningDescUpdatedAt := securityscanningFields[9].Descriptor()
+	// securityscanning.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	securityscanning.DefaultUpdatedAt = securityscanningDescUpdatedAt.Default.(func() time.Time)
+	securityscanningresultFields := schema.SecurityScanningResult{}.Fields()
+	_ = securityscanningresultFields
+	// securityscanningresultDescCreatedAt is the schema descriptor for created_at field.
+	securityscanningresultDescCreatedAt := securityscanningresultFields[19].Descriptor()
+	// securityscanningresult.DefaultCreatedAt holds the default value on creation for the created_at field.
+	securityscanningresult.DefaultCreatedAt = securityscanningresultDescCreatedAt.Default.(func() time.Time)
 	settingFields := schema.Setting{}.Fields()
 	_ = settingFields
 	// settingDescEnableSSO is the schema descriptor for enable_sso field.

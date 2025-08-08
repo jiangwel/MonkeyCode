@@ -42,6 +42,10 @@ type Tx struct {
 	ModelProvider *ModelProviderClient
 	// ModelProviderModel is the client for interacting with the ModelProviderModel builders.
 	ModelProviderModel *ModelProviderModelClient
+	// SecurityScanning is the client for interacting with the SecurityScanning builders.
+	SecurityScanning *SecurityScanningClient
+	// SecurityScanningResult is the client for interacting with the SecurityScanningResult builders.
+	SecurityScanningResult *SecurityScanningResultClient
 	// Setting is the client for interacting with the Setting builders.
 	Setting *SettingClient
 	// Task is the client for interacting with the Task builders.
@@ -203,6 +207,8 @@ func (tx *Tx) init() {
 	tx.Model = NewModelClient(tx.config)
 	tx.ModelProvider = NewModelProviderClient(tx.config)
 	tx.ModelProviderModel = NewModelProviderModelClient(tx.config)
+	tx.SecurityScanning = NewSecurityScanningClient(tx.config)
+	tx.SecurityScanningResult = NewSecurityScanningResultClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
 	tx.Task = NewTaskClient(tx.config)
 	tx.TaskRecord = NewTaskRecordClient(tx.config)

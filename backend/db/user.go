@@ -59,9 +59,11 @@ type UserEdges struct {
 	WorkspaceFiles []*WorkspaceFile `json:"workspace_files,omitempty"`
 	// APIKeys holds the value of the api_keys edge.
 	APIKeys []*ApiKey `json:"api_keys,omitempty"`
+	// SecurityScannings holds the value of the security_scannings edge.
+	SecurityScannings []*SecurityScanning `json:"security_scannings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // LoginHistoriesOrErr returns the LoginHistories value or an error if the edge
@@ -125,6 +127,15 @@ func (e UserEdges) APIKeysOrErr() ([]*ApiKey, error) {
 		return e.APIKeys, nil
 	}
 	return nil, &NotLoadedError{edge: "api_keys"}
+}
+
+// SecurityScanningsOrErr returns the SecurityScannings value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) SecurityScanningsOrErr() ([]*SecurityScanning, error) {
+	if e.loadedTypes[7] {
+		return e.SecurityScannings, nil
+	}
+	return nil, &NotLoadedError{edge: "security_scannings"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -259,6 +270,11 @@ func (u *User) QueryWorkspaceFiles() *WorkspaceFileQuery {
 // QueryAPIKeys queries the "api_keys" edge of the User entity.
 func (u *User) QueryAPIKeys() *ApiKeyQuery {
 	return NewUserClient(u.config).QueryAPIKeys(u)
+}
+
+// QuerySecurityScannings queries the "security_scannings" edge of the User entity.
+func (u *User) QuerySecurityScannings() *SecurityScanningQuery {
+	return NewUserClient(u.config).QuerySecurityScannings(u)
 }
 
 // Update returns a builder for updating this User.

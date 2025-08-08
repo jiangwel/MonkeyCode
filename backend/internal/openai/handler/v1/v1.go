@@ -60,6 +60,8 @@ func NewV1Handler(
 	g.POST("/chat/completions", web.BaseHandler(h.ChatCompletion), active.Active("apikey"))
 	g.POST("/completions", web.BaseHandler(h.Completions), active.Active("apikey"))
 	g.POST("/embeddings", web.BaseHandler(h.Embeddings), active.Active("apikey"))
+	g.POST("/security/scanning", web.BindHandler(h.CreateSecurityScanning), active.Active("apikey"))
+	g.GET("/security/scanning", web.BindHandler(h.ListSecurityScanning), active.Active("apikey"))
 	return h
 }
 
@@ -214,4 +216,51 @@ func (h *V1Handler) GetConfig(c *web.Context, req domain.ConfigReq) error {
 //	@Router			/v1/health [get]
 func (h *V1Handler) HealthCheck(c *web.Context) error {
 	return c.Success("MonkeyCode")
+}
+
+// CreateSecurityScanning 创建扫描任务
+//
+//	@Tags			OpenAIV1
+//	@Summary		创建扫描任务
+//	@Description	创建扫描任务
+//	@ID				create-security-scanning
+//	@Accept			json
+//	@Produce		json
+//	@Param			param	body		domain.CreateSecurityScanningReq	true	"创建扫描任务请求"
+//	@Success		200		{object}	web.Resp{}
+//	@Router			/v1/security/scanning [post]
+func (h *V1Handler) CreateSecurityScanning(c *web.Context, req domain.CreateSecurityScanningReq) error {
+	key := middleware.GetApiKey(c)
+	req.UserID = key.UserID
+	id, err := h.proxyUse.CreateSecurityScanning(c.Request().Context(), &req)
+	if err != nil {
+		h.logger.With("error", err).With("id", id).ErrorContext(c.Request().Context(), "create security scanning failed")
+		return err
+	}
+	return c.Success(id)
+}
+
+// ListSecurityScanning 扫描任务列表
+//
+//	@Tags			OpenAIV1
+//	@Summary		扫描任务列表
+//	@Description	分页逻辑只支持用 next_token
+//	@ID				list-security-scanning
+//	@Accept			json
+//	@Produce		json
+//	@Param			param	body		domain.ListSecurityScanningReq	true	"扫描任务列表请求"
+//	@Success		200		{object}	web.Resp{data=domain.ListSecurityScanningBriefResp}
+//	@Router			/v1/security/scanning [get]
+func (h *V1Handler) ListSecurityScanning(c *web.Context, req domain.ListSecurityScanningReq) error {
+	req.UserID = middleware.GetApiKey(c).UserID
+	s, err := h.uuse.GetSetting(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	req.BaseURL = h.config.GetBaseURL(c.Request(), s)
+	resp, err := h.proxyUse.ListSecurityScanning(c.Request().Context(), &req)
+	if err != nil {
+		return err
+	}
+	return c.Success(resp)
 }

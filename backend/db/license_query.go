@@ -265,7 +265,7 @@ func (lq *LicenseQuery) Clone() *LicenseQuery {
 // Example:
 //
 //	var v []struct {
-//		Type domain.LicenseType `json:"type,omitempty"`
+//		Type consts.LicenseType `json:"type,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -288,7 +288,7 @@ func (lq *LicenseQuery) GroupBy(field string, fields ...string) *LicenseGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Type domain.LicenseType `json:"type,omitempty"`
+//		Type consts.LicenseType `json:"type,omitempty"`
 //	}
 //
 //	client.License.Query().

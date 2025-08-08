@@ -48,6 +48,12 @@ type ModelProvider func(*sql.Selector)
 // ModelProviderModel is the predicate function for modelprovidermodel builders.
 type ModelProviderModel func(*sql.Selector)
 
+// SecurityScanning is the predicate function for securityscanning builders.
+type SecurityScanning func(*sql.Selector)
+
+// SecurityScanningResult is the predicate function for securityscanningresult builders.
+type SecurityScanningResult func(*sql.Selector)
+
 // Setting is the predicate function for setting builders.
 type Setting func(*sql.Selector)
 

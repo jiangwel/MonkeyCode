@@ -23,16 +23,14 @@ image:
 	  --output ${OUTPUT} \
 	  .
 
-image-nginx:
-	docker buildx build \
-	  -f build/Dockerfile.nginx \
-	  --platform ${PLATFORM} \
-	  --tag ${REGISTRY}/nginx:${TAG} \
-	  --output ${OUTPUT} \
-	  .
-
 wire:
 	wire cmd/server/wire.go cmd/server/main.go
+
+wire-pro:
+	wire pro/cmd/server/wire.go pro/cmd/server/main.go
+
+wire-scanner:
+	wire cmd/scanner/wire.go cmd/scanner/main.go
 
 swag:
 	swag fmt -d internal && swag init --pd -g cmd/server/main.go -ot "json"
