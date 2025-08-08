@@ -62,17 +62,56 @@ jobs:
             exit 1
           fi
 
-  build:
+  prepare-assets:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     strategy:
       matrix:
-        include:
-          - platform: linux/amd64
-            arch: x86_64
-          - platform: linux/arm64
-            arch: aarch64
+        arch: [x86_64, aarch64]
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+          token: ${{ secrets.PRO_TOKEN }}
+
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Get VSIX
+        run: |
+          mkdir -p assets/vsix
+          VERSION_NO_V=${{ steps.get_version.outputs.VERSION }}
+          VERSION_NO_V=${VERSION_NO_V#v}
+          wget -O assets/vsix/monkeycode-${VERSION_NO_V}.vsix https://release.baizhi.cloud/monkeycode/vsixs/monkeycode-${VERSION_NO_V}.vsix
+
+      - name: Get SGP for ${{ matrix.arch }}
+        run: |
+          mkdir -p assets/sgp
+          echo "Downloading SGP for architecture: ${{ matrix.arch }}"
+          wget -O assets/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/${{ matrix.arch }}/sgp
+          wget -O assets/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/${{ matrix.arch }}/sgp-rules
+          chmod +x assets/sgp/sgp
+
+      - name: Upload assets for ${{ matrix.arch }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: assets-${{ matrix.arch }}
+          path: backend/assets/
+          retention-days: 1
+
+  build:
+    needs: prepare-assets
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
     defaults:
       run:
         working-directory: ./backend
@@ -112,20 +151,17 @@ jobs:
           GIT_COMMIT=$(git rev-parse HEAD)
           echo "GIT_COMMIT=${GIT_COMMIT}" >> $GITHUB_OUTPUT
 
-      - name: Get VSIX
-        run: |
-          mkdir -p assets/vsix
-          VERSION_NO_V=${{ steps.get_version.outputs.VERSION }}
-          VERSION_NO_V=${VERSION_NO_V#v}
-          wget -O assets/vsix/monkeycode-${VERSION_NO_V}.vsix https://release.baizhi.cloud/monkeycode/vsixs/monkeycode-${VERSION_NO_V}.vsix
+      - name: Download x86_64 assets
+        uses: actions/download-artifact@v4
+        with:
+          name: assets-x86_64
+          path: backend/assets-x86_64/
 
-      - name: Get SGP
-        run: |
-          mkdir -p assets/sgp
-          echo "Downloading SGP for architecture: ${{ matrix.arch }}"
-          wget -O assets/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/${{ matrix.arch }}/sgp
-          wget -O assets/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/${{ matrix.arch }}/sgp-rules
-          chmod +x assets/sgp/sgp
+      - name: Download aarch64 assets
+        uses: actions/download-artifact@v4
+        with:
+          name: assets-aarch64
+          path: backend/assets-aarch64/
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -140,16 +176,16 @@ jobs:
           username: ${{ secrets.CT_ALIYUN_USER }}
           password: ${{ secrets.CT_ALIYUN_PASS }}
 
-      - name: Build and push backend image
+      - name: Build and push multi-arch backend image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           file: ./backend/build/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
-          platforms: ${{ matrix.platform }}
           tags: |
-            ${{ env.REGISTRY }}/backend:${{ steps.get_version.outputs.VERSION }}-${{ matrix.arch }}
-            ${{ env.REGISTRY }}/backend:latest-${{ matrix.arch }}
+            ${{ env.REGISTRY }}/backend:${{ steps.get_version.outputs.VERSION }}
+            ${{ env.REGISTRY }}/backend:latest
           build-args: |
             GOCACHE=/tmp/go-build
             GOMODCACHE=/tmp/go-mod
@@ -160,16 +196,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push scanner image
+      - name: Build and push multi-arch scanner image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           file: ./backend/build/Dockerfile.scanner
+          platforms: linux/amd64,linux/arm64
           push: true
-          platforms: ${{ matrix.platform }}
           tags: |
-            ${{ env.REGISTRY }}/scanner:${{ steps.get_version.outputs.VERSION }}-${{ matrix.arch }}
-            ${{ env.REGISTRY }}/scanner:latest-${{ matrix.arch }}
+            ${{ env.REGISTRY }}/scanner:${{ steps.get_version.outputs.VERSION }}
+            ${{ env.REGISTRY }}/scanner:latest
           build-args: |
             GOCACHE=/tmp/go-build
             GOMODCACHE=/tmp/go-mod
@@ -179,59 +215,3 @@ jobs:
             GIT_COMMIT=${{ steps.get_git_commit.outputs.GIT_COMMIT }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  create-manifest:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
-    steps:
-      - name: Login to Aliyun Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.CT_ALIYUN_USER }}
-          password: ${{ secrets.CT_ALIYUN_PASS }}
-
-      - name: Create and push multi-arch manifest
-        run: |
-          VERSION=${{ needs.build.outputs.version }}
-          
-          # Clean up any existing manifests (ignore errors if they don't exist)
-          docker manifest rm ${{ env.REGISTRY }}/backend:${VERSION} || true
-          docker manifest rm ${{ env.REGISTRY }}/backend:latest || true
-          docker manifest rm ${{ env.REGISTRY }}/scanner:${VERSION} || true
-          docker manifest rm ${{ env.REGISTRY }}/scanner:latest || true
-
-          # Also clean up architecture-specific manifests if they exist as manifest lists
-          docker manifest rm ${{ env.REGISTRY }}/backend:${VERSION}-x86_64 || true
-          docker manifest rm ${{ env.REGISTRY }}/backend:${VERSION}-aarch64 || true
-          docker manifest rm ${{ env.REGISTRY }}/backend:latest-x86_64 || true
-          docker manifest rm ${{ env.REGISTRY }}/backend:latest-aarch64 || true
-          docker manifest rm ${{ env.REGISTRY }}/scanner:${VERSION}-x86_64 || true
-          docker manifest rm ${{ env.REGISTRY }}/scanner:${VERSION}-aarch64 || true
-          docker manifest rm ${{ env.REGISTRY }}/scanner:latest-x86_64 || true
-          docker manifest rm ${{ env.REGISTRY }}/scanner:latest-aarch64 || true
-          
-          # Create and push backend version manifest
-          docker manifest create ${{ env.REGISTRY }}/backend:${VERSION} \
-            ${{ env.REGISTRY }}/backend:${VERSION}-x86_64 \
-            ${{ env.REGISTRY }}/backend:${VERSION}-aarch64
-          docker manifest push ${{ env.REGISTRY }}/backend:${VERSION}
-          
-          # Create and push backend latest manifest
-          docker manifest create ${{ env.REGISTRY }}/backend:latest \
-            ${{ env.REGISTRY }}/backend:latest-x86_64 \
-            ${{ env.REGISTRY }}/backend:latest-aarch64
-          docker manifest push ${{ env.REGISTRY }}/backend:latest
-          
-          # Create and push scanner version manifest
-          docker manifest create ${{ env.REGISTRY }}/scanner:${VERSION} \
-            ${{ env.REGISTRY }}/scanner:${VERSION}-x86_64 \
-            ${{ env.REGISTRY }}/scanner:${VERSION}-aarch64
-          docker manifest push ${{ env.REGISTRY }}/scanner:${VERSION}
-          
-          # Create and push scanner latest manifest
-          docker manifest create ${{ env.REGISTRY }}/scanner:latest \
-            ${{ env.REGISTRY }}/scanner:latest-x86_64 \
-            ${{ env.REGISTRY }}/scanner:latest-aarch64
-          docker manifest push ${{ env.REGISTRY }}/scanner:latest
