@@ -108,7 +108,7 @@ jobs:
       - name: Prepare assets for all architectures
         run: |
           # 创建架构特定的目录
-          mkdir -p assets-x86_64/sgp
+          mkdir -p assets-amd64/sgp
           mkdir -p assets-arm64/sgp
           mkdir -p assets/vsix
           
@@ -118,9 +118,9 @@ jobs:
           wget -O assets/vsix/monkeycode-${VERSION_NO_V}.vsix https://release.baizhi.cloud/monkeycode/vsixs/monkeycode-${VERSION_NO_V}.vsix
           
           # 下载 x86_64 SGP
-          wget -O assets-x86_64/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/x86_64/sgp
-          wget -O assets-x86_64/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/x86_64/sgp-rules
-          chmod +x assets-x86_64/sgp/sgp
+          wget -O assets-amd64/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/x86_64/sgp
+          wget -O assets-amd64/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/x86_64/sgp-rules
+          chmod +x assets-amd64/sgp/sgp
           
           # 下载 aarch64 SGP
           wget -O assets-arm64/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/aarch64/sgp
