@@ -26,7 +26,7 @@ FROM debian:bullseye-20250721-slim as binary
 WORKDIR /app
 
 ARG TARGETARCH
-COPY assets-${TARGETARCH}/sgp assets/sgp
+COPY assets-${TARGETARCH}/sgp ./assets/sgp
 
 COPY --from=builder /out/main /app/main
 
