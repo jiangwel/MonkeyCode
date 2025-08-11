@@ -80,7 +80,7 @@ type CheckModelReq struct {
 	Provider   consts.ModelProvider `json:"provider" validate:"required"`   // 提供商
 	ModelName  string               `json:"model_name" validate:"required"` // 模型名称
 	APIBase    string               `json:"api_base" validate:"required"`   // 接口地址
-	APIKey     string               `json:"api_key" validate:"required"`    // 接口密钥
+	APIKey     string               `json:"api_key"`                        // 接口密钥
 	APIVersion string               `json:"api_version"`
 	APIHeader  string               `json:"api_header"`
 }
