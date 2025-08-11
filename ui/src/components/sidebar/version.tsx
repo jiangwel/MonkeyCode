@@ -75,7 +75,7 @@ const Version = () => {
           <Stack direction={'row'} gap={0.5}>
             <Box sx={{ width: 40, color: 'text.auxiliary' }}>版本</Box>
             <Box sx={{ whiteSpace: 'nowrap' }}>{curVersion}</Box>
-            {latestVersion !== `v${curVersion}` && <Tooltip
+            {latestVersion !== `${curVersion}` && <Tooltip
               placement='top'
               arrow
               title={latestVersion === '' ? '无法获取最新版本' : '检测到新版本，点击查看'}
