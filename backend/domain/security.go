@@ -3,7 +3,6 @@ package domain
 import (
 	"context"
 	"path"
-	"sort"
 
 	"github.com/GoYoko/web"
 	"github.com/google/uuid"
@@ -25,6 +24,7 @@ type SecurityScanningRepo interface {
 	Create(ctx context.Context, req CreateSecurityScanningReq) (string, error)
 	Update(ctx context.Context, id string, fileMap map[string]string, status consts.SecurityScanningStatus, result *scan.Result) error
 	List(ctx context.Context, req ListSecurityScanningReq) (*ListSecurityScanningResp, error)
+	ListDetail(ctx context.Context, req ListSecurityScanningDetailReq) (*ListSecurityScanningDetailResp, error)
 	Detail(ctx context.Context, userID, id string) ([]*SecurityScanningRiskDetail, error)
 	ListBrief(ctx context.Context, req ListSecurityScanningReq) (*ListSecurityScanningBriefResp, error)
 	AllRunning(ctx context.Context) ([]*db.SecurityScanning, error)
@@ -39,6 +39,12 @@ type ListSecurityScanningReq struct {
 	ProjectName string `json:"project_name" query:"project_name"` // 项目名称
 }
 
+type ListSecurityScanningDetailReq struct {
+	web.Pagination
+	ID     string `json:"id" query:"id"` // 扫描任务id
+	UserID string `json:"-"`
+}
+
 type ListSecurityScanningResp struct {
 	*db.PageInfo
 
@@ -51,7 +57,14 @@ type ListSecurityScanningBriefResp struct {
 	Items []*SecurityScanningBrief `json:"items"`
 }
 
+type ListSecurityScanningDetailResp struct {
+	*db.PageInfo
+
+	Items []*SecurityScanningRiskDetail `json:"items"`
+}
+
 type SecurityScanningBrief struct {
+	ID        string                        `json:"id"`         // 扫描任务id
 	Workspace string                        `json:"workspace"`  // 项目目录
 	Status    consts.SecurityScanningStatus `json:"status"`     // 扫描状态
 	ReportURL string                        `json:"report_url"` // 报告url
@@ -63,6 +76,7 @@ func (s *SecurityScanningBrief) From(e *db.SecurityScanning) *SecurityScanningBr
 		return s
 	}
 
+	s.ID = e.ID.String()
 	s.Status = e.Status
 	s.Workspace = e.Workspace
 	s.CreatedAt = e.CreatedAt.Unix()
@@ -129,31 +143,6 @@ type SecurityScanningRiskDetail struct {
 	Fix      string                           `json:"fix"`      // 修复建议
 	Filename string                           `json:"filename"` // 风险文件名
 	Content  string                           `json:"content"`  // 代码内容
-}
-
-func (s *SecurityScanningRiskDetail) GetRiskLevelPriority() int {
-	switch s.Level {
-	case consts.SecurityScanningRiskLevelSevere:
-		return 1 // 严重 - 最高优先级
-	case consts.SecurityScanningRiskLevelCritical:
-		return 2 // 高危 - 中等优先级
-	case consts.SecurityScanningRiskLevelSuggest:
-		return 3 // 建议 - 最低优先级
-	default:
-		return 4 // 未知等级放在最后
-	}
-}
-
-type ByRiskLevel []*SecurityScanningRiskDetail
-
-func (a ByRiskLevel) Len() int      { return len(a) }
-func (a ByRiskLevel) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a ByRiskLevel) Less(i, j int) bool {
-	return a[i].GetRiskLevelPriority() < a[j].GetRiskLevelPriority()
-}
-
-func SortRiskDetailsByLevel(details []*SecurityScanningRiskDetail) {
-	sort.Sort(ByRiskLevel(details))
 }
 
 func (s *SecurityScanningRiskDetail) From(e *db.SecurityScanningResult) *SecurityScanningRiskDetail {

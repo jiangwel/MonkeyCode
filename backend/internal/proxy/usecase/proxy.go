@@ -189,3 +189,7 @@ func (p *ProxyUsecase) TaskHandle(ctx context.Context, task *queuerunner.Task[do
 func (p *ProxyUsecase) ListSecurityScanning(ctx context.Context, req *domain.ListSecurityScanningReq) (*domain.ListSecurityScanningBriefResp, error) {
 	return p.securityRepo.ListBrief(ctx, *req)
 }
+
+func (p *ProxyUsecase) ListSecurityDetail(ctx context.Context, req *domain.ListSecurityScanningDetailReq) (*domain.ListSecurityScanningDetailResp, error) {
+	return p.securityRepo.ListDetail(ctx, *req)
+}

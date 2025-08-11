@@ -15,6 +15,7 @@ type ProxyUsecase interface {
 	Report(ctx context.Context, req *ReportReq) error
 	CreateSecurityScanning(ctx context.Context, req *CreateSecurityScanningReq) (string, error)
 	ListSecurityScanning(ctx context.Context, req *ListSecurityScanningReq) (*ListSecurityScanningBriefResp, error)
+	ListSecurityDetail(ctx context.Context, req *ListSecurityScanningDetailReq) (*ListSecurityScanningDetailResp, error)
 }
 
 type ProxyRepo interface {
