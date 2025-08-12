@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
 
 	"github.com/GoYoko/web"
 
@@ -27,8 +26,7 @@ func NewScannerHandler(w *web.Web, logger *slog.Logger) *ScannerHandler {
 }
 
 func (s *ScannerHandler) Scan(ctx *web.Context, req domain.ScanReq) error {
-	rule := strings.ToLower(string(req.Language))
-	result, err := scan.Scan(req.TaskID, req.Workspace, rule)
+	result, err := scan.Scan(req.TaskID, req.Workspace, req.Language)
 	if err != nil {
 		s.logger.With("id", req.TaskID).With("error", err).ErrorContext(ctx.Request().Context(), "failed to scan")
 		return fmt.Errorf("failed to scan: %w", err)

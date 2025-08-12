@@ -161,7 +161,7 @@ func (p *ProxyUsecase) TaskHandle(ctx context.Context, task *queuerunner.Task[do
 		TaskID:    task.ID,
 		UserID:    task.Data.UserID,
 		Workspace: rootPath,
-		Language:  task.Data.Language,
+		Language:  task.Data.Language.Rule(),
 	})
 
 	if err != nil {

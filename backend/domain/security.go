@@ -71,10 +71,10 @@ func (s *SecurityScanningBrief) From(e *db.SecurityScanning) *SecurityScanningBr
 }
 
 type ScanReq struct {
-	TaskID    string                          `json:"task_id"`
-	UserID    string                          `json:"user_id"`
-	Workspace string                          `json:"workspace"` // 项目目录
-	Language  consts.SecurityScanningLanguage `json:"language"`  // 扫描语言
+	TaskID    string `json:"task_id"`
+	UserID    string `json:"user_id"`
+	Workspace string `json:"workspace"` // 项目目录
+	Language  string `json:"language"`  // 扫描语言
 }
 
 type CreateSecurityScanningReq struct {
