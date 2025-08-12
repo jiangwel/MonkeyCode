@@ -214,6 +214,11 @@ func (s *SecurityScanningRepo) Detail(ctx context.Context, userID, id string) ([
 		return nil, err
 	}
 
+	scanning, err := s.db.SecurityScanning.Get(ctx, sid)
+	if err != nil {
+		return nil, err
+	}
+
 	q := s.db.SecurityScanningResult.Query().
 		Where(securityscanningresult.SecurityScanningID(sid))
 
@@ -232,8 +237,25 @@ func (s *SecurityScanningRepo) Detail(ctx context.Context, userID, id string) ([
 		return nil, err
 	}
 
+	paths := cvt.Iter(scannings, func(_ int, r *db.SecurityScanningResult) string {
+		p := strings.ReplaceAll(r.Path, scanning.Workspace, "")
+		return strings.TrimPrefix(p, "/")
+	})
+
+	fs, err := s.db.WorkspaceFile.Query().Where(workspacefile.PathIn(paths...)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cnts := cvt.IterToMap(fs, func(_ int, f *db.WorkspaceFile) (string, string) {
+		return f.Path, f.Content
+	})
+
 	rs := cvt.Iter(scannings, func(_ int, r *db.SecurityScanningResult) *domain.SecurityScanningRiskDetail {
-		return cvt.From(r, &domain.SecurityScanningRiskDetail{})
+		p := strings.ReplaceAll(r.Path, scanning.Workspace, "")
+		p = strings.TrimPrefix(p, "/")
+		return cvt.From(r, &domain.SecurityScanningRiskDetail{
+			Content: cnts[p],
+		})
 	})
 	domain.SortRiskDetailsByLevel(rs)
 	return rs, nil

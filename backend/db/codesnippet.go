@@ -12,6 +12,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/codesnippet"
 	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 	"github.com/google/uuid"
+	pgvector "github.com/pgvector/pgvector-go"
 )
 
 // CodeSnippet is the model entity for the CodeSnippet schema.
@@ -55,6 +56,10 @@ type CodeSnippet struct {
 	DefinitionText string `json:"definition_text,omitempty"`
 	// 结构化信息 (definition)
 	StructuredInfo map[string]interface{} `json:"structured_info,omitempty"`
+	// Vector embedding for semantic search
+	Embedding pgvector.Vector `json:"embedding,omitempty"`
+	// 工作区路径，用于快速查找
+	WorkspacePath string `json:"workspacePath,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CodeSnippetQuery when eager-loading is set.
 	Edges        CodeSnippetEdges `json:"edges"`
@@ -88,9 +93,11 @@ func (*CodeSnippet) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case codesnippet.FieldScope, codesnippet.FieldDependencies, codesnippet.FieldParameters, codesnippet.FieldStructuredInfo:
 			values[i] = new([]byte)
+		case codesnippet.FieldEmbedding:
+			values[i] = new(pgvector.Vector)
 		case codesnippet.FieldStartLine, codesnippet.FieldEndLine, codesnippet.FieldStartColumn, codesnippet.FieldEndColumn:
 			values[i] = new(sql.NullInt64)
-		case codesnippet.FieldName, codesnippet.FieldSnippetType, codesnippet.FieldLanguage, codesnippet.FieldContent, codesnippet.FieldHash, codesnippet.FieldNamespace, codesnippet.FieldContainerName, codesnippet.FieldSignature, codesnippet.FieldDefinitionText:
+		case codesnippet.FieldName, codesnippet.FieldSnippetType, codesnippet.FieldLanguage, codesnippet.FieldContent, codesnippet.FieldHash, codesnippet.FieldNamespace, codesnippet.FieldContainerName, codesnippet.FieldSignature, codesnippet.FieldDefinitionText, codesnippet.FieldWorkspacePath:
 			values[i] = new(sql.NullString)
 		case codesnippet.FieldID, codesnippet.FieldWorkspaceFileID:
 			values[i] = new(uuid.UUID)
@@ -231,6 +238,18 @@ func (cs *CodeSnippet) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field structured_info: %w", err)
 				}
 			}
+		case codesnippet.FieldEmbedding:
+			if value, ok := values[i].(*pgvector.Vector); !ok {
+				return fmt.Errorf("unexpected type %T for field embedding", values[i])
+			} else if value != nil {
+				cs.Embedding = *value
+			}
+		case codesnippet.FieldWorkspacePath:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field workspacePath", values[i])
+			} else if value.Valid {
+				cs.WorkspacePath = value.String
+			}
 		default:
 			cs.selectValues.Set(columns[i], values[i])
 		}
@@ -325,6 +344,12 @@ func (cs *CodeSnippet) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("structured_info=")
 	builder.WriteString(fmt.Sprintf("%v", cs.StructuredInfo))
+	builder.WriteString(", ")
+	builder.WriteString("embedding=")
+	builder.WriteString(fmt.Sprintf("%v", cs.Embedding))
+	builder.WriteString(", ")
+	builder.WriteString("workspacePath=")
+	builder.WriteString(cs.WorkspacePath)
 	builder.WriteByte(')')
 	return builder.String()
 }

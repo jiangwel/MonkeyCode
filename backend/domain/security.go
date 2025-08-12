@@ -70,6 +70,13 @@ func (s *SecurityScanningBrief) From(e *db.SecurityScanning) *SecurityScanningBr
 	return s
 }
 
+type ScanReq struct {
+	TaskID    string                          `json:"task_id"`
+	UserID    string                          `json:"user_id"`
+	Workspace string                          `json:"workspace"` // 项目目录
+	Language  consts.SecurityScanningLanguage `json:"language"`  // 扫描语言
+}
+
 type CreateSecurityScanningReq struct {
 	UserID    string                          `json:"user_id"`
 	Workspace string                          `json:"workspace"` // 项目目录
@@ -84,6 +91,7 @@ type SecurityScanningResult struct {
 	Status      consts.SecurityScanningStatus `json:"status"`       // 扫描状态
 	Risk        SecurityScanningRiskResult    `json:"risk"`         // 风险结果
 	User        *User                         `json:"user"`         // 用户
+	Error       string                        `json:"error"`        // 错误信息
 	CreatedAt   int64                         `json:"created_at"`   // 扫描开始时间
 }
 
@@ -98,6 +106,7 @@ func (s *SecurityScanningResult) From(e *db.SecurityScanning) *SecurityScanningR
 	s.Path = e.Workspace
 	s.Status = e.Status
 	s.User = cvt.From(e.Edges.User, &User{})
+	s.Error = e.ErrorMessage
 	s.CreatedAt = e.CreatedAt.Unix()
 
 	return s
@@ -119,6 +128,7 @@ type SecurityScanningRiskDetail struct {
 	End      *types.Position                  `json:"end"`      // 风险代码行结束位置
 	Fix      string                           `json:"fix"`      // 修复建议
 	Filename string                           `json:"filename"` // 风险文件名
+	Content  string                           `json:"content"`  // 代码内容
 }
 
 func (s *SecurityScanningRiskDetail) GetRiskLevelPriority() int {

@@ -48,6 +48,10 @@ const (
 	FieldDefinitionText = "definition_text"
 	// FieldStructuredInfo holds the string denoting the structured_info field in the database.
 	FieldStructuredInfo = "structured_info"
+	// FieldEmbedding holds the string denoting the embedding field in the database.
+	FieldEmbedding = "embedding"
+	// FieldWorkspacePath holds the string denoting the workspacepath field in the database.
+	FieldWorkspacePath = "workspace_path"
 	// EdgeSourceFile holds the string denoting the source_file edge name in mutations.
 	EdgeSourceFile = "source_file"
 	// Table holds the table name of the codesnippet in the database.
@@ -82,6 +86,8 @@ var Columns = []string{
 	FieldSignature,
 	FieldDefinitionText,
 	FieldStructuredInfo,
+	FieldEmbedding,
+	FieldWorkspacePath,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -170,6 +176,16 @@ func BySignature(opts ...sql.OrderTermOption) OrderOption {
 // ByDefinitionText orders the results by the definition_text field.
 func ByDefinitionText(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDefinitionText, opts...).ToFunc()
+}
+
+// ByEmbedding orders the results by the embedding field.
+func ByEmbedding(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEmbedding, opts...).ToFunc()
+}
+
+// ByWorkspacePath orders the results by the workspacePath field.
+func ByWorkspacePath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorkspacePath, opts...).ToFunc()
 }
 
 // BySourceFileField orders the results by source_file field.

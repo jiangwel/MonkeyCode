@@ -67,6 +67,12 @@ type Config struct {
 		URL  string `mapstructure:"url"`
 	} `mapstructure:"init_model"`
 
+	Embedding struct {
+		ModelName   string `mapstructure:"model_name"`
+		APIEndpoint string `mapstructure:"api_endpoint"`
+		APIKey      string `mapstructure:"api_key"`
+	} `mapstructure:"embedding"`
+
 	Extension struct {
 		Baseurl     string `mapstructure:"baseurl"`
 		LimitSecond int    `mapstructure:"limit_second"`
@@ -147,6 +153,9 @@ func Init() (*Config, error) {
 	v.SetDefault("extension.limit_second", 10)
 	v.SetDefault("data_report.key", "")
 	v.SetDefault("security.queue_limit", 5)
+	v.SetDefault("embedding.model_name", "qwen3-embedding-0.6b")
+	v.SetDefault("embedding.api_endpoint", "https://aiapi.chaitin.net/v1/embeddings")
+	v.SetDefault("embedding.api_key", "")
 
 	c := Config{}
 	if err := v.Unmarshal(&c); err != nil {

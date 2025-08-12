@@ -39,6 +39,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/workspacefile"
 	"github.com/chaitin/MonkeyCode/backend/ent/types"
 	"github.com/google/uuid"
+	pgvector "github.com/pgvector/pgvector-go"
 )
 
 const (
@@ -5532,6 +5533,8 @@ type CodeSnippetMutation struct {
 	signature          *string
 	definition_text    *string
 	structured_info    *map[string]interface{}
+	embedding          *pgvector.Vector
+	workspacePath      *string
 	clearedFields      map[string]struct{}
 	source_file        *uuid.UUID
 	clearedsource_file bool
@@ -6524,6 +6527,104 @@ func (m *CodeSnippetMutation) ResetStructuredInfo() {
 	delete(m.clearedFields, codesnippet.FieldStructuredInfo)
 }
 
+// SetEmbedding sets the "embedding" field.
+func (m *CodeSnippetMutation) SetEmbedding(pg pgvector.Vector) {
+	m.embedding = &pg
+}
+
+// Embedding returns the value of the "embedding" field in the mutation.
+func (m *CodeSnippetMutation) Embedding() (r pgvector.Vector, exists bool) {
+	v := m.embedding
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmbedding returns the old "embedding" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldEmbedding(ctx context.Context) (v pgvector.Vector, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmbedding is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmbedding requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmbedding: %w", err)
+	}
+	return oldValue.Embedding, nil
+}
+
+// ClearEmbedding clears the value of the "embedding" field.
+func (m *CodeSnippetMutation) ClearEmbedding() {
+	m.embedding = nil
+	m.clearedFields[codesnippet.FieldEmbedding] = struct{}{}
+}
+
+// EmbeddingCleared returns if the "embedding" field was cleared in this mutation.
+func (m *CodeSnippetMutation) EmbeddingCleared() bool {
+	_, ok := m.clearedFields[codesnippet.FieldEmbedding]
+	return ok
+}
+
+// ResetEmbedding resets all changes to the "embedding" field.
+func (m *CodeSnippetMutation) ResetEmbedding() {
+	m.embedding = nil
+	delete(m.clearedFields, codesnippet.FieldEmbedding)
+}
+
+// SetWorkspacePath sets the "workspacePath" field.
+func (m *CodeSnippetMutation) SetWorkspacePath(s string) {
+	m.workspacePath = &s
+}
+
+// WorkspacePath returns the value of the "workspacePath" field in the mutation.
+func (m *CodeSnippetMutation) WorkspacePath() (r string, exists bool) {
+	v := m.workspacePath
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkspacePath returns the old "workspacePath" field's value of the CodeSnippet entity.
+// If the CodeSnippet object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSnippetMutation) OldWorkspacePath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkspacePath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkspacePath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkspacePath: %w", err)
+	}
+	return oldValue.WorkspacePath, nil
+}
+
+// ClearWorkspacePath clears the value of the "workspacePath" field.
+func (m *CodeSnippetMutation) ClearWorkspacePath() {
+	m.workspacePath = nil
+	m.clearedFields[codesnippet.FieldWorkspacePath] = struct{}{}
+}
+
+// WorkspacePathCleared returns if the "workspacePath" field was cleared in this mutation.
+func (m *CodeSnippetMutation) WorkspacePathCleared() bool {
+	_, ok := m.clearedFields[codesnippet.FieldWorkspacePath]
+	return ok
+}
+
+// ResetWorkspacePath resets all changes to the "workspacePath" field.
+func (m *CodeSnippetMutation) ResetWorkspacePath() {
+	m.workspacePath = nil
+	delete(m.clearedFields, codesnippet.FieldWorkspacePath)
+}
+
 // SetSourceFileID sets the "source_file" edge to the WorkspaceFile entity by id.
 func (m *CodeSnippetMutation) SetSourceFileID(id uuid.UUID) {
 	m.source_file = &id
@@ -6598,7 +6699,7 @@ func (m *CodeSnippetMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CodeSnippetMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 20)
 	if m.source_file != nil {
 		fields = append(fields, codesnippet.FieldWorkspaceFileID)
 	}
@@ -6653,6 +6754,12 @@ func (m *CodeSnippetMutation) Fields() []string {
 	if m.structured_info != nil {
 		fields = append(fields, codesnippet.FieldStructuredInfo)
 	}
+	if m.embedding != nil {
+		fields = append(fields, codesnippet.FieldEmbedding)
+	}
+	if m.workspacePath != nil {
+		fields = append(fields, codesnippet.FieldWorkspacePath)
+	}
 	return fields
 }
 
@@ -6697,6 +6804,10 @@ func (m *CodeSnippetMutation) Field(name string) (ent.Value, bool) {
 		return m.DefinitionText()
 	case codesnippet.FieldStructuredInfo:
 		return m.StructuredInfo()
+	case codesnippet.FieldEmbedding:
+		return m.Embedding()
+	case codesnippet.FieldWorkspacePath:
+		return m.WorkspacePath()
 	}
 	return nil, false
 }
@@ -6742,6 +6853,10 @@ func (m *CodeSnippetMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldDefinitionText(ctx)
 	case codesnippet.FieldStructuredInfo:
 		return m.OldStructuredInfo(ctx)
+	case codesnippet.FieldEmbedding:
+		return m.OldEmbedding(ctx)
+	case codesnippet.FieldWorkspacePath:
+		return m.OldWorkspacePath(ctx)
 	}
 	return nil, fmt.Errorf("unknown CodeSnippet field %s", name)
 }
@@ -6877,6 +6992,20 @@ func (m *CodeSnippetMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStructuredInfo(v)
 		return nil
+	case codesnippet.FieldEmbedding:
+		v, ok := value.(pgvector.Vector)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmbedding(v)
+		return nil
+	case codesnippet.FieldWorkspacePath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkspacePath(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CodeSnippet field %s", name)
 }
@@ -6982,6 +7111,12 @@ func (m *CodeSnippetMutation) ClearedFields() []string {
 	if m.FieldCleared(codesnippet.FieldStructuredInfo) {
 		fields = append(fields, codesnippet.FieldStructuredInfo)
 	}
+	if m.FieldCleared(codesnippet.FieldEmbedding) {
+		fields = append(fields, codesnippet.FieldEmbedding)
+	}
+	if m.FieldCleared(codesnippet.FieldWorkspacePath) {
+		fields = append(fields, codesnippet.FieldWorkspacePath)
+	}
 	return fields
 }
 
@@ -7019,6 +7154,12 @@ func (m *CodeSnippetMutation) ClearField(name string) error {
 		return nil
 	case codesnippet.FieldStructuredInfo:
 		m.ClearStructuredInfo()
+		return nil
+	case codesnippet.FieldEmbedding:
+		m.ClearEmbedding()
+		return nil
+	case codesnippet.FieldWorkspacePath:
+		m.ClearWorkspacePath()
 		return nil
 	}
 	return fmt.Errorf("unknown CodeSnippet nullable field %s", name)
@@ -7081,6 +7222,12 @@ func (m *CodeSnippetMutation) ResetField(name string) error {
 		return nil
 	case codesnippet.FieldStructuredInfo:
 		m.ResetStructuredInfo()
+		return nil
+	case codesnippet.FieldEmbedding:
+		m.ResetEmbedding()
+		return nil
+	case codesnippet.FieldWorkspacePath:
+		m.ResetWorkspacePath()
 		return nil
 	}
 	return fmt.Errorf("unknown CodeSnippet field %s", name)

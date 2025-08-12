@@ -15,6 +15,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20250630080345-f9402614f6ba
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/pgvector/pgvector-go v0.3.0
 	github.com/redis/go-redis/v9 v9.7.3
 	github.com/rokku-c/go-openai v1.35.7-fix2
 	github.com/spf13/viper v1.20.1
