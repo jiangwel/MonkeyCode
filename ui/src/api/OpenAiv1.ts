@@ -15,9 +15,11 @@ import {
   DomainAcceptCompletionReq,
   DomainCreateSecurityScanningReq,
   DomainListSecurityScanningBriefResp,
+  DomainListSecurityScanningDetailResp,
   DomainListSecurityScanningReq,
   DomainModelListResp,
   DomainReportReq,
+  GetListSecurityScanningDetailParams,
   WebResp,
 } from "./types";
 
@@ -170,7 +172,7 @@ export const postReport = (
   });
 
 /**
- * @description 分页逻辑只支持用 next_token
+ * @description 扫描任务列表
  *
  * @tags OpenAIV1
  * @name GetListSecurityScanning
@@ -217,6 +219,36 @@ export const postCreateSecurityScanning = (
     path: `/v1/security/scanning`,
     method: "POST",
     body: param,
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
+ * @description 分页只支持 next_token; 首页传空，后续判断has_next_page是否为true，传入回包给的next_token
+ *
+ * @tags OpenAIV1
+ * @name GetListSecurityScanningDetail
+ * @summary 获取扫描任务风险详情列表
+ * @request GET:/v1/security/scanning/detail
+ * @response `200` `(WebResp & {
+    data?: DomainListSecurityScanningDetailResp,
+
+})` OK
+ */
+
+export const getListSecurityScanningDetail = (
+  query: GetListSecurityScanningDetailParams,
+  params: RequestParams = {},
+) =>
+  request<
+    WebResp & {
+      data?: DomainListSecurityScanningDetailResp;
+    }
+  >({
+    path: `/v1/security/scanning/detail`,
+    method: "GET",
+    query: query,
     type: ContentType.Json,
     format: "json",
     ...params,
