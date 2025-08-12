@@ -126,6 +126,11 @@ func Impact(v string) predicate.SecurityScanningResult {
 	return predicate.SecurityScanningResult(sql.FieldEQ(FieldImpact, v))
 }
 
+// FileContent applies equality check predicate on the "file_content" field. It's identical to FileContentEQ.
+func FileContent(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldEQ(FieldFileContent, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.SecurityScanningResult {
 	return predicate.SecurityScanningResult(sql.FieldEQ(FieldCreatedAt, v))
@@ -994,6 +999,71 @@ func ImpactEqualFold(v string) predicate.SecurityScanningResult {
 // ImpactContainsFold applies the ContainsFold predicate on the "impact" field.
 func ImpactContainsFold(v string) predicate.SecurityScanningResult {
 	return predicate.SecurityScanningResult(sql.FieldContainsFold(FieldImpact, v))
+}
+
+// FileContentEQ applies the EQ predicate on the "file_content" field.
+func FileContentEQ(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldEQ(FieldFileContent, v))
+}
+
+// FileContentNEQ applies the NEQ predicate on the "file_content" field.
+func FileContentNEQ(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldNEQ(FieldFileContent, v))
+}
+
+// FileContentIn applies the In predicate on the "file_content" field.
+func FileContentIn(vs ...string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldIn(FieldFileContent, vs...))
+}
+
+// FileContentNotIn applies the NotIn predicate on the "file_content" field.
+func FileContentNotIn(vs ...string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldNotIn(FieldFileContent, vs...))
+}
+
+// FileContentGT applies the GT predicate on the "file_content" field.
+func FileContentGT(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldGT(FieldFileContent, v))
+}
+
+// FileContentGTE applies the GTE predicate on the "file_content" field.
+func FileContentGTE(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldGTE(FieldFileContent, v))
+}
+
+// FileContentLT applies the LT predicate on the "file_content" field.
+func FileContentLT(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldLT(FieldFileContent, v))
+}
+
+// FileContentLTE applies the LTE predicate on the "file_content" field.
+func FileContentLTE(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldLTE(FieldFileContent, v))
+}
+
+// FileContentContains applies the Contains predicate on the "file_content" field.
+func FileContentContains(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldContains(FieldFileContent, v))
+}
+
+// FileContentHasPrefix applies the HasPrefix predicate on the "file_content" field.
+func FileContentHasPrefix(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldHasPrefix(FieldFileContent, v))
+}
+
+// FileContentHasSuffix applies the HasSuffix predicate on the "file_content" field.
+func FileContentHasSuffix(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldHasSuffix(FieldFileContent, v))
+}
+
+// FileContentEqualFold applies the EqualFold predicate on the "file_content" field.
+func FileContentEqualFold(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldEqualFold(FieldFileContent, v))
+}
+
+// FileContentContainsFold applies the ContainsFold predicate on the "file_content" field.
+func FileContentContainsFold(v string) predicate.SecurityScanningResult {
+	return predicate.SecurityScanningResult(sql.FieldContainsFold(FieldFileContent, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
