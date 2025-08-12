@@ -65,7 +65,7 @@ func (s *SecurityScanningRepo) Create(ctx context.Context, req domain.CreateSecu
 }
 
 // Update implements domain.SecurityScanningRepo.
-func (s *SecurityScanningRepo) Update(ctx context.Context, id string, status consts.SecurityScanningStatus, result *scan.Result) error {
+func (s *SecurityScanningRepo) Update(ctx context.Context, id string, fileMap map[string]string, status consts.SecurityScanningStatus, result *scan.Result) error {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return err
@@ -107,6 +107,7 @@ func (s *SecurityScanningRepo) Update(ctx context.Context, id string, status con
 				SetImpact(item.Extra.Metadata.Impact).
 				SetOwasp([]any{item.Extra.Metadata.Owasp}).
 				SetPath(strings.ReplaceAll(item.Path, result.Prefix, "")).
+				SetFileContent(fileMap[item.Path]).
 				SetStartPosition(&types.Position{
 					Col:    item.Start.Col,
 					Line:   item.Start.Line,
@@ -214,11 +215,6 @@ func (s *SecurityScanningRepo) Detail(ctx context.Context, userID, id string) ([
 		return nil, err
 	}
 
-	scanning, err := s.db.SecurityScanning.Get(ctx, sid)
-	if err != nil {
-		return nil, err
-	}
-
 	q := s.db.SecurityScanningResult.Query().
 		Where(securityscanningresult.SecurityScanningID(sid))
 
@@ -237,25 +233,8 @@ func (s *SecurityScanningRepo) Detail(ctx context.Context, userID, id string) ([
 		return nil, err
 	}
 
-	paths := cvt.Iter(scannings, func(_ int, r *db.SecurityScanningResult) string {
-		p := strings.ReplaceAll(r.Path, scanning.Workspace, "")
-		return strings.TrimPrefix(p, "/")
-	})
-
-	fs, err := s.db.WorkspaceFile.Query().Where(workspacefile.PathIn(paths...)).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	cnts := cvt.IterToMap(fs, func(_ int, f *db.WorkspaceFile) (string, string) {
-		return f.Path, f.Content
-	})
-
 	rs := cvt.Iter(scannings, func(_ int, r *db.SecurityScanningResult) *domain.SecurityScanningRiskDetail {
-		p := strings.ReplaceAll(r.Path, scanning.Workspace, "")
-		p = strings.TrimPrefix(p, "/")
-		return cvt.From(r, &domain.SecurityScanningRiskDetail{
-			Content: cnts[p],
-		})
+		return cvt.From(r, &domain.SecurityScanningRiskDetail{})
 	})
 	domain.SortRiskDetailsByLevel(rs)
 	return rs, nil

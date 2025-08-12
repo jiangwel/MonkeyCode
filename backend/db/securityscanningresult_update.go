@@ -253,6 +253,20 @@ func (ssru *SecurityScanningResultUpdate) AppendOwasp(i []interface{}) *Security
 	return ssru
 }
 
+// SetFileContent sets the "file_content" field.
+func (ssru *SecurityScanningResultUpdate) SetFileContent(s string) *SecurityScanningResultUpdate {
+	ssru.mutation.SetFileContent(s)
+	return ssru
+}
+
+// SetNillableFileContent sets the "file_content" field if the given value is not nil.
+func (ssru *SecurityScanningResultUpdate) SetNillableFileContent(s *string) *SecurityScanningResultUpdate {
+	if s != nil {
+		ssru.SetFileContent(*s)
+	}
+	return ssru
+}
+
 // SetStartPosition sets the "start_position" field.
 func (ssru *SecurityScanningResultUpdate) SetStartPosition(t *types.Position) *SecurityScanningResultUpdate {
 	ssru.mutation.SetStartPosition(t)
@@ -402,6 +416,9 @@ func (ssru *SecurityScanningResultUpdate) sqlSave(ctx context.Context) (n int, e
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, securityscanningresult.FieldOwasp, value)
 		})
+	}
+	if value, ok := ssru.mutation.FileContent(); ok {
+		_spec.SetField(securityscanningresult.FieldFileContent, field.TypeString, value)
 	}
 	if value, ok := ssru.mutation.StartPosition(); ok {
 		_spec.SetField(securityscanningresult.FieldStartPosition, field.TypeJSON, value)
@@ -683,6 +700,20 @@ func (ssruo *SecurityScanningResultUpdateOne) AppendOwasp(i []interface{}) *Secu
 	return ssruo
 }
 
+// SetFileContent sets the "file_content" field.
+func (ssruo *SecurityScanningResultUpdateOne) SetFileContent(s string) *SecurityScanningResultUpdateOne {
+	ssruo.mutation.SetFileContent(s)
+	return ssruo
+}
+
+// SetNillableFileContent sets the "file_content" field if the given value is not nil.
+func (ssruo *SecurityScanningResultUpdateOne) SetNillableFileContent(s *string) *SecurityScanningResultUpdateOne {
+	if s != nil {
+		ssruo.SetFileContent(*s)
+	}
+	return ssruo
+}
+
 // SetStartPosition sets the "start_position" field.
 func (ssruo *SecurityScanningResultUpdateOne) SetStartPosition(t *types.Position) *SecurityScanningResultUpdateOne {
 	ssruo.mutation.SetStartPosition(t)
@@ -862,6 +893,9 @@ func (ssruo *SecurityScanningResultUpdateOne) sqlSave(ctx context.Context) (_nod
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, securityscanningresult.FieldOwasp, value)
 		})
+	}
+	if value, ok := ssruo.mutation.FileContent(); ok {
+		_spec.SetField(securityscanningresult.FieldFileContent, field.TypeString, value)
 	}
 	if value, ok := ssruo.mutation.StartPosition(); ok {
 		_spec.SetField(securityscanningresult.FieldStartPosition, field.TypeJSON, value)

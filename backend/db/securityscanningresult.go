@@ -53,6 +53,8 @@ type SecurityScanningResult struct {
 	Impact string `json:"impact,omitempty"`
 	// Owasp holds the value of the "owasp" field.
 	Owasp []interface{} `json:"owasp,omitempty"`
+	// FileContent holds the value of the "file_content" field.
+	FileContent string `json:"file_content,omitempty"`
 	// StartPosition holds the value of the "start_position" field.
 	StartPosition *types.Position `json:"start_position,omitempty"`
 	// EndPosition holds the value of the "end_position" field.
@@ -92,7 +94,7 @@ func (*SecurityScanningResult) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case securityscanningresult.FieldCwe, securityscanningresult.FieldOwasp, securityscanningresult.FieldStartPosition, securityscanningresult.FieldEndPosition:
 			values[i] = new([]byte)
-		case securityscanningresult.FieldCheckID, securityscanningresult.FieldEngineKind, securityscanningresult.FieldLines, securityscanningresult.FieldPath, securityscanningresult.FieldMessage, securityscanningresult.FieldMessageZh, securityscanningresult.FieldSeverity, securityscanningresult.FieldAbstractEn, securityscanningresult.FieldAbstractZh, securityscanningresult.FieldCategoryEn, securityscanningresult.FieldCategoryZh, securityscanningresult.FieldConfidence, securityscanningresult.FieldImpact:
+		case securityscanningresult.FieldCheckID, securityscanningresult.FieldEngineKind, securityscanningresult.FieldLines, securityscanningresult.FieldPath, securityscanningresult.FieldMessage, securityscanningresult.FieldMessageZh, securityscanningresult.FieldSeverity, securityscanningresult.FieldAbstractEn, securityscanningresult.FieldAbstractZh, securityscanningresult.FieldCategoryEn, securityscanningresult.FieldCategoryZh, securityscanningresult.FieldConfidence, securityscanningresult.FieldImpact, securityscanningresult.FieldFileContent:
 			values[i] = new(sql.NullString)
 		case securityscanningresult.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -219,6 +221,12 @@ func (ssr *SecurityScanningResult) assignValues(columns []string, values []any) 
 					return fmt.Errorf("unmarshal field owasp: %w", err)
 				}
 			}
+		case securityscanningresult.FieldFileContent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field file_content", values[i])
+			} else if value.Valid {
+				ssr.FileContent = value.String
+			}
 		case securityscanningresult.FieldStartPosition:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field start_position", values[i])
@@ -329,6 +337,9 @@ func (ssr *SecurityScanningResult) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("owasp=")
 	builder.WriteString(fmt.Sprintf("%v", ssr.Owasp))
+	builder.WriteString(", ")
+	builder.WriteString("file_content=")
+	builder.WriteString(ssr.FileContent)
 	builder.WriteString(", ")
 	builder.WriteString("start_position=")
 	builder.WriteString(fmt.Sprintf("%v", ssr.StartPosition))

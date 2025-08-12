@@ -23,7 +23,7 @@ type SecurityScanningUsecase interface {
 type SecurityScanningRepo interface {
 	Get(ctx context.Context, id string) (*db.SecurityScanning, error)
 	Create(ctx context.Context, req CreateSecurityScanningReq) (string, error)
-	Update(ctx context.Context, id string, status consts.SecurityScanningStatus, result *scan.Result) error
+	Update(ctx context.Context, id string, fileMap map[string]string, status consts.SecurityScanningStatus, result *scan.Result) error
 	List(ctx context.Context, req ListSecurityScanningReq) (*ListSecurityScanningResp, error)
 	Detail(ctx context.Context, userID, id string) ([]*SecurityScanningRiskDetail, error)
 	ListBrief(ctx context.Context, req ListSecurityScanningReq) (*ListSecurityScanningBriefResp, error)
@@ -176,6 +176,7 @@ func (s *SecurityScanningRiskDetail) From(e *db.SecurityScanningResult) *Securit
 	s.End = e.EndPosition
 	s.Filename = e.Path
 	s.Fix = e.MessageZh
+	s.Content = e.FileContent
 
 	return s
 }

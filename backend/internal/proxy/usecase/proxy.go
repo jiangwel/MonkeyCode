@@ -122,7 +122,7 @@ func (p *ProxyUsecase) CreateSecurityScanning(ctx context.Context, req *domain.C
 
 func (p *ProxyUsecase) TaskHandle(ctx context.Context, task *queuerunner.Task[domain.CreateSecurityScanningReq]) error {
 	id := task.ID
-	if err := p.securityRepo.Update(ctx, id, consts.SecurityScanningStatusRunning, nil); err != nil {
+	if err := p.securityRepo.Update(ctx, id, nil, consts.SecurityScanningStatusRunning, nil); err != nil {
 		p.logger.With("id", task.ID).With("error", err).ErrorContext(ctx, "failed to update security scanning")
 		return err
 	}
@@ -138,6 +138,7 @@ func (p *ProxyUsecase) TaskHandle(ctx context.Context, task *queuerunner.Task[do
 	rootPath := path.Join(prefix, scanning.Edges.WorkspaceEdge.RootPath)
 	defer os.RemoveAll(prefix)
 
+	fileMap := make(map[string]string)
 	if err = p.securityRepo.PageWorkspaceFiles(ctx, scanning.WorkspaceID.String(), 20, func(rs []*db.WorkspaceFile) error {
 		for _, r := range rs {
 			filename := path.Join(rootPath, r.Path)
@@ -151,6 +152,7 @@ func (p *ProxyUsecase) TaskHandle(ctx context.Context, task *queuerunner.Task[do
 				p.logger.With("path", filename).With("id", id).With("error", err).ErrorContext(ctx, "failed to write file")
 				continue
 			}
+			fileMap[filename] = r.Content
 		}
 		return nil
 	}); err != nil {
@@ -165,7 +167,7 @@ func (p *ProxyUsecase) TaskHandle(ctx context.Context, task *queuerunner.Task[do
 	})
 
 	if err != nil {
-		if err = p.securityRepo.Update(ctx, id, consts.SecurityScanningStatusFailed, &scan.Result{
+		if err = p.securityRepo.Update(ctx, id, fileMap, consts.SecurityScanningStatusFailed, &scan.Result{
 			Output: err.Error(),
 		}); err != nil {
 			p.logger.With("id", task.ID).With("error", err).ErrorContext(ctx, "failed to update security scanning")
@@ -175,7 +177,7 @@ func (p *ProxyUsecase) TaskHandle(ctx context.Context, task *queuerunner.Task[do
 	}
 
 	result.Prefix = prefix
-	if err := p.securityRepo.Update(ctx, id, consts.SecurityScanningStatusSuccess, result); err != nil {
+	if err := p.securityRepo.Update(ctx, id, fileMap, consts.SecurityScanningStatusSuccess, result); err != nil {
 		p.logger.With("id", task.ID).With("error", err).ErrorContext(ctx, "failed to update security scanning")
 		return err
 	}

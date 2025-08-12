@@ -387,6 +387,7 @@ var (
 		{Name: "cwe", Type: field.TypeJSON},
 		{Name: "impact", Type: field.TypeString},
 		{Name: "owasp", Type: field.TypeJSON},
+		{Name: "file_content", Type: field.TypeString, Size: 2147483647},
 		{Name: "start_position", Type: field.TypeJSON},
 		{Name: "end_position", Type: field.TypeJSON},
 		{Name: "created_at", Type: field.TypeTime},
@@ -400,7 +401,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "security_scanning_results_security_scannings_results",
-				Columns:    []*schema.Column{SecurityScanningResultsColumns[19]},
+				Columns:    []*schema.Column{SecurityScanningResultsColumns[20]},
 				RefColumns: []*schema.Column{SecurityScanningsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
