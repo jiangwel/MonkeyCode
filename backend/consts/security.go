@@ -1,6 +1,9 @@
 package consts
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type SecurityScanningStatus string
 
@@ -49,6 +52,13 @@ const (
 	SecurityScanningLanguageSecrets    SecurityScanningLanguage = "Secrets"
 	SecurityScanningLanguageIaC        SecurityScanningLanguage = "IaC"
 )
+
+func (s SecurityScanningLanguage) Rule() string {
+	if s == SecurityScanningLanguageCpp {
+		return "c"
+	}
+	return strings.ToLower(string(s))
+}
 
 func (s SecurityScanningLanguage) RuleName() string {
 	if s == SecurityScanningLanguageIaC {
