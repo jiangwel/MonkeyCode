@@ -330,10 +330,10 @@ const Invite = () => {
           <StepCard>
             <DownloadIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
             <Typography variant='h6' gutterBottom fontWeight='bold'>
-              下载 MonkeyCode 客户端
+              下载 VSCode 插件
             </Typography>
             <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
-              请下载并安装 MonkeyCode 客户端，这是使用我们服务的必要步骤
+              请下载并安装 VSCode 插件，这是使用我们服务的必要步骤
             </Typography>
             <Button
               variant='contained'
@@ -355,7 +355,7 @@ const Invite = () => {
                 }, 500);
               }}
             >
-              下载客户端
+              下载 VSCode 插件
             </Button>
           </StepCard>
         );
@@ -437,7 +437,7 @@ const Invite = () => {
             <StepLabel>注册账号</StepLabel>
           </Step>
           <Step>
-            <StepLabel>下载客户端</StepLabel>
+            <StepLabel>下载 VSCode 插件</StepLabel>
           </Step>
           <Step>
             <StepLabel>使用教程</StepLabel>
