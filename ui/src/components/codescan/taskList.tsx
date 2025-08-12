@@ -121,17 +121,19 @@ const CodeScanTaskList = ({
                   ml: '4px'
                 }}>扫描完成</Box>
               </Stack>}
-              {(record.status === 'failed') && <Stack direction={'row'}>
-                <ErrorOutlineIcon sx={{
-                  width: '16px',
-                  height: '16px',
-                  color: 'error.main'
-                }} />
-                <Box sx={{
-                  lineHeight: '16px',
-                  ml: '4px'
-                }}>扫描失败</Box>
-              </Stack>}
+              {(record.status === 'failed') && <Tooltip title={record.error}>
+                <Stack direction={'row'}>
+                  <ErrorOutlineIcon sx={{
+                    width: '16px',
+                    height: '16px',
+                    color: 'error.main'
+                  }} />
+                  <Box sx={{
+                    lineHeight: '16px',
+                    ml: '4px'
+                  }}>扫描失败</Box>
+                </Stack>
+              </Tooltip>}
             </Box>
           </Stack>
         );

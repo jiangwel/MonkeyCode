@@ -259,6 +259,8 @@ export interface DomainCodeSnippet {
   definitionText?: string;
   /** 依赖项 */
   dependencies?: string[];
+  /** 向量嵌入 */
+  embedding?: number[];
   /** 结束列号 */
   endColumn?: number;
   /** 结束行号 */
@@ -612,6 +614,13 @@ export interface DomainListSecurityScanningBriefResp {
   total_count?: number;
 }
 
+export interface DomainListSecurityScanningDetailResp {
+  has_next_page?: boolean;
+  items?: DomainSecurityScanningRiskDetail[];
+  next_token?: string;
+  total_count?: number;
+}
+
 export interface DomainListSecurityScanningReq {
   /** 作者 */
   author?: string;
@@ -826,6 +835,8 @@ export interface DomainReportReq {
 export interface DomainSecurityScanningBrief {
   /** 创建时间 */
   created_at?: number;
+  /** 扫描任务id */
+  id?: string;
   /** 报告url */
   report_url?: string;
   /** 扫描状态 */
@@ -1203,6 +1214,15 @@ export interface V1GetContextReq {
   queries?: V1Query[];
   /** 单个查询参数 */
   query?: V1Query;
+  /** 工作区路径（必填） */
+  workspacePath?: string;
+}
+
+export interface V1GetSemanticContextReq {
+  /** 返回结果数量限制，默认10 */
+  limit?: number;
+  /** 搜索查询文本（必填） */
+  query?: string;
   /** 工作区路径（必填） */
   workspacePath?: string;
 }
@@ -1616,4 +1636,15 @@ export interface GetGetWorkspaceFileByPathParams {
   project_id: string;
   /** 文件路径 */
   path: string;
+}
+
+export interface GetListSecurityScanningDetailParams {
+  /** 扫描任务id */
+  id?: string;
+  /** 下一页标识 */
+  next_token?: string;
+  /** 分页 */
+  page?: number;
+  /** 每页多少条记录 */
+  size?: number;
 }
