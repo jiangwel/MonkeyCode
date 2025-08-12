@@ -115,16 +115,16 @@ jobs:
           # 下载 VSIX (架构无关)
           VERSION_NO_V=${{ steps.get_version.outputs.VERSION }}
           VERSION_NO_V=${VERSION_NO_V#v}
-          wget -O assets/vsix/monkeycode-${VERSION_NO_V}.vsix https://release.baizhi.cloud/monkeycode/vsixs/monkeycode-${VERSION_NO_V}.vsix
+          wget -O assets/vsix/monkeycode-${VERSION_NO_V}.vsix https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/monkeycode/vsix/monkeycode-${VERSION_NO_V}.vsix
           
           # 下载 x86_64 SGP
-          wget -O assets-amd64/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/x86_64/sgp
-          wget -O assets-amd64/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/x86_64/sgp-rules
+          wget -O assets-amd64/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/monkeycode/sgp/x86_64/sgp
+          wget -O assets-amd64/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/monkeycode/sgp/x86_64/sgp-rules
           chmod +x assets-amd64/sgp/sgp
           
           # 下载 aarch64 SGP
-          wget -O assets-arm64/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/aarch64/sgp
-          wget -O assets-arm64/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/prod/sgp/aarch64/sgp-rules
+          wget -O assets-arm64/sgp/sgp https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/monkeycode/sgp/aarch64/sgp
+          wget -O assets-arm64/sgp/sgp-rules https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/monkeycode/sgp/aarch64/sgp-rules
           chmod +x assets-arm64/sgp/sgp
 
       - name: Set up QEMU
