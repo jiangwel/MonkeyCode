@@ -12630,6 +12630,7 @@ type SecurityScanningResultMutation struct {
 	impact                   *string
 	owasp                    *[]interface{}
 	appendowasp              []interface{}
+	file_content             *string
 	start_position           **types.Position
 	end_position             **types.Position
 	created_at               *time.Time
@@ -13351,6 +13352,42 @@ func (m *SecurityScanningResultMutation) ResetOwasp() {
 	m.appendowasp = nil
 }
 
+// SetFileContent sets the "file_content" field.
+func (m *SecurityScanningResultMutation) SetFileContent(s string) {
+	m.file_content = &s
+}
+
+// FileContent returns the value of the "file_content" field in the mutation.
+func (m *SecurityScanningResultMutation) FileContent() (r string, exists bool) {
+	v := m.file_content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileContent returns the old "file_content" field's value of the SecurityScanningResult entity.
+// If the SecurityScanningResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecurityScanningResultMutation) OldFileContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileContent: %w", err)
+	}
+	return oldValue.FileContent, nil
+}
+
+// ResetFileContent resets all changes to the "file_content" field.
+func (m *SecurityScanningResultMutation) ResetFileContent() {
+	m.file_content = nil
+}
+
 // SetStartPosition sets the "start_position" field.
 func (m *SecurityScanningResultMutation) SetStartPosition(t *types.Position) {
 	m.start_position = &t
@@ -13520,7 +13557,7 @@ func (m *SecurityScanningResultMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SecurityScanningResultMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 20)
 	if m.security_scanning != nil {
 		fields = append(fields, securityscanningresult.FieldSecurityScanningID)
 	}
@@ -13568,6 +13605,9 @@ func (m *SecurityScanningResultMutation) Fields() []string {
 	}
 	if m.owasp != nil {
 		fields = append(fields, securityscanningresult.FieldOwasp)
+	}
+	if m.file_content != nil {
+		fields = append(fields, securityscanningresult.FieldFileContent)
 	}
 	if m.start_position != nil {
 		fields = append(fields, securityscanningresult.FieldStartPosition)
@@ -13618,6 +13658,8 @@ func (m *SecurityScanningResultMutation) Field(name string) (ent.Value, bool) {
 		return m.Impact()
 	case securityscanningresult.FieldOwasp:
 		return m.Owasp()
+	case securityscanningresult.FieldFileContent:
+		return m.FileContent()
 	case securityscanningresult.FieldStartPosition:
 		return m.StartPosition()
 	case securityscanningresult.FieldEndPosition:
@@ -13665,6 +13707,8 @@ func (m *SecurityScanningResultMutation) OldField(ctx context.Context, name stri
 		return m.OldImpact(ctx)
 	case securityscanningresult.FieldOwasp:
 		return m.OldOwasp(ctx)
+	case securityscanningresult.FieldFileContent:
+		return m.OldFileContent(ctx)
 	case securityscanningresult.FieldStartPosition:
 		return m.OldStartPosition(ctx)
 	case securityscanningresult.FieldEndPosition:
@@ -13792,6 +13836,13 @@ func (m *SecurityScanningResultMutation) SetField(name string, value ent.Value) 
 		}
 		m.SetOwasp(v)
 		return nil
+	case securityscanningresult.FieldFileContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileContent(v)
+		return nil
 	case securityscanningresult.FieldStartPosition:
 		v, ok := value.(*types.Position)
 		if !ok {
@@ -13909,6 +13960,9 @@ func (m *SecurityScanningResultMutation) ResetField(name string) error {
 		return nil
 	case securityscanningresult.FieldOwasp:
 		m.ResetOwasp()
+		return nil
+	case securityscanningresult.FieldFileContent:
+		m.ResetFileContent()
 		return nil
 	case securityscanningresult.FieldStartPosition:
 		m.ResetStartPosition()

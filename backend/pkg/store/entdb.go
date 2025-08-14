@@ -41,11 +41,32 @@ func NewEntDB(cfg *config.Config, logger *slog.Logger) (*db.Client, error) {
 	return c, nil
 }
 
+func RecoverMigrate16(m *migrate.Migrate, logger *slog.Logger) {
+	logger = logger.With("fn", "RecoverMigrate16")
+	logger.Info("recover migrate 16")
+	version, dirty, err := m.Version()
+	if err != nil {
+		logger.With("err", err).Error("get version failed")
+		return
+	}
+
+	logger.With("version", version, "dirty", dirty).Info("get schema_migrations")
+	if version == 16 && dirty {
+		if err := m.Force(15); err != nil {
+			logger.With("err", err).Error("force migrate 15 failed")
+			return
+		}
+	}
+
+	logger.Info("recover migrate 16 success")
+}
+
 func MigrateSQL(cfg *config.Config, logger *slog.Logger) error {
 	db, err := dql.Open("postgres", cfg.Database.Master)
 	if err != nil {
 		return err
 	}
+
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		return err
@@ -56,6 +77,7 @@ func MigrateSQL(cfg *config.Config, logger *slog.Logger) error {
 	if err != nil {
 		return err
 	}
+	RecoverMigrate16(m, logger)
 	if err := m.Up(); err != nil {
 		logger.With("component", "db").With("err", err).Warn("migrate db failed")
 	}

@@ -122,6 +122,12 @@ func (ssrc *SecurityScanningResultCreate) SetOwasp(i []interface{}) *SecuritySca
 	return ssrc
 }
 
+// SetFileContent sets the "file_content" field.
+func (ssrc *SecurityScanningResultCreate) SetFileContent(s string) *SecurityScanningResultCreate {
+	ssrc.mutation.SetFileContent(s)
+	return ssrc
+}
+
 // SetStartPosition sets the "start_position" field.
 func (ssrc *SecurityScanningResultCreate) SetStartPosition(t *types.Position) *SecurityScanningResultCreate {
 	ssrc.mutation.SetStartPosition(t)
@@ -250,6 +256,9 @@ func (ssrc *SecurityScanningResultCreate) check() error {
 	if _, ok := ssrc.mutation.Owasp(); !ok {
 		return &ValidationError{Name: "owasp", err: errors.New(`db: missing required field "SecurityScanningResult.owasp"`)}
 	}
+	if _, ok := ssrc.mutation.FileContent(); !ok {
+		return &ValidationError{Name: "file_content", err: errors.New(`db: missing required field "SecurityScanningResult.file_content"`)}
+	}
 	if _, ok := ssrc.mutation.StartPosition(); !ok {
 		return &ValidationError{Name: "start_position", err: errors.New(`db: missing required field "SecurityScanningResult.start_position"`)}
 	}
@@ -357,6 +366,10 @@ func (ssrc *SecurityScanningResultCreate) createSpec() (*SecurityScanningResult,
 	if value, ok := ssrc.mutation.Owasp(); ok {
 		_spec.SetField(securityscanningresult.FieldOwasp, field.TypeJSON, value)
 		_node.Owasp = value
+	}
+	if value, ok := ssrc.mutation.FileContent(); ok {
+		_spec.SetField(securityscanningresult.FieldFileContent, field.TypeString, value)
+		_node.FileContent = value
 	}
 	if value, ok := ssrc.mutation.StartPosition(); ok {
 		_spec.SetField(securityscanningresult.FieldStartPosition, field.TypeJSON, value)
@@ -628,6 +641,18 @@ func (u *SecurityScanningResultUpsert) SetOwasp(v []interface{}) *SecurityScanni
 // UpdateOwasp sets the "owasp" field to the value that was provided on create.
 func (u *SecurityScanningResultUpsert) UpdateOwasp() *SecurityScanningResultUpsert {
 	u.SetExcluded(securityscanningresult.FieldOwasp)
+	return u
+}
+
+// SetFileContent sets the "file_content" field.
+func (u *SecurityScanningResultUpsert) SetFileContent(v string) *SecurityScanningResultUpsert {
+	u.Set(securityscanningresult.FieldFileContent, v)
+	return u
+}
+
+// UpdateFileContent sets the "file_content" field to the value that was provided on create.
+func (u *SecurityScanningResultUpsert) UpdateFileContent() *SecurityScanningResultUpsert {
+	u.SetExcluded(securityscanningresult.FieldFileContent)
 	return u
 }
 
@@ -936,6 +961,20 @@ func (u *SecurityScanningResultUpsertOne) SetOwasp(v []interface{}) *SecuritySca
 func (u *SecurityScanningResultUpsertOne) UpdateOwasp() *SecurityScanningResultUpsertOne {
 	return u.Update(func(s *SecurityScanningResultUpsert) {
 		s.UpdateOwasp()
+	})
+}
+
+// SetFileContent sets the "file_content" field.
+func (u *SecurityScanningResultUpsertOne) SetFileContent(v string) *SecurityScanningResultUpsertOne {
+	return u.Update(func(s *SecurityScanningResultUpsert) {
+		s.SetFileContent(v)
+	})
+}
+
+// UpdateFileContent sets the "file_content" field to the value that was provided on create.
+func (u *SecurityScanningResultUpsertOne) UpdateFileContent() *SecurityScanningResultUpsertOne {
+	return u.Update(func(s *SecurityScanningResultUpsert) {
+		s.UpdateFileContent()
 	})
 }
 
@@ -1417,6 +1456,20 @@ func (u *SecurityScanningResultUpsertBulk) SetOwasp(v []interface{}) *SecuritySc
 func (u *SecurityScanningResultUpsertBulk) UpdateOwasp() *SecurityScanningResultUpsertBulk {
 	return u.Update(func(s *SecurityScanningResultUpsert) {
 		s.UpdateOwasp()
+	})
+}
+
+// SetFileContent sets the "file_content" field.
+func (u *SecurityScanningResultUpsertBulk) SetFileContent(v string) *SecurityScanningResultUpsertBulk {
+	return u.Update(func(s *SecurityScanningResultUpsert) {
+		s.SetFileContent(v)
+	})
+}
+
+// UpdateFileContent sets the "file_content" field to the value that was provided on create.
+func (u *SecurityScanningResultUpsertBulk) UpdateFileContent() *SecurityScanningResultUpsertBulk {
+	return u.Update(func(s *SecurityScanningResultUpsert) {
+		s.UpdateFileContent()
 	})
 }
 

@@ -52,5 +52,5 @@ type Result struct {
 	ID      string
 	Output  string
 	Prefix  string
-	Results []ResultItem `json:"results"`
+	Results []*ResultItem `json:"results"`
 }

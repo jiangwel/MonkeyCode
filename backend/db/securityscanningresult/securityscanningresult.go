@@ -46,6 +46,8 @@ const (
 	FieldImpact = "impact"
 	// FieldOwasp holds the string denoting the owasp field in the database.
 	FieldOwasp = "owasp"
+	// FieldFileContent holds the string denoting the file_content field in the database.
+	FieldFileContent = "file_content"
 	// FieldStartPosition holds the string denoting the start_position field in the database.
 	FieldStartPosition = "start_position"
 	// FieldEndPosition holds the string denoting the end_position field in the database.
@@ -84,6 +86,7 @@ var Columns = []string{
 	FieldCwe,
 	FieldImpact,
 	FieldOwasp,
+	FieldFileContent,
 	FieldStartPosition,
 	FieldEndPosition,
 	FieldCreatedAt,
@@ -180,6 +183,11 @@ func ByConfidence(opts ...sql.OrderTermOption) OrderOption {
 // ByImpact orders the results by the impact field.
 func ByImpact(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldImpact, opts...).ToFunc()
+}
+
+// ByFileContent orders the results by the file_content field.
+func ByFileContent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFileContent, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

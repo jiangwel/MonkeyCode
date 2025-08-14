@@ -43,6 +43,7 @@ func (SecurityScanningResult) Fields() []ent.Field {
 		field.JSON("cwe", []any{}),
 		field.String("impact"),
 		field.JSON("owasp", []any{}),
+		field.Text("file_content"),
 		field.JSON("start_position", &types.Position{}),
 		field.JSON("end_position", &types.Position{}),
 		field.Time("created_at").Default(time.Now),

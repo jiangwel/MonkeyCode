@@ -250,7 +250,7 @@ func init() {
 	securityscanningresultFields := schema.SecurityScanningResult{}.Fields()
 	_ = securityscanningresultFields
 	// securityscanningresultDescCreatedAt is the schema descriptor for created_at field.
-	securityscanningresultDescCreatedAt := securityscanningresultFields[19].Descriptor()
+	securityscanningresultDescCreatedAt := securityscanningresultFields[20].Descriptor()
 	// securityscanningresult.DefaultCreatedAt holds the default value on creation for the created_at field.
 	securityscanningresult.DefaultCreatedAt = securityscanningresultDescCreatedAt.Default.(func() time.Time)
 	settingFields := schema.Setting{}.Fields()
