@@ -41,7 +41,7 @@ const Header = () => {
           download='monkeycode-client.vsix'
           rel='noopener noreferrer'
         >
-          下载客户端
+          下载 VSCode 插件
         </Button>
         <Tooltip title='退出登录'>
           <IconButton
