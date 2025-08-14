@@ -47,7 +47,7 @@ type CheckModelReq struct {
 }
 
 type GetProviderModelListReq struct {
-	Provider  consts.ModelProvider `json:"provider" query:"provider" validate:"required,oneof=SiliconFlow OpenAI Ollama DeepSeek Moonshot AzureOpenAI BaiZhiCloud Hunyuan BaiLian Volcengine Other"`
+	Provider  consts.ModelProvider `json:"provider" query:"provider" validate:"required,oneof=SiliconFlow OpenAI Ollama DeepSeek Moonshot AzureOpenAI BaiZhiCloud Hunyuan BaiLian Volcengine ZhiPu Other"`
 	BaseURL   string               `json:"base_url" query:"base_url" validate:"required"`
 	APIKey    string               `json:"api_key" query:"api_key"`
 	APIHeader string               `json:"api_header" query:"api_header"`
@@ -77,11 +77,11 @@ type GetTokenUsageReq struct {
 
 type CreateModelReq struct {
 	UserID     string               `json:"-"`
-	ShowName   string               `json:"show_name"`                                                                                                                               // 模型显示名称
-	ModelName  string               `json:"model_name" validate:"required"`                                                                                                          // 模型名称 如: deepseek-v3
-	Provider   consts.ModelProvider `json:"provider" validate:"required,oneof=SiliconFlow OpenAI Ollama DeepSeek Moonshot AzureOpenAI BaiZhiCloud Hunyuan BaiLian Volcengine Other"` // 提供商
-	APIBase    string               `json:"api_base" validate:"required"`                                                                                                            // 接口地址 如：https://api.qwen.com
-	APIKey     string               `json:"api_key"`                                                                                                                                 // 接口密钥 如：sk-xxxx
+	ShowName   string               `json:"show_name"`                                                                                                                                     // 模型显示名称
+	ModelName  string               `json:"model_name" validate:"required"`                                                                                                                // 模型名称 如: deepseek-v3
+	Provider   consts.ModelProvider `json:"provider" validate:"required,oneof=SiliconFlow OpenAI Ollama DeepSeek Moonshot AzureOpenAI BaiZhiCloud Hunyuan BaiLian Volcengine ZhiPu Other"` // 提供商
+	APIBase    string               `json:"api_base" validate:"required"`                                                                                                                  // 接口地址 如：https://api.qwen.com
+	APIKey     string               `json:"api_key"`                                                                                                                                       // 接口密钥 如：sk-xxxx
 	APIVersion string               `json:"api_version"`
 	APIHeader  string               `json:"api_header"`
 	ModelType  consts.ModelType     `json:"model_type"` // 模型类型 llm:对话模型 coder:代码模型
@@ -109,12 +109,12 @@ func DefaultModelParam() *ModelParam {
 }
 
 type UpdateModelReq struct {
-	ID         string                `json:"id"`                                                                                                                                      // 模型ID
-	ModelName  *string               `json:"model_name"`                                                                                                                              // 模型名称
-	ShowName   *string               `json:"show_name"`                                                                                                                               // 模型显示名称
-	Provider   *consts.ModelProvider `json:"provider" validate:"required,oneof=SiliconFlow OpenAI Ollama DeepSeek Moonshot AzureOpenAI BaiZhiCloud Hunyuan BaiLian Volcengine Other"` // 提供商
-	APIBase    *string               `json:"api_base"`                                                                                                                                // 接口地址 如：https://api.qwen.com
-	APIKey     *string               `json:"api_key"`                                                                                                                                 // 接口密钥 如：sk-xxxx
+	ID         string                `json:"id"`                                                                                                                                            // 模型ID
+	ModelName  *string               `json:"model_name"`                                                                                                                                    // 模型名称
+	ShowName   *string               `json:"show_name"`                                                                                                                                     // 模型显示名称
+	Provider   *consts.ModelProvider `json:"provider" validate:"required,oneof=SiliconFlow OpenAI Ollama DeepSeek Moonshot AzureOpenAI BaiZhiCloud Hunyuan BaiLian Volcengine ZhiPu Other"` // 提供商
+	APIBase    *string               `json:"api_base"`                                                                                                                                      // 接口地址 如：https://api.qwen.com
+	APIKey     *string               `json:"api_key"`                                                                                                                                       // 接口密钥 如：sk-xxxx
 	APIVersion *string               `json:"api_version"`
 	APIHeader  *string               `json:"api_header"`
 	Status     *consts.ModelStatus   `json:"status"`          // 状态 active:启用 inactive:禁用

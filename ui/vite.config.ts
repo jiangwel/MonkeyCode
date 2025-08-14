@@ -27,18 +27,18 @@ export default defineConfig(({ mode }) => {
       'process.env.REACT_APP_MONACO_CDN': JSON.stringify('false'),
     },
     // 优化构建配置
-    // build: {
-    //   rollupOptions: {
-    //     output: {
-    //       manualChunks: {
-    //         'monaco-editor': ['monaco-editor'],
-    //         'monaco-react': ['@monaco-editor/react'],
-    //       },
-    //     },
-    //   },
-    //   // 复制 Monaco Editor 的静态资源
-    //   copyPublicDir: true,
-    // },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'monaco-editor': ['monaco-editor'],
+            'monaco-react': ['@monaco-editor/react'],
+          },
+        },
+      },
+      // 复制 Monaco Editor 的静态资源
+      copyPublicDir: true,
+    },
     // 确保 Monaco Editor 被正确优化
     // optimizeDeps: {
     //   include: ['monaco-editor', '@monaco-editor/react'],

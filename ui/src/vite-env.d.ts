@@ -6,6 +6,10 @@ declare module '@mui/material/styles' {
     tertiary: string;
   }
 
+  interface TypeBackground {
+    paper2: string;
+  }
+
   interface Palette {
     light: Palette['primary'] & PaletteColorChannel;
     dark: Palette['primary'] & PaletteColorChannel;
@@ -18,6 +22,7 @@ declare module '@mui/material/styles' {
     dark?: PaletteOptions['primary'] & Partial<PaletteColorChannel>;
     disabled?: PaletteOptions['primary'] & Partial<PaletteColorChannel>;
     text?: Partial<TypeText>;
+    background?: Partial<TypeBackground>;
   }
 }
 declare module '@mui/material/Button' {

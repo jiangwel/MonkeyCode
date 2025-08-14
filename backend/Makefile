@@ -1,6 +1,6 @@
 PLATFORM=linux/amd64
 TAG=main
-OUTPUT=type=docker,dest=${HOME}/tmp/monkeycode_server.tar
+OUTPUT=type=docker,dest=/Users/jiangwei/Develop/AppDeploy/monkeycode_server.tar
 GOCACHE=${HOME}/.cache/go-build
 GOMODCACHE=${HOME}/go/pkg/mod
 REGISTRY=monkeycode.chaitin.cn/monkeycode
@@ -10,18 +10,19 @@ GIT_COMMIT=${shell git rev-parse HEAD}
 
 # make build PLATFORM= TAG= OUTPUT= GOCACHE=
 image:
-	docker buildx build \
-	  -f build/Dockerfile \
-	  --build-arg GOCACHE=${GOCACHE} \
-	  --build-arg GOMODCACHE=${GOMODCACHE} \
-	  --build-arg REPO_COMMIT=$(shell git rev-parse HEAD) \
-	  --build-arg VERSION=${VERSION} \
-	  --build-arg BUILD_TIME=${BUILD_TIME} \
-	  --build-arg GIT_COMMIT=${GIT_COMMIT} \
-	  --platform ${PLATFORM} \
-	  --tag ${REGISTRY}/backend:${TAG} \
-	  --output ${OUTPUT} \
-	  .
+		docker buildx build \
+		  -f build/Dockerfile \
+		  --build-arg GOCACHE=${GOCACHE} \
+		  --build-arg GOMODCACHE=${GOMODCACHE} \
+		  --build-arg REPO_COMMIT=$(shell git rev-parse HEAD) \
+		  --build-arg VERSION=${VERSION} \
+		  --build-arg BUILD_TIME=${BUILD_TIME} \
+		  --build-arg GIT_COMMIT=${GIT_COMMIT} \
+		  --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
+		  --platform ${PLATFORM} \
+		  --tag ${REGISTRY}/backend:${TAG} \
+		  --output ${OUTPUT} \
+		  .
 
 image-scanner:
 	docker buildx build \

@@ -56,6 +56,7 @@ func NewModelHandler(
 //	@Success		200		{object}	web.Resp{data=domain.Model}
 //	@Router			/api/v1/model/check [post]
 func (h *ModelHandler) Check(c *web.Context, req domain.CheckModelReq) error {
+	h.logger.Info("Check model", slog.Any("req", req))
 	modelkitRes, err := modelkit.CheckModel(c.Request().Context(), &modelkitDomain.CheckModelReq{
 		Provider:   string(req.Provider),
 		Model:      req.ModelName,
