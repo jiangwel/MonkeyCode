@@ -45,15 +45,16 @@ type HeartbeatData struct {
 }
 
 type SocketHandler struct {
-	config           *config.Config
-	logger           *slog.Logger
-	workspaceService domain.WorkspaceFileUsecase
-	workspaceUsecase domain.WorkspaceUsecase
-	userService      domain.UserUsecase
-	io               *socketio.Io
-	mu               sync.Mutex
-	workspaceCache   map[string]*domain.Workspace
-	cacheMutex       sync.RWMutex
+	config              *config.Config
+	logger              *slog.Logger
+	workspaceService    domain.WorkspaceFileUsecase
+	workspaceUsecase    domain.WorkspaceUsecase
+	userService         domain.UserUsecase
+	io                  *socketio.Io
+	mu                  sync.Mutex
+	workspaceCache      map[string]*domain.Workspace
+	cacheMutex          sync.RWMutex
+	workspaceProcessing sync.Map
 }
 
 func NewSocketHandler(config *config.Config, logger *slog.Logger, workspaceService domain.WorkspaceFileUsecase, workspaceUsecase domain.WorkspaceUsecase, userService domain.UserUsecase) (*SocketHandler, error) {
@@ -439,18 +440,42 @@ func (h *SocketHandler) processFileUpdateAsync(socket *socketio.Socket, updateDa
 
 // ensureWorkspace ensures that a workspace exists for the given workspacePath
 func (h *SocketHandler) ensureWorkspace(ctx context.Context, userID, workspacePath string) (string, error) {
-	if workspacePath != "" {
-		// Use EnsureWorkspace to create or update workspace based on path
-		workspace, err := h.workspaceUsecase.EnsureWorkspace(ctx, userID, workspacePath, "")
-		if err != nil {
-			h.logger.Error("Error ensuring workspace", "path", workspacePath, "error", err)
-			return "", fmt.Errorf("failed to ensure workspace: %w", err)
-		}
-		return workspace.ID, nil
+	if workspacePath == "" {
+		return "", fmt.Errorf("no workspace path provided")
 	}
 
-	// If no workspacePath provided, return an error
-	return "", fmt.Errorf("no workspace path provided")
+	// 创建处理键，防止同一个 workspace 的并发处理
+	processingKey := fmt.Sprintf("%s:%s", userID, workspacePath)
+
+	// 检查是否已经在处理中
+	if _, processing := h.workspaceProcessing.LoadOrStore(processingKey, true); processing {
+		h.logger.Debug("workspace already being processed, waiting", "userID", userID, "workspacePath", workspacePath)
+
+		// 等待一段时间后重试
+		maxWaitRetries := 10
+		for i := 0; i < maxWaitRetries; i++ {
+			time.Sleep(50 * time.Millisecond)
+			if _, stillProcessing := h.workspaceProcessing.Load(processingKey); !stillProcessing {
+				break
+			}
+		}
+
+		// 如果仍在处理中，直接调用 EnsureWorkspace（此时应该会很快返回现有的workspace）
+		h.logger.Debug("proceeding with workspace creation after wait", "userID", userID, "workspacePath", workspacePath)
+	}
+
+	// 确保在函数结束时清理处理标记
+	defer h.workspaceProcessing.Delete(processingKey)
+
+	// Use EnsureWorkspace to create or update workspace based on path
+	workspace, err := h.workspaceUsecase.EnsureWorkspace(ctx, userID, workspacePath, "")
+	if err != nil {
+		h.logger.Error("Error ensuring workspace", "userID", userID, "path", workspacePath, "error", err)
+		return "", fmt.Errorf("failed to ensure workspace: %w", err)
+	}
+
+	h.logger.Debug("workspace ensured successfully", "userID", userID, "workspacePath", workspacePath, "workspaceID", workspace.ID)
+	return workspace.ID, nil
 }
 
 func (h *SocketHandler) handleTestPing(socket *socketio.Socket, data string) {
