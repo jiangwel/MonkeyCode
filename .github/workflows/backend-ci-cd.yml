@@ -65,7 +65,6 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
     defaults:
       run:
         working-directory: ./backend
@@ -75,17 +74,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          lfs: true
           submodules: true
           token: ${{ secrets.PRO_TOKEN }}
-
-      - name: Cache Git LFS
-        uses: actions/cache@v4
-        with:
-          path: .git/lfs
-          key: ${{ runner.os }}-git-lfs-${{ hashFiles('.gitattributes') }}
-          restore-keys: |
-            ${{ runner.os }}-git-lfs-
 
       - name: Get version
         id: get_version
@@ -111,6 +101,9 @@ jobs:
           mkdir -p assets-amd64/sgp
           mkdir -p assets-arm64/sgp
           mkdir -p assets/vsix
+
+          # 下载 xdb
+          wget -O pkg/ipdb/ip2region.xdb https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/monkeycode/ip2region.xdb
           
           # 下载 VSIX (架构无关)
           VERSION_NO_V=${{ steps.get_version.outputs.VERSION }}
