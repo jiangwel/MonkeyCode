@@ -98,7 +98,7 @@ const LoginHistory = () => {
     },
   ];
   return (
-    <Card sx={{ flex: 1, height: 'calc(100% - 358px)' }}>
+    <Card sx={{ flex: 1, height: '500px' }}>
       <Stack
         direction='row'
         justifyContent='space-between'

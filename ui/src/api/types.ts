@@ -166,6 +166,8 @@ export interface DomainAdminUser {
   id?: string;
   /** 最后活跃时间 */
   last_active_at?: number;
+  /** 角色 */
+  role?: DomainRole;
   /** 用户状态 active: 正常 inactive: 禁用 */
   status?: ConstsAdminStatus;
   /** 用户名 */
@@ -243,7 +245,7 @@ export interface DomainCheckModelReq {
   api_base: string;
   api_header?: string;
   /** 接口密钥 */
-  api_key: string;
+  api_key?: string;
   api_version?: string;
   /** 模型名称 */
   model_name: string;
@@ -366,9 +368,11 @@ export interface DomainCompletionRecord {
 
 export interface DomainCreateAdminReq {
   /** 密码 */
-  password?: string;
+  password: string;
+  /** 角色ID */
+  role_id: number;
   /** 用户名 */
-  username?: string;
+  username: string;
 }
 
 export interface DomainCreateModelReq {
@@ -407,6 +411,11 @@ export interface DomainCreateSecurityScanningReq {
   user_id?: string;
   /** 项目目录 */
   workspace?: string;
+}
+
+export interface DomainCreateUserGroupReq {
+  /** 组名称 */
+  name: string;
 }
 
 export interface DomainCreateWorkspaceFileReq {
@@ -525,6 +534,41 @@ export interface DomainGetProviderModelListResp {
   models?: DomainProviderModelListItem[];
 }
 
+export interface DomainGrantGroupReq {
+  /** 管理员ID列表 */
+  admin_ids: string[];
+  /** 分组ID列表 */
+  group_ids: string[];
+}
+
+export interface DomainGrantRoleReq {
+  /** 管理员ID */
+  admin_id?: string;
+  /** 角色ID列表 */
+  role_ids?: number[];
+}
+
+export interface DomainGroupAddUserReq {
+  /** 分组ID列表 */
+  group_ids: string[];
+  /** 用户ID列表 */
+  user_ids: string[];
+}
+
+export interface DomainGroupRemoveAdminReq {
+  /** 管理员ID列表 */
+  admin_ids: string[];
+  /** 分组ID */
+  group_id: string;
+}
+
+export interface DomainGroupRemoveUserReq {
+  /** 分组ID */
+  group_id: string;
+  /** 用户ID列表 */
+  user_ids: string[];
+}
+
 export interface DomainIPInfo {
   /** ASN */
   asn?: string;
@@ -637,6 +681,13 @@ export interface DomainListSecurityScanningReq {
 export interface DomainListSecurityScanningResp {
   has_next_page?: boolean;
   items?: DomainSecurityScanningResult[];
+  next_token?: string;
+  total_count?: number;
+}
+
+export interface DomainListUserGroupResp {
+  groups?: DomainUserGroup[];
+  has_next_page?: boolean;
   next_token?: string;
   total_count?: number;
 }
@@ -830,6 +881,12 @@ export interface DomainReportReq {
   tool?: string;
   /** 用户输入的新文本（用于reject action） */
   user_input?: string;
+}
+
+export interface DomainRole {
+  description?: string;
+  id?: number;
+  name?: string;
 }
 
 export interface DomainSecurityScanningBrief {
@@ -1049,6 +1106,12 @@ export interface DomainUpdateSettingReq {
   force_two_factor_auth?: boolean;
 }
 
+export interface DomainUpdateUserGroupReq {
+  /** 分组id */
+  id: string;
+  name: string;
+}
+
 export interface DomainUpdateUserReq {
   /** 用户ID */
   id: string;
@@ -1106,6 +1169,16 @@ export interface DomainUserEvent {
   created_at?: number;
   /** 事件名称 */
   name?: string;
+}
+
+export interface DomainUserGroup {
+  /** 关联的管理员 */
+  admins?: DomainAdminUser[];
+  id?: string;
+  /** 组名 */
+  name?: string;
+  /** 关联的用户 */
+  users?: DomainUser[];
 }
 
 export interface DomainUserHeatmap {
@@ -1263,6 +1336,20 @@ export interface GetAdminLoginHistoryParams {
   page?: number;
   /** 每页多少条记录 */
   size?: number;
+}
+
+export interface GetListUserGroupParams {
+  /** 下一页标识 */
+  next_token?: string;
+  /** 分页 */
+  page?: number;
+  /** 每页多少条记录 */
+  size?: number;
+}
+
+export interface DeleteDeleteGroupParams {
+  /** 分组id */
+  id: string;
 }
 
 export interface GetChatInfoParams {
