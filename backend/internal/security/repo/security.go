@@ -216,7 +216,11 @@ func (s *SecurityScanningRepo) Detail(ctx context.Context, userID, id string) ([
 	}
 
 	q := s.db.SecurityScanningResult.Query().
-		Where(securityscanningresult.SecurityScanningID(sid))
+		Where(securityscanningresult.SecurityScanningID(sid)).
+		Order(
+			BySeverityOrder(),
+			securityscanningresult.ByCreatedAt(sql.OrderDesc()),
+		)
 
 	if userID != "" {
 		uid, err := uuid.Parse(userID)
@@ -236,7 +240,6 @@ func (s *SecurityScanningRepo) Detail(ctx context.Context, userID, id string) ([
 	rs := cvt.Iter(scannings, func(_ int, r *db.SecurityScanningResult) *domain.SecurityScanningRiskDetail {
 		return cvt.From(r, &domain.SecurityScanningRiskDetail{})
 	})
-	domain.SortRiskDetailsByLevel(rs)
 	return rs, nil
 }
 
@@ -307,4 +310,38 @@ func (s *SecurityScanningRepo) PageWorkspaceFiles(ctx context.Context, id string
 	}
 
 	return nil
+}
+
+func (s *SecurityScanningRepo) ListDetail(ctx context.Context, req domain.ListSecurityScanningDetailReq) (*domain.ListSecurityScanningDetailResp, error) {
+	sid, err := uuid.Parse(req.ID)
+	if err != nil {
+		return nil, err
+	}
+	q := s.db.SecurityScanningResult.Query().
+		Where(securityscanningresult.SecurityScanningID(sid)).
+		Order(
+			BySeverityOrder(),
+			securityscanningresult.ByCreatedAt(sql.OrderDesc()),
+			securityscanningresult.ByID(sql.OrderDesc()),
+		)
+
+	rs, p, err := q.Page(ctx, req.Page, req.Size)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.ListSecurityScanningDetailResp{
+		PageInfo: p,
+		Items: cvt.Iter(rs, func(_ int, r *db.SecurityScanningResult) *domain.SecurityScanningRiskDetail {
+			return cvt.From(r, &domain.SecurityScanningRiskDetail{})
+		}),
+	}, nil
+}
+
+func BySeverityOrder() func(s *sql.Selector) {
+	return func(s *sql.Selector) {
+		s.OrderExprFunc(func(b *sql.Builder) {
+			b.WriteString("case when severity = 'CRITICAL' then 5 when severity = 'ERROR' then 4 when severity = 'WARNING' then 3 when severity = 'INFO' then 2 else 1 end desc")
+		})
+	}
 }

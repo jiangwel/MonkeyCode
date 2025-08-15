@@ -61,7 +61,8 @@ func NewV1Handler(
 	g.POST("/completions", web.BaseHandler(h.Completions), active.Active("apikey"))
 	g.POST("/embeddings", web.BaseHandler(h.Embeddings), active.Active("apikey"))
 	g.POST("/security/scanning", web.BindHandler(h.CreateSecurityScanning), active.Active("apikey"))
-	g.GET("/security/scanning", web.BindHandler(h.ListSecurityScanning), active.Active("apikey"))
+	g.GET("/security/scanning", web.BindHandler(h.ListSecurityScanning, web.WithPage()), active.Active("apikey"))
+	g.GET("/security/scanning/detail", web.BindHandler(h.ListSecurityScanningDetail, web.WithPage()), active.Active("apikey"))
 	return h
 }
 
@@ -244,7 +245,7 @@ func (h *V1Handler) CreateSecurityScanning(c *web.Context, req domain.CreateSecu
 //
 //	@Tags			OpenAIV1
 //	@Summary		扫描任务列表
-//	@Description	分页逻辑只支持用 next_token
+//	@Description	扫描任务列表
 //	@ID				list-security-scanning
 //	@Accept			json
 //	@Produce		json
@@ -253,12 +254,35 @@ func (h *V1Handler) CreateSecurityScanning(c *web.Context, req domain.CreateSecu
 //	@Router			/v1/security/scanning [get]
 func (h *V1Handler) ListSecurityScanning(c *web.Context, req domain.ListSecurityScanningReq) error {
 	req.UserID = middleware.GetApiKey(c).UserID
+	req.Pagination = *c.Page()
 	s, err := h.uuse.GetSetting(c.Request().Context())
 	if err != nil {
 		return err
 	}
 	req.BaseURL = h.config.GetBaseURL(c.Request(), s)
 	resp, err := h.proxyUse.ListSecurityScanning(c.Request().Context(), &req)
+	if err != nil {
+		return err
+	}
+	return c.Success(resp)
+}
+
+// ListSecurityScanningDetail 获取扫描任务风险详情列表
+//
+//	@Tags			OpenAIV1
+//	@Summary		获取扫描任务风险详情列表
+//	@Description	分页只支持 next_token; 首页传空，后续判断has_next_page是否为true，传入回包给的next_token
+//	@ID				list-security-scanning-detail
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	query		domain.ListSecurityScanningDetailReq	true	"扫描任务ID"
+//	@Success		200	{object}	web.Resp{data=domain.ListSecurityScanningDetailResp}
+//	@Router			/v1/security/scanning/detail [get]
+func (h *V1Handler) ListSecurityScanningDetail(c *web.Context, req domain.ListSecurityScanningDetailReq) error {
+	req.Pagination = *c.Page()
+	user := middleware.GetApiKey(c)
+	req.UserID = user.ID
+	resp, err := h.proxyUse.ListSecurityDetail(c.Request().Context(), &req)
 	if err != nil {
 		return err
 	}
