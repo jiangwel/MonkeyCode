@@ -102,6 +102,7 @@ jobs:
           mkdir -p assets-amd64/sgp
           mkdir -p assets-arm64/sgp
           mkdir -p assets/vsix
+          touch docs/swagger.json
 
           # 下载 xdb
           wget -O pkg/ipdb/ip2region.xdb https://baizhiyun.oss-cn-hangzhou.aliyuncs.com/monkeycode/ip2region.xdb
