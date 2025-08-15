@@ -6,10 +6,15 @@ import {
   IconButton,
   TextField,
   Paper,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
+import { AdminPanelSettings, Person } from '@mui/icons-material';
 import { postCreateAdmin } from '@/api/Admin';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { deleteDeleteAdmin, getListAdminUser } from '@/api/Admin';
+import { deleteDeleteAdmin, getAdminProfile, getListAdminUser, postGrantRole } from '@/api/Admin';
 import { Table, Modal, message } from '@c-x/ui';
 import { ColumnsType } from '@c-x/ui/dist/Table';
 import { useRequest } from 'ahooks';
@@ -44,6 +49,7 @@ const AddAdminModal = ({
     postCreateAdmin({
       username: data.username,
       password,
+      role_id: data.roleId, // 添加 role_id 参数
     }).then(() => {
       setIsSuccess(true);
       message.success('添加成功');
@@ -53,7 +59,9 @@ const AddAdminModal = ({
 
   useEffect(() => {
     if (open) {
-      reset();
+      reset({
+        roleId: 2, // 设置默认角色为普通管理员
+      });
     } else {
       setIsSuccess(false);
       setPassword(Math.random().toString(36).substring(2, 15));
@@ -83,6 +91,29 @@ const AddAdminModal = ({
                 error={!!errors.username}
                 helperText={errors.username?.message as string}
               />
+            )}
+          />
+          <Controller
+            control={control}
+            name='roleId'
+            rules={{ required: '请选择角色' }}
+            render={({ field }) => (
+              <FormControl fullWidth required error={!!errors.roleId}>
+                <InputLabel>角色</InputLabel>
+                <Select
+                  label='角色'
+                  {...field}
+                  value={field.value || ''} // 确保有默认值
+                >
+                  <MenuItem value={1}>超级管理员</MenuItem>
+                  <MenuItem value={2}>普通管理员</MenuItem>
+                </Select>
+                {errors.roleId && (
+                  <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
+                    {errors.roleId?.message as string}
+                  </Box>
+                )}
+              </FormControl>
             )}
           />
           <Stack
@@ -154,6 +185,20 @@ const AddAdminModal = ({
 const AdminUser = () => {
   const [open, setOpen] = useState(false);
   const { data, loading, refresh } = useRequest(() => getListAdminUser({}));
+  const { data: currentAdmin } = useRequest(() => getAdminProfile({}));
+  
+  const handleRoleChange = (adminId: string, newRoleId: number) => {
+    postGrantRole({
+      admin_id: adminId,
+      role_ids: [newRoleId],
+    }).then(() => {
+      message.success('角色更新成功');
+      refresh();
+    }).catch(() => {
+      message.error('角色更新失败');
+    });
+  };
+
   const onDeleteAdmin = (data: DomainAdminUser) => {
     Modal.confirm({
       title: '提示',
@@ -187,21 +232,65 @@ const AdminUser = () => {
       },
     },
     {
-      title: '加入时间',
-      dataIndex: 'created_at',
-      width: 140,
-      render: (text) => {
-        return dayjs.unix(text).fromNow();
+      title: '角色',
+      dataIndex: 'last_active_at',
+      render: (text, record) => {
+        return (
+          <FormControl fullWidth>
+            <Select
+              size='small'
+              value={record.role?.id || ''}
+              onChange={(e) => handleRoleChange(record.id!, Number(e.target.value))}
+              displayEmpty
+              disabled={record.id === currentAdmin?.id}
+              renderValue={(value) => {
+                if (value === 1) {
+                  return (
+                    <Stack direction="row" alignItems="center" gap={1}>
+                      <AdminPanelSettings fontSize="small" />
+                      <span>超级管理员</span>
+                    </Stack>
+                  );
+                } else if (value === 2) {
+                  return (
+                    <Stack direction="row" alignItems="center" gap={1}>
+                      <Person fontSize="small" />
+                      <span>普通管理员</span>
+                    </Stack>
+                  );
+                }
+                return "请选择角色";
+              }}
+              sx={{
+                mr: 1
+              }}
+            >
+              <MenuItem value={1}>
+                <Stack direction="row" alignItems="center" gap={1}>
+                  <AdminPanelSettings fontSize="small" />
+                  <span>超级管理员</span>
+                </Stack>
+              </MenuItem>
+              <MenuItem value={2}>
+                <Stack direction="row" alignItems="center" gap={1}>
+                  <Person fontSize="small" />
+                  <span>普通管理员</span>
+                </Stack>
+              </MenuItem>
+            </Select>
+          </FormControl>
+        );
       },
     },
     {
-      title: '最近活跃',
-      dataIndex: 'last_active_at',
-      width: 140,
+      title: '活跃时间',
+      dataIndex: 'created_at',
+      width: 120,
       render: (text, record) => {
-        return record.last_active_at === 0
-          ? '从未使用'
-          : dayjs.unix(text).fromNow();
+        return <Stack>
+          <Box>{dayjs.unix(text).fromNow()}</Box>
+          <Box>{record.last_active_at === 0 ? '从未使用' : dayjs.unix(text).fromNow()}</Box>
+        </Stack>
       },
     },
     {

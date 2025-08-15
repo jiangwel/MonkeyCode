@@ -16,9 +16,11 @@ import {
   DomainAdminUser,
   DomainCreateAdminReq,
   DomainExportCompletionDataResp,
+  DomainGrantRoleReq,
   DomainListAdminLoginHistoryResp,
   DomainListAdminUserResp,
   DomainLoginReq,
+  DomainRole,
   DomainSetting,
   DomainUpdateSettingReq,
   GetAdminLoginHistoryParams,
@@ -239,6 +241,55 @@ export const getAdminProfile = (params: RequestParams = {}) =>
   >({
     path: `/api/v1/admin/profile`,
     method: "GET",
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
+ * @description 获取角色列表
+ *
+ * @tags Admin
+ * @name GetListRole
+ * @summary 获取角色列表
+ * @request GET:/api/v1/admin/role
+ * @response `200` `(WebResp & {
+    data?: (DomainRole)[],
+
+})` OK
+ */
+
+export const getListRole = (params: RequestParams = {}) =>
+  request<
+    WebResp & {
+      data?: DomainRole[];
+    }
+  >({
+    path: `/api/v1/admin/role`,
+    method: "GET",
+    type: ContentType.Json,
+    format: "json",
+    ...params,
+  });
+
+/**
+ * @description 授权角色
+ *
+ * @tags Admin
+ * @name PostGrantRole
+ * @summary 授权角色
+ * @request POST:/api/v1/admin/role
+ * @response `200` `WebResp` OK
+ */
+
+export const postGrantRole = (
+  param: DomainGrantRoleReq,
+  params: RequestParams = {},
+) =>
+  request<WebResp>({
+    path: `/api/v1/admin/role`,
+    method: "POST",
+    body: param,
     type: ContentType.Json,
     format: "json",
     ...params,

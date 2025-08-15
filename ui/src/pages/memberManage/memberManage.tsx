@@ -282,7 +282,7 @@ const MemberManage = () => {
       },
     },
     {
-      title: '',
+      title: '操作',
       dataIndex: 'action',
       width: 80,
       render: (_, record) => {
@@ -302,7 +302,7 @@ const MemberManage = () => {
     },
   ];
   return (
-    <Card sx={{ flex: 1, height: '100%' }}>
+    <Card sx={{ flex: 1, height: '500px' }}>
       <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={handleClose}>
         {currentUser?.status === ConstsUserStatus.UserStatusActive && (
           <MenuItem onClick={onLockUser}>锁定成员</MenuItem>

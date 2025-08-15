@@ -14,6 +14,7 @@ import MemberManage from './memberManage';
 import LoginHistory from './loginHistory';
 import { message } from '@c-x/ui';
 import ThirdPartyLoginSettingModal from './thirdPartyLoginSettingModal';
+import GroupList from './groupList';
 
 const StyledCard = styled(Card)({
   display: 'flex',
@@ -65,14 +66,17 @@ const User = () => {
     <Stack gap={2} sx={{ height: '100%' }}>
       <Grid container spacing={2} sx={{ height: '100%' }}>
         <Grid size={6} sx={{ height: '100%' }}>
-          <MemberManage />
+          <Stack gap={2} sx={{ height: '100%' }}>
+            <GroupList />
+            <MemberManage />
+          </Stack>
         </Grid>
         <Grid size={6} container sx={{ height: '100%' }}>
           <Stack gap={2} sx={{ height: '100%' }}>
             <StyledCard>
               <StyledLabel>强制启用两步认证</StyledLabel>
               <Switch
-                checked={data?.force_two_factor_auth}
+                checked={!!data?.force_two_factor_auth}
                 onChange={(e) => {
                   updateSetting({ force_two_factor_auth: e.target.checked });
                 }}
@@ -81,7 +85,7 @@ const User = () => {
             <StyledCard>
               <StyledLabel>禁止使用密码登录</StyledLabel>
               <Switch
-                checked={data?.disable_password_login}
+                checked={!!data?.disable_password_login}
                 onChange={(e) =>
                   updateSetting({ disable_password_login: e.target.checked })
                 }
@@ -90,7 +94,7 @@ const User = () => {
             <StyledCard>
               <StyledLabel>开放自主注册（无需邀请）</StyledLabel>
               <Switch
-                checked={data?.enable_auto_login}
+                checked={!!data?.enable_auto_login}
                 onChange={(e) =>
                   updateSetting({ enable_auto_login: e.target.checked })
                 }
