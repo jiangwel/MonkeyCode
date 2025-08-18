@@ -41,7 +41,8 @@ func (p PermissionHook) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 
 	perm, ok := ctx.Value(PermissionKey{}).(*domain.Permissions)
 	if !ok {
-		return nil, errcode.ErrPermission.Wrap(fmt.Errorf("failed to get permission"))
+		// 没有权限，直接返回. 用于向后兼容
+		return p.next.Mutate(ctx, m)
 	}
 
 	if perm.IsAdmin {
