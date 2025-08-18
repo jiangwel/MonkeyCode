@@ -29,12 +29,18 @@ func SkipPermission(ctx context.Context) context.Context {
 }
 
 type PermissionHook struct {
-	next ent.Mutator
+	logger *slog.Logger
+	next   ent.Mutator
 }
 
 // Mutate implements ent.Mutator.
 func (p PermissionHook) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	slog.With("mType", fmt.Sprintf("%T", m)).With("op", m.Op().String()).With("type", m.Type()).InfoContext(ctx, "[PermissionHook] mutate")
+	p.logger.With(
+		"mType", fmt.Sprintf("%T", m),
+		"op", m.Op().String(),
+		"type", m.Type(),
+	).DebugContext(ctx, "[PermissionHook] mutate")
+
 	if v := ctx.Value(skipPermissionCheckKey{}); v != nil {
 		return p.next.Mutate(ctx, m)
 	}
@@ -80,9 +86,9 @@ func (p PermissionHook) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 
 var _ ent.Mutator = PermissionHook{}
 
-func PermissionHookFunc() ent.Hook {
+func PermissionHookFunc(logger *slog.Logger) ent.Hook {
 	return func(next ent.Mutator) ent.Mutator {
-		return PermissionHook{next: next}
+		return PermissionHook{logger: logger, next: next}
 	}
 }
 
@@ -108,6 +114,7 @@ func PermissionInterceptor(logger *slog.Logger) ent.Interceptor {
 			}
 
 			logger = logger.With("type", fmt.Sprintf("%T", q))
+			logger.DebugContext(ctx, "[PermissionInterceptor] query")
 
 			switch qq := q.(type) {
 			case *db.UserGroupQuery:
