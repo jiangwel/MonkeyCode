@@ -113,9 +113,6 @@ func PermissionInterceptor(logger *slog.Logger) ent.Interceptor {
 				return next.Query(ctx, q)
 			}
 
-			logger = logger.With("type", fmt.Sprintf("%T", q))
-			logger.DebugContext(ctx, "[PermissionInterceptor] query")
-
 			switch qq := q.(type) {
 			case *db.UserGroupQuery:
 				return WithPermission(ctx, next, q, func(ctx context.Context, p *domain.Permissions) error {

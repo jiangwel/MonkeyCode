@@ -15,7 +15,6 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/domain"
 	"github.com/chaitin/MonkeyCode/backend/ent/types"
 	"github.com/chaitin/MonkeyCode/backend/pkg/cvt"
-	"github.com/chaitin/MonkeyCode/backend/pkg/request"
 )
 
 type ModelUsecase struct {
@@ -142,23 +141,6 @@ func (m *ModelUsecase) InitModel(ctx context.Context) error {
 		return nil
 	}
 	return m.repo.InitModel(ctx, m.cfg.InitModel.Name, m.cfg.InitModel.Key, m.cfg.InitModel.URL)
-}
-
-func (m *ModelUsecase) getQuery(req *domain.GetProviderModelListReq) request.Query {
-	q := make(request.Query, 0)
-	if req.Provider != consts.ModelProviderBaiZhiCloud && req.Provider != consts.ModelProviderSiliconFlow {
-		return q
-	}
-	q["type"] = "text"
-	q["sub_type"] = string(req.Type)
-	if req.Type == consts.ModelTypeLLM {
-		q["sub_type"] = "chat"
-	}
-	// 硅基流动不支持coder sub_type
-	if req.Provider == consts.ModelProviderSiliconFlow && req.Type == consts.ModelTypeCoder {
-		q["sub_type"] = "chat"
-	}
-	return q
 }
 
 func (m *ModelUsecase) Delete(ctx context.Context, id string) error {
