@@ -14,7 +14,6 @@ import request, { ContentType, RequestParams } from "./httpClient";
 import {
   DeleteDeleteModelParams,
   DomainAllModelResp,
-  DomainCheckModelReq,
   DomainCreateModelReq,
   DomainGetProviderModelListResp,
   DomainModel,
@@ -23,6 +22,7 @@ import {
   GetGetProviderModelListParams,
   GetGetTokenUsageParams,
   GetMyModelListParams,
+  GithubComChaitinMonkeyCodeBackendDomainCheckModelReq,
   WebResp,
 } from "./types";
 
@@ -149,7 +149,7 @@ export const deleteDeleteModel = (
  */
 
 export const postCheckModel = (
-  model: DomainCheckModelReq,
+  model: GithubComChaitinMonkeyCodeBackendDomainCheckModelReq,
   params: RequestParams = {},
 ) =>
   request<

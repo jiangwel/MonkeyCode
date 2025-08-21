@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import TokenUsage from './components/tokenUsage';
 import ModelCard from './components/modelCard';
 import { Stack } from '@mui/material';
-import { ConstsModelType } from '@/api/types';
+import { GithubComChaitinMonkeyCodeBackendConstsModelType } from '@/api/types';
 import { useCommonContext } from '@/hooks/context';
 import { Modal } from '@c-x/ui';
 
@@ -43,13 +43,13 @@ const Model = () => {
         title='对话模型'
         data={llmModel}
         refreshModel={refreshModel}
-        modelType={ConstsModelType.ModelTypeLLM}
+        modelType={GithubComChaitinMonkeyCodeBackendConstsModelType.ModelTypeLLM}
       />
       <ModelCard
         title='代码补全模型'
         data={coderModel}
         refreshModel={refreshModel}
-        modelType={ConstsModelType.ModelTypeCoder}
+        modelType={GithubComChaitinMonkeyCodeBackendConstsModelType.ModelTypeCoder}
       />
     </Stack>
   );

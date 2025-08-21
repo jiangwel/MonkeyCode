@@ -10,14 +10,13 @@ import type {
 import {
   DomainCreateModelReq as LocalCreateModelData,
   DomainUpdateModelReq as LocalUpdateModelData,
-  DomainCheckModelReq as LocalCheckModelData,
+  GithubComChaitinMonkeyCodeBackendDomainCheckModelReq as LocalCheckModelData,
   GetGetProviderModelListParams as LocalGetModelNameData,
-  ConstsModelType,
-  ConstsModelStatus,
-  ConstsModelProvider,
+  GithubComChaitinMonkeyCodeBackendConstsModelType,
+  GithubComChaitinMonkeyCodeBackendConstsModelStatus,
+  GithubComChaitinMonkeyCodeBackendConstsModelProvider,
   DomainModel,
 } from '@/api/types';
-import { ModelProvider } from '../../constant';
 import { getGetProviderModelList, postCheckModel, postCreateModel, putUpdateModel } from '@/api/Model';
 
 const localModelToModelKitModel = (
@@ -26,15 +25,15 @@ const localModelToModelKitModel = (
   return {
     id: localModel.id || '',
     model_name: localModel.model_name || '',
-    provider: localModel.provider as ConstsModelProvider,
-    model_type: localModel.model_type as ConstsModelType,
+    provider: localModel.provider as GithubComChaitinMonkeyCodeBackendConstsModelProvider,
+    model_type: localModel.model_type as GithubComChaitinMonkeyCodeBackendConstsModelType,
     base_url: localModel.api_base || '',
     api_key: localModel.api_key || '',
     api_header: localModel.api_header || '',
     api_version: localModel.api_version || '',
     param: localModel.param || undefined,
     show_name: localModel.show_name || '',
-    status: localModel.status as ConstsModelStatus | undefined,
+    status: localModel.status as GithubComChaitinMonkeyCodeBackendConstsModelStatus | undefined,
     created_at: localModel.created_at || 0,
     updated_at: localModel.updated_at || 0,
     input: localModel.input || 0,
@@ -46,10 +45,10 @@ const localModelToModelKitModel = (
 
 const modelkitModelTypeToLocal = (
   modelType: string,
-): ConstsModelType => {
-  if (modelType === 'coder') return ConstsModelType.ModelTypeCoder;
-  if (modelType === 'code') return ConstsModelType.ModelTypeCoder;
-  return ConstsModelType.ModelTypeLLM;
+): GithubComChaitinMonkeyCodeBackendConstsModelType => {
+  if (modelType === 'coder') return GithubComChaitinMonkeyCodeBackendConstsModelType.ModelTypeCoder;
+  if (modelType === 'code') return GithubComChaitinMonkeyCodeBackendConstsModelType.ModelTypeCoder;
+  return GithubComChaitinMonkeyCodeBackendConstsModelType.ModelTypeLLM;
 };
 
 const modelkitModelTypeToLocalString = (
@@ -70,7 +69,7 @@ const convertUICreateToLocalCreate = (
 ): LocalCreateModelData => {
   return {
     model_name: uiModel.model_name || '',
-    provider: uiModel.provider as keyof typeof ModelProvider,
+    provider: uiModel.provider as GithubComChaitinMonkeyCodeBackendConstsModelProvider,
     model_type: modelkitModelTypeToLocal(uiModel.model_type || ''),
     api_base: uiModel.base_url || '',
     api_key: uiModel.api_key || '',
@@ -87,14 +86,14 @@ const convertUIUpdateToLocalUpdate = (
   return {
     id: uiModel.id || '',
     model_name: uiModel.model_name || '',
-    provider: uiModel.provider as keyof typeof ModelProvider,
+    provider: uiModel.provider as GithubComChaitinMonkeyCodeBackendConstsModelProvider,
     api_base: uiModel.base_url || '',
     api_key: uiModel.api_key || '',
     api_header: uiModel.api_header || '',
     api_version: uiModel.api_version || '',
     param: uiModel.param || undefined,
     show_name: uiModel.show_name || '',
-    status: uiModel.status as ConstsModelStatus | undefined,
+    status: uiModel.status as GithubComChaitinMonkeyCodeBackendConstsModelStatus | undefined,
   };
 };
 
@@ -104,7 +103,7 @@ const convertUICheckToLocalCheck = (
 ): LocalCheckModelData => {
   return {
     model_name: uiCheck.model_name || '',
-    provider: uiCheck.provider as ConstsModelProvider,
+    provider: uiCheck.provider as GithubComChaitinMonkeyCodeBackendConstsModelProvider,
     type: modelkitModelTypeToLocalString(uiCheck.model_type || ''),
     api_base: uiCheck.base_url || '',
     api_key: uiCheck.api_key || '',
@@ -118,7 +117,7 @@ const convertUIGetModelNameToLocal = (
   uiData: UIGetModelNameData,
 ): LocalGetModelNameData => {
   return {
-    provider: uiData.provider as ConstsModelProvider,
+    provider: uiData.provider as GithubComChaitinMonkeyCodeBackendConstsModelProvider,
     type: modelkitModelTypeToLocal(uiData.model_type || ''),
     base_url: uiData.base_url || '',
     api_key: uiData.api_key || '',

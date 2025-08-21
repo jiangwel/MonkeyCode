@@ -4,14 +4,13 @@ import {
   deleteDeleteModel,
   putUpdateModel,
 } from '@/api/Model';
-import { DomainModel, ConstsModelStatus, ConstsModelType, } from '@/api/types';
-import { Stack, Box, Button, Grid2 as Grid, ButtonBase, ThemeProvider } from '@mui/material';
+import { DomainModel, GithubComChaitinMonkeyCodeBackendConstsModelStatus, GithubComChaitinMonkeyCodeBackendConstsModelType, } from '@/api/types';
+import { Stack, Box, Button, Grid2 as Grid, ButtonBase } from '@mui/material';
 import StyledLabel from '@/components/label';
 import { Icon, Modal, message } from '@c-x/ui';
 import { addCommasToNumber } from '@/utils';
 import NoData from '@/assets/images/nodata.png';
-import { ModelProvider } from '../constant';
-import { ModelModal, Model} from '@yokowu/modelkit-ui';
+import { ModelModal, Model, DEFAULT_MODEL_PROVIDERS} from '@yokowu/modelkit-ui';
 import { localModelToModelKitModel, modelService } from '@/pages/model/components/services/modelService';
 
 const ModelItem = ({
@@ -42,7 +41,7 @@ const ModelItem = ({
       onOk: () => {
         putUpdateModel({
           id: data.id,
-          status: ConstsModelStatus.ModelStatusInactive,
+          status: GithubComChaitinMonkeyCodeBackendConstsModelStatus.ModelStatusInactive,
           provider: data.provider!,
         }).then(() => {
           message.success('停用成功');
@@ -92,7 +91,7 @@ const ModelItem = ({
       onOk: () => {
         putUpdateModel({
           id: data.id,
-          status: ConstsModelStatus.ModelStatusActive,
+          status: GithubComChaitinMonkeyCodeBackendConstsModelStatus.ModelStatusActive,
           provider: data.provider!,
         }).then(() => {
           message.success('激活成功');
@@ -128,7 +127,7 @@ const ModelItem = ({
         <Stack direction='row' alignItems='center' gap={1}>
           <Icon
             type={
-              ModelProvider[data.provider as keyof typeof ModelProvider]?.icon
+              DEFAULT_MODEL_PROVIDERS[data.provider as keyof typeof DEFAULT_MODEL_PROVIDERS]?.icon
             }
             sx={{ fontSize: 24 }}
           />
@@ -267,7 +266,7 @@ const ModelItem = ({
 
 interface IModelCardProps {
   title: string;
-  modelType: ConstsModelType;
+  modelType: GithubComChaitinMonkeyCodeBackendConstsModelType;
   data: DomainModel[];
   refreshModel: () => void;
 }

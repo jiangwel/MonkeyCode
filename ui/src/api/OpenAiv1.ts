@@ -17,9 +17,9 @@ import {
   DomainListSecurityScanningBriefResp,
   DomainListSecurityScanningDetailResp,
   DomainListSecurityScanningReq,
-  DomainModelListResp,
   DomainReportReq,
   GetListSecurityScanningDetailParams,
+  GithubComChaitinMonkeyCodeBackendDomainModelListResp,
   WebResp,
 } from "./types";
 
@@ -130,7 +130,7 @@ export const getHealth = (params: RequestParams = {}) =>
  * @summary 模型列表
  * @request GET:/v1/models
  * @response `200` `(WebResp & {
-    data?: DomainModelListResp,
+    data?: GithubComChaitinMonkeyCodeBackendDomainModelListResp,
 
 })` OK
  */
@@ -138,7 +138,7 @@ export const getHealth = (params: RequestParams = {}) =>
 export const getModelList = (params: RequestParams = {}) =>
   request<
     WebResp & {
-      data?: DomainModelListResp;
+      data?: GithubComChaitinMonkeyCodeBackendDomainModelListResp;
     }
   >({
     path: `/v1/models`,
