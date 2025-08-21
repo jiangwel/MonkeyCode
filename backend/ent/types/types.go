@@ -50,3 +50,10 @@ func DefaultModelParam() *ModelParam {
 		SupportPromptCache: false,
 	}
 }
+
+type AIEmployeeParam struct {
+	IssueOpen      bool `json:"issue_open"`       // 是否处理新Issues
+	MrPrOpen       bool `json:"mr_pr_open"`       // 是否处理全部新增PR/MR
+	IssueAtComment bool `json:"issue_at_comment"` // 是否在issue评论中@工程师
+	MrPrAtComment  bool `json:"mr_pr_at_comment"` // 是否mr/pr在评论中@工程师
+}

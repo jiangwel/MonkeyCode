@@ -43,6 +43,8 @@ type AdminEdges struct {
 	LoginHistories []*AdminLoginHistory `json:"login_histories,omitempty"`
 	// Myusergroups holds the value of the myusergroups edge.
 	Myusergroups []*UserGroup `json:"myusergroups,omitempty"`
+	// Aiemployees holds the value of the aiemployees edge.
+	Aiemployees []*AIEmployee `json:"aiemployees,omitempty"`
 	// Usergroups holds the value of the usergroups edge.
 	Usergroups []*UserGroup `json:"usergroups,omitempty"`
 	// Roles holds the value of the roles edge.
@@ -53,7 +55,7 @@ type AdminEdges struct {
 	AdminRoles []*AdminRole `json:"admin_roles,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // LoginHistoriesOrErr returns the LoginHistories value or an error if the edge
@@ -74,10 +76,19 @@ func (e AdminEdges) MyusergroupsOrErr() ([]*UserGroup, error) {
 	return nil, &NotLoadedError{edge: "myusergroups"}
 }
 
+// AiemployeesOrErr returns the Aiemployees value or an error if the edge
+// was not loaded in eager-loading.
+func (e AdminEdges) AiemployeesOrErr() ([]*AIEmployee, error) {
+	if e.loadedTypes[2] {
+		return e.Aiemployees, nil
+	}
+	return nil, &NotLoadedError{edge: "aiemployees"}
+}
+
 // UsergroupsOrErr returns the Usergroups value or an error if the edge
 // was not loaded in eager-loading.
 func (e AdminEdges) UsergroupsOrErr() ([]*UserGroup, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.Usergroups, nil
 	}
 	return nil, &NotLoadedError{edge: "usergroups"}
@@ -86,7 +97,7 @@ func (e AdminEdges) UsergroupsOrErr() ([]*UserGroup, error) {
 // RolesOrErr returns the Roles value or an error if the edge
 // was not loaded in eager-loading.
 func (e AdminEdges) RolesOrErr() ([]*Role, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.Roles, nil
 	}
 	return nil, &NotLoadedError{edge: "roles"}
@@ -95,7 +106,7 @@ func (e AdminEdges) RolesOrErr() ([]*Role, error) {
 // UserGroupAdminsOrErr returns the UserGroupAdmins value or an error if the edge
 // was not loaded in eager-loading.
 func (e AdminEdges) UserGroupAdminsOrErr() ([]*UserGroupAdmin, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.UserGroupAdmins, nil
 	}
 	return nil, &NotLoadedError{edge: "user_group_admins"}
@@ -104,7 +115,7 @@ func (e AdminEdges) UserGroupAdminsOrErr() ([]*UserGroupAdmin, error) {
 // AdminRolesOrErr returns the AdminRoles value or an error if the edge
 // was not loaded in eager-loading.
 func (e AdminEdges) AdminRolesOrErr() ([]*AdminRole, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.AdminRoles, nil
 	}
 	return nil, &NotLoadedError{edge: "admin_roles"}
@@ -199,6 +210,11 @@ func (a *Admin) QueryLoginHistories() *AdminLoginHistoryQuery {
 // QueryMyusergroups queries the "myusergroups" edge of the Admin entity.
 func (a *Admin) QueryMyusergroups() *UserGroupQuery {
 	return NewAdminClient(a.config).QueryMyusergroups(a)
+}
+
+// QueryAiemployees queries the "aiemployees" edge of the Admin entity.
+func (a *Admin) QueryAiemployees() *AIEmployeeQuery {
+	return NewAdminClient(a.config).QueryAiemployees(a)
 }
 
 // QueryUsergroups queries the "usergroups" edge of the Admin entity.

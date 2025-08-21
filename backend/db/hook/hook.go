@@ -9,6 +9,30 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db"
 )
 
+// The AIEmployeeFunc type is an adapter to allow the use of ordinary
+// function as AIEmployee mutator.
+type AIEmployeeFunc func(context.Context, *db.AIEmployeeMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AIEmployeeFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AIEmployeeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AIEmployeeMutation", m)
+}
+
+// The AITaskFunc type is an adapter to allow the use of ordinary
+// function as AITask mutator.
+type AITaskFunc func(context.Context, *db.AITaskMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AITaskFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AITaskMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AITaskMutation", m)
+}
+
 // The AdminFunc type is an adapter to allow the use of ordinary
 // function as Admin mutator.
 type AdminFunc func(context.Context, *db.AdminMutation) (db.Value, error)

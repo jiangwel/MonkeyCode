@@ -19,6 +19,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/adminloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/db/adminrole"
+	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
+	"github.com/chaitin/MonkeyCode/backend/db/aitask"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/billingplan"
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
@@ -54,6 +56,10 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// AIEmployee is the client for interacting with the AIEmployee builders.
+	AIEmployee *AIEmployeeClient
+	// AITask is the client for interacting with the AITask builders.
+	AITask *AITaskClient
 	// Admin is the client for interacting with the Admin builders.
 	Admin *AdminClient
 	// AdminLoginHistory is the client for interacting with the AdminLoginHistory builders.
@@ -123,6 +129,8 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.AIEmployee = NewAIEmployeeClient(c.config)
+	c.AITask = NewAITaskClient(c.config)
 	c.Admin = NewAdminClient(c.config)
 	c.AdminLoginHistory = NewAdminLoginHistoryClient(c.config)
 	c.AdminRole = NewAdminRoleClient(c.config)
@@ -244,6 +252,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                    ctx,
 		config:                 cfg,
+		AIEmployee:             NewAIEmployeeClient(cfg),
+		AITask:                 NewAITaskClient(cfg),
 		Admin:                  NewAdminClient(cfg),
 		AdminLoginHistory:      NewAdminLoginHistoryClient(cfg),
 		AdminRole:              NewAdminRoleClient(cfg),
@@ -292,6 +302,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                    ctx,
 		config:                 cfg,
+		AIEmployee:             NewAIEmployeeClient(cfg),
+		AITask:                 NewAITaskClient(cfg),
 		Admin:                  NewAdminClient(cfg),
 		AdminLoginHistory:      NewAdminLoginHistoryClient(cfg),
 		AdminRole:              NewAdminRoleClient(cfg),
@@ -327,7 +339,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Admin.
+//		AIEmployee.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -350,12 +362,13 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Admin, c.AdminLoginHistory, c.AdminRole, c.ApiKey, c.BillingPlan,
-		c.BillingQuota, c.BillingRecord, c.BillingUsage, c.CodeSnippet, c.Extension,
-		c.InviteCode, c.License, c.Model, c.ModelProvider, c.ModelProviderModel,
-		c.Role, c.SecurityScanning, c.SecurityScanningResult, c.Setting, c.Task,
-		c.TaskRecord, c.User, c.UserGroup, c.UserGroupAdmin, c.UserGroupUser,
-		c.UserIdentity, c.UserLoginHistory, c.Workspace, c.WorkspaceFile,
+		c.AIEmployee, c.AITask, c.Admin, c.AdminLoginHistory, c.AdminRole, c.ApiKey,
+		c.BillingPlan, c.BillingQuota, c.BillingRecord, c.BillingUsage, c.CodeSnippet,
+		c.Extension, c.InviteCode, c.License, c.Model, c.ModelProvider,
+		c.ModelProviderModel, c.Role, c.SecurityScanning, c.SecurityScanningResult,
+		c.Setting, c.Task, c.TaskRecord, c.User, c.UserGroup, c.UserGroupAdmin,
+		c.UserGroupUser, c.UserIdentity, c.UserLoginHistory, c.Workspace,
+		c.WorkspaceFile,
 	} {
 		n.Use(hooks...)
 	}
@@ -365,12 +378,13 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Admin, c.AdminLoginHistory, c.AdminRole, c.ApiKey, c.BillingPlan,
-		c.BillingQuota, c.BillingRecord, c.BillingUsage, c.CodeSnippet, c.Extension,
-		c.InviteCode, c.License, c.Model, c.ModelProvider, c.ModelProviderModel,
-		c.Role, c.SecurityScanning, c.SecurityScanningResult, c.Setting, c.Task,
-		c.TaskRecord, c.User, c.UserGroup, c.UserGroupAdmin, c.UserGroupUser,
-		c.UserIdentity, c.UserLoginHistory, c.Workspace, c.WorkspaceFile,
+		c.AIEmployee, c.AITask, c.Admin, c.AdminLoginHistory, c.AdminRole, c.ApiKey,
+		c.BillingPlan, c.BillingQuota, c.BillingRecord, c.BillingUsage, c.CodeSnippet,
+		c.Extension, c.InviteCode, c.License, c.Model, c.ModelProvider,
+		c.ModelProviderModel, c.Role, c.SecurityScanning, c.SecurityScanningResult,
+		c.Setting, c.Task, c.TaskRecord, c.User, c.UserGroup, c.UserGroupAdmin,
+		c.UserGroupUser, c.UserIdentity, c.UserLoginHistory, c.Workspace,
+		c.WorkspaceFile,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -379,6 +393,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AIEmployeeMutation:
+		return c.AIEmployee.mutate(ctx, m)
+	case *AITaskMutation:
+		return c.AITask.mutate(ctx, m)
 	case *AdminMutation:
 		return c.Admin.mutate(ctx, m)
 	case *AdminLoginHistoryMutation:
@@ -439,6 +457,288 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.WorkspaceFile.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("db: unknown mutation type %T", m)
+	}
+}
+
+// AIEmployeeClient is a client for the AIEmployee schema.
+type AIEmployeeClient struct {
+	config
+}
+
+// NewAIEmployeeClient returns a client for the AIEmployee from the given config.
+func NewAIEmployeeClient(c config) *AIEmployeeClient {
+	return &AIEmployeeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `aiemployee.Hooks(f(g(h())))`.
+func (c *AIEmployeeClient) Use(hooks ...Hook) {
+	c.hooks.AIEmployee = append(c.hooks.AIEmployee, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `aiemployee.Intercept(f(g(h())))`.
+func (c *AIEmployeeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AIEmployee = append(c.inters.AIEmployee, interceptors...)
+}
+
+// Create returns a builder for creating a AIEmployee entity.
+func (c *AIEmployeeClient) Create() *AIEmployeeCreate {
+	mutation := newAIEmployeeMutation(c.config, OpCreate)
+	return &AIEmployeeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AIEmployee entities.
+func (c *AIEmployeeClient) CreateBulk(builders ...*AIEmployeeCreate) *AIEmployeeCreateBulk {
+	return &AIEmployeeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AIEmployeeClient) MapCreateBulk(slice any, setFunc func(*AIEmployeeCreate, int)) *AIEmployeeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AIEmployeeCreateBulk{err: fmt.Errorf("calling to AIEmployeeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AIEmployeeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AIEmployeeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AIEmployee.
+func (c *AIEmployeeClient) Update() *AIEmployeeUpdate {
+	mutation := newAIEmployeeMutation(c.config, OpUpdate)
+	return &AIEmployeeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AIEmployeeClient) UpdateOne(ae *AIEmployee) *AIEmployeeUpdateOne {
+	mutation := newAIEmployeeMutation(c.config, OpUpdateOne, withAIEmployee(ae))
+	return &AIEmployeeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AIEmployeeClient) UpdateOneID(id uuid.UUID) *AIEmployeeUpdateOne {
+	mutation := newAIEmployeeMutation(c.config, OpUpdateOne, withAIEmployeeID(id))
+	return &AIEmployeeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AIEmployee.
+func (c *AIEmployeeClient) Delete() *AIEmployeeDelete {
+	mutation := newAIEmployeeMutation(c.config, OpDelete)
+	return &AIEmployeeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AIEmployeeClient) DeleteOne(ae *AIEmployee) *AIEmployeeDeleteOne {
+	return c.DeleteOneID(ae.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AIEmployeeClient) DeleteOneID(id uuid.UUID) *AIEmployeeDeleteOne {
+	builder := c.Delete().Where(aiemployee.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AIEmployeeDeleteOne{builder}
+}
+
+// Query returns a query builder for AIEmployee.
+func (c *AIEmployeeClient) Query() *AIEmployeeQuery {
+	return &AIEmployeeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAIEmployee},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AIEmployee entity by its id.
+func (c *AIEmployeeClient) Get(ctx context.Context, id uuid.UUID) (*AIEmployee, error) {
+	return c.Query().Where(aiemployee.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AIEmployeeClient) GetX(ctx context.Context, id uuid.UUID) *AIEmployee {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAdmin queries the admin edge of a AIEmployee.
+func (c *AIEmployeeClient) QueryAdmin(ae *AIEmployee) *AdminQuery {
+	query := (&AdminClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ae.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(aiemployee.Table, aiemployee.FieldID, id),
+			sqlgraph.To(admin.Table, admin.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, aiemployee.AdminTable, aiemployee.AdminColumn),
+		)
+		fromV = sqlgraph.Neighbors(ae.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AIEmployeeClient) Hooks() []Hook {
+	return c.hooks.AIEmployee
+}
+
+// Interceptors returns the client interceptors.
+func (c *AIEmployeeClient) Interceptors() []Interceptor {
+	return c.inters.AIEmployee
+}
+
+func (c *AIEmployeeClient) mutate(ctx context.Context, m *AIEmployeeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AIEmployeeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AIEmployeeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AIEmployeeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AIEmployeeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown AIEmployee mutation op: %q", m.Op())
+	}
+}
+
+// AITaskClient is a client for the AITask schema.
+type AITaskClient struct {
+	config
+}
+
+// NewAITaskClient returns a client for the AITask from the given config.
+func NewAITaskClient(c config) *AITaskClient {
+	return &AITaskClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `aitask.Hooks(f(g(h())))`.
+func (c *AITaskClient) Use(hooks ...Hook) {
+	c.hooks.AITask = append(c.hooks.AITask, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `aitask.Intercept(f(g(h())))`.
+func (c *AITaskClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AITask = append(c.inters.AITask, interceptors...)
+}
+
+// Create returns a builder for creating a AITask entity.
+func (c *AITaskClient) Create() *AITaskCreate {
+	mutation := newAITaskMutation(c.config, OpCreate)
+	return &AITaskCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AITask entities.
+func (c *AITaskClient) CreateBulk(builders ...*AITaskCreate) *AITaskCreateBulk {
+	return &AITaskCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AITaskClient) MapCreateBulk(slice any, setFunc func(*AITaskCreate, int)) *AITaskCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AITaskCreateBulk{err: fmt.Errorf("calling to AITaskClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AITaskCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AITaskCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AITask.
+func (c *AITaskClient) Update() *AITaskUpdate {
+	mutation := newAITaskMutation(c.config, OpUpdate)
+	return &AITaskUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AITaskClient) UpdateOne(at *AITask) *AITaskUpdateOne {
+	mutation := newAITaskMutation(c.config, OpUpdateOne, withAITask(at))
+	return &AITaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AITaskClient) UpdateOneID(id uuid.UUID) *AITaskUpdateOne {
+	mutation := newAITaskMutation(c.config, OpUpdateOne, withAITaskID(id))
+	return &AITaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AITask.
+func (c *AITaskClient) Delete() *AITaskDelete {
+	mutation := newAITaskMutation(c.config, OpDelete)
+	return &AITaskDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AITaskClient) DeleteOne(at *AITask) *AITaskDeleteOne {
+	return c.DeleteOneID(at.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AITaskClient) DeleteOneID(id uuid.UUID) *AITaskDeleteOne {
+	builder := c.Delete().Where(aitask.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AITaskDeleteOne{builder}
+}
+
+// Query returns a query builder for AITask.
+func (c *AITaskClient) Query() *AITaskQuery {
+	return &AITaskQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAITask},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AITask entity by its id.
+func (c *AITaskClient) Get(ctx context.Context, id uuid.UUID) (*AITask, error) {
+	return c.Query().Where(aitask.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AITaskClient) GetX(ctx context.Context, id uuid.UUID) *AITask {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AITaskClient) Hooks() []Hook {
+	return c.hooks.AITask
+}
+
+// Interceptors returns the client interceptors.
+func (c *AITaskClient) Interceptors() []Interceptor {
+	return c.inters.AITask
+}
+
+func (c *AITaskClient) mutate(ctx context.Context, m *AITaskMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AITaskCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AITaskUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AITaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AITaskDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown AITask mutation op: %q", m.Op())
 	}
 }
 
@@ -575,6 +875,22 @@ func (c *AdminClient) QueryMyusergroups(a *Admin) *UserGroupQuery {
 			sqlgraph.From(admin.Table, admin.FieldID, id),
 			sqlgraph.To(usergroup.Table, usergroup.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, admin.MyusergroupsTable, admin.MyusergroupsColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAiemployees queries the aiemployees edge of a Admin.
+func (c *AdminClient) QueryAiemployees(a *Admin) *AIEmployeeQuery {
+	query := (&AIEmployeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(admin.Table, admin.FieldID, id),
+			sqlgraph.To(aiemployee.Table, aiemployee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, admin.AiemployeesTable, admin.AiemployeesColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -5142,17 +5458,17 @@ func (c *WorkspaceFileClient) mutate(ctx context.Context, m *WorkspaceFileMutati
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Admin, AdminLoginHistory, AdminRole, ApiKey, BillingPlan, BillingQuota,
-		BillingRecord, BillingUsage, CodeSnippet, Extension, InviteCode, License,
-		Model, ModelProvider, ModelProviderModel, Role, SecurityScanning,
+		AIEmployee, AITask, Admin, AdminLoginHistory, AdminRole, ApiKey, BillingPlan,
+		BillingQuota, BillingRecord, BillingUsage, CodeSnippet, Extension, InviteCode,
+		License, Model, ModelProvider, ModelProviderModel, Role, SecurityScanning,
 		SecurityScanningResult, Setting, Task, TaskRecord, User, UserGroup,
 		UserGroupAdmin, UserGroupUser, UserIdentity, UserLoginHistory, Workspace,
 		WorkspaceFile []ent.Hook
 	}
 	inters struct {
-		Admin, AdminLoginHistory, AdminRole, ApiKey, BillingPlan, BillingQuota,
-		BillingRecord, BillingUsage, CodeSnippet, Extension, InviteCode, License,
-		Model, ModelProvider, ModelProviderModel, Role, SecurityScanning,
+		AIEmployee, AITask, Admin, AdminLoginHistory, AdminRole, ApiKey, BillingPlan,
+		BillingQuota, BillingRecord, BillingUsage, CodeSnippet, Extension, InviteCode,
+		License, Model, ModelProvider, ModelProviderModel, Role, SecurityScanning,
 		SecurityScanningResult, Setting, Task, TaskRecord, User, UserGroup,
 		UserGroupAdmin, UserGroupUser, UserIdentity, UserLoginHistory, Workspace,
 		WorkspaceFile []ent.Interceptor

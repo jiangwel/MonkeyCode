@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"github.com/redis/go-redis/v9"
@@ -10,7 +11,7 @@ import (
 )
 
 func NewRedisCli(cfg *config.Config) *redis.Client {
-	addr := net.JoinHostPort(cfg.Redis.Host, cfg.Redis.Port)
+	addr := net.JoinHostPort(cfg.Redis.Host, fmt.Sprintf("%d", cfg.Redis.Port))
 	rdb := redis.NewClient(&redis.Options{
 		Addr:         addr,
 		Password:     cfg.Redis.Pass,

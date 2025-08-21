@@ -16,6 +16,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/adminloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/db/adminrole"
+	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
 	"github.com/chaitin/MonkeyCode/backend/db/role"
 	"github.com/chaitin/MonkeyCode/backend/db/usergroup"
 	"github.com/chaitin/MonkeyCode/backend/db/usergroupadmin"
@@ -124,6 +125,21 @@ func (ac *AdminCreate) AddMyusergroups(u ...*UserGroup) *AdminCreate {
 		ids[i] = u[i].ID
 	}
 	return ac.AddMyusergroupIDs(ids...)
+}
+
+// AddAiemployeeIDs adds the "aiemployees" edge to the AIEmployee entity by IDs.
+func (ac *AdminCreate) AddAiemployeeIDs(ids ...uuid.UUID) *AdminCreate {
+	ac.mutation.AddAiemployeeIDs(ids...)
+	return ac
+}
+
+// AddAiemployees adds the "aiemployees" edges to the AIEmployee entity.
+func (ac *AdminCreate) AddAiemployees(a ...*AIEmployee) *AdminCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return ac.AddAiemployeeIDs(ids...)
 }
 
 // AddUsergroupIDs adds the "usergroups" edge to the UserGroup entity by IDs.
@@ -340,6 +356,22 @@ func (ac *AdminCreate) createSpec() (*Admin, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usergroup.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.AiemployeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   admin.AiemployeesTable,
+			Columns: []string{admin.AiemployeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aiemployee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
