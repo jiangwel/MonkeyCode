@@ -10,6 +10,35 @@
  * ---------------------------------------------------------------
  */
 
+export enum GithubComChaitinMonkeyCodeBackendConstsModelType {
+  ModelTypeLLM = "llm",
+  ModelTypeCoder = "coder",
+  ModelTypeEmbedding = "embedding",
+  ModelTypeAudio = "audio",
+  ModelTypeReranker = "reranker",
+}
+
+export enum GithubComChaitinMonkeyCodeBackendConstsModelStatus {
+  ModelStatusActive = "active",
+  ModelStatusInactive = "inactive",
+}
+
+export enum GithubComChaitinMonkeyCodeBackendConstsModelProvider {
+  ModelProviderSiliconFlow = "SiliconFlow",
+  ModelProviderOpenAI = "OpenAI",
+  ModelProviderOllama = "Ollama",
+  ModelProviderDeepSeek = "DeepSeek",
+  ModelProviderMoonshot = "Moonshot",
+  ModelProviderAzureOpenAI = "AzureOpenAI",
+  ModelProviderBaiZhiCloud = "BaiZhiCloud",
+  ModelProviderHunyuan = "Hunyuan",
+  ModelProviderBaiLian = "BaiLian",
+  ModelProviderVolcengine = "Volcengine",
+  ModelProviderZhiPu = "ZhiPu",
+  ModelProviderGemini = "Gemini",
+  ModelProviderOther = "Other",
+}
+
 export enum DomainLicenseEdition {
   LicenseEditionFree = 0,
   LicenseEditionContributor = 1,
@@ -97,30 +126,11 @@ export enum ConstsReportAction {
   ReportActionAbortTask = "abort_task",
 }
 
-export enum ConstsModelType {
-  ModelTypeLLM = "llm",
-  ModelTypeCoder = "coder",
-  ModelTypeEmbedding = "embedding",
-  ModelTypeAudio = "audio",
-  ModelTypeReranker = "reranker",
-}
-
-export enum ConstsModelStatus {
-  ModelStatusActive = "active",
-  ModelStatusInactive = "inactive",
-}
-
-export enum ConstsModelProvider {
-  ModelProviderSiliconFlow = "SiliconFlow",
-  ModelProviderOpenAI = "OpenAI",
-  ModelProviderOllama = "Ollama",
-  ModelProviderDeepSeek = "DeepSeek",
-  ModelProviderMoonshot = "Moonshot",
-  ModelProviderAzureOpenAI = "AzureOpenAI",
-  ModelProviderBaiZhiCloud = "BaiZhiCloud",
-  ModelProviderHunyuan = "Hunyuan",
-  ModelProviderBaiLian = "BaiLian",
-  ModelProviderVolcengine = "Volcengine",
+export enum ConstsRepoPlatform {
+  RepoPlatformGitHub = "GitHub",
+  RepoPlatformGitLab = "GitLab",
+  RepoPlatformGitee = "Gitee",
+  RepoPlatformGitea = "Gitea",
 }
 
 export enum ConstsLoginSource {
@@ -137,6 +147,31 @@ export enum ConstsChatRole {
 export enum ConstsAdminStatus {
   AdminStatusActive = "active",
   AdminStatusInactive = "inactive",
+}
+
+export enum ConstsAIEmployeePosition {
+  AIEmployeePositionEngineer = "研发工程师",
+  AIEmployeePositionProductManager = "产品经理",
+  AIEmployeePositionTester = "测试工程师",
+}
+
+export interface DomainAIEmployee {
+  admin?: DomainAdminUser;
+  created_at?: number;
+  id?: string;
+  /** 是否在issue评论中@工程师 */
+  issue_at_comment?: boolean;
+  /** 是否处理新Issues */
+  issue_open?: boolean;
+  /** 是否mr/pr在评论中@工程师 */
+  mr_pr_at_comment?: boolean;
+  /** 是否处理全部新增PR/MR */
+  mr_pr_open?: boolean;
+  name?: string;
+  platform?: ConstsRepoPlatform;
+  position?: ConstsAIEmployeePosition;
+  repository_url?: string;
+  token?: string;
 }
 
 export interface DomainAcceptCompletionReq {
@@ -238,20 +273,6 @@ export interface DomainChatRecord {
   user?: DomainUser;
   /** 工作模式 */
   work_mode?: string;
-}
-
-export interface DomainCheckModelReq {
-  /** 接口地址 */
-  api_base: string;
-  api_header?: string;
-  /** 接口密钥 */
-  api_key?: string;
-  api_version?: string;
-  /** 模型名称 */
-  model_name: string;
-  /** 提供商 */
-  provider: ConstsModelProvider;
-  type: "llm" | "coder" | "embedding" | "rerank";
 }
 
 export interface DomainCodeSnippet {
@@ -366,6 +387,22 @@ export interface DomainCompletionRecord {
   user?: DomainUser;
 }
 
+export interface DomainCreateAIEmployeeReq {
+  /** 是否在issue评论中@工程师 */
+  issue_at_comment?: boolean;
+  /** 是否处理新Issues */
+  issue_open?: boolean;
+  /** 是否mr/pr在评论中@工程师 */
+  mr_pr_at_comment?: boolean;
+  /** 是否处理全部新增PR/MR */
+  mr_pr_open?: boolean;
+  name?: string;
+  platform?: ConstsRepoPlatform;
+  position?: ConstsAIEmployeePosition;
+  repo_url?: string;
+  token?: string;
+}
+
 export interface DomainCreateAdminReq {
   /** 密码 */
   password: string;
@@ -385,7 +422,7 @@ export interface DomainCreateModelReq {
   /** 模型名称 如: deepseek-v3 */
   model_name: string;
   /** 模型类型 llm:对话模型 coder:代码模型 */
-  model_type?: ConstsModelType;
+  model_type?: GithubComChaitinMonkeyCodeBackendConstsModelType;
   /** 高级参数 */
   param?: DomainModelParam;
   /** 提供商 */
@@ -400,6 +437,8 @@ export interface DomainCreateModelReq {
     | "Hunyuan"
     | "BaiLian"
     | "Volcengine"
+    | "ZhiPu"
+    | "Gemini"
     | "Other";
   /** 模型显示名称 */
   show_name?: string;
@@ -616,6 +655,13 @@ export interface DomainLicenseResp {
   state?: number;
 }
 
+export interface DomainListAIEmployeeResp {
+  has_next_page?: boolean;
+  items?: DomainAIEmployee[];
+  next_token?: string;
+  total_count?: number;
+}
+
 export interface DomainListAdminLoginHistoryResp {
   has_next_page?: boolean;
   login_histories?: DomainAdminLoginHistory[];
@@ -670,11 +716,19 @@ export interface DomainListSecurityScanningReq {
   author?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
   /** 项目名称 */
   project_name?: string;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
@@ -749,17 +803,17 @@ export interface DomainModel {
   /** 模型名称 如: deepseek-v3 */
   model_name?: string;
   /** 模型类型 llm:对话模型 coder:代码模型 */
-  model_type?: ConstsModelType;
+  model_type?: GithubComChaitinMonkeyCodeBackendConstsModelType;
   /** 输出token数 */
   output?: number;
   /** 高级参数 */
   param?: DomainModelParam;
   /** 提供商 */
-  provider?: ConstsModelProvider;
+  provider?: GithubComChaitinMonkeyCodeBackendConstsModelProvider;
   /** 模型显示名称 */
   show_name?: string;
   /** 状态 active:启用 inactive:禁用 */
-  status?: ConstsModelStatus;
+  status?: GithubComChaitinMonkeyCodeBackendConstsModelStatus;
   /** 更新时间 */
   updated_at?: number;
 }
@@ -781,6 +835,8 @@ export interface DomainModelBasic {
     | "Hunyuan"
     | "BaiLian"
     | "Volcengine"
+    | "ZhiPu"
+    | "Gemini"
     | "Other";
 }
 
@@ -794,11 +850,6 @@ export interface DomainModelData {
   object?: string;
   owned_by?: string;
   type?: string;
-}
-
-export interface DomainModelListResp {
-  data?: DomainModelData[];
-  object?: string;
 }
 
 export interface DomainModelParam {
@@ -1057,6 +1108,27 @@ export interface DomainTimeStat {
   total_users?: number;
 }
 
+export interface DomainUUIDReq {
+  id?: string;
+}
+
+export interface DomainUpdateAIEmployeeReq {
+  id?: string;
+  /** 是否在issue评论中@工程师 */
+  issue_at_comment?: boolean;
+  /** 是否处理新Issues */
+  issue_open?: boolean;
+  /** 是否mr/pr在评论中@工程师 */
+  mr_pr_at_comment?: boolean;
+  /** 是否处理全部新增PR/MR */
+  mr_pr_open?: boolean;
+  name?: string;
+  platform?: ConstsRepoPlatform;
+  position?: ConstsAIEmployeePosition;
+  repo_url?: string;
+  token?: string;
+}
+
 export interface DomainUpdateModelReq {
   /** 接口地址 如：https://api.qwen.com */
   api_base?: string;
@@ -1082,11 +1154,13 @@ export interface DomainUpdateModelReq {
     | "Hunyuan"
     | "BaiLian"
     | "Volcengine"
+    | "ZhiPu"
+    | "Gemini"
     | "Other";
   /** 模型显示名称 */
   show_name?: string;
   /** 状态 active:启用 inactive:禁用 */
-  status?: ConstsModelStatus;
+  status?: GithubComChaitinMonkeyCodeBackendConstsModelStatus;
 }
 
 export interface DomainUpdateSettingReq {
@@ -1274,6 +1348,25 @@ export interface DomainWorkspaceFile {
   workspace_id?: string;
 }
 
+export interface GithubComChaitinMonkeyCodeBackendDomainCheckModelReq {
+  /** 接口地址 */
+  api_base: string;
+  api_header?: string;
+  /** 接口密钥 */
+  api_key?: string;
+  api_version?: string;
+  /** 模型名称 */
+  model_name: string;
+  /** 提供商 */
+  provider: GithubComChaitinMonkeyCodeBackendConstsModelProvider;
+  type: "llm" | "coder" | "embedding" | "rerank";
+}
+
+export interface GithubComChaitinMonkeyCodeBackendDomainModelListResp {
+  data?: DomainModelData[];
+  object?: string;
+}
+
 export interface TypesPosition {
   col?: number;
   line?: number;
@@ -1323,33 +1416,78 @@ export interface DeleteDeleteAdminParams {
 export interface GetListAdminUserParams {
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
 export interface GetAdminLoginHistoryParams {
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
 export interface GetListUserGroupParams {
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
 export interface DeleteDeleteGroupParams {
   /** 分组id */
   id: string;
+}
+
+export interface GetAiemployeeListParams {
+  /** 下一页标识 */
+  next_token?: string;
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
+  page?: number;
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
+  size?: number;
+}
+
+export interface GetAiemployeeInfoParams {
+  id?: string;
 }
 
 export interface GetChatInfoParams {
@@ -1366,9 +1504,17 @@ export interface GetListChatRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
@@ -1388,9 +1534,17 @@ export interface GetListCompletionRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
@@ -1532,7 +1686,10 @@ export interface GetGetProviderModelListParams {
     | "BaiZhiCloud"
     | "Hunyuan"
     | "BaiLian"
-    | "Volcengine";
+    | "Volcengine"
+    | "ZhiPu"
+    | "Gemini"
+    | "Other";
   type: "llm" | "coder" | "embedding" | "audio" | "reranker";
 }
 
@@ -1546,11 +1703,19 @@ export interface GetSecurityScanningListParams {
   author?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
   /** 项目名称 */
   project_name?: string;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
@@ -1573,9 +1738,17 @@ export interface GetUserListChatRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
@@ -1595,9 +1768,17 @@ export interface GetUserListCompletionRecordParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
   /** 工作模式 */
   work_mode?: string;
@@ -1645,18 +1826,34 @@ export interface DeleteDeleteUserParams {
 export interface GetListUserParams {
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
 export interface GetLoginHistoryParams {
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
@@ -1686,11 +1883,19 @@ export interface GetUserSecurityScanningListParams {
   author?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
   /** 项目名称 */
   project_name?: string;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
 
@@ -1704,11 +1909,19 @@ export interface GetListWorkspaceFilesParams {
   language?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
   /** 搜索关键词（文件路径） */
   search?: string;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
   /** 用户ID */
   user_id?: string;
@@ -1730,8 +1943,16 @@ export interface GetListSecurityScanningDetailParams {
   id?: string;
   /** 下一页标识 */
   next_token?: string;
-  /** 分页 */
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
   page?: number;
-  /** 每页多少条记录 */
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
   size?: number;
 }
