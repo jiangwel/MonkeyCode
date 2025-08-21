@@ -178,6 +178,8 @@ const lightTheme = createTheme(
       MuiFormLabel: {
         styleOverrides: {
           root: {
+            color: 'unset',
+            fontSize: '0.8rem', 
             fontFamily: 'var(--font-gilory), var(--font-HarmonyOS)',
           },
           asterisk: {
@@ -189,6 +191,20 @@ const lightTheme = createTheme(
         styleOverrides: {
           root: {
             textDecoration: 'none',
+          },
+        },
+      },
+      MuiRadio: {
+        styleOverrides: {
+          root: {
+            fontSize: '0.8rem', 
+          },
+        },
+      },
+      MuiFormControlLabel: {
+        styleOverrides: {
+          label: {
+            fontSize: '0.8rem', 
           },
         },
       },

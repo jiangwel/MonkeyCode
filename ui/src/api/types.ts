@@ -156,22 +156,39 @@ export enum ConstsAIEmployeePosition {
 }
 
 export interface DomainAIEmployee {
+  /** 管理员 */
   admin?: DomainAdminUser;
+  /** 完成的任务数 */
+  completed_count?: number;
+  /** 创建时间 */
   created_at?: number;
   id?: string;
   /** 是否在issue评论中@工程师 */
   issue_at_comment?: boolean;
   /** 是否处理新Issues */
   issue_open?: boolean;
+  /** 最后活跃时间 */
+  last_active_at?: number;
   /** 是否mr/pr在评论中@工程师 */
   mr_pr_at_comment?: boolean;
   /** 是否处理全部新增PR/MR */
   mr_pr_open?: boolean;
+  /** 名称 */
   name?: string;
+  /** 仓库平台 */
   platform?: ConstsRepoPlatform;
+  /** 职位 */
   position?: ConstsAIEmployeePosition;
+  /** 仓库 URL */
   repository_url?: string;
+  /** 仓库用户名 */
+  repository_user?: string;
+  /** 仓库 token */
   token?: string;
+  /** 仓库 webhook 密钥 */
+  webhook_secret?: string;
+  /** 仓库 webhook URL */
+  webhook_url?: string;
 }
 
 export interface DomainAcceptCompletionReq {
@@ -396,10 +413,17 @@ export interface DomainCreateAIEmployeeReq {
   mr_pr_at_comment?: boolean;
   /** 是否处理全部新增PR/MR */
   mr_pr_open?: boolean;
+  /** AI 员工名称 */
   name?: string;
+  /** 仓库平台 */
   platform?: ConstsRepoPlatform;
+  /** 职位 */
   position?: ConstsAIEmployeePosition;
+  /** 仓库 URL */
   repo_url?: string;
+  /** 仓库用户名 */
+  repo_user?: string;
+  /** 仓库 token */
   token?: string;
 }
 
@@ -1126,6 +1150,7 @@ export interface DomainUpdateAIEmployeeReq {
   platform?: ConstsRepoPlatform;
   position?: ConstsAIEmployeePosition;
   repo_url?: string;
+  repo_user?: string;
   token?: string;
 }
 

@@ -41,11 +41,11 @@ const ADMIN_MENUS = [
     show: true,
     disabled: false,
   },
-  {
-    label: '模型管理',
-    value: '/model',
-    pathname: 'model',
-    icon: 'icon-moxingguanli',
+   {
+    label: 'AI 员工',
+    value: '/employee',
+    pathname: 'employee',
+    icon: 'icon-zhanghao',
     show: true,
     disabled: false,
   },
@@ -137,7 +137,7 @@ const Sidebar = () => {
     }
     return isConfigModel
       ? ADMIN_MENUS.map((item) => ({ ...item, disabled: false }))
-      : ADMIN_MENUS.map((item) => ({ ...item, disabled: true }));
+      : ADMIN_MENUS.map((item) => ({ ...item, disabled: item.pathname !== 'general-setting' }));
   }, [pathname, isConfigModel]);
 
   return (
@@ -208,7 +208,7 @@ const Sidebar = () => {
             >
               <Button
                 variant={isActive ? 'contained' : 'text'}
-                disabled={it.pathname === 'model' ? false : it.disabled}
+                disabled={it.disabled}
                 sx={{
                   width: '100%',
                   height: 50,

@@ -1,4 +1,5 @@
 export * from './Admin'
+export * from './AiEmployee'
 export * from './Billing'
 export * from './Cli'
 export * from './CodeSnippet'
