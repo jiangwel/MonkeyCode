@@ -762,7 +762,7 @@ var (
 	// WorkspaceFilesColumns holds the columns for the "workspace_files" table.
 	WorkspaceFilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "path", Type: field.TypeString},
+		{Name: "path", Type: field.TypeString, Size: 2147483647},
 		{Name: "content", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "hash", Type: field.TypeString},
 		{Name: "language", Type: field.TypeString, Nullable: true},

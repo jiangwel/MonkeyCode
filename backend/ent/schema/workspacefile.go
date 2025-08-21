@@ -32,7 +32,7 @@ func (WorkspaceFile) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}),
 		field.UUID("user_id", uuid.UUID{}).Comment("关联的用户ID"),
 		field.UUID("workspace_id", uuid.UUID{}).Comment("关联的工作区ID"),
-		field.String("path").Validate(func(s string) error {
+		field.Text("path").Validate(func(s string) error {
 			if s == "" {
 				return fmt.Errorf("path cannot be empty")
 			}
