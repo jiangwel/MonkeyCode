@@ -15,6 +15,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/adminloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/db/adminrole"
+	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/chaitin/MonkeyCode/backend/db/role"
 	"github.com/chaitin/MonkeyCode/backend/db/usergroup"
@@ -142,6 +143,21 @@ func (au *AdminUpdate) AddMyusergroups(u ...*UserGroup) *AdminUpdate {
 	return au.AddMyusergroupIDs(ids...)
 }
 
+// AddAiemployeeIDs adds the "aiemployees" edge to the AIEmployee entity by IDs.
+func (au *AdminUpdate) AddAiemployeeIDs(ids ...uuid.UUID) *AdminUpdate {
+	au.mutation.AddAiemployeeIDs(ids...)
+	return au
+}
+
+// AddAiemployees adds the "aiemployees" edges to the AIEmployee entity.
+func (au *AdminUpdate) AddAiemployees(a ...*AIEmployee) *AdminUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return au.AddAiemployeeIDs(ids...)
+}
+
 // AddUsergroupIDs adds the "usergroups" edge to the UserGroup entity by IDs.
 func (au *AdminUpdate) AddUsergroupIDs(ids ...uuid.UUID) *AdminUpdate {
 	au.mutation.AddUsergroupIDs(ids...)
@@ -247,6 +263,27 @@ func (au *AdminUpdate) RemoveMyusergroups(u ...*UserGroup) *AdminUpdate {
 		ids[i] = u[i].ID
 	}
 	return au.RemoveMyusergroupIDs(ids...)
+}
+
+// ClearAiemployees clears all "aiemployees" edges to the AIEmployee entity.
+func (au *AdminUpdate) ClearAiemployees() *AdminUpdate {
+	au.mutation.ClearAiemployees()
+	return au
+}
+
+// RemoveAiemployeeIDs removes the "aiemployees" edge to AIEmployee entities by IDs.
+func (au *AdminUpdate) RemoveAiemployeeIDs(ids ...uuid.UUID) *AdminUpdate {
+	au.mutation.RemoveAiemployeeIDs(ids...)
+	return au
+}
+
+// RemoveAiemployees removes "aiemployees" edges to AIEmployee entities.
+func (au *AdminUpdate) RemoveAiemployees(a ...*AIEmployee) *AdminUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return au.RemoveAiemployeeIDs(ids...)
 }
 
 // ClearUsergroups clears all "usergroups" edges to the UserGroup entity.
@@ -485,6 +522,51 @@ func (au *AdminUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usergroup.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if au.mutation.AiemployeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   admin.AiemployeesTable,
+			Columns: []string{admin.AiemployeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aiemployee.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.RemovedAiemployeesIDs(); len(nodes) > 0 && !au.mutation.AiemployeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   admin.AiemployeesTable,
+			Columns: []string{admin.AiemployeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aiemployee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.AiemployeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   admin.AiemployeesTable,
+			Columns: []string{admin.AiemployeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aiemployee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -800,6 +882,21 @@ func (auo *AdminUpdateOne) AddMyusergroups(u ...*UserGroup) *AdminUpdateOne {
 	return auo.AddMyusergroupIDs(ids...)
 }
 
+// AddAiemployeeIDs adds the "aiemployees" edge to the AIEmployee entity by IDs.
+func (auo *AdminUpdateOne) AddAiemployeeIDs(ids ...uuid.UUID) *AdminUpdateOne {
+	auo.mutation.AddAiemployeeIDs(ids...)
+	return auo
+}
+
+// AddAiemployees adds the "aiemployees" edges to the AIEmployee entity.
+func (auo *AdminUpdateOne) AddAiemployees(a ...*AIEmployee) *AdminUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return auo.AddAiemployeeIDs(ids...)
+}
+
 // AddUsergroupIDs adds the "usergroups" edge to the UserGroup entity by IDs.
 func (auo *AdminUpdateOne) AddUsergroupIDs(ids ...uuid.UUID) *AdminUpdateOne {
 	auo.mutation.AddUsergroupIDs(ids...)
@@ -905,6 +1002,27 @@ func (auo *AdminUpdateOne) RemoveMyusergroups(u ...*UserGroup) *AdminUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return auo.RemoveMyusergroupIDs(ids...)
+}
+
+// ClearAiemployees clears all "aiemployees" edges to the AIEmployee entity.
+func (auo *AdminUpdateOne) ClearAiemployees() *AdminUpdateOne {
+	auo.mutation.ClearAiemployees()
+	return auo
+}
+
+// RemoveAiemployeeIDs removes the "aiemployees" edge to AIEmployee entities by IDs.
+func (auo *AdminUpdateOne) RemoveAiemployeeIDs(ids ...uuid.UUID) *AdminUpdateOne {
+	auo.mutation.RemoveAiemployeeIDs(ids...)
+	return auo
+}
+
+// RemoveAiemployees removes "aiemployees" edges to AIEmployee entities.
+func (auo *AdminUpdateOne) RemoveAiemployees(a ...*AIEmployee) *AdminUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return auo.RemoveAiemployeeIDs(ids...)
 }
 
 // ClearUsergroups clears all "usergroups" edges to the UserGroup entity.
@@ -1173,6 +1291,51 @@ func (auo *AdminUpdateOne) sqlSave(ctx context.Context) (_node *Admin, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usergroup.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.AiemployeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   admin.AiemployeesTable,
+			Columns: []string{admin.AiemployeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aiemployee.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.RemovedAiemployeesIDs(); len(nodes) > 0 && !auo.mutation.AiemployeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   admin.AiemployeesTable,
+			Columns: []string{admin.AiemployeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aiemployee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.AiemployeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   admin.AiemployeesTable,
+			Columns: []string{admin.AiemployeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aiemployee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

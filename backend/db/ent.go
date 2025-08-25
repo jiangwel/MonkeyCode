@@ -15,6 +15,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/adminloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/db/adminrole"
+	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
+	"github.com/chaitin/MonkeyCode/backend/db/aitask"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/billingplan"
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
@@ -101,6 +103,8 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			aiemployee.Table:             aiemployee.ValidColumn,
+			aitask.Table:                 aitask.ValidColumn,
 			admin.Table:                  admin.ValidColumn,
 			adminloginhistory.Table:      adminloginhistory.ValidColumn,
 			adminrole.Table:              adminrole.ValidColumn,

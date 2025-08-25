@@ -14,6 +14,10 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// AIEmployee is the client for interacting with the AIEmployee builders.
+	AIEmployee *AIEmployeeClient
+	// AITask is the client for interacting with the AITask builders.
+	AITask *AITaskClient
 	// Admin is the client for interacting with the Admin builders.
 	Admin *AdminClient
 	// AdminLoginHistory is the client for interacting with the AdminLoginHistory builders.
@@ -203,6 +207,8 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.AIEmployee = NewAIEmployeeClient(tx.config)
+	tx.AITask = NewAITaskClient(tx.config)
 	tx.Admin = NewAdminClient(tx.config)
 	tx.AdminLoginHistory = NewAdminLoginHistoryClient(tx.config)
 	tx.AdminRole = NewAdminRoleClient(tx.config)
@@ -241,7 +247,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Admin.QueryXXX(), the query will be executed
+// applies a query, for example: AIEmployee.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

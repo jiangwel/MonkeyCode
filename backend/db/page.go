@@ -11,6 +11,34 @@ type PageInfo struct {
 	TotalCount  int64  `json:"total_count"`
 }
 
+func (ae *AIEmployeeQuery) Page(ctx context.Context, page, size int) ([]*AIEmployee, *PageInfo, error) {
+	cnt, err := ae.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := ae.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
+func (at *AITaskQuery) Page(ctx context.Context, page, size int) ([]*AITask, *PageInfo, error) {
+	cnt, err := at.Count(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	offset := size * (page - 1)
+	rs, err := at.Offset(offset).Limit(size).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	has := (page * size) < cnt
+	return rs, &PageInfo{HasNextPage: has, TotalCount: int64(cnt)}, nil
+}
+
 func (a *AdminQuery) Page(ctx context.Context, page, size int) ([]*Admin, *PageInfo, error) {
 	cnt, err := a.Count(ctx)
 	if err != nil {

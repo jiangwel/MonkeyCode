@@ -47,7 +47,7 @@ type Config struct {
 
 	Redis struct {
 		Host     string `mapstructure:"host"`
-		Port     string `mapstructure:"port"`
+		Port     int    `mapstructure:"port"`
 		Pass     string `mapstructure:"pass"`
 		DB       int    `mapstructure:"db"`
 		IdleConn int    `mapstructure:"idle_conn"`
@@ -136,7 +136,7 @@ func Init() (*Config, error) {
 	v.SetDefault("database.max_idle_conns", 10)
 	v.SetDefault("database.conn_max_lifetime", 30)
 	v.SetDefault("redis.host", "monkeycode-redis")
-	v.SetDefault("redis.port", "6379")
+	v.SetDefault("redis.port", 6379)
 	v.SetDefault("redis.pass", "")
 	v.SetDefault("redis.db", 0)
 	v.SetDefault("redis.idle_conn", 20)

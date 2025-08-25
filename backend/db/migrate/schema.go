@@ -9,6 +9,53 @@ import (
 )
 
 var (
+	// AiEmployeesColumns holds the columns for the "ai_employees" table.
+	AiEmployeesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "position", Type: field.TypeString},
+		{Name: "repository_url", Type: field.TypeString},
+		{Name: "repository_user", Type: field.TypeString},
+		{Name: "platform", Type: field.TypeString},
+		{Name: "token", Type: field.TypeString},
+		{Name: "webhook_secret", Type: field.TypeString},
+		{Name: "webhook_url", Type: field.TypeString},
+		{Name: "parameters", Type: field.TypeJSON},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "admin_id", Type: field.TypeUUID},
+	}
+	// AiEmployeesTable holds the schema information for the "ai_employees" table.
+	AiEmployeesTable = &schema.Table{
+		Name:       "ai_employees",
+		Columns:    AiEmployeesColumns,
+		PrimaryKey: []*schema.Column{AiEmployeesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ai_employees_admins_aiemployees",
+				Columns:    []*schema.Column{AiEmployeesColumns[12]},
+				RefColumns: []*schema.Column{AdminsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// AiTasksColumns holds the columns for the "ai_tasks" table.
+	AiTasksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "employee_id", Type: field.TypeUUID},
+		{Name: "status", Type: field.TypeString, Default: "pending"},
+		{Name: "output", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "logs", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AiTasksTable holds the schema information for the "ai_tasks" table.
+	AiTasksTable = &schema.Table{
+		Name:       "ai_tasks",
+		Columns:    AiTasksColumns,
+		PrimaryKey: []*schema.Column{AiTasksColumns[0]},
+	}
 	// AdminsColumns holds the columns for the "admins" table.
 	AdminsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -831,6 +878,8 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AiEmployeesTable,
+		AiTasksTable,
 		AdminsTable,
 		AdminLoginHistoriesTable,
 		AdminRolesTable,
@@ -864,6 +913,13 @@ var (
 )
 
 func init() {
+	AiEmployeesTable.ForeignKeys[0].RefTable = AdminsTable
+	AiEmployeesTable.Annotation = &entsql.Annotation{
+		Table: "ai_employees",
+	}
+	AiTasksTable.Annotation = &entsql.Annotation{
+		Table: "ai_tasks",
+	}
 	AdminsTable.Annotation = &entsql.Annotation{
 		Table: "admins",
 	}

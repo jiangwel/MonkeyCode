@@ -36,3 +36,9 @@ other = "OAuth is not enabled"
 
 [err-user-limit]
 other = "User limit reached"
+
+[err-invalid-secret]
+other = "Invalid secret"
+
+[err-ai-employee-limit]
+other = "Free edition only support one AI employee"

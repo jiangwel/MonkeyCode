@@ -468,6 +468,29 @@ func HasMyusergroupsWith(preds ...predicate.UserGroup) predicate.Admin {
 	})
 }
 
+// HasAiemployees applies the HasEdge predicate on the "aiemployees" edge.
+func HasAiemployees() predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AiemployeesTable, AiemployeesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAiemployeesWith applies the HasEdge predicate on the "aiemployees" edge with a given conditions (other predicates).
+func HasAiemployeesWith(preds ...predicate.AIEmployee) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		step := newAiemployeesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasUsergroups applies the HasEdge predicate on the "usergroups" edge.
 func HasUsergroups() predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {

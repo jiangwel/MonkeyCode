@@ -8,6 +8,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/adminloginhistory"
+	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
+	"github.com/chaitin/MonkeyCode/backend/db/aitask"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/billingplan"
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
@@ -39,6 +41,32 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	aiemployeeFields := schema.AIEmployee{}.Fields()
+	_ = aiemployeeFields
+	// aiemployeeDescCreatedAt is the schema descriptor for created_at field.
+	aiemployeeDescCreatedAt := aiemployeeFields[11].Descriptor()
+	// aiemployee.DefaultCreatedAt holds the default value on creation for the created_at field.
+	aiemployee.DefaultCreatedAt = aiemployeeDescCreatedAt.Default.(func() time.Time)
+	// aiemployeeDescUpdatedAt is the schema descriptor for updated_at field.
+	aiemployeeDescUpdatedAt := aiemployeeFields[12].Descriptor()
+	// aiemployee.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	aiemployee.DefaultUpdatedAt = aiemployeeDescUpdatedAt.Default.(func() time.Time)
+	// aiemployee.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	aiemployee.UpdateDefaultUpdatedAt = aiemployeeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	aitaskFields := schema.AITask{}.Fields()
+	_ = aitaskFields
+	// aitaskDescStatus is the schema descriptor for status field.
+	aitaskDescStatus := aitaskFields[2].Descriptor()
+	// aitask.DefaultStatus holds the default value on creation for the status field.
+	aitask.DefaultStatus = aitaskDescStatus.Default.(string)
+	// aitaskDescCreatedAt is the schema descriptor for created_at field.
+	aitaskDescCreatedAt := aitaskFields[6].Descriptor()
+	// aitask.DefaultCreatedAt holds the default value on creation for the created_at field.
+	aitask.DefaultCreatedAt = aitaskDescCreatedAt.Default.(func() time.Time)
+	// aitaskDescUpdatedAt is the schema descriptor for updated_at field.
+	aitaskDescUpdatedAt := aitaskFields[7].Descriptor()
+	// aitask.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	aitask.DefaultUpdatedAt = aitaskDescUpdatedAt.Default.(func() time.Time)
 	adminFields := schema.Admin{}.Fields()
 	_ = adminFields
 	// adminDescLastActiveAt is the schema descriptor for last_active_at field.

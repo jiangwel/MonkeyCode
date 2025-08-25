@@ -30,6 +30,8 @@ const (
 	EdgeLoginHistories = "login_histories"
 	// EdgeMyusergroups holds the string denoting the myusergroups edge name in mutations.
 	EdgeMyusergroups = "myusergroups"
+	// EdgeAiemployees holds the string denoting the aiemployees edge name in mutations.
+	EdgeAiemployees = "aiemployees"
 	// EdgeUsergroups holds the string denoting the usergroups edge name in mutations.
 	EdgeUsergroups = "usergroups"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
@@ -54,6 +56,13 @@ const (
 	MyusergroupsInverseTable = "user_groups"
 	// MyusergroupsColumn is the table column denoting the myusergroups relation/edge.
 	MyusergroupsColumn = "admin_id"
+	// AiemployeesTable is the table that holds the aiemployees relation/edge.
+	AiemployeesTable = "ai_employees"
+	// AiemployeesInverseTable is the table name for the AIEmployee entity.
+	// It exists in this package in order to avoid circular dependency with the "aiemployee" package.
+	AiemployeesInverseTable = "ai_employees"
+	// AiemployeesColumn is the table column denoting the aiemployees relation/edge.
+	AiemployeesColumn = "admin_id"
 	// UsergroupsTable is the table that holds the usergroups relation/edge. The primary key declared below.
 	UsergroupsTable = "user_group_admins"
 	// UsergroupsInverseTable is the table name for the UserGroup entity.
@@ -187,6 +196,20 @@ func ByMyusergroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByAiemployeesCount orders the results by aiemployees count.
+func ByAiemployeesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAiemployeesStep(), opts...)
+	}
+}
+
+// ByAiemployees orders the results by aiemployees terms.
+func ByAiemployees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAiemployeesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByUsergroupsCount orders the results by usergroups count.
 func ByUsergroupsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -254,6 +277,13 @@ func newMyusergroupsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MyusergroupsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, MyusergroupsTable, MyusergroupsColumn),
+	)
+}
+func newAiemployeesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AiemployeesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AiemployeesTable, AiemployeesColumn),
 	)
 }
 func newUsergroupsStep() *sqlgraph.Step {

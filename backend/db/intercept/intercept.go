@@ -11,6 +11,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/adminloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/db/adminrole"
+	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
+	"github.com/chaitin/MonkeyCode/backend/db/aitask"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/billingplan"
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
@@ -94,6 +96,60 @@ func (f TraverseFunc) Traverse(ctx context.Context, q db.Query) error {
 		return err
 	}
 	return f(ctx, query)
+}
+
+// The AIEmployeeFunc type is an adapter to allow the use of ordinary function as a Querier.
+type AIEmployeeFunc func(context.Context, *db.AIEmployeeQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f AIEmployeeFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.AIEmployeeQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.AIEmployeeQuery", q)
+}
+
+// The TraverseAIEmployee type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseAIEmployee func(context.Context, *db.AIEmployeeQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseAIEmployee) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseAIEmployee) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.AIEmployeeQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.AIEmployeeQuery", q)
+}
+
+// The AITaskFunc type is an adapter to allow the use of ordinary function as a Querier.
+type AITaskFunc func(context.Context, *db.AITaskQuery) (db.Value, error)
+
+// Query calls f(ctx, q).
+func (f AITaskFunc) Query(ctx context.Context, q db.Query) (db.Value, error) {
+	if q, ok := q.(*db.AITaskQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *db.AITaskQuery", q)
+}
+
+// The TraverseAITask type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseAITask func(context.Context, *db.AITaskQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseAITask) Intercept(next db.Querier) db.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseAITask) Traverse(ctx context.Context, q db.Query) error {
+	if q, ok := q.(*db.AITaskQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *db.AITaskQuery", q)
 }
 
 // The AdminFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -882,6 +938,10 @@ func (f TraverseWorkspaceFile) Traverse(ctx context.Context, q db.Query) error {
 // NewQuery returns the generic Query interface for the given typed query.
 func NewQuery(q db.Query) (Query, error) {
 	switch q := q.(type) {
+	case *db.AIEmployeeQuery:
+		return &query[*db.AIEmployeeQuery, predicate.AIEmployee, aiemployee.OrderOption]{typ: db.TypeAIEmployee, tq: q}, nil
+	case *db.AITaskQuery:
+		return &query[*db.AITaskQuery, predicate.AITask, aitask.OrderOption]{typ: db.TypeAITask, tq: q}, nil
 	case *db.AdminQuery:
 		return &query[*db.AdminQuery, predicate.Admin, admin.OrderOption]{typ: db.TypeAdmin, tq: q}, nil
 	case *db.AdminLoginHistoryQuery:

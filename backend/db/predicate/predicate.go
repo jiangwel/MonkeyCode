@@ -6,6 +6,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AIEmployee is the predicate function for aiemployee builders.
+type AIEmployee func(*sql.Selector)
+
+// AITask is the predicate function for aitask builders.
+type AITask func(*sql.Selector)
+
 // Admin is the predicate function for admin builders.
 type Admin func(*sql.Selector)
 

@@ -15,6 +15,8 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/adminloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/db/adminrole"
+	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
+	"github.com/chaitin/MonkeyCode/backend/db/aitask"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/billingplan"
 	"github.com/chaitin/MonkeyCode/backend/db/billingquota"
@@ -56,6 +58,8 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeAIEmployee             = "AIEmployee"
+	TypeAITask                 = "AITask"
 	TypeAdmin                  = "Admin"
 	TypeAdminLoginHistory      = "AdminLoginHistory"
 	TypeAdminRole              = "AdminRole"
@@ -87,6 +91,1702 @@ const (
 	TypeWorkspaceFile          = "WorkspaceFile"
 )
 
+// AIEmployeeMutation represents an operation that mutates the AIEmployee nodes in the graph.
+type AIEmployeeMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	name            *string
+	position        *consts.AIEmployeePosition
+	repository_url  *string
+	repository_user *string
+	platform        *consts.RepoPlatform
+	token           *string
+	webhook_secret  *string
+	webhook_url     *string
+	parameters      **types.AIEmployeeParam
+	created_at      *time.Time
+	updated_at      *time.Time
+	clearedFields   map[string]struct{}
+	admin           *uuid.UUID
+	clearedadmin    bool
+	done            bool
+	oldValue        func(context.Context) (*AIEmployee, error)
+	predicates      []predicate.AIEmployee
+}
+
+var _ ent.Mutation = (*AIEmployeeMutation)(nil)
+
+// aiemployeeOption allows management of the mutation configuration using functional options.
+type aiemployeeOption func(*AIEmployeeMutation)
+
+// newAIEmployeeMutation creates new mutation for the AIEmployee entity.
+func newAIEmployeeMutation(c config, op Op, opts ...aiemployeeOption) *AIEmployeeMutation {
+	m := &AIEmployeeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAIEmployee,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAIEmployeeID sets the ID field of the mutation.
+func withAIEmployeeID(id uuid.UUID) aiemployeeOption {
+	return func(m *AIEmployeeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AIEmployee
+		)
+		m.oldValue = func(ctx context.Context) (*AIEmployee, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AIEmployee.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAIEmployee sets the old AIEmployee of the mutation.
+func withAIEmployee(node *AIEmployee) aiemployeeOption {
+	return func(m *AIEmployeeMutation) {
+		m.oldValue = func(context.Context) (*AIEmployee, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AIEmployeeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AIEmployeeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AIEmployee entities.
+func (m *AIEmployeeMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AIEmployeeMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AIEmployeeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AIEmployee.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetAdminID sets the "admin_id" field.
+func (m *AIEmployeeMutation) SetAdminID(u uuid.UUID) {
+	m.admin = &u
+}
+
+// AdminID returns the value of the "admin_id" field in the mutation.
+func (m *AIEmployeeMutation) AdminID() (r uuid.UUID, exists bool) {
+	v := m.admin
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAdminID returns the old "admin_id" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldAdminID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAdminID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAdminID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAdminID: %w", err)
+	}
+	return oldValue.AdminID, nil
+}
+
+// ResetAdminID resets all changes to the "admin_id" field.
+func (m *AIEmployeeMutation) ResetAdminID() {
+	m.admin = nil
+}
+
+// SetName sets the "name" field.
+func (m *AIEmployeeMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *AIEmployeeMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *AIEmployeeMutation) ResetName() {
+	m.name = nil
+}
+
+// SetPosition sets the "position" field.
+func (m *AIEmployeeMutation) SetPosition(cep consts.AIEmployeePosition) {
+	m.position = &cep
+}
+
+// Position returns the value of the "position" field in the mutation.
+func (m *AIEmployeeMutation) Position() (r consts.AIEmployeePosition, exists bool) {
+	v := m.position
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPosition returns the old "position" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldPosition(ctx context.Context) (v consts.AIEmployeePosition, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPosition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPosition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPosition: %w", err)
+	}
+	return oldValue.Position, nil
+}
+
+// ResetPosition resets all changes to the "position" field.
+func (m *AIEmployeeMutation) ResetPosition() {
+	m.position = nil
+}
+
+// SetRepositoryURL sets the "repository_url" field.
+func (m *AIEmployeeMutation) SetRepositoryURL(s string) {
+	m.repository_url = &s
+}
+
+// RepositoryURL returns the value of the "repository_url" field in the mutation.
+func (m *AIEmployeeMutation) RepositoryURL() (r string, exists bool) {
+	v := m.repository_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRepositoryURL returns the old "repository_url" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldRepositoryURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRepositoryURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRepositoryURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRepositoryURL: %w", err)
+	}
+	return oldValue.RepositoryURL, nil
+}
+
+// ResetRepositoryURL resets all changes to the "repository_url" field.
+func (m *AIEmployeeMutation) ResetRepositoryURL() {
+	m.repository_url = nil
+}
+
+// SetRepositoryUser sets the "repository_user" field.
+func (m *AIEmployeeMutation) SetRepositoryUser(s string) {
+	m.repository_user = &s
+}
+
+// RepositoryUser returns the value of the "repository_user" field in the mutation.
+func (m *AIEmployeeMutation) RepositoryUser() (r string, exists bool) {
+	v := m.repository_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRepositoryUser returns the old "repository_user" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldRepositoryUser(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRepositoryUser is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRepositoryUser requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRepositoryUser: %w", err)
+	}
+	return oldValue.RepositoryUser, nil
+}
+
+// ResetRepositoryUser resets all changes to the "repository_user" field.
+func (m *AIEmployeeMutation) ResetRepositoryUser() {
+	m.repository_user = nil
+}
+
+// SetPlatform sets the "platform" field.
+func (m *AIEmployeeMutation) SetPlatform(cp consts.RepoPlatform) {
+	m.platform = &cp
+}
+
+// Platform returns the value of the "platform" field in the mutation.
+func (m *AIEmployeeMutation) Platform() (r consts.RepoPlatform, exists bool) {
+	v := m.platform
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlatform returns the old "platform" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldPlatform(ctx context.Context) (v consts.RepoPlatform, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlatform is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlatform requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlatform: %w", err)
+	}
+	return oldValue.Platform, nil
+}
+
+// ResetPlatform resets all changes to the "platform" field.
+func (m *AIEmployeeMutation) ResetPlatform() {
+	m.platform = nil
+}
+
+// SetToken sets the "token" field.
+func (m *AIEmployeeMutation) SetToken(s string) {
+	m.token = &s
+}
+
+// Token returns the value of the "token" field in the mutation.
+func (m *AIEmployeeMutation) Token() (r string, exists bool) {
+	v := m.token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToken returns the old "token" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToken: %w", err)
+	}
+	return oldValue.Token, nil
+}
+
+// ResetToken resets all changes to the "token" field.
+func (m *AIEmployeeMutation) ResetToken() {
+	m.token = nil
+}
+
+// SetWebhookSecret sets the "webhook_secret" field.
+func (m *AIEmployeeMutation) SetWebhookSecret(s string) {
+	m.webhook_secret = &s
+}
+
+// WebhookSecret returns the value of the "webhook_secret" field in the mutation.
+func (m *AIEmployeeMutation) WebhookSecret() (r string, exists bool) {
+	v := m.webhook_secret
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWebhookSecret returns the old "webhook_secret" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldWebhookSecret(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWebhookSecret is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWebhookSecret requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWebhookSecret: %w", err)
+	}
+	return oldValue.WebhookSecret, nil
+}
+
+// ResetWebhookSecret resets all changes to the "webhook_secret" field.
+func (m *AIEmployeeMutation) ResetWebhookSecret() {
+	m.webhook_secret = nil
+}
+
+// SetWebhookURL sets the "webhook_url" field.
+func (m *AIEmployeeMutation) SetWebhookURL(s string) {
+	m.webhook_url = &s
+}
+
+// WebhookURL returns the value of the "webhook_url" field in the mutation.
+func (m *AIEmployeeMutation) WebhookURL() (r string, exists bool) {
+	v := m.webhook_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWebhookURL returns the old "webhook_url" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldWebhookURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWebhookURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWebhookURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWebhookURL: %w", err)
+	}
+	return oldValue.WebhookURL, nil
+}
+
+// ResetWebhookURL resets all changes to the "webhook_url" field.
+func (m *AIEmployeeMutation) ResetWebhookURL() {
+	m.webhook_url = nil
+}
+
+// SetParameters sets the "parameters" field.
+func (m *AIEmployeeMutation) SetParameters(tep *types.AIEmployeeParam) {
+	m.parameters = &tep
+}
+
+// Parameters returns the value of the "parameters" field in the mutation.
+func (m *AIEmployeeMutation) Parameters() (r *types.AIEmployeeParam, exists bool) {
+	v := m.parameters
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParameters returns the old "parameters" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldParameters(ctx context.Context) (v *types.AIEmployeeParam, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParameters is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParameters requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParameters: %w", err)
+	}
+	return oldValue.Parameters, nil
+}
+
+// ResetParameters resets all changes to the "parameters" field.
+func (m *AIEmployeeMutation) ResetParameters() {
+	m.parameters = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AIEmployeeMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AIEmployeeMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AIEmployeeMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AIEmployeeMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AIEmployeeMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AIEmployeeMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearAdmin clears the "admin" edge to the Admin entity.
+func (m *AIEmployeeMutation) ClearAdmin() {
+	m.clearedadmin = true
+	m.clearedFields[aiemployee.FieldAdminID] = struct{}{}
+}
+
+// AdminCleared reports if the "admin" edge to the Admin entity was cleared.
+func (m *AIEmployeeMutation) AdminCleared() bool {
+	return m.clearedadmin
+}
+
+// AdminIDs returns the "admin" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AdminID instead. It exists only for internal usage by the builders.
+func (m *AIEmployeeMutation) AdminIDs() (ids []uuid.UUID) {
+	if id := m.admin; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAdmin resets all changes to the "admin" edge.
+func (m *AIEmployeeMutation) ResetAdmin() {
+	m.admin = nil
+	m.clearedadmin = false
+}
+
+// Where appends a list predicates to the AIEmployeeMutation builder.
+func (m *AIEmployeeMutation) Where(ps ...predicate.AIEmployee) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AIEmployeeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AIEmployeeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AIEmployee, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AIEmployeeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AIEmployeeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AIEmployee).
+func (m *AIEmployeeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AIEmployeeMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.admin != nil {
+		fields = append(fields, aiemployee.FieldAdminID)
+	}
+	if m.name != nil {
+		fields = append(fields, aiemployee.FieldName)
+	}
+	if m.position != nil {
+		fields = append(fields, aiemployee.FieldPosition)
+	}
+	if m.repository_url != nil {
+		fields = append(fields, aiemployee.FieldRepositoryURL)
+	}
+	if m.repository_user != nil {
+		fields = append(fields, aiemployee.FieldRepositoryUser)
+	}
+	if m.platform != nil {
+		fields = append(fields, aiemployee.FieldPlatform)
+	}
+	if m.token != nil {
+		fields = append(fields, aiemployee.FieldToken)
+	}
+	if m.webhook_secret != nil {
+		fields = append(fields, aiemployee.FieldWebhookSecret)
+	}
+	if m.webhook_url != nil {
+		fields = append(fields, aiemployee.FieldWebhookURL)
+	}
+	if m.parameters != nil {
+		fields = append(fields, aiemployee.FieldParameters)
+	}
+	if m.created_at != nil {
+		fields = append(fields, aiemployee.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, aiemployee.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AIEmployeeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case aiemployee.FieldAdminID:
+		return m.AdminID()
+	case aiemployee.FieldName:
+		return m.Name()
+	case aiemployee.FieldPosition:
+		return m.Position()
+	case aiemployee.FieldRepositoryURL:
+		return m.RepositoryURL()
+	case aiemployee.FieldRepositoryUser:
+		return m.RepositoryUser()
+	case aiemployee.FieldPlatform:
+		return m.Platform()
+	case aiemployee.FieldToken:
+		return m.Token()
+	case aiemployee.FieldWebhookSecret:
+		return m.WebhookSecret()
+	case aiemployee.FieldWebhookURL:
+		return m.WebhookURL()
+	case aiemployee.FieldParameters:
+		return m.Parameters()
+	case aiemployee.FieldCreatedAt:
+		return m.CreatedAt()
+	case aiemployee.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AIEmployeeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case aiemployee.FieldAdminID:
+		return m.OldAdminID(ctx)
+	case aiemployee.FieldName:
+		return m.OldName(ctx)
+	case aiemployee.FieldPosition:
+		return m.OldPosition(ctx)
+	case aiemployee.FieldRepositoryURL:
+		return m.OldRepositoryURL(ctx)
+	case aiemployee.FieldRepositoryUser:
+		return m.OldRepositoryUser(ctx)
+	case aiemployee.FieldPlatform:
+		return m.OldPlatform(ctx)
+	case aiemployee.FieldToken:
+		return m.OldToken(ctx)
+	case aiemployee.FieldWebhookSecret:
+		return m.OldWebhookSecret(ctx)
+	case aiemployee.FieldWebhookURL:
+		return m.OldWebhookURL(ctx)
+	case aiemployee.FieldParameters:
+		return m.OldParameters(ctx)
+	case aiemployee.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case aiemployee.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown AIEmployee field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AIEmployeeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case aiemployee.FieldAdminID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAdminID(v)
+		return nil
+	case aiemployee.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case aiemployee.FieldPosition:
+		v, ok := value.(consts.AIEmployeePosition)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPosition(v)
+		return nil
+	case aiemployee.FieldRepositoryURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRepositoryURL(v)
+		return nil
+	case aiemployee.FieldRepositoryUser:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRepositoryUser(v)
+		return nil
+	case aiemployee.FieldPlatform:
+		v, ok := value.(consts.RepoPlatform)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlatform(v)
+		return nil
+	case aiemployee.FieldToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToken(v)
+		return nil
+	case aiemployee.FieldWebhookSecret:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWebhookSecret(v)
+		return nil
+	case aiemployee.FieldWebhookURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWebhookURL(v)
+		return nil
+	case aiemployee.FieldParameters:
+		v, ok := value.(*types.AIEmployeeParam)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParameters(v)
+		return nil
+	case aiemployee.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case aiemployee.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AIEmployee field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AIEmployeeMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AIEmployeeMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AIEmployeeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AIEmployee numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AIEmployeeMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AIEmployeeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AIEmployeeMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown AIEmployee nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AIEmployeeMutation) ResetField(name string) error {
+	switch name {
+	case aiemployee.FieldAdminID:
+		m.ResetAdminID()
+		return nil
+	case aiemployee.FieldName:
+		m.ResetName()
+		return nil
+	case aiemployee.FieldPosition:
+		m.ResetPosition()
+		return nil
+	case aiemployee.FieldRepositoryURL:
+		m.ResetRepositoryURL()
+		return nil
+	case aiemployee.FieldRepositoryUser:
+		m.ResetRepositoryUser()
+		return nil
+	case aiemployee.FieldPlatform:
+		m.ResetPlatform()
+		return nil
+	case aiemployee.FieldToken:
+		m.ResetToken()
+		return nil
+	case aiemployee.FieldWebhookSecret:
+		m.ResetWebhookSecret()
+		return nil
+	case aiemployee.FieldWebhookURL:
+		m.ResetWebhookURL()
+		return nil
+	case aiemployee.FieldParameters:
+		m.ResetParameters()
+		return nil
+	case aiemployee.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case aiemployee.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AIEmployee field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AIEmployeeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.admin != nil {
+		edges = append(edges, aiemployee.EdgeAdmin)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AIEmployeeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case aiemployee.EdgeAdmin:
+		if id := m.admin; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AIEmployeeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AIEmployeeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AIEmployeeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedadmin {
+		edges = append(edges, aiemployee.EdgeAdmin)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AIEmployeeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case aiemployee.EdgeAdmin:
+		return m.clearedadmin
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AIEmployeeMutation) ClearEdge(name string) error {
+	switch name {
+	case aiemployee.EdgeAdmin:
+		m.ClearAdmin()
+		return nil
+	}
+	return fmt.Errorf("unknown AIEmployee unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AIEmployeeMutation) ResetEdge(name string) error {
+	switch name {
+	case aiemployee.EdgeAdmin:
+		m.ResetAdmin()
+		return nil
+	}
+	return fmt.Errorf("unknown AIEmployee edge %s", name)
+}
+
+// AITaskMutation represents an operation that mutates the AITask nodes in the graph.
+type AITaskMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	employee_id   *uuid.UUID
+	status        *string
+	output        *string
+	logs          *string
+	error_message *string
+	created_at    *time.Time
+	updated_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*AITask, error)
+	predicates    []predicate.AITask
+}
+
+var _ ent.Mutation = (*AITaskMutation)(nil)
+
+// aitaskOption allows management of the mutation configuration using functional options.
+type aitaskOption func(*AITaskMutation)
+
+// newAITaskMutation creates new mutation for the AITask entity.
+func newAITaskMutation(c config, op Op, opts ...aitaskOption) *AITaskMutation {
+	m := &AITaskMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAITask,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAITaskID sets the ID field of the mutation.
+func withAITaskID(id uuid.UUID) aitaskOption {
+	return func(m *AITaskMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AITask
+		)
+		m.oldValue = func(ctx context.Context) (*AITask, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AITask.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAITask sets the old AITask of the mutation.
+func withAITask(node *AITask) aitaskOption {
+	return func(m *AITaskMutation) {
+		m.oldValue = func(context.Context) (*AITask, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AITaskMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AITaskMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AITask entities.
+func (m *AITaskMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AITaskMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AITaskMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AITask.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetEmployeeID sets the "employee_id" field.
+func (m *AITaskMutation) SetEmployeeID(u uuid.UUID) {
+	m.employee_id = &u
+}
+
+// EmployeeID returns the value of the "employee_id" field in the mutation.
+func (m *AITaskMutation) EmployeeID() (r uuid.UUID, exists bool) {
+	v := m.employee_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmployeeID returns the old "employee_id" field's value of the AITask entity.
+// If the AITask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AITaskMutation) OldEmployeeID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmployeeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmployeeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmployeeID: %w", err)
+	}
+	return oldValue.EmployeeID, nil
+}
+
+// ResetEmployeeID resets all changes to the "employee_id" field.
+func (m *AITaskMutation) ResetEmployeeID() {
+	m.employee_id = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *AITaskMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AITaskMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the AITask entity.
+// If the AITask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AITaskMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AITaskMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetOutput sets the "output" field.
+func (m *AITaskMutation) SetOutput(s string) {
+	m.output = &s
+}
+
+// Output returns the value of the "output" field in the mutation.
+func (m *AITaskMutation) Output() (r string, exists bool) {
+	v := m.output
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutput returns the old "output" field's value of the AITask entity.
+// If the AITask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AITaskMutation) OldOutput(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutput is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutput requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutput: %w", err)
+	}
+	return oldValue.Output, nil
+}
+
+// ClearOutput clears the value of the "output" field.
+func (m *AITaskMutation) ClearOutput() {
+	m.output = nil
+	m.clearedFields[aitask.FieldOutput] = struct{}{}
+}
+
+// OutputCleared returns if the "output" field was cleared in this mutation.
+func (m *AITaskMutation) OutputCleared() bool {
+	_, ok := m.clearedFields[aitask.FieldOutput]
+	return ok
+}
+
+// ResetOutput resets all changes to the "output" field.
+func (m *AITaskMutation) ResetOutput() {
+	m.output = nil
+	delete(m.clearedFields, aitask.FieldOutput)
+}
+
+// SetLogs sets the "logs" field.
+func (m *AITaskMutation) SetLogs(s string) {
+	m.logs = &s
+}
+
+// Logs returns the value of the "logs" field in the mutation.
+func (m *AITaskMutation) Logs() (r string, exists bool) {
+	v := m.logs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLogs returns the old "logs" field's value of the AITask entity.
+// If the AITask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AITaskMutation) OldLogs(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLogs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLogs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLogs: %w", err)
+	}
+	return oldValue.Logs, nil
+}
+
+// ClearLogs clears the value of the "logs" field.
+func (m *AITaskMutation) ClearLogs() {
+	m.logs = nil
+	m.clearedFields[aitask.FieldLogs] = struct{}{}
+}
+
+// LogsCleared returns if the "logs" field was cleared in this mutation.
+func (m *AITaskMutation) LogsCleared() bool {
+	_, ok := m.clearedFields[aitask.FieldLogs]
+	return ok
+}
+
+// ResetLogs resets all changes to the "logs" field.
+func (m *AITaskMutation) ResetLogs() {
+	m.logs = nil
+	delete(m.clearedFields, aitask.FieldLogs)
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *AITaskMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *AITaskMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the AITask entity.
+// If the AITask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AITaskMutation) OldErrorMessage(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (m *AITaskMutation) ClearErrorMessage() {
+	m.error_message = nil
+	m.clearedFields[aitask.FieldErrorMessage] = struct{}{}
+}
+
+// ErrorMessageCleared returns if the "error_message" field was cleared in this mutation.
+func (m *AITaskMutation) ErrorMessageCleared() bool {
+	_, ok := m.clearedFields[aitask.FieldErrorMessage]
+	return ok
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *AITaskMutation) ResetErrorMessage() {
+	m.error_message = nil
+	delete(m.clearedFields, aitask.FieldErrorMessage)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AITaskMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AITaskMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AITask entity.
+// If the AITask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AITaskMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AITaskMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AITaskMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AITaskMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AITask entity.
+// If the AITask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AITaskMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AITaskMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the AITaskMutation builder.
+func (m *AITaskMutation) Where(ps ...predicate.AITask) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AITaskMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AITaskMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AITask, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AITaskMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AITaskMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AITask).
+func (m *AITaskMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AITaskMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.employee_id != nil {
+		fields = append(fields, aitask.FieldEmployeeID)
+	}
+	if m.status != nil {
+		fields = append(fields, aitask.FieldStatus)
+	}
+	if m.output != nil {
+		fields = append(fields, aitask.FieldOutput)
+	}
+	if m.logs != nil {
+		fields = append(fields, aitask.FieldLogs)
+	}
+	if m.error_message != nil {
+		fields = append(fields, aitask.FieldErrorMessage)
+	}
+	if m.created_at != nil {
+		fields = append(fields, aitask.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, aitask.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AITaskMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case aitask.FieldEmployeeID:
+		return m.EmployeeID()
+	case aitask.FieldStatus:
+		return m.Status()
+	case aitask.FieldOutput:
+		return m.Output()
+	case aitask.FieldLogs:
+		return m.Logs()
+	case aitask.FieldErrorMessage:
+		return m.ErrorMessage()
+	case aitask.FieldCreatedAt:
+		return m.CreatedAt()
+	case aitask.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AITaskMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case aitask.FieldEmployeeID:
+		return m.OldEmployeeID(ctx)
+	case aitask.FieldStatus:
+		return m.OldStatus(ctx)
+	case aitask.FieldOutput:
+		return m.OldOutput(ctx)
+	case aitask.FieldLogs:
+		return m.OldLogs(ctx)
+	case aitask.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
+	case aitask.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case aitask.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown AITask field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AITaskMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case aitask.FieldEmployeeID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmployeeID(v)
+		return nil
+	case aitask.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case aitask.FieldOutput:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutput(v)
+		return nil
+	case aitask.FieldLogs:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLogs(v)
+		return nil
+	case aitask.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
+	case aitask.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case aitask.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AITask field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AITaskMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AITaskMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AITaskMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AITask numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AITaskMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(aitask.FieldOutput) {
+		fields = append(fields, aitask.FieldOutput)
+	}
+	if m.FieldCleared(aitask.FieldLogs) {
+		fields = append(fields, aitask.FieldLogs)
+	}
+	if m.FieldCleared(aitask.FieldErrorMessage) {
+		fields = append(fields, aitask.FieldErrorMessage)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AITaskMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AITaskMutation) ClearField(name string) error {
+	switch name {
+	case aitask.FieldOutput:
+		m.ClearOutput()
+		return nil
+	case aitask.FieldLogs:
+		m.ClearLogs()
+		return nil
+	case aitask.FieldErrorMessage:
+		m.ClearErrorMessage()
+		return nil
+	}
+	return fmt.Errorf("unknown AITask nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AITaskMutation) ResetField(name string) error {
+	switch name {
+	case aitask.FieldEmployeeID:
+		m.ResetEmployeeID()
+		return nil
+	case aitask.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case aitask.FieldOutput:
+		m.ResetOutput()
+		return nil
+	case aitask.FieldLogs:
+		m.ResetLogs()
+		return nil
+	case aitask.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
+	case aitask.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case aitask.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AITask field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AITaskMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AITaskMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AITaskMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AITaskMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AITaskMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AITaskMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AITaskMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown AITask unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AITaskMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown AITask edge %s", name)
+}
+
 // AdminMutation represents an operation that mutates the Admin nodes in the graph.
 type AdminMutation struct {
 	config
@@ -106,6 +1806,9 @@ type AdminMutation struct {
 	myusergroups             map[uuid.UUID]struct{}
 	removedmyusergroups      map[uuid.UUID]struct{}
 	clearedmyusergroups      bool
+	aiemployees              map[uuid.UUID]struct{}
+	removedaiemployees       map[uuid.UUID]struct{}
+	clearedaiemployees       bool
 	usergroups               map[uuid.UUID]struct{}
 	removedusergroups        map[uuid.UUID]struct{}
 	clearedusergroups        bool
@@ -551,6 +2254,60 @@ func (m *AdminMutation) ResetMyusergroups() {
 	m.removedmyusergroups = nil
 }
 
+// AddAiemployeeIDs adds the "aiemployees" edge to the AIEmployee entity by ids.
+func (m *AdminMutation) AddAiemployeeIDs(ids ...uuid.UUID) {
+	if m.aiemployees == nil {
+		m.aiemployees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.aiemployees[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAiemployees clears the "aiemployees" edge to the AIEmployee entity.
+func (m *AdminMutation) ClearAiemployees() {
+	m.clearedaiemployees = true
+}
+
+// AiemployeesCleared reports if the "aiemployees" edge to the AIEmployee entity was cleared.
+func (m *AdminMutation) AiemployeesCleared() bool {
+	return m.clearedaiemployees
+}
+
+// RemoveAiemployeeIDs removes the "aiemployees" edge to the AIEmployee entity by IDs.
+func (m *AdminMutation) RemoveAiemployeeIDs(ids ...uuid.UUID) {
+	if m.removedaiemployees == nil {
+		m.removedaiemployees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.aiemployees, ids[i])
+		m.removedaiemployees[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAiemployees returns the removed IDs of the "aiemployees" edge to the AIEmployee entity.
+func (m *AdminMutation) RemovedAiemployeesIDs() (ids []uuid.UUID) {
+	for id := range m.removedaiemployees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AiemployeesIDs returns the "aiemployees" edge IDs in the mutation.
+func (m *AdminMutation) AiemployeesIDs() (ids []uuid.UUID) {
+	for id := range m.aiemployees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAiemployees resets all changes to the "aiemployees" edge.
+func (m *AdminMutation) ResetAiemployees() {
+	m.aiemployees = nil
+	m.clearedaiemployees = false
+	m.removedaiemployees = nil
+}
+
 // AddUsergroupIDs adds the "usergroups" edge to the UserGroup entity by ids.
 func (m *AdminMutation) AddUsergroupIDs(ids ...uuid.UUID) {
 	if m.usergroups == nil {
@@ -985,12 +2742,15 @@ func (m *AdminMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AdminMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.login_histories != nil {
 		edges = append(edges, admin.EdgeLoginHistories)
 	}
 	if m.myusergroups != nil {
 		edges = append(edges, admin.EdgeMyusergroups)
+	}
+	if m.aiemployees != nil {
+		edges = append(edges, admin.EdgeAiemployees)
 	}
 	if m.usergroups != nil {
 		edges = append(edges, admin.EdgeUsergroups)
@@ -1020,6 +2780,12 @@ func (m *AdminMutation) AddedIDs(name string) []ent.Value {
 	case admin.EdgeMyusergroups:
 		ids := make([]ent.Value, 0, len(m.myusergroups))
 		for id := range m.myusergroups {
+			ids = append(ids, id)
+		}
+		return ids
+	case admin.EdgeAiemployees:
+		ids := make([]ent.Value, 0, len(m.aiemployees))
+		for id := range m.aiemployees {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1053,12 +2819,15 @@ func (m *AdminMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AdminMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedlogin_histories != nil {
 		edges = append(edges, admin.EdgeLoginHistories)
 	}
 	if m.removedmyusergroups != nil {
 		edges = append(edges, admin.EdgeMyusergroups)
+	}
+	if m.removedaiemployees != nil {
+		edges = append(edges, admin.EdgeAiemployees)
 	}
 	if m.removedusergroups != nil {
 		edges = append(edges, admin.EdgeUsergroups)
@@ -1088,6 +2857,12 @@ func (m *AdminMutation) RemovedIDs(name string) []ent.Value {
 	case admin.EdgeMyusergroups:
 		ids := make([]ent.Value, 0, len(m.removedmyusergroups))
 		for id := range m.removedmyusergroups {
+			ids = append(ids, id)
+		}
+		return ids
+	case admin.EdgeAiemployees:
+		ids := make([]ent.Value, 0, len(m.removedaiemployees))
+		for id := range m.removedaiemployees {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1121,12 +2896,15 @@ func (m *AdminMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AdminMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedlogin_histories {
 		edges = append(edges, admin.EdgeLoginHistories)
 	}
 	if m.clearedmyusergroups {
 		edges = append(edges, admin.EdgeMyusergroups)
+	}
+	if m.clearedaiemployees {
+		edges = append(edges, admin.EdgeAiemployees)
 	}
 	if m.clearedusergroups {
 		edges = append(edges, admin.EdgeUsergroups)
@@ -1151,6 +2929,8 @@ func (m *AdminMutation) EdgeCleared(name string) bool {
 		return m.clearedlogin_histories
 	case admin.EdgeMyusergroups:
 		return m.clearedmyusergroups
+	case admin.EdgeAiemployees:
+		return m.clearedaiemployees
 	case admin.EdgeUsergroups:
 		return m.clearedusergroups
 	case admin.EdgeRoles:
@@ -1180,6 +2960,9 @@ func (m *AdminMutation) ResetEdge(name string) error {
 		return nil
 	case admin.EdgeMyusergroups:
 		m.ResetMyusergroups()
+		return nil
+	case admin.EdgeAiemployees:
+		m.ResetAiemployees()
 		return nil
 	case admin.EdgeUsergroups:
 		m.ResetUsergroups()

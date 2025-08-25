@@ -16,6 +16,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/adminloginhistory"
 	"github.com/chaitin/MonkeyCode/backend/db/adminrole"
+	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
 	"github.com/chaitin/MonkeyCode/backend/db/role"
 	"github.com/chaitin/MonkeyCode/backend/db/usergroup"
@@ -32,6 +33,7 @@ type AdminQuery struct {
 	predicates          []predicate.Admin
 	withLoginHistories  *AdminLoginHistoryQuery
 	withMyusergroups    *UserGroupQuery
+	withAiemployees     *AIEmployeeQuery
 	withUsergroups      *UserGroupQuery
 	withRoles           *RoleQuery
 	withUserGroupAdmins *UserGroupAdminQuery
@@ -110,6 +112,28 @@ func (aq *AdminQuery) QueryMyusergroups() *UserGroupQuery {
 			sqlgraph.From(admin.Table, admin.FieldID, selector),
 			sqlgraph.To(usergroup.Table, usergroup.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, admin.MyusergroupsTable, admin.MyusergroupsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAiemployees chains the current query on the "aiemployees" edge.
+func (aq *AdminQuery) QueryAiemployees() *AIEmployeeQuery {
+	query := (&AIEmployeeClient{config: aq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(admin.Table, admin.FieldID, selector),
+			sqlgraph.To(aiemployee.Table, aiemployee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, admin.AiemployeesTable, admin.AiemployeesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -399,6 +423,7 @@ func (aq *AdminQuery) Clone() *AdminQuery {
 		predicates:          append([]predicate.Admin{}, aq.predicates...),
 		withLoginHistories:  aq.withLoginHistories.Clone(),
 		withMyusergroups:    aq.withMyusergroups.Clone(),
+		withAiemployees:     aq.withAiemployees.Clone(),
 		withUsergroups:      aq.withUsergroups.Clone(),
 		withRoles:           aq.withRoles.Clone(),
 		withUserGroupAdmins: aq.withUserGroupAdmins.Clone(),
@@ -429,6 +454,17 @@ func (aq *AdminQuery) WithMyusergroups(opts ...func(*UserGroupQuery)) *AdminQuer
 		opt(query)
 	}
 	aq.withMyusergroups = query
+	return aq
+}
+
+// WithAiemployees tells the query-builder to eager-load the nodes that are connected to
+// the "aiemployees" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AdminQuery) WithAiemployees(opts ...func(*AIEmployeeQuery)) *AdminQuery {
+	query := (&AIEmployeeClient{config: aq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withAiemployees = query
 	return aq
 }
 
@@ -554,9 +590,10 @@ func (aq *AdminQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Admin,
 	var (
 		nodes       = []*Admin{}
 		_spec       = aq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			aq.withLoginHistories != nil,
 			aq.withMyusergroups != nil,
+			aq.withAiemployees != nil,
 			aq.withUsergroups != nil,
 			aq.withRoles != nil,
 			aq.withUserGroupAdmins != nil,
@@ -595,6 +632,13 @@ func (aq *AdminQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Admin,
 		if err := aq.loadMyusergroups(ctx, query, nodes,
 			func(n *Admin) { n.Edges.Myusergroups = []*UserGroup{} },
 			func(n *Admin, e *UserGroup) { n.Edges.Myusergroups = append(n.Edges.Myusergroups, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withAiemployees; query != nil {
+		if err := aq.loadAiemployees(ctx, query, nodes,
+			func(n *Admin) { n.Edges.Aiemployees = []*AIEmployee{} },
+			func(n *Admin, e *AIEmployee) { n.Edges.Aiemployees = append(n.Edges.Aiemployees, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -674,6 +718,36 @@ func (aq *AdminQuery) loadMyusergroups(ctx context.Context, query *UserGroupQuer
 	}
 	query.Where(predicate.UserGroup(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(admin.MyusergroupsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AdminID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "admin_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (aq *AdminQuery) loadAiemployees(ctx context.Context, query *AIEmployeeQuery, nodes []*Admin, init func(*Admin), assign func(*Admin, *AIEmployee)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Admin)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(aiemployee.FieldAdminID)
+	}
+	query.Where(predicate.AIEmployee(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(admin.AiemployeesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

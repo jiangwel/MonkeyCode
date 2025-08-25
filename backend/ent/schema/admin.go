@@ -44,6 +44,7 @@ func (Admin) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("login_histories", AdminLoginHistory.Type),
 		edge.To("myusergroups", UserGroup.Type),
+		edge.To("aiemployees", AIEmployee.Type),
 		edge.From("usergroups", UserGroup.Type).Ref("admins").Through("user_group_admins", UserGroupAdmin.Type),
 		edge.From("roles", Role.Type).Ref("admins").Through("admin_roles", AdminRole.Type),
 	}
