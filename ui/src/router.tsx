@@ -41,6 +41,7 @@ const UserLogin = LazyLoadable(lazy(() => import('@/pages/user/login')));
 const Expectation = LazyLoadable(lazy(() => import('@/pages/expectation')));
 const UserChat = LazyLoadable(lazy(() => import('@/pages/user/chat')));
 const AdminCodeScan = LazyLoadable(lazy(() => import('@/pages/codescan')));
+const AdminEmployee = LazyLoadable(lazy(() => import('@/pages/employee')));
 const UserCodeScan = LazyLoadable(lazy(() => import('@/pages/user/codescan')));
 const UserCompletion = LazyLoadable(
   lazy(() => import('@/pages/user/completion'))
@@ -77,8 +78,8 @@ const routerConfig = [
         element: <Completion />,
       },
       {
-        path: 'model',
-        element: <Model />,
+        path: 'employee',
+        element: <AdminEmployee />,
       },
       {
         path: 'member-management',

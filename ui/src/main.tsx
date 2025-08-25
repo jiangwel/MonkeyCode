@@ -88,8 +88,8 @@ const App = () => {
 
   const handleModelConfig = (res: [DomainModel[], DomainModel[]]) => {
     if ((res[0] || [])?.length == 0 || (res[1] || [])?.length == 0) {
-      if (location.pathname !== '/model') {
-        window.location.href = '/model';
+      if (location.pathname !== '/general-setting') {
+        window.location.href = '/general-setting';
       }
       setIsConfigModel(false);
       return false;
@@ -101,8 +101,8 @@ const App = () => {
         setIsConfigModel(true);
         return true;
       } else {
-        if (location.pathname !== '/model') {
-          window.location.href = '/model';
+        if (location.pathname !== '/general-setting') {
+          window.location.href = '/general-setting';
         }
         setIsConfigModel(false);
         return false;

@@ -10,7 +10,7 @@ import StyledLabel from '@/components/label';
 import { Icon, Modal, message } from '@c-x/ui';
 import { addCommasToNumber } from '@/utils';
 import NoData from '@/assets/images/nodata.png';
-import { ModelModal, Model, DEFAULT_MODEL_PROVIDERS} from '@yokowu/modelkit-ui';
+import { ModelModal, DEFAULT_MODEL_PROVIDERS} from '@yokowu/modelkit-ui';
 import { localModelToModelKitModel, modelService } from '@/pages/model/components/services/modelService';
 
 const ModelItem = ({
@@ -300,7 +300,7 @@ const ModelCard: React.FC<IModelCardProps> = ({
       {data?.length > 0 ? (
         <Grid container spacing={2} sx={{ mt: 2 }}>
           {data.map((item) => (
-            <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6, xl: 4 }} key={item.id}>
+            <Grid size={{ lg: 12, xl: 6 }} key={item.id}>
               <ModelItem data={item} onEdit={onEdit} refresh={refreshModel} />
             </Grid>
           ))}
