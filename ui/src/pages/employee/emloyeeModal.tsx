@@ -5,6 +5,8 @@ import {
   DomainUpdateAIEmployeeReq,
   postAiemployeeCreate,
   putAiemployeeUpdate,
+  postUserAiemployeeCreate,
+  putUserAiemployeeUpdate,
 } from "@/api";
 import { Ellipsis, message, Modal } from "@c-x/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +27,7 @@ import {
 import { useEffect, useState } from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { Controller, useForm } from "react-hook-form";
+import { useLocation } from "react-router-dom";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -61,6 +64,8 @@ const EmloyeeModal = ({
   const [webhookUrl, setWebhookUrl] = useState<
     Pick<DomainAIEmployee, "webhook_url" | "webhook_secret"> | undefined
   >();
+  const { pathname } = useLocation();
+  const isUser = pathname.startsWith("/user/");
   const {
     reset,
     register,
@@ -74,8 +79,8 @@ const EmloyeeModal = ({
   const handleChange = handleSubmit(
     async (data) => {
       const res = await (record
-        ? putAiemployeeUpdate({ ...data, id: record.id })
-        : postAiemployeeCreate(data));
+        ? (isUser ? putUserAiemployeeUpdate : putAiemployeeUpdate)({ ...data, id: record.id })
+        : (isUser ? postUserAiemployeeCreate : postAiemployeeCreate)(data));
       onChanged?.(); // 调用回调函数，刷新列表
       setWebhookUrl(res);
       setWebhookOpen(true);
