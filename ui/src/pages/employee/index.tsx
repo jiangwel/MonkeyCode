@@ -6,6 +6,10 @@ import { Box, Button, Stack } from "@mui/material";
 
 import { deleteAiemployeeDelete, getAiemployeeList } from "@/api/AiEmployee";
 import {
+  deleteUserAiemployeeDelete,
+  getUserAiemployeeList,
+} from "@/api/UserAiEmployee";
+import {
   ConstsRepoPlatform,
   DomainAIEmployee,
   DomainUpdateAIEmployeeReq,
@@ -13,6 +17,7 @@ import {
 import { ColumnsType } from "@c-x/ui/dist/Table";
 import dayjs from "dayjs";
 import EmloyeeModal from "./emloyeeModal";
+import { useLocation } from "react-router-dom";
 
 const gitPlatformIcons = {
   [ConstsRepoPlatform.RepoPlatformGitHub]: "icon-github",
@@ -27,6 +32,8 @@ const EmployeeTaskList = () => {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState<DomainAIEmployee[]>([]);
   const [detail, setDetail] = useState<DomainUpdateAIEmployeeReq | undefined>();
+  const { pathname } = useLocation();
+  const isUser = pathname.startsWith("/user/");
   const [open, setOpen] = useState(false);
   const onClose = () => {
     setOpen(false);
@@ -39,7 +46,7 @@ const EmployeeTaskList = () => {
 
   const fetchData = async (params: { page?: number; size?: number }) => {
     setLoading(true);
-    const res = await getAiemployeeList({
+    const res = await (isUser ? getUserAiemployeeList : getAiemployeeList)({
       page: params.page || page,
       size: params.size || size,
     });
@@ -79,7 +86,9 @@ const EmployeeTaskList = () => {
         </>
       ),
       onOk: () => {
-        deleteAiemployeeDelete({ id: record.id! }).then(() => {
+        (isUser ? deleteUserAiemployeeDelete : deleteAiemployeeDelete)({
+          id: record.id!,
+        }).then(() => {
           message.success("删除成功");
           fetchData({});
         });
@@ -259,6 +268,7 @@ const EmployeeTaskList = () => {
           size="small"
           sx={{ mb: 2, alignSelf: "flex-end" }}
           onClick={() => setOpen(true)}
+          disabled={isUser && total > 0}
         >
           创建 AI 员工
         </Button>

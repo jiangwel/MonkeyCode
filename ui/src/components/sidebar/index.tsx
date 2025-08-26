@@ -41,7 +41,7 @@ const ADMIN_MENUS = [
     show: true,
     disabled: false,
   },
-   {
+  {
     label: 'AI 员工',
     value: '/employee',
     pathname: 'employee',
@@ -97,6 +97,14 @@ const USER_MENUS = [
     value: '/user/codescan',
     pathname: '/user/codescan',
     icon: 'icon-daimaanquan1',
+    show: true,
+    disabled: false,
+  },
+  {
+    label: 'AI 员工',
+    value: '/user/employee',
+    pathname: '/user/employee',
+    icon: 'icon-zhanghao',
     show: true,
     disabled: false,
   },

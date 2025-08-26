@@ -117,6 +117,10 @@ const routerConfig = [
         element: <UserCodeScan />,
       },
       {
+        path: 'employee',
+        element: <AdminEmployee />,
+      },
+      {
         path: 'setting',
         element: <UserSetting />,
       },

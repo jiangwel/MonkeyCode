@@ -1749,6 +1749,27 @@ export interface GetSecurityScanningDetailParams {
   id: string;
 }
 
+export interface GetUserAiemployeeListParams {
+  /** 下一页标识 */
+  next_token?: string;
+  /**
+   * 分页
+   * @min 1
+   * @default 1
+   */
+  page?: number;
+  /**
+   * 每页多少条记录
+   * @min 1
+   * @default 10
+   */
+  size?: number;
+}
+
+export interface GetUserAiemployeeInfoParams {
+  id?: string;
+}
+
 export interface GetUserChatInfoParams {
   /** 对话记录ID */
   id: string;
