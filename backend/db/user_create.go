@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/chaitin/MonkeyCode/backend/consts"
+	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/securityscanning"
@@ -285,6 +286,21 @@ func (uc *UserCreate) AddSecurityScannings(s ...*SecurityScanning) *UserCreate {
 		ids[i] = s[i].ID
 	}
 	return uc.AddSecurityScanningIDs(ids...)
+}
+
+// AddAiemployeeIDs adds the "aiemployees" edge to the AIEmployee entity by IDs.
+func (uc *UserCreate) AddAiemployeeIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddAiemployeeIDs(ids...)
+	return uc
+}
+
+// AddAiemployees adds the "aiemployees" edges to the AIEmployee entity.
+func (uc *UserCreate) AddAiemployees(a ...*AIEmployee) *UserCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uc.AddAiemployeeIDs(ids...)
 }
 
 // AddGroupIDs adds the "groups" edge to the UserGroup entity by IDs.
@@ -586,6 +602,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(securityscanning.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.AiemployeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AiemployeesTable,
+			Columns: []string{user.AiemployeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(aiemployee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -41,4 +41,4 @@ other = "User limit reached"
 other = "Invalid secret"
 
 [err-ai-employee-limit]
-other = "Free edition only support one AI employee"
+other = "AI employee limit reached"

@@ -13,6 +13,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
+	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/ent/types"
 	"github.com/google/uuid"
 )
@@ -24,6 +25,8 @@ type AIEmployee struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// AdminID holds the value of the "admin_id" field.
 	AdminID uuid.UUID `json:"admin_id,omitempty"`
+	// UserID holds the value of the "user_id" field.
+	UserID uuid.UUID `json:"user_id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Position holds the value of the "position" field.
@@ -40,6 +43,8 @@ type AIEmployee struct {
 	WebhookSecret string `json:"webhook_secret,omitempty"`
 	// WebhookURL holds the value of the "webhook_url" field.
 	WebhookURL string `json:"webhook_url,omitempty"`
+	// CreatedBy holds the value of the "created_by" field.
+	CreatedBy consts.CreatedBy `json:"created_by,omitempty"`
 	// Parameters holds the value of the "parameters" field.
 	Parameters *types.AIEmployeeParam `json:"parameters,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -56,9 +61,11 @@ type AIEmployee struct {
 type AIEmployeeEdges struct {
 	// Admin holds the value of the admin edge.
 	Admin *Admin `json:"admin,omitempty"`
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // AdminOrErr returns the Admin value or an error if the edge
@@ -72,6 +79,17 @@ func (e AIEmployeeEdges) AdminOrErr() (*Admin, error) {
 	return nil, &NotLoadedError{edge: "admin"}
 }
 
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AIEmployeeEdges) UserOrErr() (*User, error) {
+	if e.User != nil {
+		return e.User, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "user"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*AIEmployee) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -79,11 +97,11 @@ func (*AIEmployee) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case aiemployee.FieldParameters:
 			values[i] = new([]byte)
-		case aiemployee.FieldName, aiemployee.FieldPosition, aiemployee.FieldRepositoryURL, aiemployee.FieldRepositoryUser, aiemployee.FieldPlatform, aiemployee.FieldToken, aiemployee.FieldWebhookSecret, aiemployee.FieldWebhookURL:
+		case aiemployee.FieldName, aiemployee.FieldPosition, aiemployee.FieldRepositoryURL, aiemployee.FieldRepositoryUser, aiemployee.FieldPlatform, aiemployee.FieldToken, aiemployee.FieldWebhookSecret, aiemployee.FieldWebhookURL, aiemployee.FieldCreatedBy:
 			values[i] = new(sql.NullString)
 		case aiemployee.FieldCreatedAt, aiemployee.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case aiemployee.FieldID, aiemployee.FieldAdminID:
+		case aiemployee.FieldID, aiemployee.FieldAdminID, aiemployee.FieldUserID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -111,6 +129,12 @@ func (ae *AIEmployee) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field admin_id", values[i])
 			} else if value != nil {
 				ae.AdminID = *value
+			}
+		case aiemployee.FieldUserID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value != nil {
+				ae.UserID = *value
 			}
 		case aiemployee.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -160,6 +184,12 @@ func (ae *AIEmployee) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ae.WebhookURL = value.String
 			}
+		case aiemployee.FieldCreatedBy:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field created_by", values[i])
+			} else if value.Valid {
+				ae.CreatedBy = consts.CreatedBy(value.String)
+			}
 		case aiemployee.FieldParameters:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field parameters", values[i])
@@ -198,6 +228,11 @@ func (ae *AIEmployee) QueryAdmin() *AdminQuery {
 	return NewAIEmployeeClient(ae.config).QueryAdmin(ae)
 }
 
+// QueryUser queries the "user" edge of the AIEmployee entity.
+func (ae *AIEmployee) QueryUser() *UserQuery {
+	return NewAIEmployeeClient(ae.config).QueryUser(ae)
+}
+
 // Update returns a builder for updating this AIEmployee.
 // Note that you need to call AIEmployee.Unwrap() before calling this method if this AIEmployee
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -224,6 +259,9 @@ func (ae *AIEmployee) String() string {
 	builder.WriteString("admin_id=")
 	builder.WriteString(fmt.Sprintf("%v", ae.AdminID))
 	builder.WriteString(", ")
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", ae.UserID))
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(ae.Name)
 	builder.WriteString(", ")
@@ -247,6 +285,9 @@ func (ae *AIEmployee) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("webhook_url=")
 	builder.WriteString(ae.WebhookURL)
+	builder.WriteString(", ")
+	builder.WriteString("created_by=")
+	builder.WriteString(fmt.Sprintf("%v", ae.CreatedBy))
 	builder.WriteString(", ")
 	builder.WriteString("parameters=")
 	builder.WriteString(fmt.Sprintf("%v", ae.Parameters))

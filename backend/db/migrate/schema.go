@@ -20,10 +20,12 @@ var (
 		{Name: "token", Type: field.TypeString},
 		{Name: "webhook_secret", Type: field.TypeString},
 		{Name: "webhook_url", Type: field.TypeString},
+		{Name: "created_by", Type: field.TypeString},
 		{Name: "parameters", Type: field.TypeJSON},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "admin_id", Type: field.TypeUUID},
+		{Name: "admin_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// AiEmployeesTable holds the schema information for the "ai_employees" table.
 	AiEmployeesTable = &schema.Table{
@@ -33,9 +35,15 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "ai_employees_admins_aiemployees",
-				Columns:    []*schema.Column{AiEmployeesColumns[12]},
+				Columns:    []*schema.Column{AiEmployeesColumns[13]},
 				RefColumns: []*schema.Column{AdminsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "ai_employees_users_aiemployees",
+				Columns:    []*schema.Column{AiEmployeesColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
@@ -914,6 +922,7 @@ var (
 
 func init() {
 	AiEmployeesTable.ForeignKeys[0].RefTable = AdminsTable
+	AiEmployeesTable.ForeignKeys[1].RefTable = UsersTable
 	AiEmployeesTable.Annotation = &entsql.Annotation{
 		Table: "ai_employees",
 	}

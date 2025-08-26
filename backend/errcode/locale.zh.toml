@@ -41,4 +41,4 @@ other = "用户数量已达上限"
 other = "无效的密钥"
 
 [err-ai-employee-limit]
-other = "开源版只支持创建一个AI员工"
+other = "AI 员工数量已达上限"

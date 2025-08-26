@@ -44,11 +44,11 @@ func init() {
 	aiemployeeFields := schema.AIEmployee{}.Fields()
 	_ = aiemployeeFields
 	// aiemployeeDescCreatedAt is the schema descriptor for created_at field.
-	aiemployeeDescCreatedAt := aiemployeeFields[11].Descriptor()
+	aiemployeeDescCreatedAt := aiemployeeFields[13].Descriptor()
 	// aiemployee.DefaultCreatedAt holds the default value on creation for the created_at field.
 	aiemployee.DefaultCreatedAt = aiemployeeDescCreatedAt.Default.(func() time.Time)
 	// aiemployeeDescUpdatedAt is the schema descriptor for updated_at field.
-	aiemployeeDescUpdatedAt := aiemployeeFields[12].Descriptor()
+	aiemployeeDescUpdatedAt := aiemployeeFields[14].Descriptor()
 	// aiemployee.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	aiemployee.DefaultUpdatedAt = aiemployeeDescUpdatedAt.Default.(func() time.Time)
 	// aiemployee.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

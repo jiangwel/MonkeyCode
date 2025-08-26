@@ -61,13 +61,15 @@ type UserEdges struct {
 	APIKeys []*ApiKey `json:"api_keys,omitempty"`
 	// SecurityScannings holds the value of the security_scannings edge.
 	SecurityScannings []*SecurityScanning `json:"security_scannings,omitempty"`
+	// Aiemployees holds the value of the aiemployees edge.
+	Aiemployees []*AIEmployee `json:"aiemployees,omitempty"`
 	// Groups holds the value of the groups edge.
 	Groups []*UserGroup `json:"groups,omitempty"`
 	// UserGroups holds the value of the user_groups edge.
 	UserGroups []*UserGroupUser `json:"user_groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [11]bool
 }
 
 // LoginHistoriesOrErr returns the LoginHistories value or an error if the edge
@@ -142,10 +144,19 @@ func (e UserEdges) SecurityScanningsOrErr() ([]*SecurityScanning, error) {
 	return nil, &NotLoadedError{edge: "security_scannings"}
 }
 
+// AiemployeesOrErr returns the Aiemployees value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AiemployeesOrErr() ([]*AIEmployee, error) {
+	if e.loadedTypes[8] {
+		return e.Aiemployees, nil
+	}
+	return nil, &NotLoadedError{edge: "aiemployees"}
+}
+
 // GroupsOrErr returns the Groups value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) GroupsOrErr() ([]*UserGroup, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.Groups, nil
 	}
 	return nil, &NotLoadedError{edge: "groups"}
@@ -154,7 +165,7 @@ func (e UserEdges) GroupsOrErr() ([]*UserGroup, error) {
 // UserGroupsOrErr returns the UserGroups value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UserGroupsOrErr() ([]*UserGroupUser, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		return e.UserGroups, nil
 	}
 	return nil, &NotLoadedError{edge: "user_groups"}
@@ -297,6 +308,11 @@ func (u *User) QueryAPIKeys() *ApiKeyQuery {
 // QuerySecurityScannings queries the "security_scannings" edge of the User entity.
 func (u *User) QuerySecurityScannings() *SecurityScanningQuery {
 	return NewUserClient(u.config).QuerySecurityScannings(u)
+}
+
+// QueryAiemployees queries the "aiemployees" edge of the User entity.
+func (u *User) QueryAiemployees() *AIEmployeeQuery {
+	return NewUserClient(u.config).QueryAiemployees(u)
 }
 
 // QueryGroups queries the "groups" edge of the User entity.

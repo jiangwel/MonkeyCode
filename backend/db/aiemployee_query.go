@@ -15,6 +15,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
+	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/google/uuid"
 )
 
@@ -26,6 +27,7 @@ type AIEmployeeQuery struct {
 	inters     []Interceptor
 	predicates []predicate.AIEmployee
 	withAdmin  *AdminQuery
+	withUser   *UserQuery
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -78,6 +80,28 @@ func (aeq *AIEmployeeQuery) QueryAdmin() *AdminQuery {
 			sqlgraph.From(aiemployee.Table, aiemployee.FieldID, selector),
 			sqlgraph.To(admin.Table, admin.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, aiemployee.AdminTable, aiemployee.AdminColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aeq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (aeq *AIEmployeeQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: aeq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aeq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aeq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(aiemployee.Table, aiemployee.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, aiemployee.UserTable, aiemployee.UserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aeq.driver.Dialect(), step)
 		return fromU, nil
@@ -278,6 +302,7 @@ func (aeq *AIEmployeeQuery) Clone() *AIEmployeeQuery {
 		inters:     append([]Interceptor{}, aeq.inters...),
 		predicates: append([]predicate.AIEmployee{}, aeq.predicates...),
 		withAdmin:  aeq.withAdmin.Clone(),
+		withUser:   aeq.withUser.Clone(),
 		// clone intermediate query.
 		sql:       aeq.sql.Clone(),
 		path:      aeq.path,
@@ -293,6 +318,17 @@ func (aeq *AIEmployeeQuery) WithAdmin(opts ...func(*AdminQuery)) *AIEmployeeQuer
 		opt(query)
 	}
 	aeq.withAdmin = query
+	return aeq
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (aeq *AIEmployeeQuery) WithUser(opts ...func(*UserQuery)) *AIEmployeeQuery {
+	query := (&UserClient{config: aeq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aeq.withUser = query
 	return aeq
 }
 
@@ -374,8 +410,9 @@ func (aeq *AIEmployeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*AIEmployee{}
 		_spec       = aeq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			aeq.withAdmin != nil,
+			aeq.withUser != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -405,6 +442,12 @@ func (aeq *AIEmployeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
+	if query := aeq.withUser; query != nil {
+		if err := aeq.loadUser(ctx, query, nodes, nil,
+			func(n *AIEmployee, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -430,6 +473,35 @@ func (aeq *AIEmployeeQuery) loadAdmin(ctx context.Context, query *AdminQuery, no
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "admin_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (aeq *AIEmployeeQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*AIEmployee, init func(*AIEmployee), assign func(*AIEmployee, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*AIEmployee)
+	for i := range nodes {
+		fk := nodes[i].UserID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -468,6 +540,9 @@ func (aeq *AIEmployeeQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if aeq.withAdmin != nil {
 			_spec.Node.AddColumnOnce(aiemployee.FieldAdminID)
+		}
+		if aeq.withUser != nil {
+			_spec.Node.AddColumnOnce(aiemployee.FieldUserID)
 		}
 	}
 	if ps := aeq.predicates; len(ps) > 0 {

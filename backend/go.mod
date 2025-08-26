@@ -3,7 +3,7 @@ module github.com/chaitin/MonkeyCode/backend
 go 1.25.0
 
 require (
-	entgo.io/ent v0.14.5
+	entgo.io/ent v0.14.4
 	github.com/GoYoko/web v1.4.0
 	github.com/chaitin/ModelKit v1.5.1-0.20250822075523-d896029f3d7a
 	github.com/doquangtan/socket.io/v4 v4.0.8

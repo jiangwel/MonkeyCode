@@ -22,3 +22,10 @@ const (
 	RepoPlatformGitee  RepoPlatform = "Gitee"
 	RepoPlatformGitea  RepoPlatform = "Gitea"
 )
+
+type CreatedBy string
+
+const (
+	CreatedByAdmin CreatedBy = "admin"
+	CreatedByUser  CreatedBy = "user"
+)

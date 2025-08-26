@@ -16,6 +16,8 @@ const (
 	FieldID = "id"
 	// FieldAdminID holds the string denoting the admin_id field in the database.
 	FieldAdminID = "admin_id"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldPosition holds the string denoting the position field in the database.
@@ -32,6 +34,8 @@ const (
 	FieldWebhookSecret = "webhook_secret"
 	// FieldWebhookURL holds the string denoting the webhook_url field in the database.
 	FieldWebhookURL = "webhook_url"
+	// FieldCreatedBy holds the string denoting the created_by field in the database.
+	FieldCreatedBy = "created_by"
 	// FieldParameters holds the string denoting the parameters field in the database.
 	FieldParameters = "parameters"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -40,6 +44,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeAdmin holds the string denoting the admin edge name in mutations.
 	EdgeAdmin = "admin"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
 	// Table holds the table name of the aiemployee in the database.
 	Table = "ai_employees"
 	// AdminTable is the table that holds the admin relation/edge.
@@ -49,12 +55,20 @@ const (
 	AdminInverseTable = "admins"
 	// AdminColumn is the table column denoting the admin relation/edge.
 	AdminColumn = "admin_id"
+	// UserTable is the table that holds the user relation/edge.
+	UserTable = "ai_employees"
+	// UserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_id"
 )
 
 // Columns holds all SQL columns for aiemployee fields.
 var Columns = []string{
 	FieldID,
 	FieldAdminID,
+	FieldUserID,
 	FieldName,
 	FieldPosition,
 	FieldRepositoryURL,
@@ -63,6 +77,7 @@ var Columns = []string{
 	FieldToken,
 	FieldWebhookSecret,
 	FieldWebhookURL,
+	FieldCreatedBy,
 	FieldParameters,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -98,6 +113,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByAdminID orders the results by the admin_id field.
 func ByAdminID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAdminID, opts...).ToFunc()
+}
+
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -140,6 +160,11 @@ func ByWebhookURL(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWebhookURL, opts...).ToFunc()
 }
 
+// ByCreatedBy orders the results by the created_by field.
+func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedBy, opts...).ToFunc()
+}
+
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
@@ -156,10 +181,24 @@ func ByAdminField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAdminStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newAdminStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AdminInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, AdminTable, AdminColumn),
+	)
+}
+func newUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
 	)
 }

@@ -59,6 +59,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("workspace_files", WorkspaceFile.Type),
 		edge.To("api_keys", ApiKey.Type),
 		edge.To("security_scannings", SecurityScanning.Type),
+		edge.To("aiemployees", AIEmployee.Type),
 		edge.From("groups", UserGroup.Type).Ref("users").Through("user_groups", UserGroupUser.Type),
 	}
 }
