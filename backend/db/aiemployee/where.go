@@ -62,6 +62,11 @@ func AdminID(v uuid.UUID) predicate.AIEmployee {
 	return predicate.AIEmployee(sql.FieldEQ(FieldAdminID, v))
 }
 
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v uuid.UUID) predicate.AIEmployee {
+	return predicate.AIEmployee(sql.FieldEQ(FieldUserID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.AIEmployee {
 	return predicate.AIEmployee(sql.FieldEQ(FieldName, v))
@@ -104,6 +109,12 @@ func WebhookURL(v string) predicate.AIEmployee {
 	return predicate.AIEmployee(sql.FieldEQ(FieldWebhookURL, v))
 }
 
+// CreatedBy applies equality check predicate on the "created_by" field. It's identical to CreatedByEQ.
+func CreatedBy(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldEQ(FieldCreatedBy, vc))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.AIEmployee {
 	return predicate.AIEmployee(sql.FieldEQ(FieldCreatedAt, v))
@@ -132,6 +143,46 @@ func AdminIDIn(vs ...uuid.UUID) predicate.AIEmployee {
 // AdminIDNotIn applies the NotIn predicate on the "admin_id" field.
 func AdminIDNotIn(vs ...uuid.UUID) predicate.AIEmployee {
 	return predicate.AIEmployee(sql.FieldNotIn(FieldAdminID, vs...))
+}
+
+// AdminIDIsNil applies the IsNil predicate on the "admin_id" field.
+func AdminIDIsNil() predicate.AIEmployee {
+	return predicate.AIEmployee(sql.FieldIsNull(FieldAdminID))
+}
+
+// AdminIDNotNil applies the NotNil predicate on the "admin_id" field.
+func AdminIDNotNil() predicate.AIEmployee {
+	return predicate.AIEmployee(sql.FieldNotNull(FieldAdminID))
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v uuid.UUID) predicate.AIEmployee {
+	return predicate.AIEmployee(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v uuid.UUID) predicate.AIEmployee {
+	return predicate.AIEmployee(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...uuid.UUID) predicate.AIEmployee {
+	return predicate.AIEmployee(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...uuid.UUID) predicate.AIEmployee {
+	return predicate.AIEmployee(sql.FieldNotIn(FieldUserID, vs...))
+}
+
+// UserIDIsNil applies the IsNil predicate on the "user_id" field.
+func UserIDIsNil() predicate.AIEmployee {
+	return predicate.AIEmployee(sql.FieldIsNull(FieldUserID))
+}
+
+// UserIDNotNil applies the NotNil predicate on the "user_id" field.
+func UserIDNotNil() predicate.AIEmployee {
+	return predicate.AIEmployee(sql.FieldNotNull(FieldUserID))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -692,6 +743,90 @@ func WebhookURLContainsFold(v string) predicate.AIEmployee {
 	return predicate.AIEmployee(sql.FieldContainsFold(FieldWebhookURL, v))
 }
 
+// CreatedByEQ applies the EQ predicate on the "created_by" field.
+func CreatedByEQ(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldEQ(FieldCreatedBy, vc))
+}
+
+// CreatedByNEQ applies the NEQ predicate on the "created_by" field.
+func CreatedByNEQ(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldNEQ(FieldCreatedBy, vc))
+}
+
+// CreatedByIn applies the In predicate on the "created_by" field.
+func CreatedByIn(vs ...consts.CreatedBy) predicate.AIEmployee {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.AIEmployee(sql.FieldIn(FieldCreatedBy, v...))
+}
+
+// CreatedByNotIn applies the NotIn predicate on the "created_by" field.
+func CreatedByNotIn(vs ...consts.CreatedBy) predicate.AIEmployee {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.AIEmployee(sql.FieldNotIn(FieldCreatedBy, v...))
+}
+
+// CreatedByGT applies the GT predicate on the "created_by" field.
+func CreatedByGT(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldGT(FieldCreatedBy, vc))
+}
+
+// CreatedByGTE applies the GTE predicate on the "created_by" field.
+func CreatedByGTE(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldGTE(FieldCreatedBy, vc))
+}
+
+// CreatedByLT applies the LT predicate on the "created_by" field.
+func CreatedByLT(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldLT(FieldCreatedBy, vc))
+}
+
+// CreatedByLTE applies the LTE predicate on the "created_by" field.
+func CreatedByLTE(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldLTE(FieldCreatedBy, vc))
+}
+
+// CreatedByContains applies the Contains predicate on the "created_by" field.
+func CreatedByContains(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldContains(FieldCreatedBy, vc))
+}
+
+// CreatedByHasPrefix applies the HasPrefix predicate on the "created_by" field.
+func CreatedByHasPrefix(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldHasPrefix(FieldCreatedBy, vc))
+}
+
+// CreatedByHasSuffix applies the HasSuffix predicate on the "created_by" field.
+func CreatedByHasSuffix(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldHasSuffix(FieldCreatedBy, vc))
+}
+
+// CreatedByEqualFold applies the EqualFold predicate on the "created_by" field.
+func CreatedByEqualFold(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldEqualFold(FieldCreatedBy, vc))
+}
+
+// CreatedByContainsFold applies the ContainsFold predicate on the "created_by" field.
+func CreatedByContainsFold(v consts.CreatedBy) predicate.AIEmployee {
+	vc := string(v)
+	return predicate.AIEmployee(sql.FieldContainsFold(FieldCreatedBy, vc))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.AIEmployee {
 	return predicate.AIEmployee(sql.FieldEQ(FieldCreatedAt, v))
@@ -787,6 +922,29 @@ func HasAdmin() predicate.AIEmployee {
 func HasAdminWith(preds ...predicate.Admin) predicate.AIEmployee {
 	return predicate.AIEmployee(func(s *sql.Selector) {
 		step := newAdminStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUser applies the HasEdge predicate on the "user" edge.
+func HasUser() predicate.AIEmployee {
+	return predicate.AIEmployee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
+func HasUserWith(preds ...predicate.User) predicate.AIEmployee {
+	return predicate.AIEmployee(func(s *sql.Selector) {
+		step := newUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

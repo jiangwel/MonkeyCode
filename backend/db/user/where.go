@@ -886,6 +886,29 @@ func HasSecurityScanningsWith(preds ...predicate.SecurityScanning) predicate.Use
 	})
 }
 
+// HasAiemployees applies the HasEdge predicate on the "aiemployees" edge.
+func HasAiemployees() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AiemployeesTable, AiemployeesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAiemployeesWith applies the HasEdge predicate on the "aiemployees" edge with a given conditions (other predicates).
+func HasAiemployeesWith(preds ...predicate.AIEmployee) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newAiemployeesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasGroups applies the HasEdge predicate on the "groups" edge.
 func HasGroups() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

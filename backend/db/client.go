@@ -584,6 +584,22 @@ func (c *AIEmployeeClient) QueryAdmin(ae *AIEmployee) *AdminQuery {
 	return query
 }
 
+// QueryUser queries the user edge of a AIEmployee.
+func (c *AIEmployeeClient) QueryUser(ae *AIEmployee) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ae.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(aiemployee.Table, aiemployee.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, aiemployee.UserTable, aiemployee.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(ae.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *AIEmployeeClient) Hooks() []Hook {
 	return c.hooks.AIEmployee
@@ -4184,6 +4200,22 @@ func (c *UserClient) QuerySecurityScannings(u *User) *SecurityScanningQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(securityscanning.Table, securityscanning.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.SecurityScanningsTable, user.SecurityScanningsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAiemployees queries the aiemployees edge of a User.
+func (c *UserClient) QueryAiemployees(u *User) *AIEmployeeQuery {
+	query := (&AIEmployeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(aiemployee.Table, aiemployee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AiemployeesTable, user.AiemployeesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

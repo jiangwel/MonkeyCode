@@ -31,7 +31,8 @@ func (AIEmployee) Annotations() []schema.Annotation {
 func (AIEmployee) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}),
-		field.UUID("admin_id", uuid.UUID{}),
+		field.UUID("admin_id", uuid.UUID{}).Optional(),
+		field.UUID("user_id", uuid.UUID{}).Optional(),
 		field.String("name"),
 		field.String("position").GoType(consts.AIEmployeePosition("")),
 		field.String("repository_url"),
@@ -40,6 +41,7 @@ func (AIEmployee) Fields() []ent.Field {
 		field.String("token"),
 		field.String("webhook_secret"),
 		field.String("webhook_url"),
+		field.String("created_by").GoType(consts.CreatedBy("")),
 		field.JSON("parameters", &types.AIEmployeeParam{}),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
@@ -49,6 +51,7 @@ func (AIEmployee) Fields() []ent.Field {
 // Edges of the AIEmployee.
 func (AIEmployee) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("admin", Admin.Type).Ref("aiemployees").Field("admin_id").Unique().Required(),
+		edge.From("admin", Admin.Type).Ref("aiemployees").Field("admin_id").Unique(),
+		edge.From("user", User.Type).Ref("aiemployees").Field("user_id").Unique(),
 	}
 }

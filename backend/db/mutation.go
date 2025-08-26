@@ -105,12 +105,15 @@ type AIEmployeeMutation struct {
 	token           *string
 	webhook_secret  *string
 	webhook_url     *string
+	created_by      *consts.CreatedBy
 	parameters      **types.AIEmployeeParam
 	created_at      *time.Time
 	updated_at      *time.Time
 	clearedFields   map[string]struct{}
 	admin           *uuid.UUID
 	clearedadmin    bool
+	user            *uuid.UUID
+	cleareduser     bool
 	done            bool
 	oldValue        func(context.Context) (*AIEmployee, error)
 	predicates      []predicate.AIEmployee
@@ -251,9 +254,71 @@ func (m *AIEmployeeMutation) OldAdminID(ctx context.Context) (v uuid.UUID, err e
 	return oldValue.AdminID, nil
 }
 
+// ClearAdminID clears the value of the "admin_id" field.
+func (m *AIEmployeeMutation) ClearAdminID() {
+	m.admin = nil
+	m.clearedFields[aiemployee.FieldAdminID] = struct{}{}
+}
+
+// AdminIDCleared returns if the "admin_id" field was cleared in this mutation.
+func (m *AIEmployeeMutation) AdminIDCleared() bool {
+	_, ok := m.clearedFields[aiemployee.FieldAdminID]
+	return ok
+}
+
 // ResetAdminID resets all changes to the "admin_id" field.
 func (m *AIEmployeeMutation) ResetAdminID() {
 	m.admin = nil
+	delete(m.clearedFields, aiemployee.FieldAdminID)
+}
+
+// SetUserID sets the "user_id" field.
+func (m *AIEmployeeMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *AIEmployeeMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (m *AIEmployeeMutation) ClearUserID() {
+	m.user = nil
+	m.clearedFields[aiemployee.FieldUserID] = struct{}{}
+}
+
+// UserIDCleared returns if the "user_id" field was cleared in this mutation.
+func (m *AIEmployeeMutation) UserIDCleared() bool {
+	_, ok := m.clearedFields[aiemployee.FieldUserID]
+	return ok
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *AIEmployeeMutation) ResetUserID() {
+	m.user = nil
+	delete(m.clearedFields, aiemployee.FieldUserID)
 }
 
 // SetName sets the "name" field.
@@ -544,6 +609,42 @@ func (m *AIEmployeeMutation) ResetWebhookURL() {
 	m.webhook_url = nil
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (m *AIEmployeeMutation) SetCreatedBy(cb consts.CreatedBy) {
+	m.created_by = &cb
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *AIEmployeeMutation) CreatedBy() (r consts.CreatedBy, exists bool) {
+	v := m.created_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the AIEmployee entity.
+// If the AIEmployee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AIEmployeeMutation) OldCreatedBy(ctx context.Context) (v consts.CreatedBy, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *AIEmployeeMutation) ResetCreatedBy() {
+	m.created_by = nil
+}
+
 // SetParameters sets the "parameters" field.
 func (m *AIEmployeeMutation) SetParameters(tep *types.AIEmployeeParam) {
 	m.parameters = &tep
@@ -660,7 +761,7 @@ func (m *AIEmployeeMutation) ClearAdmin() {
 
 // AdminCleared reports if the "admin" edge to the Admin entity was cleared.
 func (m *AIEmployeeMutation) AdminCleared() bool {
-	return m.clearedadmin
+	return m.AdminIDCleared() || m.clearedadmin
 }
 
 // AdminIDs returns the "admin" edge IDs in the mutation.
@@ -677,6 +778,33 @@ func (m *AIEmployeeMutation) AdminIDs() (ids []uuid.UUID) {
 func (m *AIEmployeeMutation) ResetAdmin() {
 	m.admin = nil
 	m.clearedadmin = false
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *AIEmployeeMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[aiemployee.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *AIEmployeeMutation) UserCleared() bool {
+	return m.UserIDCleared() || m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *AIEmployeeMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *AIEmployeeMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
 }
 
 // Where appends a list predicates to the AIEmployeeMutation builder.
@@ -713,9 +841,12 @@ func (m *AIEmployeeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AIEmployeeMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 14)
 	if m.admin != nil {
 		fields = append(fields, aiemployee.FieldAdminID)
+	}
+	if m.user != nil {
+		fields = append(fields, aiemployee.FieldUserID)
 	}
 	if m.name != nil {
 		fields = append(fields, aiemployee.FieldName)
@@ -741,6 +872,9 @@ func (m *AIEmployeeMutation) Fields() []string {
 	if m.webhook_url != nil {
 		fields = append(fields, aiemployee.FieldWebhookURL)
 	}
+	if m.created_by != nil {
+		fields = append(fields, aiemployee.FieldCreatedBy)
+	}
 	if m.parameters != nil {
 		fields = append(fields, aiemployee.FieldParameters)
 	}
@@ -760,6 +894,8 @@ func (m *AIEmployeeMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case aiemployee.FieldAdminID:
 		return m.AdminID()
+	case aiemployee.FieldUserID:
+		return m.UserID()
 	case aiemployee.FieldName:
 		return m.Name()
 	case aiemployee.FieldPosition:
@@ -776,6 +912,8 @@ func (m *AIEmployeeMutation) Field(name string) (ent.Value, bool) {
 		return m.WebhookSecret()
 	case aiemployee.FieldWebhookURL:
 		return m.WebhookURL()
+	case aiemployee.FieldCreatedBy:
+		return m.CreatedBy()
 	case aiemployee.FieldParameters:
 		return m.Parameters()
 	case aiemployee.FieldCreatedAt:
@@ -793,6 +931,8 @@ func (m *AIEmployeeMutation) OldField(ctx context.Context, name string) (ent.Val
 	switch name {
 	case aiemployee.FieldAdminID:
 		return m.OldAdminID(ctx)
+	case aiemployee.FieldUserID:
+		return m.OldUserID(ctx)
 	case aiemployee.FieldName:
 		return m.OldName(ctx)
 	case aiemployee.FieldPosition:
@@ -809,6 +949,8 @@ func (m *AIEmployeeMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldWebhookSecret(ctx)
 	case aiemployee.FieldWebhookURL:
 		return m.OldWebhookURL(ctx)
+	case aiemployee.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
 	case aiemployee.FieldParameters:
 		return m.OldParameters(ctx)
 	case aiemployee.FieldCreatedAt:
@@ -830,6 +972,13 @@ func (m *AIEmployeeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAdminID(v)
+		return nil
+	case aiemployee.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
 		return nil
 	case aiemployee.FieldName:
 		v, ok := value.(string)
@@ -887,6 +1036,13 @@ func (m *AIEmployeeMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetWebhookURL(v)
 		return nil
+	case aiemployee.FieldCreatedBy:
+		v, ok := value.(consts.CreatedBy)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
 	case aiemployee.FieldParameters:
 		v, ok := value.(*types.AIEmployeeParam)
 		if !ok {
@@ -937,7 +1093,14 @@ func (m *AIEmployeeMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *AIEmployeeMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(aiemployee.FieldAdminID) {
+		fields = append(fields, aiemployee.FieldAdminID)
+	}
+	if m.FieldCleared(aiemployee.FieldUserID) {
+		fields = append(fields, aiemployee.FieldUserID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -950,6 +1113,14 @@ func (m *AIEmployeeMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *AIEmployeeMutation) ClearField(name string) error {
+	switch name {
+	case aiemployee.FieldAdminID:
+		m.ClearAdminID()
+		return nil
+	case aiemployee.FieldUserID:
+		m.ClearUserID()
+		return nil
+	}
 	return fmt.Errorf("unknown AIEmployee nullable field %s", name)
 }
 
@@ -959,6 +1130,9 @@ func (m *AIEmployeeMutation) ResetField(name string) error {
 	switch name {
 	case aiemployee.FieldAdminID:
 		m.ResetAdminID()
+		return nil
+	case aiemployee.FieldUserID:
+		m.ResetUserID()
 		return nil
 	case aiemployee.FieldName:
 		m.ResetName()
@@ -984,6 +1158,9 @@ func (m *AIEmployeeMutation) ResetField(name string) error {
 	case aiemployee.FieldWebhookURL:
 		m.ResetWebhookURL()
 		return nil
+	case aiemployee.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
 	case aiemployee.FieldParameters:
 		m.ResetParameters()
 		return nil
@@ -999,9 +1176,12 @@ func (m *AIEmployeeMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AIEmployeeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.admin != nil {
 		edges = append(edges, aiemployee.EdgeAdmin)
+	}
+	if m.user != nil {
+		edges = append(edges, aiemployee.EdgeUser)
 	}
 	return edges
 }
@@ -1014,13 +1194,17 @@ func (m *AIEmployeeMutation) AddedIDs(name string) []ent.Value {
 		if id := m.admin; id != nil {
 			return []ent.Value{*id}
 		}
+	case aiemployee.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AIEmployeeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -1032,9 +1216,12 @@ func (m *AIEmployeeMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AIEmployeeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedadmin {
 		edges = append(edges, aiemployee.EdgeAdmin)
+	}
+	if m.cleareduser {
+		edges = append(edges, aiemployee.EdgeUser)
 	}
 	return edges
 }
@@ -1045,6 +1232,8 @@ func (m *AIEmployeeMutation) EdgeCleared(name string) bool {
 	switch name {
 	case aiemployee.EdgeAdmin:
 		return m.clearedadmin
+	case aiemployee.EdgeUser:
+		return m.cleareduser
 	}
 	return false
 }
@@ -1056,6 +1245,9 @@ func (m *AIEmployeeMutation) ClearEdge(name string) error {
 	case aiemployee.EdgeAdmin:
 		m.ClearAdmin()
 		return nil
+	case aiemployee.EdgeUser:
+		m.ClearUser()
+		return nil
 	}
 	return fmt.Errorf("unknown AIEmployee unique edge %s", name)
 }
@@ -1066,6 +1258,9 @@ func (m *AIEmployeeMutation) ResetEdge(name string) error {
 	switch name {
 	case aiemployee.EdgeAdmin:
 		m.ResetAdmin()
+		return nil
+	case aiemployee.EdgeUser:
+		m.ResetUser()
 		return nil
 	}
 	return fmt.Errorf("unknown AIEmployee edge %s", name)
@@ -21038,6 +21233,9 @@ type UserMutation struct {
 	security_scannings        map[uuid.UUID]struct{}
 	removedsecurity_scannings map[uuid.UUID]struct{}
 	clearedsecurity_scannings bool
+	aiemployees               map[uuid.UUID]struct{}
+	removedaiemployees        map[uuid.UUID]struct{}
+	clearedaiemployees        bool
 	groups                    map[uuid.UUID]struct{}
 	removedgroups             map[uuid.UUID]struct{}
 	clearedgroups             bool
@@ -21974,6 +22172,60 @@ func (m *UserMutation) ResetSecurityScannings() {
 	m.removedsecurity_scannings = nil
 }
 
+// AddAiemployeeIDs adds the "aiemployees" edge to the AIEmployee entity by ids.
+func (m *UserMutation) AddAiemployeeIDs(ids ...uuid.UUID) {
+	if m.aiemployees == nil {
+		m.aiemployees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.aiemployees[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAiemployees clears the "aiemployees" edge to the AIEmployee entity.
+func (m *UserMutation) ClearAiemployees() {
+	m.clearedaiemployees = true
+}
+
+// AiemployeesCleared reports if the "aiemployees" edge to the AIEmployee entity was cleared.
+func (m *UserMutation) AiemployeesCleared() bool {
+	return m.clearedaiemployees
+}
+
+// RemoveAiemployeeIDs removes the "aiemployees" edge to the AIEmployee entity by IDs.
+func (m *UserMutation) RemoveAiemployeeIDs(ids ...uuid.UUID) {
+	if m.removedaiemployees == nil {
+		m.removedaiemployees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.aiemployees, ids[i])
+		m.removedaiemployees[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAiemployees returns the removed IDs of the "aiemployees" edge to the AIEmployee entity.
+func (m *UserMutation) RemovedAiemployeesIDs() (ids []uuid.UUID) {
+	for id := range m.removedaiemployees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AiemployeesIDs returns the "aiemployees" edge IDs in the mutation.
+func (m *UserMutation) AiemployeesIDs() (ids []uuid.UUID) {
+	for id := range m.aiemployees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAiemployees resets all changes to the "aiemployees" edge.
+func (m *UserMutation) ResetAiemployees() {
+	m.aiemployees = nil
+	m.clearedaiemployees = false
+	m.removedaiemployees = nil
+}
+
 // AddGroupIDs adds the "groups" edge to the UserGroup entity by ids.
 func (m *UserMutation) AddGroupIDs(ids ...uuid.UUID) {
 	if m.groups == nil {
@@ -22384,7 +22636,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 11)
 	if m.login_histories != nil {
 		edges = append(edges, user.EdgeLoginHistories)
 	}
@@ -22408,6 +22660,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.security_scannings != nil {
 		edges = append(edges, user.EdgeSecurityScannings)
+	}
+	if m.aiemployees != nil {
+		edges = append(edges, user.EdgeAiemployees)
 	}
 	if m.groups != nil {
 		edges = append(edges, user.EdgeGroups)
@@ -22470,6 +22725,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeAiemployees:
+		ids := make([]ent.Value, 0, len(m.aiemployees))
+		for id := range m.aiemployees {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeGroups:
 		ids := make([]ent.Value, 0, len(m.groups))
 		for id := range m.groups {
@@ -22488,7 +22749,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 11)
 	if m.removedlogin_histories != nil {
 		edges = append(edges, user.EdgeLoginHistories)
 	}
@@ -22512,6 +22773,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedsecurity_scannings != nil {
 		edges = append(edges, user.EdgeSecurityScannings)
+	}
+	if m.removedaiemployees != nil {
+		edges = append(edges, user.EdgeAiemployees)
 	}
 	if m.removedgroups != nil {
 		edges = append(edges, user.EdgeGroups)
@@ -22574,6 +22838,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeAiemployees:
+		ids := make([]ent.Value, 0, len(m.removedaiemployees))
+		for id := range m.removedaiemployees {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeGroups:
 		ids := make([]ent.Value, 0, len(m.removedgroups))
 		for id := range m.removedgroups {
@@ -22592,7 +22862,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 11)
 	if m.clearedlogin_histories {
 		edges = append(edges, user.EdgeLoginHistories)
 	}
@@ -22616,6 +22886,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedsecurity_scannings {
 		edges = append(edges, user.EdgeSecurityScannings)
+	}
+	if m.clearedaiemployees {
+		edges = append(edges, user.EdgeAiemployees)
 	}
 	if m.clearedgroups {
 		edges = append(edges, user.EdgeGroups)
@@ -22646,6 +22919,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedapi_keys
 	case user.EdgeSecurityScannings:
 		return m.clearedsecurity_scannings
+	case user.EdgeAiemployees:
+		return m.clearedaiemployees
 	case user.EdgeGroups:
 		return m.clearedgroups
 	case user.EdgeUserGroups:
@@ -22689,6 +22964,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeSecurityScannings:
 		m.ResetSecurityScannings()
+		return nil
+	case user.EdgeAiemployees:
+		m.ResetAiemployees()
 		return nil
 	case user.EdgeGroups:
 		m.ResetGroups()

@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
 	"github.com/chaitin/MonkeyCode/backend/db/apikey"
 	"github.com/chaitin/MonkeyCode/backend/db/model"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
@@ -43,6 +44,7 @@ type UserQuery struct {
 	withWorkspaceFiles    *WorkspaceFileQuery
 	withAPIKeys           *ApiKeyQuery
 	withSecurityScannings *SecurityScanningQuery
+	withAiemployees       *AIEmployeeQuery
 	withGroups            *UserGroupQuery
 	withUserGroups        *UserGroupUserQuery
 	modifiers             []func(*sql.Selector)
@@ -251,6 +253,28 @@ func (uq *UserQuery) QuerySecurityScannings() *SecurityScanningQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(securityscanning.Table, securityscanning.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.SecurityScanningsTable, user.SecurityScanningsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAiemployees chains the current query on the "aiemployees" edge.
+func (uq *UserQuery) QueryAiemployees() *AIEmployeeQuery {
+	query := (&AIEmployeeClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(aiemployee.Table, aiemployee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AiemployeesTable, user.AiemployeesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -502,6 +526,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withWorkspaceFiles:    uq.withWorkspaceFiles.Clone(),
 		withAPIKeys:           uq.withAPIKeys.Clone(),
 		withSecurityScannings: uq.withSecurityScannings.Clone(),
+		withAiemployees:       uq.withAiemployees.Clone(),
 		withGroups:            uq.withGroups.Clone(),
 		withUserGroups:        uq.withUserGroups.Clone(),
 		// clone intermediate query.
@@ -596,6 +621,17 @@ func (uq *UserQuery) WithSecurityScannings(opts ...func(*SecurityScanningQuery))
 		opt(query)
 	}
 	uq.withSecurityScannings = query
+	return uq
+}
+
+// WithAiemployees tells the query-builder to eager-load the nodes that are connected to
+// the "aiemployees" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithAiemployees(opts ...func(*AIEmployeeQuery)) *UserQuery {
+	query := (&AIEmployeeClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAiemployees = query
 	return uq
 }
 
@@ -699,7 +735,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [10]bool{
+		loadedTypes = [11]bool{
 			uq.withLoginHistories != nil,
 			uq.withModels != nil,
 			uq.withTasks != nil,
@@ -708,6 +744,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			uq.withWorkspaceFiles != nil,
 			uq.withAPIKeys != nil,
 			uq.withSecurityScannings != nil,
+			uq.withAiemployees != nil,
 			uq.withGroups != nil,
 			uq.withUserGroups != nil,
 		}
@@ -786,6 +823,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadSecurityScannings(ctx, query, nodes,
 			func(n *User) { n.Edges.SecurityScannings = []*SecurityScanning{} },
 			func(n *User, e *SecurityScanning) { n.Edges.SecurityScannings = append(n.Edges.SecurityScannings, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withAiemployees; query != nil {
+		if err := uq.loadAiemployees(ctx, query, nodes,
+			func(n *User) { n.Edges.Aiemployees = []*AIEmployee{} },
+			func(n *User, e *AIEmployee) { n.Edges.Aiemployees = append(n.Edges.Aiemployees, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1031,6 +1075,36 @@ func (uq *UserQuery) loadSecurityScannings(ctx context.Context, query *SecurityS
 	}
 	query.Where(predicate.SecurityScanning(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.SecurityScanningsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadAiemployees(ctx context.Context, query *AIEmployeeQuery, nodes []*User, init func(*User), assign func(*User, *AIEmployee)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(aiemployee.FieldUserID)
+	}
+	query.Where(predicate.AIEmployee(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.AiemployeesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

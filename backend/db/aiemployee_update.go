@@ -15,6 +15,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
 	"github.com/chaitin/MonkeyCode/backend/db/predicate"
+	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/ent/types"
 	"github.com/google/uuid"
 )
@@ -44,6 +45,32 @@ func (aeu *AIEmployeeUpdate) SetNillableAdminID(u *uuid.UUID) *AIEmployeeUpdate 
 	if u != nil {
 		aeu.SetAdminID(*u)
 	}
+	return aeu
+}
+
+// ClearAdminID clears the value of the "admin_id" field.
+func (aeu *AIEmployeeUpdate) ClearAdminID() *AIEmployeeUpdate {
+	aeu.mutation.ClearAdminID()
+	return aeu
+}
+
+// SetUserID sets the "user_id" field.
+func (aeu *AIEmployeeUpdate) SetUserID(u uuid.UUID) *AIEmployeeUpdate {
+	aeu.mutation.SetUserID(u)
+	return aeu
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (aeu *AIEmployeeUpdate) SetNillableUserID(u *uuid.UUID) *AIEmployeeUpdate {
+	if u != nil {
+		aeu.SetUserID(*u)
+	}
+	return aeu
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (aeu *AIEmployeeUpdate) ClearUserID() *AIEmployeeUpdate {
+	aeu.mutation.ClearUserID()
 	return aeu
 }
 
@@ -159,6 +186,20 @@ func (aeu *AIEmployeeUpdate) SetNillableWebhookURL(s *string) *AIEmployeeUpdate 
 	return aeu
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (aeu *AIEmployeeUpdate) SetCreatedBy(cb consts.CreatedBy) *AIEmployeeUpdate {
+	aeu.mutation.SetCreatedBy(cb)
+	return aeu
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (aeu *AIEmployeeUpdate) SetNillableCreatedBy(cb *consts.CreatedBy) *AIEmployeeUpdate {
+	if cb != nil {
+		aeu.SetCreatedBy(*cb)
+	}
+	return aeu
+}
+
 // SetParameters sets the "parameters" field.
 func (aeu *AIEmployeeUpdate) SetParameters(tep *types.AIEmployeeParam) *AIEmployeeUpdate {
 	aeu.mutation.SetParameters(tep)
@@ -190,6 +231,11 @@ func (aeu *AIEmployeeUpdate) SetAdmin(a *Admin) *AIEmployeeUpdate {
 	return aeu.SetAdminID(a.ID)
 }
 
+// SetUser sets the "user" edge to the User entity.
+func (aeu *AIEmployeeUpdate) SetUser(u *User) *AIEmployeeUpdate {
+	return aeu.SetUserID(u.ID)
+}
+
 // Mutation returns the AIEmployeeMutation object of the builder.
 func (aeu *AIEmployeeUpdate) Mutation() *AIEmployeeMutation {
 	return aeu.mutation
@@ -198,6 +244,12 @@ func (aeu *AIEmployeeUpdate) Mutation() *AIEmployeeMutation {
 // ClearAdmin clears the "admin" edge to the Admin entity.
 func (aeu *AIEmployeeUpdate) ClearAdmin() *AIEmployeeUpdate {
 	aeu.mutation.ClearAdmin()
+	return aeu
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (aeu *AIEmployeeUpdate) ClearUser() *AIEmployeeUpdate {
+	aeu.mutation.ClearUser()
 	return aeu
 }
 
@@ -237,14 +289,6 @@ func (aeu *AIEmployeeUpdate) defaults() {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (aeu *AIEmployeeUpdate) check() error {
-	if aeu.mutation.AdminCleared() && len(aeu.mutation.AdminIDs()) > 0 {
-		return errors.New(`db: clearing a required unique edge "AIEmployee.admin"`)
-	}
-	return nil
-}
-
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (aeu *AIEmployeeUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *AIEmployeeUpdate {
 	aeu.modifiers = append(aeu.modifiers, modifiers...)
@@ -252,9 +296,6 @@ func (aeu *AIEmployeeUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *AI
 }
 
 func (aeu *AIEmployeeUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := aeu.check(); err != nil {
-		return n, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(aiemployee.Table, aiemployee.Columns, sqlgraph.NewFieldSpec(aiemployee.FieldID, field.TypeUUID))
 	if ps := aeu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -287,6 +328,9 @@ func (aeu *AIEmployeeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := aeu.mutation.WebhookURL(); ok {
 		_spec.SetField(aiemployee.FieldWebhookURL, field.TypeString, value)
 	}
+	if value, ok := aeu.mutation.CreatedBy(); ok {
+		_spec.SetField(aiemployee.FieldCreatedBy, field.TypeString, value)
+	}
 	if value, ok := aeu.mutation.Parameters(); ok {
 		_spec.SetField(aiemployee.FieldParameters, field.TypeJSON, value)
 	}
@@ -318,6 +362,35 @@ func (aeu *AIEmployeeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(admin.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if aeu.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   aiemployee.UserTable,
+			Columns: []string{aiemployee.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aeu.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   aiemployee.UserTable,
+			Columns: []string{aiemployee.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -358,6 +431,32 @@ func (aeuo *AIEmployeeUpdateOne) SetNillableAdminID(u *uuid.UUID) *AIEmployeeUpd
 	if u != nil {
 		aeuo.SetAdminID(*u)
 	}
+	return aeuo
+}
+
+// ClearAdminID clears the value of the "admin_id" field.
+func (aeuo *AIEmployeeUpdateOne) ClearAdminID() *AIEmployeeUpdateOne {
+	aeuo.mutation.ClearAdminID()
+	return aeuo
+}
+
+// SetUserID sets the "user_id" field.
+func (aeuo *AIEmployeeUpdateOne) SetUserID(u uuid.UUID) *AIEmployeeUpdateOne {
+	aeuo.mutation.SetUserID(u)
+	return aeuo
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (aeuo *AIEmployeeUpdateOne) SetNillableUserID(u *uuid.UUID) *AIEmployeeUpdateOne {
+	if u != nil {
+		aeuo.SetUserID(*u)
+	}
+	return aeuo
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (aeuo *AIEmployeeUpdateOne) ClearUserID() *AIEmployeeUpdateOne {
+	aeuo.mutation.ClearUserID()
 	return aeuo
 }
 
@@ -473,6 +572,20 @@ func (aeuo *AIEmployeeUpdateOne) SetNillableWebhookURL(s *string) *AIEmployeeUpd
 	return aeuo
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (aeuo *AIEmployeeUpdateOne) SetCreatedBy(cb consts.CreatedBy) *AIEmployeeUpdateOne {
+	aeuo.mutation.SetCreatedBy(cb)
+	return aeuo
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (aeuo *AIEmployeeUpdateOne) SetNillableCreatedBy(cb *consts.CreatedBy) *AIEmployeeUpdateOne {
+	if cb != nil {
+		aeuo.SetCreatedBy(*cb)
+	}
+	return aeuo
+}
+
 // SetParameters sets the "parameters" field.
 func (aeuo *AIEmployeeUpdateOne) SetParameters(tep *types.AIEmployeeParam) *AIEmployeeUpdateOne {
 	aeuo.mutation.SetParameters(tep)
@@ -504,6 +617,11 @@ func (aeuo *AIEmployeeUpdateOne) SetAdmin(a *Admin) *AIEmployeeUpdateOne {
 	return aeuo.SetAdminID(a.ID)
 }
 
+// SetUser sets the "user" edge to the User entity.
+func (aeuo *AIEmployeeUpdateOne) SetUser(u *User) *AIEmployeeUpdateOne {
+	return aeuo.SetUserID(u.ID)
+}
+
 // Mutation returns the AIEmployeeMutation object of the builder.
 func (aeuo *AIEmployeeUpdateOne) Mutation() *AIEmployeeMutation {
 	return aeuo.mutation
@@ -512,6 +630,12 @@ func (aeuo *AIEmployeeUpdateOne) Mutation() *AIEmployeeMutation {
 // ClearAdmin clears the "admin" edge to the Admin entity.
 func (aeuo *AIEmployeeUpdateOne) ClearAdmin() *AIEmployeeUpdateOne {
 	aeuo.mutation.ClearAdmin()
+	return aeuo
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (aeuo *AIEmployeeUpdateOne) ClearUser() *AIEmployeeUpdateOne {
+	aeuo.mutation.ClearUser()
 	return aeuo
 }
 
@@ -564,14 +688,6 @@ func (aeuo *AIEmployeeUpdateOne) defaults() {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (aeuo *AIEmployeeUpdateOne) check() error {
-	if aeuo.mutation.AdminCleared() && len(aeuo.mutation.AdminIDs()) > 0 {
-		return errors.New(`db: clearing a required unique edge "AIEmployee.admin"`)
-	}
-	return nil
-}
-
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (aeuo *AIEmployeeUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *AIEmployeeUpdateOne {
 	aeuo.modifiers = append(aeuo.modifiers, modifiers...)
@@ -579,9 +695,6 @@ func (aeuo *AIEmployeeUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder))
 }
 
 func (aeuo *AIEmployeeUpdateOne) sqlSave(ctx context.Context) (_node *AIEmployee, err error) {
-	if err := aeuo.check(); err != nil {
-		return _node, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(aiemployee.Table, aiemployee.Columns, sqlgraph.NewFieldSpec(aiemployee.FieldID, field.TypeUUID))
 	id, ok := aeuo.mutation.ID()
 	if !ok {
@@ -631,6 +744,9 @@ func (aeuo *AIEmployeeUpdateOne) sqlSave(ctx context.Context) (_node *AIEmployee
 	if value, ok := aeuo.mutation.WebhookURL(); ok {
 		_spec.SetField(aiemployee.FieldWebhookURL, field.TypeString, value)
 	}
+	if value, ok := aeuo.mutation.CreatedBy(); ok {
+		_spec.SetField(aiemployee.FieldCreatedBy, field.TypeString, value)
+	}
 	if value, ok := aeuo.mutation.Parameters(); ok {
 		_spec.SetField(aiemployee.FieldParameters, field.TypeJSON, value)
 	}
@@ -662,6 +778,35 @@ func (aeuo *AIEmployeeUpdateOne) sqlSave(ctx context.Context) (_node *AIEmployee
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(admin.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if aeuo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   aiemployee.UserTable,
+			Columns: []string{aiemployee.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aeuo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   aiemployee.UserTable,
+			Columns: []string{aiemployee.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

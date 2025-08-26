@@ -15,6 +15,7 @@ import (
 	"github.com/chaitin/MonkeyCode/backend/consts"
 	"github.com/chaitin/MonkeyCode/backend/db/admin"
 	"github.com/chaitin/MonkeyCode/backend/db/aiemployee"
+	"github.com/chaitin/MonkeyCode/backend/db/user"
 	"github.com/chaitin/MonkeyCode/backend/ent/types"
 	"github.com/google/uuid"
 )
@@ -30,6 +31,28 @@ type AIEmployeeCreate struct {
 // SetAdminID sets the "admin_id" field.
 func (aec *AIEmployeeCreate) SetAdminID(u uuid.UUID) *AIEmployeeCreate {
 	aec.mutation.SetAdminID(u)
+	return aec
+}
+
+// SetNillableAdminID sets the "admin_id" field if the given value is not nil.
+func (aec *AIEmployeeCreate) SetNillableAdminID(u *uuid.UUID) *AIEmployeeCreate {
+	if u != nil {
+		aec.SetAdminID(*u)
+	}
+	return aec
+}
+
+// SetUserID sets the "user_id" field.
+func (aec *AIEmployeeCreate) SetUserID(u uuid.UUID) *AIEmployeeCreate {
+	aec.mutation.SetUserID(u)
+	return aec
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (aec *AIEmployeeCreate) SetNillableUserID(u *uuid.UUID) *AIEmployeeCreate {
+	if u != nil {
+		aec.SetUserID(*u)
+	}
 	return aec
 }
 
@@ -81,6 +104,12 @@ func (aec *AIEmployeeCreate) SetWebhookURL(s string) *AIEmployeeCreate {
 	return aec
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (aec *AIEmployeeCreate) SetCreatedBy(cb consts.CreatedBy) *AIEmployeeCreate {
+	aec.mutation.SetCreatedBy(cb)
+	return aec
+}
+
 // SetParameters sets the "parameters" field.
 func (aec *AIEmployeeCreate) SetParameters(tep *types.AIEmployeeParam) *AIEmployeeCreate {
 	aec.mutation.SetParameters(tep)
@@ -124,6 +153,11 @@ func (aec *AIEmployeeCreate) SetID(u uuid.UUID) *AIEmployeeCreate {
 // SetAdmin sets the "admin" edge to the Admin entity.
 func (aec *AIEmployeeCreate) SetAdmin(a *Admin) *AIEmployeeCreate {
 	return aec.SetAdminID(a.ID)
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (aec *AIEmployeeCreate) SetUser(u *User) *AIEmployeeCreate {
+	return aec.SetUserID(u.ID)
 }
 
 // Mutation returns the AIEmployeeMutation object of the builder.
@@ -173,9 +207,6 @@ func (aec *AIEmployeeCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (aec *AIEmployeeCreate) check() error {
-	if _, ok := aec.mutation.AdminID(); !ok {
-		return &ValidationError{Name: "admin_id", err: errors.New(`db: missing required field "AIEmployee.admin_id"`)}
-	}
 	if _, ok := aec.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "AIEmployee.name"`)}
 	}
@@ -200,6 +231,9 @@ func (aec *AIEmployeeCreate) check() error {
 	if _, ok := aec.mutation.WebhookURL(); !ok {
 		return &ValidationError{Name: "webhook_url", err: errors.New(`db: missing required field "AIEmployee.webhook_url"`)}
 	}
+	if _, ok := aec.mutation.CreatedBy(); !ok {
+		return &ValidationError{Name: "created_by", err: errors.New(`db: missing required field "AIEmployee.created_by"`)}
+	}
 	if _, ok := aec.mutation.Parameters(); !ok {
 		return &ValidationError{Name: "parameters", err: errors.New(`db: missing required field "AIEmployee.parameters"`)}
 	}
@@ -208,9 +242,6 @@ func (aec *AIEmployeeCreate) check() error {
 	}
 	if _, ok := aec.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`db: missing required field "AIEmployee.updated_at"`)}
-	}
-	if len(aec.mutation.AdminIDs()) == 0 {
-		return &ValidationError{Name: "admin", err: errors.New(`db: missing required edge "AIEmployee.admin"`)}
 	}
 	return nil
 }
@@ -280,6 +311,10 @@ func (aec *AIEmployeeCreate) createSpec() (*AIEmployee, *sqlgraph.CreateSpec) {
 		_spec.SetField(aiemployee.FieldWebhookURL, field.TypeString, value)
 		_node.WebhookURL = value
 	}
+	if value, ok := aec.mutation.CreatedBy(); ok {
+		_spec.SetField(aiemployee.FieldCreatedBy, field.TypeString, value)
+		_node.CreatedBy = value
+	}
 	if value, ok := aec.mutation.Parameters(); ok {
 		_spec.SetField(aiemployee.FieldParameters, field.TypeJSON, value)
 		_node.Parameters = value
@@ -307,6 +342,23 @@ func (aec *AIEmployeeCreate) createSpec() (*AIEmployee, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.AdminID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := aec.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   aiemployee.UserTable,
+			Columns: []string{aiemployee.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -370,6 +422,30 @@ func (u *AIEmployeeUpsert) SetAdminID(v uuid.UUID) *AIEmployeeUpsert {
 // UpdateAdminID sets the "admin_id" field to the value that was provided on create.
 func (u *AIEmployeeUpsert) UpdateAdminID() *AIEmployeeUpsert {
 	u.SetExcluded(aiemployee.FieldAdminID)
+	return u
+}
+
+// ClearAdminID clears the value of the "admin_id" field.
+func (u *AIEmployeeUpsert) ClearAdminID() *AIEmployeeUpsert {
+	u.SetNull(aiemployee.FieldAdminID)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *AIEmployeeUpsert) SetUserID(v uuid.UUID) *AIEmployeeUpsert {
+	u.Set(aiemployee.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AIEmployeeUpsert) UpdateUserID() *AIEmployeeUpsert {
+	u.SetExcluded(aiemployee.FieldUserID)
+	return u
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (u *AIEmployeeUpsert) ClearUserID() *AIEmployeeUpsert {
+	u.SetNull(aiemployee.FieldUserID)
 	return u
 }
 
@@ -469,6 +545,18 @@ func (u *AIEmployeeUpsert) UpdateWebhookURL() *AIEmployeeUpsert {
 	return u
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (u *AIEmployeeUpsert) SetCreatedBy(v consts.CreatedBy) *AIEmployeeUpsert {
+	u.Set(aiemployee.FieldCreatedBy, v)
+	return u
+}
+
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *AIEmployeeUpsert) UpdateCreatedBy() *AIEmployeeUpsert {
+	u.SetExcluded(aiemployee.FieldCreatedBy)
+	return u
+}
+
 // SetParameters sets the "parameters" field.
 func (u *AIEmployeeUpsert) SetParameters(v *types.AIEmployeeParam) *AIEmployeeUpsert {
 	u.Set(aiemployee.FieldParameters, v)
@@ -564,6 +652,34 @@ func (u *AIEmployeeUpsertOne) SetAdminID(v uuid.UUID) *AIEmployeeUpsertOne {
 func (u *AIEmployeeUpsertOne) UpdateAdminID() *AIEmployeeUpsertOne {
 	return u.Update(func(s *AIEmployeeUpsert) {
 		s.UpdateAdminID()
+	})
+}
+
+// ClearAdminID clears the value of the "admin_id" field.
+func (u *AIEmployeeUpsertOne) ClearAdminID() *AIEmployeeUpsertOne {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.ClearAdminID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *AIEmployeeUpsertOne) SetUserID(v uuid.UUID) *AIEmployeeUpsertOne {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AIEmployeeUpsertOne) UpdateUserID() *AIEmployeeUpsertOne {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (u *AIEmployeeUpsertOne) ClearUserID() *AIEmployeeUpsertOne {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.ClearUserID()
 	})
 }
 
@@ -676,6 +792,20 @@ func (u *AIEmployeeUpsertOne) SetWebhookURL(v string) *AIEmployeeUpsertOne {
 func (u *AIEmployeeUpsertOne) UpdateWebhookURL() *AIEmployeeUpsertOne {
 	return u.Update(func(s *AIEmployeeUpsert) {
 		s.UpdateWebhookURL()
+	})
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (u *AIEmployeeUpsertOne) SetCreatedBy(v consts.CreatedBy) *AIEmployeeUpsertOne {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.SetCreatedBy(v)
+	})
+}
+
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *AIEmployeeUpsertOne) UpdateCreatedBy() *AIEmployeeUpsertOne {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.UpdateCreatedBy()
 	})
 }
 
@@ -950,6 +1080,34 @@ func (u *AIEmployeeUpsertBulk) UpdateAdminID() *AIEmployeeUpsertBulk {
 	})
 }
 
+// ClearAdminID clears the value of the "admin_id" field.
+func (u *AIEmployeeUpsertBulk) ClearAdminID() *AIEmployeeUpsertBulk {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.ClearAdminID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *AIEmployeeUpsertBulk) SetUserID(v uuid.UUID) *AIEmployeeUpsertBulk {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AIEmployeeUpsertBulk) UpdateUserID() *AIEmployeeUpsertBulk {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (u *AIEmployeeUpsertBulk) ClearUserID() *AIEmployeeUpsertBulk {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.ClearUserID()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *AIEmployeeUpsertBulk) SetName(v string) *AIEmployeeUpsertBulk {
 	return u.Update(func(s *AIEmployeeUpsert) {
@@ -1059,6 +1217,20 @@ func (u *AIEmployeeUpsertBulk) SetWebhookURL(v string) *AIEmployeeUpsertBulk {
 func (u *AIEmployeeUpsertBulk) UpdateWebhookURL() *AIEmployeeUpsertBulk {
 	return u.Update(func(s *AIEmployeeUpsert) {
 		s.UpdateWebhookURL()
+	})
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (u *AIEmployeeUpsertBulk) SetCreatedBy(v consts.CreatedBy) *AIEmployeeUpsertBulk {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.SetCreatedBy(v)
+	})
+}
+
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *AIEmployeeUpsertBulk) UpdateCreatedBy() *AIEmployeeUpsertBulk {
+	return u.Update(func(s *AIEmployeeUpsert) {
+		s.UpdateCreatedBy()
 	})
 }
 

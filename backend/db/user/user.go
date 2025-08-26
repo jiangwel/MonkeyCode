@@ -50,6 +50,8 @@ const (
 	EdgeAPIKeys = "api_keys"
 	// EdgeSecurityScannings holds the string denoting the security_scannings edge name in mutations.
 	EdgeSecurityScannings = "security_scannings"
+	// EdgeAiemployees holds the string denoting the aiemployees edge name in mutations.
+	EdgeAiemployees = "aiemployees"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
 	// EdgeUserGroups holds the string denoting the user_groups edge name in mutations.
@@ -112,6 +114,13 @@ const (
 	SecurityScanningsInverseTable = "security_scannings"
 	// SecurityScanningsColumn is the table column denoting the security_scannings relation/edge.
 	SecurityScanningsColumn = "user_id"
+	// AiemployeesTable is the table that holds the aiemployees relation/edge.
+	AiemployeesTable = "ai_employees"
+	// AiemployeesInverseTable is the table name for the AIEmployee entity.
+	// It exists in this package in order to avoid circular dependency with the "aiemployee" package.
+	AiemployeesInverseTable = "ai_employees"
+	// AiemployeesColumn is the table column denoting the aiemployees relation/edge.
+	AiemployeesColumn = "user_id"
 	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
 	GroupsTable = "user_group_users"
 	// GroupsInverseTable is the table name for the UserGroup entity.
@@ -339,6 +348,20 @@ func BySecurityScannings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption
 	}
 }
 
+// ByAiemployeesCount orders the results by aiemployees count.
+func ByAiemployeesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAiemployeesStep(), opts...)
+	}
+}
+
+// ByAiemployees orders the results by aiemployees terms.
+func ByAiemployees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAiemployeesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByGroupsCount orders the results by groups count.
 func ByGroupsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -420,6 +443,13 @@ func newSecurityScanningsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SecurityScanningsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SecurityScanningsTable, SecurityScanningsColumn),
+	)
+}
+func newAiemployeesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AiemployeesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AiemployeesTable, AiemployeesColumn),
 	)
 }
 func newGroupsStep() *sqlgraph.Step {
