@@ -13,7 +13,7 @@ type LoginHistory = NonNullable<
 >[number];
 
 const AdminLoginHistory = () => {
-  const { data, loading } = useRequest(() => getAdminLoginHistory({}));
+  const { data, loading } = useRequest(() => getAdminLoginHistory({page: 1, size: 50}));
   const columns: ColumnsType<LoginHistory> = [
     {
       title: '账号',
@@ -79,7 +79,7 @@ const AdminLoginHistory = () => {
         pagination={false}
         rowKey='id'
         loading={loading}
-        sx={{ mx: -2 }}
+        sx={{ mx: -2, maxHeight: '900px', overflow: 'auto' }}
       />
     </Card>
   );

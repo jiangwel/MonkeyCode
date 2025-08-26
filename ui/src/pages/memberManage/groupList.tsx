@@ -30,7 +30,7 @@ const GroupList = () => {
   const [openCreateGroupModal, setOpenCreateGroupModal] = useState(false);
   const [openUpdateGroupModal, setOpenUpdateGroupModal] = useState(false);
   const [currentGroup, setCurrentGroup] = useState<DomainUserGroup | null>(null);
-  const groupData = useRequest(() => getListUserGroup({}));
+  const groupData = useRequest(() => getListUserGroup({page: 1, size: 999}));
   const userData = useRequest(() => getListUser({}));
   const adminData = useRequest(() => getListAdminUser({}));
   
