@@ -151,7 +151,7 @@ const MemberManage = () => {
   const [open, setOpen] = useState(false);
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<DomainUser | null>(null);
-  const { data, loading, refresh } = useRequest(() => getListUser({}));
+  const { data, loading, refresh } = useRequest(() => getListUser({page: 1, size: 999}));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleClick = (
