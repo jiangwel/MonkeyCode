@@ -8,6 +8,7 @@ import MemberStatistic from './components/memberStatistic';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { DomainUser } from '@/api/types';
+import { v1LicenseList } from '@/api';
 
 export type TimeRange = '90d' | '24h';
 
@@ -17,7 +18,9 @@ const Dashboard = () => {
   const [tabValue, setTabValue] = useState(tab || 'global');
   const [memberData, setMemberData] = useState<DomainUser | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>('24h');
-
+  const license = useRequest(() => {
+    return v1LicenseList({})
+  }).data
   const { data: userData, refresh } = useRequest(
     () =>
       getListUser({
@@ -87,7 +90,7 @@ const Dashboard = () => {
           size='small'
           onChange={(e) => setTimeRange(e.target.value as TimeRange)}
           sx={{ fontSize: 14 }}
-          disabled
+          disabled={license?.edition !== 2}
         >
           <MenuItem value='24h'>最近 24 小时</MenuItem>
           <MenuItem value='90d'>最近 90 天</MenuItem>
