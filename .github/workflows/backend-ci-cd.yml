@@ -13,6 +13,16 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci-cd.yml'
+  workflow_dispatch:  # 添加手动触发
+    inputs:
+      build_scanner:
+        description: '是否构建 Scanner 镜像'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+        - 'true'
+        - 'false'
 
 env:
   REGISTRY: chaitin-registry.cn-hangzhou.cr.aliyuncs.com/monkeycode
@@ -134,6 +144,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build and push multi-arch scanner image
+        if: github.event.inputs.build_scanner == 'true'
         uses: docker/build-push-action@v5
         with:
           context: ./backend
