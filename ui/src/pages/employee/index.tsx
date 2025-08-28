@@ -268,7 +268,6 @@ const EmployeeTaskList = () => {
           size="small"
           sx={{ mb: 2, alignSelf: "flex-end" }}
           onClick={() => setOpen(true)}
-          disabled={isUser && total > 0}
         >
           创建 AI 员工
         </Button>
