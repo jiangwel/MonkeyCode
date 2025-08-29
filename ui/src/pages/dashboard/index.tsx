@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getListUser } from '@/api/User';
-import { Stack, MenuItem, Select } from '@mui/material';
+import { Stack, MenuItem, Select, Box } from '@mui/material';
 import { CusTabs } from '@c-x/ui';
 import GlobalStatistic from './components/globalStatistic';
 import { useRequest } from 'ahooks';
@@ -9,7 +9,41 @@ import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { DomainUser } from '@/api/types';
 import { v1LicenseList } from '@/api';
+import { Calendar, RangeValue } from '@/components/ui/calendar';
+import { endOfDay, startOfDay, subDays, subMonths, subWeeks } from 'date-fns';
 
+const get24HoursRange = () => {
+  return {
+    start: startOfDay(subDays(new Date(), 1)),
+    end: endOfDay(new Date()),
+  };
+};
+const presets = {
+  'last-1-days': {
+    text: '最近 24 小时',
+    ...get24HoursRange(),
+  },
+  'last-3-days': {
+    text: '最近 3 天',
+    start: startOfDay(subDays(new Date(), 3)),
+    end: endOfDay(new Date()),
+  },
+  'last-7-days': {
+    text: '最近 7 天',
+    start: startOfDay(subWeeks(new Date(), 1)),
+    end: endOfDay(new Date()),
+  },
+  'last-14-days': {
+    text: '最近 14 天',
+    start: startOfDay(subWeeks(new Date(), 2)),
+    end: endOfDay(new Date()),
+  },
+  'last-month': {
+    text: '最近 1 月',
+    start: startOfDay(subMonths(new Date(), 1)),
+    end: endOfDay(new Date()),
+  },
+};
 export type TimeRange = '90d' | '24h';
 
 const Dashboard = () => {
@@ -17,10 +51,13 @@ const Dashboard = () => {
   const { tab, id } = useParams();
   const [tabValue, setTabValue] = useState(tab || 'global');
   const [memberData, setMemberData] = useState<DomainUser | null>(null);
-  const [timeRange, setTimeRange] = useState<TimeRange>('24h');
+  const [timeRange, setTimeRange] = useState<RangeValue>(
+    presets['last-1-days']
+  );
+
   const license = useRequest(() => {
-    return v1LicenseList({})
-  }).data
+    return v1LicenseList({});
+  }).data;
   const { data: userData, refresh } = useRequest(
     () =>
       getListUser({
@@ -57,10 +94,24 @@ const Dashboard = () => {
     setTabValue(value);
     navigate(`/dashboard/${value}`);
   };
-
+  const handleTimeRangeChange = (value: any) => {
+    if (value) {
+      setTimeRange(value);
+    } else {
+      setTimeRange(get24HoursRange());
+    }
+  };
+  const secondValue = useMemo(() => {
+    return {
+      start_at: timeRange.start
+        ? Math.floor(timeRange.start?.getTime() / 1000)
+        : 0,
+      end_at: timeRange.end ? Math.floor(timeRange.end?.getTime() / 1000) : 0,
+    };
+  }, [timeRange]);
   return (
     <Stack gap={2} sx={{ height: '100%' }}>
-      <Stack direction='row' justifyContent='space-between' alignItems='center'>
+      <Stack direction='row' gap={2} alignItems='center'>
         <CusTabs
           value={tabValue}
           onChange={onTabChange}
@@ -84,26 +135,24 @@ const Dashboard = () => {
             },
           }}
         />
-        <Select
-          labelId='time-range-label'
-          value={timeRange}
-          size='small'
-          onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-          sx={{ fontSize: 14 }}
-          disabled={license?.edition !== 2}
-        >
-          <MenuItem value='24h'>最近 24 小时</MenuItem>
-          <MenuItem value='90d'>最近 90 天</MenuItem>
-        </Select>
+        <Box sx={{ py: '4px', pr: 5 }}>
+          <Calendar
+            isDocsPage
+            disabled={license?.edition !== 2}
+            onChange={handleTimeRangeChange}
+            presets={presets}
+            value={timeRange}
+          />
+        </Box>
       </Stack>
 
-      {tabValue === 'global' && <GlobalStatistic timeRange={timeRange} />}
+      {tabValue === 'global' && <GlobalStatistic timeDuration={secondValue} />}
       {tabValue === 'member' && (
         <MemberStatistic
           memberData={memberData}
           userList={userList}
           onMemberChange={onMemberChange}
-          timeRange={timeRange}
+          timeDuration={secondValue}
         />
       )}
     </Stack>

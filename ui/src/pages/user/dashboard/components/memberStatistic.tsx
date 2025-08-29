@@ -11,7 +11,7 @@ import {
   getUserDashboardStat,
 } from '@/api/UserDashboard';
 import { StyledHighlight } from '@/pages/dashboard/components/globalStatistic';
-import { getRecent90DaysData, getRecent24HoursData } from '@/utils';
+import { getRecentDaysData, getRecent24HoursData } from '@/utils';
 import { DomainUser } from '@/api/types';
 import { TimeRange } from '../index';
 
@@ -68,7 +68,7 @@ const MemberStatistic = ({
     label: { keyLabel?: string; valueLabel?: string } = { valueLabel: 'value' }
   ) => {
     return timeRange === '90d'
-      ? getRecent90DaysData(data, label)
+      ? getRecentDaysData(data, label)
       : getRecent24HoursData(data, label);
   };
 

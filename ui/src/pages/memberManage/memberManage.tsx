@@ -147,13 +147,21 @@ const ResetPasswordModal = ({
 };
 
 const MemberManage = () => {
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<DomainUser | null>(null);
-  const { data, loading, refresh } = useRequest(() => getListUser({page: 1, size: 999}));
+  const { data: originData, loading, refresh } = useRequest(() => getListUser({page: 1, size: 999}));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
+  const [searchUser, setSearchUser] = useState('');
+  const [data, setData] = useState<DomainUser[]>([]);
+  useEffect(()=>{
+    if(searchUser){
+      setData(originData?.users?.filter((item)=>
+        (item.username ||'').toLowerCase()?.includes(searchUser.toLowerCase())) || []);
+    }else {
+      setData(originData?.users || []);
+    }
+  },[searchUser, originData])
   const handleClick = (
     event: React.MouseEvent<HTMLButtonElement>,
     record: DomainUser
@@ -332,7 +340,7 @@ const MemberManage = () => {
       >
         <Box sx={{ fontWeight: 700 }}>成员列表</Box>
         <Stack direction='row' gap={1}>
-          <TextField label='搜索' size='small' />
+          <TextField label='搜索' size='small' onChange={(e)=>setSearchUser(e.target.value)} />
           <Button
             variant='contained'
             color='primary'
@@ -345,7 +353,7 @@ const MemberManage = () => {
       <Table
         columns={columns}
         height='calc(100% - 53px)'
-        dataSource={data?.users || []}
+        dataSource={data || []}
         sx={{ mx: -2 }}
         pagination={false}
         rowKey='id'

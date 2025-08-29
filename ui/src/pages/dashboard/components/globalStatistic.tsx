@@ -1,28 +1,23 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Grid2 as Grid, styled } from '@mui/material';
 import {
-  getStatisticsDashboard,
-  getUserCodeRankDashboard,
-  getTimeStatDashboard,
   getCategoryStatDashboard,
+  getStatisticsDashboard,
+  getTimeStatDashboard,
+  getUserCodeRankDashboard,
 } from '@/api/Dashboard';
+import { SecondTimeRange } from '@/components/ui/calendar';
+import {
+  getRecent60MinutesData,
+  getRecentDaysData,
+  getRecent24HoursData as getRecentHoursData,
+  getTimeRange,
+} from '@/utils';
+import { Grid2 as Grid, styled } from '@mui/material';
 import { useRequest } from 'ahooks';
-import { UserCard } from './statisticCard';
+import { useMemo } from 'react';
+import BarCharts from './barCharts';
 import LineCharts from './lineCharts';
 import PieCharts from './pieCharts';
-import BarCharts from './barCharts';
-import { ContributionCard } from './statisticCard';
-import {
-  getRecent90DaysData,
-  getRecent60MinutesData,
-  getRecent24HoursData,
-} from '@/utils';
-import { TimeRange } from '../index';
-
-interface TimeDuration {
-  duration: number;
-  precision: 'day' | 'hour';
-}
+import { ContributionCard, UserCard } from './statisticCard';
 
 export const StyledHighlight = styled('span')(({ theme }) => ({
   fontSize: 12,
@@ -30,12 +25,11 @@ export const StyledHighlight = styled('span')(({ theme }) => ({
   padding: '0 4px',
 }));
 
-const GlobalStatistic = ({ timeRange }: { timeRange: TimeRange }) => {
-  const [timeDuration, settimeDuration] = useState<TimeDuration>({
-    duration: timeRange === '90d' ? 90 : 24,
-    precision: timeRange === '90d' ? 'day' : 'hour',
-  });
-
+const GlobalStatistic = ({
+  timeDuration,
+}: {
+  timeDuration: SecondTimeRange;
+}) => {
   const { data: statisticsData } = useRequest(getStatisticsDashboard);
 
   const { data: userCodeRankData } = useRequest(
@@ -60,15 +54,15 @@ const GlobalStatistic = ({ timeRange }: { timeRange: TimeRange }) => {
   } = useRequest(() => getCategoryStatDashboard(timeDuration), {
     refreshDeps: [timeDuration],
   });
-
+  const precision = useMemo(() => getTimeRange(timeDuration), [timeDuration]);
   const getRangeData = (
     data: Record<string, number>[],
-    timeRange: TimeRange,
+    precision: 'day' | 'hour',
     label: { keyLabel?: string; valueLabel?: string } = { valueLabel: 'value' }
   ) => {
-    return timeRange === '90d'
-      ? getRecent90DaysData(data, label)
-      : getRecent24HoursData(data, label);
+    return precision === 'day'
+      ? getRecentDaysData(data, label)
+      : getRecentHoursData(data, label);
   };
 
   const {
@@ -89,21 +83,14 @@ const GlobalStatistic = ({ timeRange }: { timeRange: TimeRange }) => {
     } = timeStatData || {};
     const label = { valueLabel: 'value' };
     return {
-      userActiveChartData: getRangeData(active_users, timeRange, label),
-      chatChartData: getRangeData(chats, timeRange, label),
-      codeCompletionChartData: getRangeData(code_completions, timeRange, label),
-      codeLineChartData: getRangeData(lines_of_code, timeRange, label),
+      userActiveChartData: getRangeData(active_users, precision, label),
+      chatChartData: getRangeData(chats, precision, label),
+      codeCompletionChartData: getRangeData(code_completions, precision, label),
+      codeLineChartData: getRangeData(lines_of_code, precision, label),
       realTimeTokenChartData: getRecent60MinutesData(real_time_tokens, label),
-      acceptedPerChartData: getRangeData(accepted_per, timeRange, label),
+      acceptedPerChartData: getRangeData(accepted_per, precision, label),
     };
-  }, [timeStatData]);
-
-  useEffect(() => {
-    settimeDuration({
-      duration: timeRange === '90d' ? 90 : 24,
-      precision: timeRange === '90d' ? 'day' : 'hour',
-    });
-  }, [timeRange]);
+  }, [timeStatData, precision]);
 
   return (
     <Grid
@@ -123,7 +110,7 @@ const GlobalStatistic = ({ timeRange }: { timeRange: TimeRange }) => {
           data={userActiveChartData}
           extra={
             <>
-              {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}共
+              共
               <StyledHighlight>
                 {timeStatData?.total_users || 0}
               </StyledHighlight>
@@ -133,20 +120,18 @@ const GlobalStatistic = ({ timeRange }: { timeRange: TimeRange }) => {
         />
       </Grid>
       <Grid size={3}>
-        <ContributionCard data={userCodeRankData} timeRange={timeRange} />
+        <ContributionCard data={userCodeRankData} />
       </Grid>
       <Grid size={4}>
         <PieCharts
           title='工作模式-对话任务'
           data={categoryStatData.work_mode || []}
-          extra={timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}
         />
       </Grid>
       <Grid size={4}>
         <PieCharts
           title='编程语言'
           data={categoryStatData.program_language || []}
-          extra={timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}
         />
       </Grid>
       <Grid size={4}>
@@ -162,7 +147,7 @@ const GlobalStatistic = ({ timeRange }: { timeRange: TimeRange }) => {
           data={chatChartData}
           extra={
             <>
-              {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}共
+              共
               <StyledHighlight>
                 {timeStatData?.total_chats || 0}
               </StyledHighlight>
@@ -177,7 +162,7 @@ const GlobalStatistic = ({ timeRange }: { timeRange: TimeRange }) => {
           data={codeCompletionChartData}
           extra={
             <>
-              {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}共
+              共
               <StyledHighlight>
                 {timeStatData?.total_completions || 0}
               </StyledHighlight>
@@ -192,7 +177,7 @@ const GlobalStatistic = ({ timeRange }: { timeRange: TimeRange }) => {
           data={codeLineChartData}
           extra={
             <>
-              {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}共修改
+              共修改
               <StyledHighlight>
                 {timeStatData?.total_lines_of_code || 0}
               </StyledHighlight>
@@ -208,7 +193,7 @@ const GlobalStatistic = ({ timeRange }: { timeRange: TimeRange }) => {
           formatValueTooltip={(value) => `${value.toFixed(2)}%`}
           extra={
             <>
-              {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}平均采纳率为
+              平均采纳率为
               <StyledHighlight>
                 {(timeStatData?.total_accepted_per || 0).toFixed(2)}
               </StyledHighlight>

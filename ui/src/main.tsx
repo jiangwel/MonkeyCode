@@ -7,6 +7,8 @@ import '@/assets/fonts/iconfont';
 import './index.css';
 import '@/assets/styles/markdown.css';
 import { ThemeProvider } from '@c-x/ui';
+import { zhCN } from 'date-fns/locale/zh-CN';
+import { setDefaultOptions } from 'date-fns';
 
 // 配置 Monaco Editor 环境
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
@@ -51,7 +53,7 @@ import { getRedirectUrl } from './utils';
 dayjs.locale('zh-cn');
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
-
+setDefaultOptions({ locale: zhCN });
 const App = () => {
   const [user, setUser] = useState<DomainUser | DomainAdminUser | null>(null);
   const [loading, setLoading] = useState(true);

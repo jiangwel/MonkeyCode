@@ -1,20 +1,24 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import {
+  DomainUser,
+  DomainUserHeatmap,
+  DomainUserHeatmapResp,
+} from '@/api/types';
+import Avatar from '@/components/avatar';
 import Card from '@/components/card';
-import dayjs from 'dayjs';
+import { Icon } from '@c-x/ui';
 import {
   Box,
-  Stack,
-  Tooltip,
-  useTheme,
   IconButton,
   Menu,
   MenuItem,
+  Stack,
+  TextField,
+  Tooltip,
+  useTheme,
 } from '@mui/material';
+import dayjs from 'dayjs';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityCalendar } from 'react-activity-calendar';
-import { DomainUserHeatmap, DomainUserHeatmapResp } from '@/api/types';
-import { DomainUser } from '@/api/types';
-import Avatar from '@/components/avatar';
-import { Icon } from '@c-x/ui';
 
 const getRecent1YearData = (
   data: DomainUserHeatmap[] = [],
@@ -58,30 +62,34 @@ const useActivityCalendarAutoScroll = () => {
       '.react-activity-calendar [style*="overflow"]',
       '.react-activity-calendar > div:first-child',
     ];
-    
+
     let scrollContainer: HTMLElement | null = null;
-    
+
     // 按优先级尝试找到滚动容器
     for (const selector of selectors) {
       scrollContainer = document.querySelector(selector);
-      if (scrollContainer && scrollContainer.scrollWidth > scrollContainer.clientWidth) {
+      if (
+        scrollContainer &&
+        scrollContainer.scrollWidth > scrollContainer.clientWidth
+      ) {
         break;
       }
     }
-    
+
     if (scrollContainer) {
       // 滚动到最右侧（最新数据）
-      scrollContainer.scrollLeft = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+      scrollContainer.scrollLeft =
+        scrollContainer.scrollWidth - scrollContainer.clientWidth;
     }
   }, []);
-  
+
   const setupAutoScroll = useCallback(() => {
     // 延迟执行确保组件完全渲染
     const timeoutId = setTimeout(scrollToLatest, 100);
-    
+
     // 使用ResizeObserver监听容器大小变化
     let resizeObserver: ResizeObserver | null = null;
-    
+
     const setupResizeObserver = () => {
       const container = document.querySelector('.react-activity-calendar');
       if (container && 'ResizeObserver' in window) {
@@ -94,10 +102,10 @@ const useActivityCalendarAutoScroll = () => {
         window.addEventListener('resize', scrollToLatest);
       }
     };
-    
+
     // 延迟设置ResizeObserver确保DOM已渲染
     const observerTimeoutId = setTimeout(setupResizeObserver, 150);
-    
+
     // 清理函数
     return () => {
       clearTimeout(timeoutId);
@@ -109,33 +117,36 @@ const useActivityCalendarAutoScroll = () => {
       }
     };
   }, [scrollToLatest]);
-  
+
   return { setupAutoScroll };
 };
 
 // 简化的blockSize计算Hook - 保持原有大小
 const useBlockSize = (containerRef: React.RefObject<HTMLElement>) => {
   const [blockSize, setBlockSize] = useState(8);
-  
+
   useEffect(() => {
     const calculateBlockSize = () => {
       if (!containerRef.current) return;
-      
+
       const containerWidth = containerRef.current.offsetWidth;
       const baseWidth = 980;
       const blockIncrement = 54;
-      
+
       // 只在桌面端进行计算，保持原有逻辑
-      const increment = Math.max(0, Math.ceil((containerWidth - baseWidth) / blockIncrement));
+      const increment = Math.max(
+        0,
+        Math.ceil((containerWidth - baseWidth) / blockIncrement)
+      );
       setBlockSize(increment + 8);
     };
-    
+
     // 初始计算
     calculateBlockSize();
-    
+
     // 使用ResizeObserver监听容器大小变化
     let resizeObserver: ResizeObserver | null = null;
-    
+
     if ('ResizeObserver' in window && containerRef.current) {
       resizeObserver = new ResizeObserver(calculateBlockSize);
       resizeObserver.observe(containerRef.current);
@@ -143,7 +154,7 @@ const useBlockSize = (containerRef: React.RefObject<HTMLElement>) => {
       // 降级方案
       window.addEventListener('resize', calculateBlockSize);
     }
-    
+
     return () => {
       if (resizeObserver) {
         resizeObserver.disconnect();
@@ -152,7 +163,7 @@ const useBlockSize = (containerRef: React.RefObject<HTMLElement>) => {
       }
     };
   }, [containerRef]);
-  
+
   return blockSize;
 };
 
@@ -171,19 +182,35 @@ const MemberInfo = ({
   const ref = useRef<HTMLDivElement>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-  
+  const [searchUser, setSearchUser] = useState('');
+  const [filterUser, setFilterUser] = useState<DomainUser[]>([]);
+
+  useEffect(() => {
+    if (searchUser) {
+      setFilterUser(
+        userList?.filter((item) =>
+          (item.username || '')
+            .toLowerCase()
+            ?.includes(searchUser.toLowerCase())
+        ) || []
+      );
+    } else {
+      setFilterUser(userList || []);
+    }
+  }, [searchUser, userList]);
   // 使用自定义Hooks
   const blockSize = useBlockSize(ref as React.RefObject<HTMLElement>);
   const { setupAutoScroll } = useActivityCalendarAutoScroll();
-  
+
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
-  
+
   const handleClose = () => {
     setAnchorEl(null);
+    setSearchUser('');
   };
-  
+
   // 设置自动滚动
   useEffect(() => {
     const cleanup = setupAutoScroll();
@@ -218,9 +245,30 @@ const MemberInfo = ({
             anchorEl={anchorEl}
             open={open}
             onClose={handleClose}
+            autoFocus={false}
+            disableAutoFocusItem={false}
+            slotProps={{
+              paper: {
+                sx: {
+                  p: 1,
+                  maxHeight: '200px',
+                },
+              },
+            }}
           >
-            {userList?.map((item) => (
+            <TextField
+              label='搜索'
+              size='small'
+              onChange={(e) => {
+                e.stopPropagation();
+                setSearchUser(e.target.value);
+              }}
+              value={searchUser}
+              sx={{ mb: 1, position: 'sticky', top: '10px', zIndex: 1000 }}
+            />
+            {filterUser?.map((item) => (
               <MenuItem
+                autoFocus={false}
                 key={item.id}
                 selected={memberData?.id === item.id}
                 onClick={() => {

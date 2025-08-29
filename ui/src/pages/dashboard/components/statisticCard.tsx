@@ -1,18 +1,17 @@
-import { useState } from 'react';
-import { styled, Stack, Box } from '@mui/material';
 import { Empty } from '@c-x/ui';
+import { Box, Stack, styled } from '@mui/material';
 import dayjs from 'dayjs';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TimeRange } from '../index';
 import ContributionModal from './contributionModal';
 
-import Card from '@/components/card';
 import {
   DomainStatistics,
   DomainUserCodeRank,
   DomainUserEvent,
 } from '@/api/types';
 import Avatar from '@/components/avatar';
+import Card from '@/components/card';
 
 const StyledCardLabel = styled('div')(({ theme }) => ({
   fontSize: '14px',
@@ -58,10 +57,8 @@ export const StyledSerialNumber = styled('span')<{ num: number }>(
 
 export const ContributionCard = ({
   data = [],
-  timeRange,
 }: {
   data?: DomainUserCodeRank[];
-  timeRange: TimeRange;
 }) => {
   const navigate = useNavigate();
   const [contributionModalOpen, setContributionModalOpen] = useState(false);
@@ -92,9 +89,6 @@ export const ContributionCard = ({
             查看更多
           </Box>
         </Stack>
-        <Box sx={{ fontSize: 12, color: 'text.tertiary' }}>
-          {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}
-        </Box>
       </Stack>
 
       <Box
