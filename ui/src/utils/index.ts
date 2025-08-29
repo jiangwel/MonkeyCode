@@ -1,5 +1,6 @@
 import { Decimal } from 'decimal.js';
 import dayjs from 'dayjs';
+import { SecondTimeRange } from '@/components/ui/calendar';
 
 /**
  * 格式化时间
@@ -154,7 +155,7 @@ export const getRedirectUrl = (source: 'user' | 'admin' = 'admin') => {
   return redirectUrl as URL;
 };
 
-export const getRecent90DaysData = (
+export const getRecentDaysData = (
   data: Record<string, number>[] = [],
   label: { keyLabel?: string; valueLabel?: string } = {}
 ) => {
@@ -264,4 +265,12 @@ export const getBaseLanguageId = (languageId: string): string => {
     py: 'python',
   };
   return map[languageId] || languageId;
+};
+
+export const getTimeRange = (timeDuration: SecondTimeRange) => {
+  const diff = timeDuration.end_at - timeDuration.start_at;
+  if (diff > 24 * 60 * 60 * 1000) {
+    return 'day';
+  }
+  return 'hour';
 };

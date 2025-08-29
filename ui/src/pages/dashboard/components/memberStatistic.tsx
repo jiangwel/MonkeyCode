@@ -1,48 +1,41 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Grid2 as Grid } from '@mui/material';
-import { useParams } from 'react-router-dom';
-import MemberInfo from './memberInfo';
-import PieCharts from './pieCharts';
-import LineCharts from './lineCharts';
-import { RecentActivityCard } from './statisticCard';
-import { useRequest } from 'ahooks';
 import {
   getUserEventsDashboard,
-  getUserStatDashboard,
   getUserHeatmapDashboard,
+  getUserStatDashboard,
 } from '@/api/Dashboard';
-import { StyledHighlight } from './globalStatistic';
-import { getRecent90DaysData, getRecent24HoursData } from '@/utils';
 import { DomainUser } from '@/api/types';
-import { TimeRange } from '../index';
+import { SecondTimeRange } from '@/components/ui/calendar';
+import { getRecent24HoursData, getRecentDaysData, getTimeRange } from '@/utils';
+import { Grid2 as Grid } from '@mui/material';
+import { useRequest } from 'ahooks';
+import { useMemo } from 'react';
+import { useParams } from 'react-router-dom';
+import { StyledHighlight } from './globalStatistic';
+import LineCharts from './lineCharts';
+import MemberInfo from './memberInfo';
+import PieCharts from './pieCharts';
+import { RecentActivityCard } from './statisticCard';
 
-interface TimeDuration {
-  duration: number;
-  precision: 'day' | 'hour';
-}
+type Precision = 'day' | 'hour';
 
 const MemberStatistic = ({
   memberData,
   userList,
   onMemberChange,
-  timeRange,
+  timeDuration,
 }: {
   memberData: DomainUser | null;
   userList: DomainUser[];
   onMemberChange: (data: DomainUser) => void;
-  timeRange: TimeRange;
+  timeDuration: SecondTimeRange;
 }) => {
-  const [timeDuration, setTimeDuration] = useState<TimeDuration>({
-    duration: timeRange === '90d' ? 90 : 24,
-    precision: timeRange === '90d' ? 'day' : 'hour',
-  });
-
   const { id } = useParams();
+  const precision = useMemo(() => getTimeRange(timeDuration), [timeDuration]);
   const { data: userEvents } = useRequest(
     () =>
       getUserEventsDashboard({
         user_id: id || '',
-        precision: timeDuration.precision,
+        precision,
       }),
     {
       refreshDeps: [id],
@@ -74,20 +67,13 @@ const MemberStatistic = ({
     }
   );
 
-  useEffect(() => {
-    setTimeDuration({
-      duration: timeRange === '90d' ? 90 : 24,
-      precision: timeRange === '90d' ? 'day' : 'hour',
-    });
-  }, [timeRange]);
-
   const getRangeData = (
     data: Record<string, number>[],
-    timeRange: TimeRange,
+    precision: Precision,
     label: { keyLabel?: string; valueLabel?: string } = { valueLabel: 'value' }
   ) => {
-    return timeRange === '90d'
-      ? getRecent90DaysData(data, label)
+    return precision === 'day'
+      ? getRecentDaysData(data, label)
       : getRecent24HoursData(data, label);
   };
 
@@ -104,14 +90,14 @@ const MemberStatistic = ({
       lines_of_code = [],
     } = userStat || {};
     const label = { valueLabel: 'value' };
-    const chatChartData = getRangeData(chats, timeRange, label);
+    const chatChartData = getRangeData(chats, precision, label);
     const codeCompletionChartData = getRangeData(
       code_completions,
-      timeRange,
+      precision,
       label
     );
-    const codeLineChartData = getRangeData(lines_of_code, timeRange, label);
-    const acceptedPerChartData = getRangeData(accepted_per, timeRange, label);
+    const codeLineChartData = getRangeData(lines_of_code, precision, label);
+    const acceptedPerChartData = getRangeData(accepted_per, precision, label);
     return {
       chatChartData,
       codeCompletionChartData,
@@ -140,16 +126,11 @@ const MemberStatistic = ({
         <Grid size={6}>
           <PieCharts
             title='工作模式-对话任务'
-            extra={timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}
             data={userStat?.work_mode || []}
           />
         </Grid>
         <Grid size={6}>
-          <PieCharts
-            title='编程语言'
-            extra={timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}
-            data={userStat?.program_language || []}
-          />
+          <PieCharts title='编程语言' data={userStat?.program_language || []} />
         </Grid>
       </Grid>
       <Grid size={3}>
@@ -161,8 +142,7 @@ const MemberStatistic = ({
           data={chatChartData}
           extra={
             <>
-              {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}共
-              <StyledHighlight>{userStat?.total_chats || 0}</StyledHighlight>
+              共<StyledHighlight>{userStat?.total_chats || 0}</StyledHighlight>
               个对话任务
             </>
           }
@@ -174,7 +154,7 @@ const MemberStatistic = ({
           data={codeCompletionChartData}
           extra={
             <>
-              {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}共
+              共
               <StyledHighlight>
                 {userStat?.total_completions || 0}
               </StyledHighlight>
@@ -189,7 +169,7 @@ const MemberStatistic = ({
           data={codeLineChartData}
           extra={
             <>
-              {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}共修改
+              共修改
               <StyledHighlight>
                 {userStat?.total_lines_of_code || 0}
               </StyledHighlight>
@@ -205,7 +185,7 @@ const MemberStatistic = ({
           formatValueTooltip={(value) => `${value.toFixed(2)}%`}
           extra={
             <>
-              {timeRange === '90d' ? '最近 90 天' : '最近 24 小时'}平均采纳率为
+              平均采纳率为
               <StyledHighlight>
                 {(userStat?.total_accepted_per || 0).toFixed(2)}
               </StyledHighlight>

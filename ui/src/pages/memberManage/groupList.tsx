@@ -15,6 +15,7 @@ import {
   Select,
   Chip,
   SelectChangeEvent,
+  TextField,
 } from '@mui/material';
 import { Table, Modal, message } from '@c-x/ui';
 import { ColumnsType } from '@c-x/ui/dist/Table';
@@ -33,9 +34,18 @@ const GroupList = () => {
   const groupData = useRequest(() => getListUserGroup({page: 1, size: 999}));
   const userData = useRequest(() => getListUser({}));
   const adminData = useRequest(() => getListAdminUser({}));
-  
+  const [searchUser, setSearchUser] = useState('');
+  const [data, setData] = useState<DomainUserGroup[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
+    useEffect(()=>{
+    if(searchUser){
+      setData(groupData?.data?.groups?.filter((item)=>
+        (item.name ||'').toLowerCase()?.includes(searchUser.toLowerCase())) || []);
+    }else {
+      setData(groupData?.data?.groups || []);
+    }
+  },[searchUser, groupData])
   const handleClick = (
     event: React.MouseEvent<HTMLButtonElement>,
     record: DomainUserGroup
@@ -275,6 +285,7 @@ const GroupList = () => {
       >
         <Box sx={{ fontWeight: 700 }}>成员组</Box>
         <Stack direction='row' gap={1}>
+          <TextField label='搜索' size='small' onChange={(e)=>setSearchUser(e.target.value)} />
           <Button
             variant='contained'
             color='primary'
@@ -285,7 +296,7 @@ const GroupList = () => {
       <Table
         columns={columns}
         height='calc(100% - 53px)'
-        dataSource={groupData.data?.groups || []}
+        dataSource={data}
         sx={{ mx: -2 }}
         pagination={false}
         rowKey='id'

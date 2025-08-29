@@ -1594,69 +1594,53 @@ export interface V1CliCreateParams {
 }
 
 export interface GetCategoryStatDashboardParams {
-  /**
-   * 持续时间 (小时或天数)`
-   * @min 24
-   * @max 90
-   * @default 90
-   */
+  /** 持续时间 (小时或天数)` */
   duration?: number;
-  /**
-   * 精度: "hour", "day"
-   * @default "day"
-   */
-  precision: "hour" | "day";
+  /** 结束时间, 时间范围优先级高于精度选择 */
+  end_at?: number;
+  /** 精度: "hour", "day" */
+  precision?: string;
+  /** 开始时间, 时间范围优先级高于精度选择 */
+  start_at?: number;
   /** 用户ID，可选参数 */
   user_id?: string;
 }
 
 export interface GetTimeStatDashboardParams {
-  /**
-   * 持续时间 (小时或天数)`
-   * @min 24
-   * @max 90
-   * @default 90
-   */
+  /** 持续时间 (小时或天数)` */
   duration?: number;
-  /**
-   * 精度: "hour", "day"
-   * @default "day"
-   */
-  precision: "hour" | "day";
+  /** 结束时间, 时间范围优先级高于精度选择 */
+  end_at?: number;
+  /** 精度: "hour", "day" */
+  precision?: string;
+  /** 开始时间, 时间范围优先级高于精度选择 */
+  start_at?: number;
   /** 用户ID，可选参数 */
   user_id?: string;
 }
 
 export interface GetUserCodeRankDashboardParams {
-  /**
-   * 持续时间 (小时或天数)`
-   * @min 24
-   * @max 90
-   * @default 90
-   */
+  /** 持续时间 (小时或天数)` */
   duration?: number;
-  /**
-   * 精度: "hour", "day"
-   * @default "day"
-   */
-  precision: "hour" | "day";
+  /** 结束时间, 时间范围优先级高于精度选择 */
+  end_at?: number;
+  /** 精度: "hour", "day" */
+  precision?: string;
+  /** 开始时间, 时间范围优先级高于精度选择 */
+  start_at?: number;
   /** 用户ID，可选参数 */
   user_id?: string;
 }
 
 export interface GetUserEventsDashboardParams {
-  /**
-   * 持续时间 (小时或天数)`
-   * @min 24
-   * @max 90
-   * @default 90
-   */
+  /** 持续时间 (小时或天数)` */
   duration?: number;
-  /**
-   * 精度: "hour", "day"
-   * @default "day"
-   */
-  precision: "hour" | "day";
+  /** 结束时间, 时间范围优先级高于精度选择 */
+  end_at?: number;
+  /** 精度: "hour", "day" */
+  precision?: string;
+  /** 开始时间, 时间范围优先级高于精度选择 */
+  start_at?: number;
   /** 用户ID，可选参数 */
   user_id?: string;
 }
@@ -1667,18 +1651,14 @@ export interface GetUserHeatmapDashboardParams {
 }
 
 export interface GetUserStatDashboardParams {
-  /**
-   * 持续时间 (小时或天数)`
-   * @min 24
-   * @max 90
-   * @default 90
-   */
+  /** 持续时间 (小时或天数)` */
   duration?: number;
-  /**
-   * 精度: "hour", "day"
-   * @default "day"
-   */
-  precision: "hour" | "day";
+  /** 结束时间, 时间范围优先级高于精度选择 */
+  end_at?: number;
+  /** 精度: "hour", "day" */
+  precision?: string;
+  /** 开始时间, 时间范围优先级高于精度选择 */
+  start_at?: number;
   /** 用户ID，可选参数 */
   user_id?: string;
 }
@@ -1880,35 +1860,27 @@ export interface GetUserListCompletionRecordParams {
 }
 
 export interface GetUserDashboardEventsParams {
-  /**
-   * 持续时间 (小时或天数)`
-   * @min 24
-   * @max 90
-   * @default 90
-   */
+  /** 持续时间 (小时或天数)` */
   duration?: number;
-  /**
-   * 精度: "hour", "day"
-   * @default "day"
-   */
-  precision: "hour" | "day";
+  /** 结束时间, 时间范围优先级高于精度选择 */
+  end_at?: number;
+  /** 精度: "hour", "day" */
+  precision?: string;
+  /** 开始时间, 时间范围优先级高于精度选择 */
+  start_at?: number;
   /** 用户ID，可选参数 */
   user_id?: string;
 }
 
 export interface GetUserDashboardStatParams {
-  /**
-   * 持续时间 (小时或天数)`
-   * @min 24
-   * @max 90
-   * @default 90
-   */
+  /** 持续时间 (小时或天数)` */
   duration?: number;
-  /**
-   * 精度: "hour", "day"
-   * @default "day"
-   */
-  precision: "hour" | "day";
+  /** 结束时间, 时间范围优先级高于精度选择 */
+  end_at?: number;
+  /** 精度: "hour", "day" */
+  precision?: string;
+  /** 开始时间, 时间范围优先级高于精度选择 */
+  start_at?: number;
   /** 用户ID，可选参数 */
   user_id?: string;
 }

@@ -4,7 +4,7 @@ import { Stack, Box, styled } from '@mui/material';
 import LineCharts from './lineCharts';
 import { useRequest } from 'ahooks';
 import { getGetTokenUsage } from '@/api/Model';
-import { addCommasToNumber, getRecent90DaysData } from '@/utils';
+import { addCommasToNumber, getRecentDaysData } from '@/utils';
 import { DomainModelTokenUsage } from '@/api/types';
 
 export const StyledHighlight = styled('span')(({ theme }) => ({
@@ -35,10 +35,10 @@ const TokenUsage = () => {
 
   const { llmInputData, llmOutputData } = useMemo(() => {
     return {
-      llmInputData: getRecent90DaysData(
+      llmInputData: getRecentDaysData(
         (llmModelData?.input_usage as Required<DomainModelTokenUsage>[]) || []
       ),
-      llmOutputData: getRecent90DaysData(
+      llmOutputData: getRecentDaysData(
         (llmModelData?.output_usage as Required<DomainModelTokenUsage>[]) || []
       ),
     };
@@ -46,10 +46,10 @@ const TokenUsage = () => {
 
   const { coderInputData, coderOutputData } = useMemo(() => {
     return {
-      coderInputData: getRecent90DaysData(
+      coderInputData: getRecentDaysData(
         (coderModelData?.input_usage as Required<DomainModelTokenUsage>[]) || []
       ),
-      coderOutputData: getRecent90DaysData(
+      coderOutputData: getRecentDaysData(
         (coderModelData?.output_usage as Required<DomainModelTokenUsage>[]) ||
           []
       ),
